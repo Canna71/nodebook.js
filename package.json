@@ -52,7 +52,6 @@
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1",
     "handsontable": "^15.3.0",
-    "hyperformula": "^3.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   }
