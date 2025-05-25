@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import { useReactiveSystem, useReactiveValue, useReactiveFormula } from "src/Engine/ReactiveProvider";
+import { useReactiveSystem, useReactiveValue, useReactiveFormula } from "../Engine/ReactiveProvider";
 
-function PricingCalculator() {
+export function PricingCalculator() {
   const { formulaEngine } = useReactiveSystem();
   const [price, setPrice] = useReactiveValue<number>('price', 100);
   const [quantity, setQuantity] = useReactiveValue<number>('quantity', 1);

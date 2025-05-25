@@ -1,4 +1,6 @@
 import React from 'react'
+import { PricingCalculator } from './PricingCalculator';
+import { ReactiveProvider } from '../Engine/ReactiveProvider';
 
 export default function App() {
 
@@ -18,6 +20,9 @@ export default function App() {
                 onClick={handleClick}
                 
             >Click Me</button>
+            <ReactiveProvider>
+                <PricingCalculator />
+            </ReactiveProvider>
         </div>
     )
 }
