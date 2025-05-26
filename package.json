@@ -47,7 +47,10 @@
     "eslint-plugin-import": "^2.25.0",
     "ts-node": "^10.0.0",
     "typescript": "5.8.3",
-    "vite": "6.3.4"
+    "vite": "6.3.4",
+    "anylogger": "^1.0.11",
+    "ulog": "2.0.0-beta.19"
+
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1",

@@ -1,3 +1,6 @@
+import anylogger from "anylogger";
+
+const log = anylogger("ReactiveSystem");
 /**
  * Interface for a reactive value
  */
@@ -306,7 +309,7 @@ export class ReactiveFormulaEngine {
       sum: (...args: number[]) => args.reduce((a, b) => a + b, 0),
       avg: (...args: number[]) => args.length ? args.reduce((a, b) => a + b, 0) / args.length : 0,
       count: (...args: any[]) => args.length,
-      if: (condition: boolean, trueValue: any, falseValue: any) => condition ? trueValue : falseValue,
+      when: (condition: boolean, trueValue: any, falseValue: any) => condition ? trueValue : falseValue,
       ...options.customFunctions
     };
   }
@@ -391,7 +394,9 @@ export class ReactiveFormulaEngine {
         const evaluateFormula = new Function(...Object.keys(context), `return ${processedFormula};`);
         
         // Evaluate the formula
-        return evaluateFormula(...Object.values(context)) as T;
+        const val = evaluateFormula(...Object.values(context)) as T;
+        log.debug(`Evaluating formula "${formula}" resulted in:`, val);
+        return val;
       } catch (error) {
         console.error(`Error evaluating formula "${formula}":`, error);
         throw new FormulaError(`Error evaluating formula: ${error instanceof Error ? error.message : String(error)}`);
