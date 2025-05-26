@@ -40,7 +40,7 @@ class ReactiveValue<T> implements IReactiveValue<T> {
       this.isComputing = true;
       try {
         const newValue = this.computeFn();
-        this.setValue(newValue, false); // Don't trigger recompute
+        this.setValue(newValue, false); // Don't trigger recompute during initial get
       } finally {
         this.isComputing = false;
       }
@@ -86,7 +86,17 @@ class ReactiveValue<T> implements IReactiveValue<T> {
    */
   public addDependency(reactiveValue: IReactiveValue<any>): void {
     this.dependencies.add(reactiveValue);
-    reactiveValue.subscribe(() => this.get()); // Recompute when dependency changes
+    reactiveValue.subscribe(() => {
+      if (this.computeFn && !this.isComputing) {
+        this.isComputing = true;
+        try {
+          const newValue = this.computeFn();
+          this.setValue(newValue, true); // Enable propagation when dependency changes
+        } finally {
+          this.isComputing = false;
+        }
+      }
+    });
   }
 
   /**
