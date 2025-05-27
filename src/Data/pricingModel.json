@@ -1,0 +1,103 @@
+{
+  "title": "Pricing Calculator",
+  "description": "Calculate total pricing with discounts",
+  "reactiveValues": [
+    {
+      "name": "price",
+      "defaultValue": 100,
+      "type": "number"
+    },
+    {
+      "name": "quantity",
+      "defaultValue": 1,
+      "type": "number"
+    },
+    {
+      "name": "discountPercent",
+      "defaultValue": 0,
+      "type": "number"
+    }
+  ],
+  "formulas": [
+    {
+      "name": "subtotal",
+      "formula": "$price * $quantity"
+    },
+    {
+      "name": "discount",
+      "formula": "$subtotal * ($discountPercent / 100)"
+    },
+    {
+      "name": "total",
+      "formula": "$subtotal - $discount"
+    }
+  ],
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "header",
+      "content": "<h2>Pricing Calculator</h2><p>Configure your pricing parameters below:</p>"
+    },
+    {
+      "type": "input",
+      "id": "price-input",
+      "label": "Price ($)",
+      "inputType": "number",
+      "variableName": "price",
+      "defaultValue": 100,
+      "props": {
+        "min": 0,
+        "step": 0.01
+      }
+    },
+    {
+      "type": "input",
+      "id": "quantity-input",
+      "label": "Quantity",
+      "inputType": "number",
+      "variableName": "quantity",
+      "defaultValue": 1,
+      "props": {
+        "min": 1,
+        "step": 1
+      }
+    },
+    {
+      "type": "input",
+      "id": "discount-input",
+      "label": "Discount (%)",
+      "inputType": "range",
+      "variableName": "discountPercent",
+      "defaultValue": 0,
+      "props": {
+        "min": 0,
+        "max": 100,
+        "step": 1
+      }
+    },
+    {
+      "type": "markdown",
+      "id": "results-header",
+      "content": "<h3>Results:</h3>"
+    },
+    {
+      "type": "markdown",
+      "id": "subtotal-display",
+      "content": "**Subtotal:** {{subtotal}}",
+      "variables": ["subtotal"]
+    },
+    {
+      "type": "markdown",
+      "id": "discount-display",
+      "content": "**Discount:** {{discount}}",
+      "variables": ["discount"]
+    },
+    {
+      "type": "formula",
+      "id": "total-display",
+      "variableName": "total",
+      "formula": "$total",
+      "outputFormat": "currency"
+    }
+  ]
+}
