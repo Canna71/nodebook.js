@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { NotebookModel, CellDefinition, InputCellDefinition, MarkdownCellDefinition, FormulaCellDefinition } from '../Types/NotebookModel';
 import { useReactiveSystem, useReactiveValue, useReactiveFormula } from '../Engine/ReactiveProvider';
+import { renderMarkdownWithValues } from '../Engine/markdown';
 
 interface DynamicNotebookProps {
   model: NotebookModel;
@@ -8,20 +9,24 @@ interface DynamicNotebookProps {
 
 export function DynamicNotebook({ model }: DynamicNotebookProps) {
   const { reactiveStore, formulaEngine } = useReactiveSystem();
+  const [initialized, setInitialized] = React.useState(false);
 
   // Initialize reactive values and formulas
   useEffect(() => {
-    // Initialize reactive values
+    // Initialize reactive values first
     model.reactiveValues.forEach(valueDefinition => {
       if (!reactiveStore.get(valueDefinition.name)) {
         reactiveStore.define(valueDefinition.name, valueDefinition.defaultValue);
       }
     });
 
-    // Initialize formulas
+    // Initialize formulas after reactive values
     model.formulas.forEach(formulaDefinition => {
       formulaEngine.createFormula(formulaDefinition.name, formulaDefinition.formula);
     });
+
+    // Mark as initialized to trigger markdown cell rendering
+    setInitialized(true);
   }, [model, reactiveStore, formulaEngine]);
 
   const renderCell = (cell: CellDefinition) => {
@@ -29,7 +34,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
       case 'input':
         return <InputCell key={cell.id} definition={cell} />;
       case 'markdown':
-        return <MarkdownCell key={cell.id} definition={cell} />;
+        return <MarkdownCell key={cell.id} definition={cell} initialized={initialized} />;
       case 'formula':
         return <FormulaCell key={cell.id} definition={cell} />;
       default:
@@ -127,39 +132,53 @@ function InputCell({ definition }: { definition: InputCellDefinition }) {
   );
 }
 
-function MarkdownCell({ definition }: { definition: MarkdownCellDefinition }) {
+function MarkdownCell({ definition, initialized }: { definition: MarkdownCellDefinition; initialized: boolean }) {
   const { reactiveStore } = useReactiveSystem();
   const [renderedContent, setRenderedContent] = React.useState(definition.content);
 
   useEffect(() => {
+    if (!initialized) return; // Wait for initialization
+
+    const updateContent = () => {
+      if (definition.variables && definition.variables.length > 0) {
+        // Get all calculated values
+        const calculatedValues: { [key: string]: any } = {};
+        definition.variables.forEach(varName => {
+          const value = reactiveStore.getValue(varName);
+          calculatedValues[varName] = value;
+          console.log(`Variable ${varName}:`, value); // Debug log
+        });
+        
+        console.log('Calculated values:', calculatedValues); // Debug log
+        
+        // Use the markdown renderer with values
+        const rendered = renderMarkdownWithValues(definition.content, calculatedValues);
+        console.log('Rendered content:', rendered); // Debug log
+        setRenderedContent(rendered);
+      } else {
+        setRenderedContent(definition.content);
+      }
+    };
+
     if (definition.variables && definition.variables.length > 0) {
       // Subscribe to all variables mentioned in this cell
       const unsubscribers = definition.variables.map(varName => {
-        return reactiveStore.subscribe(varName, () => {
+        return reactiveStore.subscribe(varName, (value) => {
+          console.log(`Variable ${varName} changed to:`, value); // Debug log
           updateContent();
         });
       });
 
+      // Initial render
       updateContent();
 
       return () => {
         unsubscribers.forEach(unsub => unsub?.());
       };
+    } else {
+      updateContent();
     }
-  }, [definition, reactiveStore]);
-
-  const updateContent = () => {
-    let content = definition.content;
-    
-    // Replace {{variableName}} with actual values
-    definition.variables?.forEach(varName => {
-      const value = reactiveStore.getValue(varName);
-      const regex = new RegExp(`\\{\\{${varName}\\}\\}`, 'g');
-      content = content.replace(regex, value?.toString() || '');
-    });
-
-    setRenderedContent(content);
-  };
+  }, [definition, reactiveStore, initialized]);
 
   return (
     <div className="cell markdown-cell">

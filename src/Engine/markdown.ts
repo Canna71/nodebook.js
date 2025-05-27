@@ -1,20 +1,23 @@
-
 // Custom markdown renderer
 interface CalculatedValues {
     [key: string]: any;
 }
 
-function renderMarkdownWithValues(markdownText: string, calculatedValues: CalculatedValues): string {
+export function renderMarkdownWithValues(markdownText: string, calculatedValues: CalculatedValues): string {
     return markdownText.replace(/\{\{([^}]+)\}\}/g, (match: string, expression: string) => {
         // Parse expression (e.g., "revenue | currency")
         const [varName, filter] = expression.split('|').map(s => s.trim());
         const value = calculatedValues[varName];
         
+        if (value === undefined || value === null) {
+            return '—'; // Return dash for undefined values
+        }
+        
         // Apply filters
         if (filter) {
             return applyFilter(value, filter);
         }
-        return value;
+        return String(value);
     });
 }
 
@@ -40,7 +43,8 @@ function applyFilter(value: any, filter: string): string {
     const filterFunction = filters[filterName as keyof Filters];
     
     if (!filterFunction) {
-        throw new Error(`Unknown filter: ${filterName}`);
+        console.warn(`Unknown filter: ${filterName}`);
+        return String(value);
     }
     
     return filterFunction(value, ...args.map(Number));

@@ -83,13 +83,13 @@
     {
       "type": "markdown",
       "id": "subtotal-display",
-      "content": "**Subtotal:** {{subtotal}}",
+      "content": "**Subtotal:** ${{subtotal | round,2}}",
       "variables": ["subtotal"]
     },
     {
       "type": "markdown",
       "id": "discount-display",
-      "content": "**Discount:** {{discount}}",
+      "content": "**Discount:** ${{discount | round,2}}",
       "variables": ["discount"]
     },
     {
