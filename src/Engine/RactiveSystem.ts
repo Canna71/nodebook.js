@@ -542,6 +542,7 @@ export class CodeCellEngine {
               if (prop === 'get') return context.get;
               if (prop === 'console') return context.console;
               if (prop === 'Math') return context.Math;
+              if (prop === 'moduleExports') return target.moduleExports;
               
               // Track dependency and return reactive value
               dependencies.add(prop);
@@ -554,24 +555,46 @@ export class CodeCellEngine {
           has: (target, prop) => {
             // Return true for any string property to make variables appear "defined"
             return typeof prop === 'string';
+          },
+          set: (target, prop, value) => {
+            if (typeof prop === 'string') {
+              target[prop] = value;
+              return true;
+            }
+            return false;
           }
         });
       };
 
-      // Create safe execution function using 'with' statement simulation
+      // Transform the code to capture ES6 exports
+      const transformedCode = this.transformCodeForExports(code);
+
+      // Create safe execution function that returns exports
       const executeCode = new Function(
-        'proxyContext',
+        'proxyContext', 'moduleExports',
         `
-        // Use destructuring to bring variables into scope while maintaining proxy behavior
+        // Make moduleExports available in the proxy context
+        proxyContext.moduleExports = moduleExports;
+        
+        // Use with statement to bring variables into scope
         with (proxyContext) {
-          ${code}
+          ${transformedCode}
         }
+        
+        return moduleExports;
         `
       );
 
-      // Execute the code with the tracking proxy
+      // Execute the code with the tracking proxy and a fresh moduleExports object
       const proxyContext = createTrackingProxy();
-      executeCode(proxyContext);
+      const moduleExports = {};
+      const result = executeCode(proxyContext, moduleExports);
+
+      // Extract exports from the module
+      Object.entries(result).forEach(([name, value]) => {
+        exports.push(name);
+        exportValues.set(name, value);
+      });
 
       // Check if exports have actually changed
       const cellInfo = this.executedCells.get(cellId);
@@ -619,6 +642,48 @@ export class CodeCellEngine {
     } finally {
       this.executingCells.delete(cellId);
     }
+  }
+
+  /**
+   * Transform code to handle ES6 exports
+   */
+  private transformCodeForExports(code: string): string {
+    // Transform various export patterns with more robust regex
+    let transformedCode = code
+      // Handle: export const name = value;
+      .replace(/export\s+const\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^;\n]+);?/g, 
+        (match, name, value) => {
+          const result = `const ${name} = ${value};\nmoduleExports.${name} = ${name};`;
+          log.debug(`Transforming export const ${name}:`, result);
+          return result;
+        })
+      // Handle: export let name = value;
+      .replace(/export\s+let\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^;\n]+);?/g, 
+        (match, name, value) => {
+          const result = `let ${name} = ${value};\nmoduleExports.${name} = ${name};`;
+          log.debug(`Transforming export let ${name}:`, result);
+          return result;
+        })
+      // Handle: export var name = value;
+      .replace(/export\s+var\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^;\n]+);?/g, 
+        (match, name, value) => {
+          const result = `var ${name} = ${value};\nmoduleExports.${name} = ${name};`;
+          log.debug(`Transforming export var ${name}:`, result);
+          return result;
+        })
+      // Handle: export { name1, name2 };
+      .replace(/export\s*\{\s*([^}]+)\s*\};?/g, (match, names) => {
+        const nameList = names.split(',').map((n: string) => n.trim());
+        const result = nameList.map((name: string) => `moduleExports.${name} = ${name};`).join('\n');
+        log.debug(`Transforming export block:`, result);
+        return result;
+      });
+
+    // Add debug logging to see what's being transformed
+    log.debug('Original code:', code);
+    log.debug('Transformed code:', transformedCode);
+
+    return transformedCode;
   }
 
   /**
