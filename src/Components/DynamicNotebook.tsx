@@ -236,11 +236,11 @@ function FormulaCell({ definition }: { definition: FormulaCellDefinition }) {
 
 // Add CodeCell component for display purposes
 function CodeCell({ definition, initialized }: { definition: CodeCellDefinition; initialized: boolean }) {
-  const { codeCellEngine, reactiveStore } = useReactiveSystem();
+  const { codeCellEngine } = useReactiveSystem();
   const [exports, setExports] = React.useState<string[]>([]);
   const [error, setError] = React.useState<Error | null>(null);
   const [dependencies, setDependencies] = React.useState<string[]>([]);
-  const [output, setOutput] = React.useState<string>('');
+  const [consoleOutput, setConsoleOutput] = React.useState<any[]>([]);
 
   useEffect(() => {
     if (!initialized) return;
@@ -249,32 +249,71 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
       setError(null);
       const newExports = codeCellEngine.executeCodeCell(definition.id, definition.code);
       const newDependencies = codeCellEngine.getCellDependencies(definition.id);
-      const cellOutput = codeCellEngine.getCellOutputText(definition.id);
+      const rawOutput = codeCellEngine.getCellOutput(definition.id);
       
       setExports(newExports);
       setDependencies(newDependencies);
-      setOutput(cellOutput);
+      setConsoleOutput(rawOutput);
     } catch (err) {
       setError(err as Error);
       setExports([]);
       setDependencies([]);
       // Get output even on error (it might contain error info)
-      const cellOutput = codeCellEngine.getCellOutputText(definition.id);
-      setOutput(cellOutput);
+      const rawOutput = codeCellEngine.getCellOutput(definition.id);
+      setConsoleOutput(rawOutput);
     }
   }, [initialized, definition.id, definition.code, codeCellEngine]);
 
-  // Helper to render export values beautifully
-  const renderExportValue = (varName: string) => {
-    const value = reactiveStore.getValue(varName);
+  // Render individual console output line
+  const renderConsoleOutput = (output: any, index: number) => {
+    const prefix = output.type === 'log' ? '' : `[${output.type.toUpperCase()}] `;
     
-    // For objects and arrays, use ObjectDisplay
-    if (value && typeof value === 'object') {
-      return <ObjectDisplay data={value} name={varName} collapsed={true} />;
+    if (output.isObject && output.data) {
+      return (
+        <div key={index} className="console-line mb-3">
+          <div className="mb-1">
+            <span className="text-xs text-gray-300">{prefix}</span>
+          </div>
+          <div className="ml-0">
+            {Array.isArray(output.data) ? (
+              // Mixed arguments - render each one appropriately
+              <div className="space-y-2">
+                {output.data.map((arg: any, argIndex: number) => (
+                  <div key={argIndex}>
+                    {arg.type === 'object' ? (
+                      <ObjectDisplay 
+                        data={arg.data} 
+                        theme="monokai" 
+                        collapsed={false}
+                        displayDataTypes={false}
+                        displayObjectSize={false}
+                      />
+                    ) : (
+                      <span className="text-green-400 font-mono text-sm">{arg.message}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // Single object
+              <ObjectDisplay 
+                data={output.data} 
+                theme="monokai" 
+                collapsed={false}
+                displayDataTypes={false}
+                displayObjectSize={false}
+              />
+            )}
+          </div>
+        </div>
+      );
     }
     
-    // For primitives, just show as string
-    return <span className="font-mono text-sm">{JSON.stringify(value)}</span>;
+    return (
+      <div key={index} className="console-line">
+        <span className="text-xs">{prefix}{output.message}</span>
+      </div>
+    );
   };
 
   return (
@@ -288,6 +327,11 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
             </span>
           )}
         </div>
+        {exports.length > 0 && (
+          <div className="mt-1 text-xs text-gray-600">
+            <strong>Exports:</strong> {exports.join(', ')}
+          </div>
+        )}
       </div>
       
       <pre className="code-content bg-gray-900 text-green-400 px-4 py-3 overflow-x-auto">
@@ -295,10 +339,12 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
       </pre>
       
       {/* Console Output Display */}
-      {output && (
+      {consoleOutput.length > 0 && (
         <div className="console-output bg-black text-green-400 px-4 py-3 border-t border-gray-700">
           <div className="text-xs font-medium text-gray-300 mb-2">Console Output:</div>
-          <pre className="text-xs font-mono whitespace-pre-wrap">{output}</pre>
+          <div className="space-y-1">
+            {consoleOutput.map((output, index) => renderConsoleOutput(output, index))}
+          </div>
         </div>
       )}
       
@@ -306,20 +352,6 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
         <div className="code-error bg-red-50 border-t border-red-200 px-4 py-3">
           <div className="text-xs font-medium text-red-800 mb-1">Execution Error:</div>
           <div className="text-sm text-red-700">{error.message}</div>
-        </div>
-      )}
-      
-      {exports.length > 0 && (
-        <div className="code-exports bg-blue-50 px-4 py-3 border-t border-gray-200">
-          <div className="text-xs font-medium text-blue-800 mb-3">Exported Values:</div>
-          <div className="space-y-3">
-            {exports.map(varName => (
-              <div key={varName} className="export-item">
-                <div className="text-xs font-medium text-blue-700 mb-1">{varName}:</div>
-                {renderExportValue(varName)}
-              </div>
-            ))}
-          </div>
         </div>
       )}
     </div>

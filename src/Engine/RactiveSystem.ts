@@ -495,6 +495,8 @@ interface ConsoleOutput {
   type: 'log' | 'warn' | 'error' | 'info';
   message: string;
   timestamp: Date;
+  data?: any; // Store original data for objects
+  isObject?: boolean; // Flag to indicate if we should render as object
 }
 
 /**
@@ -524,23 +526,53 @@ export class CodeCellEngine {
     const output: ConsoleOutput[] = [];
     
     const captureOutput = (type: ConsoleOutput['type']) => (...args: any[]) => {
-      // Format the message like real console
-      const message = args.map(arg => {
-        if (typeof arg === 'object') {
-          try {
-            return JSON.stringify(arg, null, 2);
-          } catch {
-            return String(arg);
-          }
+      // Process each argument to determine if it should be rendered as an object
+      const processedArgs = args.map(arg => {
+        // Check if argument is a plain object or array (not string, not null, not primitive)
+        const isPlainObject = arg !== null && 
+                             typeof arg === 'object' && 
+                             (arg.constructor === Object || Array.isArray(arg) || arg.constructor?.name === 'Object');
+        
+        if (isPlainObject) {
+          // Store as object for ObjectDisplay
+          return {
+            type: 'object',
+            data: arg
+          };
+        } else {
+          // Store as regular value
+          return {
+            type: 'primitive',
+            data: arg,
+            message: typeof arg === 'object' ? 
+              (arg === null ? 'null' : JSON.stringify(arg)) : 
+              String(arg)
+          };
         }
-        return String(arg);
-      }).join(' ');
-      
-      output.push({
-        type,
-        message,
-        timestamp: new Date()
       });
+      
+      // Check if we have any objects to display
+      const hasObjects = processedArgs.some(arg => arg.type === 'object');
+      
+      if (hasObjects) {
+        // Store processed arguments for mixed rendering
+        output.push({
+          type,
+          message: '',
+          timestamp: new Date(),
+          data: processedArgs,
+          isObject: true
+        });
+      } else {
+        // All primitives - create a simple message
+        const message = processedArgs.map(arg => arg.message).join(' ');
+        output.push({
+          type,
+          message,
+          timestamp: new Date(),
+          isObject: false
+        });
+      }
       
       // Also call the real console for debugging
       (console as any)[type](...args);
