@@ -518,83 +518,68 @@ export class CodeCellEngine {
     const exportValues = new Map<string, any>();
     
     try {
-      // Create execution context
-      const context: CodeExecutionContext = {
-        get: (name: string) => {
-          dependencies.add(name); // Track dependencies (legacy support)
-          return this.reactiveStore.getValue(name);
-        },
-        exportValue: (name: string, value: any) => {
-          exports.push(name);
-          exportValues.set(name, value);
-        },
-        console: console,
-        Math: Math
-      };
+      // Transform export statements to regular assignments
+      const transformedCode = this.transformExportsToAssignments(code);
 
-      // Create a proxy that intercepts ALL variable access and tracks dependencies
-      const createTrackingProxy = () => {
-        return new Proxy({}, {
+      // Create a smart proxy that handles both reading and writing
+      const createSmartProxy = () => {
+        const localScope: { [key: string]: any } = {};
+        
+        return new Proxy(localScope, {
           get: (target, prop) => {
             if (typeof prop === 'string') {
               // Special handling for built-in functions
-              if (prop === 'export_') return context.exportValue;
-              if (prop === 'get') return context.get;
-              if (prop === 'console') return context.console;
-              if (prop === 'Math') return context.Math;
-              if (prop === 'moduleExports') return target.moduleExports;
+              if (prop === 'console') return console;
+              if (prop === 'Math') return Math;
+              if (prop === '__exportValue') return this.createExportFunction(exports, exportValues);
               
-              // Track dependency and return reactive value
+              // If variable exists in local scope, return it
+              if (prop in target) {
+                return target[prop];
+              }
+              
+              // Otherwise, track dependency and get from reactive store
               dependencies.add(prop);
               const value = this.reactiveStore.getValue(prop);
-              log.debug(`Accessing variable ${prop} with value:`, value);
+              log.debug(`Reading variable ${prop} with value:`, value);
               return value;
             }
             return undefined;
           },
-          has: (target, prop) => {
-            // Return true for any string property to make variables appear "defined"
-            return typeof prop === 'string';
-          },
+          
           set: (target, prop, value) => {
             if (typeof prop === 'string') {
+              // Store in local scope
               target[prop] = value;
               return true;
             }
             return false;
+          },
+          
+          has: (target, prop) => {
+            // Variable exists if it's in local scope or reactive store
+            return typeof prop === 'string' && (
+              prop in target || 
+              this.reactiveStore.get(prop) !== undefined ||
+              ['console', 'Math', '__exportValue'].includes(prop)
+            );
           }
         });
       };
 
-      // Transform the code to capture ES6 exports
-      const transformedCode = this.transformCodeForExports(code);
-
-      // Create safe execution function that returns exports
+      // Create execution function
       const executeCode = new Function(
-        'proxyContext', 'moduleExports',
+        'scope',
         `
-        // Make moduleExports available in the proxy context
-        proxyContext.moduleExports = moduleExports;
-        
-        // Use with statement to bring variables into scope
-        with (proxyContext) {
+        with (scope) {
           ${transformedCode}
         }
-        
-        return moduleExports;
         `
       );
 
-      // Execute the code with the tracking proxy and a fresh moduleExports object
-      const proxyContext = createTrackingProxy();
-      const moduleExports = {};
-      const result = executeCode(proxyContext, moduleExports);
-
-      // Extract exports from the module
-      Object.entries(result).forEach(([name, value]) => {
-        exports.push(name);
-        exportValues.set(name, value);
-      });
+      // Execute the code with the smart proxy
+      const smartProxy = createSmartProxy();
+      executeCode(smartProxy);
 
       // Check if exports have actually changed
       const cellInfo = this.executedCells.get(cellId);
@@ -645,45 +630,46 @@ export class CodeCellEngine {
   }
 
   /**
-   * Transform code to handle ES6 exports
+   * Transform export statements to regular assignments with export calls
    */
-  private transformCodeForExports(code: string): string {
-    // Transform various export patterns with more robust regex
+  private transformExportsToAssignments(code: string): string {
     let transformedCode = code
       // Handle: export const name = value;
       .replace(/export\s+const\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^;\n]+);?/g, 
         (match, name, value) => {
-          const result = `const ${name} = ${value};\nmoduleExports.${name} = ${name};`;
-          log.debug(`Transforming export const ${name}:`, result);
-          return result;
+          return `const ${name} = ${value};\n__exportValue('${name}', ${name});`;
         })
       // Handle: export let name = value;
       .replace(/export\s+let\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^;\n]+);?/g, 
         (match, name, value) => {
-          const result = `let ${name} = ${value};\nmoduleExports.${name} = ${name};`;
-          log.debug(`Transforming export let ${name}:`, result);
-          return result;
+          return `let ${name} = ${value};\n__exportValue('${name}', ${name});`;
         })
       // Handle: export var name = value;
       .replace(/export\s+var\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^;\n]+);?/g, 
         (match, name, value) => {
-          const result = `var ${name} = ${value};\nmoduleExports.${name} = ${name};`;
-          log.debug(`Transforming export var ${name}:`, result);
-          return result;
+          return `var ${name} = ${value};\n__exportValue('${name}', ${name});`;
         })
       // Handle: export { name1, name2 };
       .replace(/export\s*\{\s*([^}]+)\s*\};?/g, (match, names) => {
         const nameList = names.split(',').map((n: string) => n.trim());
-        const result = nameList.map((name: string) => `moduleExports.${name} = ${name};`).join('\n');
-        log.debug(`Transforming export block:`, result);
-        return result;
+        return nameList.map((name: string) => `__exportValue('${name}', ${name});`).join('\n');
       });
 
-    // Add debug logging to see what's being transformed
     log.debug('Original code:', code);
     log.debug('Transformed code:', transformedCode);
 
     return transformedCode;
+  }
+
+  /**
+   * Create export function for the execution context
+   */
+  private createExportFunction(exports: string[], exportValues: Map<string, any>) {
+    return (name: string, value: any) => {
+      exports.push(name);
+      exportValues.set(name, value);
+      log.debug(`Exporting variable ${name} with value:`, value);
+    };
   }
 
   /**
