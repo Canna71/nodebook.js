@@ -519,11 +519,15 @@ export class CodeCellEngine {
   }>;
   private executingCells: Set<string>; // Track cells currently executing to prevent cycles
   private allowedModules: Set<string>;
+  private moduleCache: Map<string, any>; // Global module cache
+  private globalScope: { [key: string]: any }; // Persistent global scope
 
   constructor(reactiveStore: ReactiveStore, allowedModules?: string[]) {
     this.reactiveStore = reactiveStore;
     this.executedCells = new Map();
     this.executingCells = new Set();
+    this.moduleCache = new Map();
+    this.globalScope = {};
     
     // Default allowed modules - can be customized
     this.allowedModules = new Set(allowedModules || [
@@ -555,7 +559,7 @@ export class CodeCellEngine {
   }
 
   /**
-   * Create a secure require function for code cells
+   * Create a secure require function for code cells with caching
    */
   private createSecureRequire(): (moduleName: string) => any {
     return (moduleName: string) => {
@@ -564,13 +568,31 @@ export class CodeCellEngine {
         throw new Error(`Module '${moduleName}' is not allowed in code cells. Allowed modules: ${Array.from(this.allowedModules).join(', ')}`);
       }
       
+      // Check cache first
+      if (this.moduleCache.has(moduleName)) {
+        log.debug(`Loading cached module: ${moduleName}`);
+        const cachedModule = this.moduleCache.get(moduleName);
+        // Also store in global scope for direct access
+        this.globalScope[moduleName] = cachedModule;
+        return cachedModule;
+      }
+      
       try {
         // Use dynamic import or require based on environment
+        let moduleExports;
         if (typeof require !== 'undefined') {
-          return require(moduleName);
+          moduleExports = require(moduleName);
         } else {
           throw new Error('Module loading not available in this environment');
         }
+        
+        // Cache the module for future use
+        this.moduleCache.set(moduleName, moduleExports);
+        // Also store in global scope for direct access
+        this.globalScope[moduleName] = moduleExports;
+        log.debug(`Loaded and cached module: ${moduleName}`);
+        
+        return moduleExports;
       } catch (error) {
         throw new Error(`Failed to load module '${moduleName}': ${error instanceof Error ? error.message : String(error)}`);
       }
@@ -701,6 +723,21 @@ export class CodeCellEngine {
               if (prop === '__dirname') return process?.cwd() || '/';
               if (prop === '__filename') return `${cellId}.js`;
               
+              // Check global scope first (for cached modules and globals)
+              if (prop in this.globalScope) {
+                log.debug(`Loading from global scope: ${prop}`);
+                return this.globalScope[prop];
+              }
+              
+              // Check module cache directly (fallback for module names)
+              if (this.moduleCache.has(prop)) {
+                log.debug(`Loading cached module directly: ${prop}`);
+                const cachedModule = this.moduleCache.get(prop);
+                // Store in global scope for next time
+                this.globalScope[prop] = cachedModule;
+                return cachedModule;
+              }
+              
               // If variable exists in local scope, return it
               if (prop in target) {
                 return target[prop];
@@ -720,6 +757,9 @@ export class CodeCellEngine {
               // Store in local scope
               target[prop] = value;
               
+              // Also store in global scope for persistence across cells
+              this.globalScope[prop] = value;
+              
               // If this variable was exported, update the reactive store too
               if (exportedVars.has(prop)) {
                 log.debug(`Updating exported variable ${prop} with new value:`, value);
@@ -733,9 +773,10 @@ export class CodeCellEngine {
           },
           
           has: (target, prop) => {
-            // Variable exists if it's in local scope or reactive store
+            // Variable exists if it's in local scope, global scope, or reactive store
             return typeof prop === 'string' && (
               prop in target || 
+              prop in this.globalScope ||
               this.reactiveStore.get(prop) !== undefined ||
               ['console', 'Math', '__exportValue', 'require', 'process', 'Buffer', '__dirname', '__filename'].includes(prop)
             );
@@ -1005,6 +1046,55 @@ export class CodeCellEngine {
       return `${prefix}${line.message}`;
     }).join('\n');
   }
+
+  /**
+   * Clear module cache (useful for development/testing)
+   */
+  public clearModuleCache(): void {
+    this.moduleCache.clear();
+    log.debug('Module cache cleared');
+  }
+
+  /**
+   * Clear global scope (reset persistent variables)
+   */
+  public clearGlobalScope(): void {
+    this.globalScope = {};
+    log.debug('Global scope cleared');
+  }
+
+  /**
+   * Get cached modules
+   */
+  public getCachedModules(): string[] {
+    return Array.from(this.moduleCache.keys());
+  }
+
+  /**
+   * Get global scope variables
+   */
+  public getGlobalVariables(): string[] {
+    return Object.keys(this.globalScope);
+  }
+
+  /**
+   * Pre-load common modules
+   */
+  public preloadModules(moduleNames: string[]): void {
+    const secureRequire = this.createSecureRequire();
+    moduleNames.forEach(moduleName => {
+      if (this.allowedModules.has(moduleName) && !this.moduleCache.has(moduleName)) {
+        try {
+          const moduleExports = secureRequire(moduleName);
+          // Ensure it's also in global scope
+          this.globalScope[moduleName] = moduleExports;
+          log.debug(`Pre-loaded module: ${moduleName}`);
+        } catch (error) {
+          console.warn(`Failed to pre-load module ${moduleName}:`, error);
+        }
+      }
+    });
+  }
 }
 
 // Example usage
@@ -1017,6 +1107,17 @@ export function createReactiveSystem(options: ReactiveFormulaEngineOptions = {},
   
   // Create code cell engine with module support
   const codeCellEngine = new CodeCellEngine(reactiveStore, allowedModules);
+  
+  // Pre-load common modules for better performance
+  if (allowedModules) {
+    const commonModules = ['fs', 'path', 'os'];
+    const modulesToPreload = commonModules.filter(mod => allowedModules.includes(mod));
+    if (modulesToPreload.length > 0) {
+      setTimeout(() => {
+        codeCellEngine.preloadModules(modulesToPreload);
+      }, 100); // Small delay to allow initialization
+    }
+  }
   
   return {
     reactiveStore,

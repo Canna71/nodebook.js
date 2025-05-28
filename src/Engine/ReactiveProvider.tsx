@@ -102,6 +102,11 @@ export function useCodeCellModules() {
     return {
         getAllowedModules: () => codeCellEngine.getAllowedModules(),
         addAllowedModule: (moduleName: string) => codeCellEngine.addAllowedModule(moduleName),
-        removeAllowedModule: (moduleName: string) => codeCellEngine.removeAllowedModule(moduleName)
+        removeAllowedModule: (moduleName: string) => codeCellEngine.removeAllowedModule(moduleName),
+        getCachedModules: () => codeCellEngine.getCachedModules(),
+        getGlobalVariables: () => codeCellEngine.getGlobalVariables(),
+        clearModuleCache: () => codeCellEngine.clearModuleCache(),
+        clearGlobalScope: () => codeCellEngine.clearGlobalScope(),
+        preloadModules: (moduleNames: string[]) => codeCellEngine.preloadModules(moduleNames)
     };
 }
