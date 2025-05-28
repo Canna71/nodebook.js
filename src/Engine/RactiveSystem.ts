@@ -521,7 +521,7 @@ export class CodeCellEngine {
       // Create execution context
       const context: CodeExecutionContext = {
         get: (name: string) => {
-          dependencies.add(name); // Track dependencies
+          dependencies.add(name); // Track dependencies (legacy support)
           return this.reactiveStore.getValue(name);
         },
         exportValue: (name: string, value: any) => {
@@ -532,18 +532,46 @@ export class CodeCellEngine {
         Math: Math
       };
 
-      // Create safe execution function with renamed export function
+      // Create a proxy that intercepts ALL variable access and tracks dependencies
+      const createTrackingProxy = () => {
+        return new Proxy({}, {
+          get: (target, prop) => {
+            if (typeof prop === 'string') {
+              // Special handling for built-in functions
+              if (prop === 'export_') return context.exportValue;
+              if (prop === 'get') return context.get;
+              if (prop === 'console') return context.console;
+              if (prop === 'Math') return context.Math;
+              
+              // Track dependency and return reactive value
+              dependencies.add(prop);
+              const value = this.reactiveStore.getValue(prop);
+              log.debug(`Accessing variable ${prop} with value:`, value);
+              return value;
+            }
+            return undefined;
+          },
+          has: (target, prop) => {
+            // Return true for any string property to make variables appear "defined"
+            return typeof prop === 'string';
+          }
+        });
+      };
+
+      // Create safe execution function using 'with' statement simulation
       const executeCode = new Function(
-        'get', 'exportValue', 'console', 'Math',
+        'proxyContext',
         `
-        // Make exportValue available as 'export' in the code
-        const export_ = exportValue;
-        ${code}
+        // Use destructuring to bring variables into scope while maintaining proxy behavior
+        with (proxyContext) {
+          ${code}
+        }
         `
       );
 
-      // Execute the code
-      executeCode(context.get, context.exportValue, context.console, context.Math);
+      // Execute the code with the tracking proxy
+      const proxyContext = createTrackingProxy();
+      executeCode(proxyContext);
 
       // Check if exports have actually changed
       const cellInfo = this.executedCells.get(cellId);
