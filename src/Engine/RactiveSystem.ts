@@ -489,17 +489,85 @@ interface CodeExecutionContext {
 }
 
 /**
+ * Console output capture
+ */
+interface ConsoleOutput {
+  type: 'log' | 'warn' | 'error' | 'info';
+  message: string;
+  timestamp: Date;
+}
+
+/**
  * Code cell execution engine
  */
 export class CodeCellEngine {
   private reactiveStore: ReactiveStore;
-  private executedCells: Map<string, { code: string; exports: string[]; dependencies: string[]; lastExportValues: Map<string, any> }>;
+  private executedCells: Map<string, { 
+    code: string; 
+    exports: string[]; 
+    dependencies: string[]; 
+    lastExportValues: Map<string, any>;
+    lastOutput: ConsoleOutput[];
+  }>;
   private executingCells: Set<string>; // Track cells currently executing to prevent cycles
 
   constructor(reactiveStore: ReactiveStore) {
     this.reactiveStore = reactiveStore;
     this.executedCells = new Map();
     this.executingCells = new Set();
+  }
+
+  /**
+   * Create a wrapped console that captures output
+   */
+  private createWrappedConsole(): { console: Console; getOutput: () => ConsoleOutput[] } {
+    const output: ConsoleOutput[] = [];
+    
+    const captureOutput = (type: ConsoleOutput['type']) => (...args: any[]) => {
+      // Format the message like real console
+      const message = args.map(arg => {
+        if (typeof arg === 'object') {
+          try {
+            return JSON.stringify(arg, null, 2);
+          } catch {
+            return String(arg);
+          }
+        }
+        return String(arg);
+      }).join(' ');
+      
+      output.push({
+        type,
+        message,
+        timestamp: new Date()
+      });
+      
+      // Also call the real console for debugging
+      (console as any)[type](...args);
+    };
+    
+    const wrappedConsole = {
+      log: captureOutput('log'),
+      warn: captureOutput('warn'),
+      error: captureOutput('error'),
+      info: captureOutput('info'),
+      // Pass through other console methods
+      debug: console.debug.bind(console),
+      trace: console.trace.bind(console),
+      table: console.table.bind(console),
+      group: console.group.bind(console),
+      groupEnd: console.groupEnd.bind(console),
+      clear: console.clear.bind(console),
+      time: console.time.bind(console),
+      timeEnd: console.timeEnd.bind(console),
+      count: console.count.bind(console),
+      assert: console.assert.bind(console)
+    } as Console;
+    
+    return {
+      console: wrappedConsole,
+      getOutput: () => [...output] // Return copy
+    };
   }
 
   /**
@@ -517,6 +585,9 @@ export class CodeCellEngine {
     const exportValues = new Map<string, any>();
     const exportedVars = new Set<string>(); // Single source of truth for exported variables
     
+    // Create wrapped console for this execution
+    const { console: wrappedConsole, getOutput } = this.createWrappedConsole();
+    
     try {
       // Transform export statements to regular assignments
       const transformedCode = this.transformExportsToAssignments(code);
@@ -529,7 +600,7 @@ export class CodeCellEngine {
           get: (target, prop) => {
             if (typeof prop === 'string') {
               // Special handling for built-in functions
-              if (prop === 'console') return console;
+              if (prop === 'console') return wrappedConsole; // Use wrapped console
               if (prop === 'Math') return Math;
               if (prop === '__exportValue') return this.createExportFunction(exportValues, exportedVars);
               
@@ -589,6 +660,9 @@ export class CodeCellEngine {
       const smartProxy = createSmartProxy();
       executeCode(smartProxy);
 
+      // Capture console output
+      const lastOutput = getOutput();
+
       // Convert Set to Array for the return value and storage
       const exportsArray = Array.from(exportedVars);
 
@@ -615,13 +689,14 @@ export class CodeCellEngine {
         log.debug(`Code cell ${cellId} exports unchanged, skipping reactive value updates`);
       }
 
-      // Store execution info
+      // Store execution info including console output
       const dependencyArray = Array.from(dependencies);
       this.executedCells.set(cellId, { 
         code, 
         exports: exportsArray, 
         dependencies: dependencyArray, 
-        lastExportValues: new Map(exportValues)
+        lastExportValues: new Map(exportValues),
+        lastOutput
       });
 
       // Set up reactive execution for dependencies (only if not already set up)
@@ -629,10 +704,29 @@ export class CodeCellEngine {
         this.setupReactiveExecution(cellId, code, dependencyArray);
       }
 
-      log.debug(`Code cell ${cellId} executed successfully, exported:`, exportsArray, 'dependencies:', dependencyArray);
+      log.debug(`Code cell ${cellId} executed successfully, exported:`, exportsArray, 'dependencies:', dependencyArray, 'output lines:', lastOutput.length);
       return exportsArray;
 
     } catch (error) {
+      // Capture error in console output
+      const lastOutput = getOutput();
+      lastOutput.push({
+        type: 'error',
+        message: `Execution Error: ${error instanceof Error ? error.message : String(error)}`,
+        timestamp: new Date()
+      });
+      
+      // Store error state
+      const exportsArray = Array.from(exportedVars);
+      const dependencyArray = Array.from(dependencies);
+      this.executedCells.set(cellId, { 
+        code, 
+        exports: exportsArray, 
+        dependencies: dependencyArray, 
+        lastExportValues: new Map(exportValues),
+        lastOutput
+      });
+      
       console.error(`Error executing code cell ${cellId}:`, error);
       throw new Error(`Code execution error: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -742,6 +836,27 @@ export class CodeCellEngine {
       });
       this.executedCells.delete(cellId);
     }
+  }
+
+  /**
+   * Get last console output from a code cell
+   */
+  public getCellOutput(cellId: string): ConsoleOutput[] {
+    return this.executedCells.get(cellId)?.lastOutput || [];
+  }
+
+  /**
+   * Get formatted output as string for display
+   */
+  public getCellOutputText(cellId: string): string {
+    const output = this.getCellOutput(cellId);
+    if (output.length === 0) return '';
+    
+    return output.map(line => {
+      const timestamp = line.timestamp.toLocaleTimeString();
+      const prefix = line.type === 'log' ? '' : `[${line.type.toUpperCase()}] `;
+      return `${prefix}${line.message}`;
+    }).join('\n');
   }
 }
 
