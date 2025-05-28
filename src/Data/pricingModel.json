@@ -97,6 +97,18 @@
       "id": "total-display",
       "content": "<h3>**Total:** {{total | currency}}</h3>",
       "variables": ["total"]
+    },
+    {
+      "type": "code",
+      "id": "tax-calculation",
+      "code": "// Calculate tax and final total\nconst taxRate = 0.08;\nconst totalBeforeTax = get('total');\nconst taxAmount = totalBeforeTax * taxRate;\nconst finalTotal = totalBeforeTax + taxAmount;\n\n// Export calculated values\nexport('taxAmount', taxAmount);\nexport('finalTotal', finalTotal);\nexport('taxRate', taxRate);",
+      "exports": ["taxAmount", "finalTotal", "taxRate"]
+    },
+    {
+      "type": "markdown",
+      "id": "tax-display",
+      "content": "**Tax ({{taxRate | percent}}):** {{taxAmount | currency}}<br>**Final Total:** {{finalTotal | currency}}",
+      "variables": ["taxRate", "taxAmount", "finalTotal"]
     }
   ]
 }

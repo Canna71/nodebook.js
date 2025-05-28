@@ -37,7 +37,15 @@ export interface FormulaCellDefinition {
   decimals?: number;
 }
 
-export type CellDefinition = InputCellDefinition | MarkdownCellDefinition | FormulaCellDefinition;
+export interface CodeCellDefinition {
+  type: 'code';
+  id: string;
+  code: string;
+  language?: 'javascript'; // For future extensibility
+  exports?: string[]; // Names of variables this cell exports
+}
+
+export type CellDefinition = InputCellDefinition | MarkdownCellDefinition | FormulaCellDefinition | CodeCellDefinition;
 
 export interface ReactiveValueDefinition {
   name: string;

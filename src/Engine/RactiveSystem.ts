@@ -475,6 +475,107 @@ export class ReactiveFormulaEngine {
   }
 }
 
+/**
+ * Code cell execution context
+ */
+interface CodeExecutionContext {
+  // Input: access to reactive values
+  get: (name: string) => any;
+  // Output: export reactive values
+  export: (name: string, value: any) => void;
+  // Utility functions
+  console: Console;
+  Math: typeof Math;
+}
+
+/**
+ * Code cell execution engine
+ */
+export class CodeCellEngine {
+  private reactiveStore: ReactiveStore;
+  private executedCells: Map<string, { code: string; exports: string[] }>;
+
+  constructor(reactiveStore: ReactiveStore) {
+    this.reactiveStore = reactiveStore;
+    this.executedCells = new Map();
+  }
+
+  /**
+   * Execute code cell and handle exports
+   */
+  public executeCodeCell(cellId: string, code: string): string[] {
+    const exports: string[] = [];
+    
+    try {
+      // Create execution context
+      const context: CodeExecutionContext = {
+        get: (name: string) => this.reactiveStore.getValue(name),
+        export: (name: string, value: any) => {
+          // Create or update reactive value
+          this.reactiveStore.define(name, value);
+          exports.push(name);
+        },
+        console: console,
+        Math: Math
+      };
+
+      // Create safe execution function
+      const executeCode = new Function(
+        'get', 'export', 'console', 'Math',
+        `
+        ${code}
+        `
+      );
+
+      // Execute the code
+      executeCode(context.get, context.export, context.console, context.Math);
+
+      // Store execution info
+      this.executedCells.set(cellId, { code, exports });
+
+      log.debug(`Code cell ${cellId} executed successfully, exported:`, exports);
+      return exports;
+
+    } catch (error) {
+      console.error(`Error executing code cell ${cellId}:`, error);
+      throw new Error(`Code execution error: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Re-execute a code cell
+   */
+  public reExecuteCodeCell(cellId: string): string[] {
+    const cellInfo = this.executedCells.get(cellId);
+    if (!cellInfo) {
+      throw new Error(`Code cell ${cellId} has not been executed before`);
+    }
+    return this.executeCodeCell(cellId, cellInfo.code);
+  }
+
+  /**
+   * Get exports from a code cell
+   */
+  public getCellExports(cellId: string): string[] {
+    return this.executedCells.get(cellId)?.exports || [];
+  }
+
+  /**
+   * Clear a code cell's exports
+   */
+  public clearCellExports(cellId: string): void {
+    const cellInfo = this.executedCells.get(cellId);
+    if (cellInfo) {
+      // Remove exported reactive values
+      cellInfo.exports.forEach(exportName => {
+        // Note: We might want to keep the values but mark them as orphaned
+        // For now, we'll leave them in the store
+      });
+      this.executedCells.delete(cellId);
+    }
+  }
+}
+
 // Example usage
 export function createReactiveSystem(options: ReactiveFormulaEngineOptions = {}) {
   // Create reactive store
@@ -483,8 +584,12 @@ export function createReactiveSystem(options: ReactiveFormulaEngineOptions = {})
   // Create formula engine
   const formulaEngine = new ReactiveFormulaEngine(reactiveStore, options);
   
+  // Create code cell engine
+  const codeCellEngine = new CodeCellEngine(reactiveStore);
+  
   return {
     reactiveStore,
-    formulaEngine
+    formulaEngine,
+    codeCellEngine
   };
 }
