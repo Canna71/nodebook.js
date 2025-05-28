@@ -738,30 +738,80 @@ export class CodeCellEngine {
    * Transform export statements to regular assignments with export calls
    */
   private transformExportsToAssignments(code: string): string {
-    let transformedCode = code
-      // Handle: export const name = value;
-      .replace(/export\s+const\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^;\n]+);?/g, 
-        (match, name, value) => {
-          return `const ${name} = ${value};\n__exportValue('${name}', ${name});`;
-        })
-      // Handle: export let name = value;
-      .replace(/export\s+let\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^;\n]+);?/g, 
-        (match, name, value) => {
-          return `let ${name} = ${value};\n__exportValue('${name}', ${name});`;
-        })
-      // Handle: export var name = value;
-      .replace(/export\s+var\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^;\n]+);?/g, 
-        (match, name, value) => {
-          return `var ${name} = ${value};\n__exportValue('${name}', ${name});`;
-        })
-      // Handle: export { name1, name2 };
-      .replace(/export\s*\{\s*([^}]+)\s*\};?/g, (match, names) => {
-        const nameList = names.split(',').map((n: string) => n.trim());
-        return nameList.map((name: string) => `__exportValue('${name}', ${name});`).join('\n');
-      });
+    console.log('=== CODE TRANSFORMATION START ===');
+    console.log('Original code:');
+    console.log(code);
+    console.log('=== APPLYING TRANSFORMATIONS ===');
+    
+    // Split code into lines for easier processing
+    const lines = code.split('\n');
+    const transformedLines: string[] = [];
+    const exportedVariables: string[] = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmedLine = line.trim();
+      
+      // Skip empty lines and comments
+      if (!trimmedLine || trimmedLine.startsWith('//')) {
+        transformedLines.push(line);
+        continue;
+      }
+      
+      // Handle export statements
+      if (trimmedLine.startsWith('export ')) {
+        const exportMatch = trimmedLine.match(/^export\s+(const|let|var)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=/);
+        
+        if (exportMatch) {
+          const [, keyword, varName] = exportMatch;
+          // Remove 'export ' from the line
+          const newLine = line.replace(/export\s+/, '');
+          transformedLines.push(newLine);
+          exportedVariables.push(varName);
+          console.log(`Found export: ${varName}, transformed line: ${newLine}`);
+        } else {
+          // Handle export { ... } syntax
+          const exportObjMatch = trimmedLine.match(/^export\s*\{\s*([^}]+)\s*\}/);
+          if (exportObjMatch) {
+            const variables = exportObjMatch[1].split(',').map(v => v.trim());
+            variables.forEach(varName => {
+              exportedVariables.push(varName);
+              console.log(`Found export object variable: ${varName}`);
+            });
+            // Skip this line entirely (don't add export { } to output)
+            continue;
+          } else {
+            // Unknown export format, keep as is but warn
+            console.warn(`Unknown export format: ${trimmedLine}`);
+            transformedLines.push(line);
+          }
+        }
+      } else {
+        transformedLines.push(line);
+      }
+    }
+    
+    // Add export calls at the end
+    exportedVariables.forEach(varName => {
+      transformedLines.push(`__exportValue('${varName}', ${varName});`);
+    });
+    
+    const transformedCode = transformedLines.join('\n');
+    
+    console.log('=== TRANSFORMATION COMPLETE ===');
+    console.log('Final transformed code:');
+    console.log(transformedCode);
+    console.log('Exported variables:', exportedVariables);
+    console.log('=== END ===');
 
-    log.debug('Original code:', code);
-    log.debug('Transformed code:', transformedCode);
+    // Validate the syntax
+    try {
+      new Function('scope', `with (scope) { ${transformedCode} }`);
+      console.log('✅ Transformed code syntax is valid');
+    } catch (syntaxError) {
+      console.error('❌ Syntax error in transformed code:', syntaxError);
+      console.error('Problematic code:', transformedCode);
+    }
 
     return transformedCode;
   }

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { NotebookModel, CellDefinition, InputCellDefinition, MarkdownCellDefinition, FormulaCellDefinition, CodeCellDefinition } from '../Types/NotebookModel';
 import { useReactiveSystem, useReactiveValue, useReactiveFormula } from '../Engine/ReactiveProvider';
 import { renderMarkdownWithValues } from '../Engine/markdown';
+import { ObjectDisplay } from './ObjectDisplay';
 
 interface DynamicNotebookProps {
   model: NotebookModel;
@@ -235,7 +236,7 @@ function FormulaCell({ definition }: { definition: FormulaCellDefinition }) {
 
 // Add CodeCell component for display purposes
 function CodeCell({ definition, initialized }: { definition: CodeCellDefinition; initialized: boolean }) {
-  const { codeCellEngine } = useReactiveSystem();
+  const { codeCellEngine, reactiveStore } = useReactiveSystem();
   const [exports, setExports] = React.useState<string[]>([]);
   const [error, setError] = React.useState<Error | null>(null);
   const [dependencies, setDependencies] = React.useState<string[]>([]);
@@ -263,36 +264,62 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
     }
   }, [initialized, definition.id, definition.code, codeCellEngine]);
 
+  // Helper to render export values beautifully
+  const renderExportValue = (varName: string) => {
+    const value = reactiveStore.getValue(varName);
+    
+    // For objects and arrays, use ObjectDisplay
+    if (value && typeof value === 'object') {
+      return <ObjectDisplay data={value} name={varName} collapsed={true} />;
+    }
+    
+    // For primitives, just show as string
+    return <span className="font-mono text-sm">{JSON.stringify(value)}</span>;
+  };
+
   return (
-    <div className="cell code-cell">
-      <div className="code-header">
-        <span>Code Cell: {definition.id}</span>
-        {dependencies.length > 0 && (
-          <span className="dependencies">
-            Dependencies: {dependencies.join(', ')}
-          </span>
-        )}
+    <div className="cell code-cell border border-gray-300 rounded-lg mb-4 bg-white">
+      <div className="code-header bg-gray-50 px-4 py-2 border-b border-gray-200">
+        <div className="flex justify-between items-center">
+          <span className="font-medium text-gray-700">Code Cell: {definition.id}</span>
+          {dependencies.length > 0 && (
+            <span className="text-xs text-gray-500">
+              Dependencies: {dependencies.join(', ')}
+            </span>
+          )}
+        </div>
       </div>
-      <pre className="code-content">
+      
+      <pre className="code-content bg-gray-900 text-green-400 px-4 py-3 overflow-x-auto">
         <code>{definition.code}</code>
       </pre>
       
       {/* Console Output Display */}
       {output && (
-        <div className="console-output">
-          <div className="console-header">Console Output:</div>
-          <pre className="console-content">{output}</pre>
+        <div className="console-output bg-black text-green-400 px-4 py-3 border-t border-gray-700">
+          <div className="text-xs font-medium text-gray-300 mb-2">Console Output:</div>
+          <pre className="text-xs font-mono whitespace-pre-wrap">{output}</pre>
         </div>
       )}
       
       {error && (
-        <div className="code-error">
-          Error: {error.message}
+        <div className="code-error bg-red-50 border-t border-red-200 px-4 py-3">
+          <div className="text-xs font-medium text-red-800 mb-1">Execution Error:</div>
+          <div className="text-sm text-red-700">{error.message}</div>
         </div>
       )}
+      
       {exports.length > 0 && (
-        <div className="code-exports">
-          Exports: {exports.join(', ')}
+        <div className="code-exports bg-blue-50 px-4 py-3 border-t border-gray-200">
+          <div className="text-xs font-medium text-blue-800 mb-3">Exported Values:</div>
+          <div className="space-y-3">
+            {exports.map(varName => (
+              <div key={varName} className="export-item">
+                <div className="text-xs font-medium text-blue-700 mb-1">{varName}:</div>
+                {renderExportValue(varName)}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -42,20 +42,20 @@
     "@typescript-eslint/eslint-plugin": "8.31.1",
     "@typescript-eslint/parser": "8.31.1",
     "@vitejs/plugin-react": "^4.4.1",
+    "anylogger": "^1.0.11",
     "electron": "36.1.0",
     "eslint": "9.26.0",
     "eslint-plugin-import": "^2.25.0",
     "ts-node": "^10.0.0",
     "typescript": "5.8.3",
-    "vite": "6.3.4",
-    "anylogger": "^1.0.11",
-    "ulog": "2.0.0-beta.19"
-
+    "ulog": "2.0.0-beta.19",
+    "vite": "6.3.4"
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1",
     "handsontable": "^15.3.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-json-view": "^1.21.3"
   }
 }
