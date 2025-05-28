@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { NotebookModel, CellDefinition, InputCellDefinition, MarkdownCellDefinition, FormulaCellDefinition } from '../Types/NotebookModel';
+import { NotebookModel, CellDefinition, InputCellDefinition, MarkdownCellDefinition, FormulaCellDefinition, CodeCellDefinition } from '../Types/NotebookModel';
 import { useReactiveSystem, useReactiveValue, useReactiveFormula } from '../Engine/ReactiveProvider';
 import { renderMarkdownWithValues } from '../Engine/markdown';
 
@@ -8,26 +8,41 @@ interface DynamicNotebookProps {
 }
 
 export function DynamicNotebook({ model }: DynamicNotebookProps) {
-  const { reactiveStore, formulaEngine } = useReactiveSystem();
+  const { reactiveStore, formulaEngine, codeCellEngine } = useReactiveSystem();
   const [initialized, setInitialized] = React.useState(false);
 
   // Initialize reactive values and formulas
   useEffect(() => {
-    // Initialize reactive values first
-    model.reactiveValues.forEach(valueDefinition => {
-      if (!reactiveStore.get(valueDefinition.name)) {
-        reactiveStore.define(valueDefinition.name, valueDefinition.defaultValue);
+    const initializeNotebook = async () => {
+      // Initialize reactive values first
+      model.reactiveValues.forEach(valueDefinition => {
+        if (!reactiveStore.get(valueDefinition.name)) {
+          reactiveStore.define(valueDefinition.name, valueDefinition.defaultValue);
+        }
+      });
+
+      // Initialize formulas after reactive values
+      model.formulas.forEach(formulaDefinition => {
+        formulaEngine.createFormula(formulaDefinition.name, formulaDefinition.formula);
+      });
+
+      // Execute all code cells during initialization
+      const codeCells = model.cells.filter(cell => cell.type === 'code') as CodeCellDefinition[];
+      for (const codeCell of codeCells) {
+        try {
+          const exports = codeCellEngine.executeCodeCell(codeCell.id, codeCell.code);
+          console.log(`Code cell ${codeCell.id} executed, exports:`, exports);
+        } catch (error) {
+          console.error(`Error executing code cell ${codeCell.id}:`, error);
+        }
       }
-    });
 
-    // Initialize formulas after reactive values
-    model.formulas.forEach(formulaDefinition => {
-      formulaEngine.createFormula(formulaDefinition.name, formulaDefinition.formula);
-    });
+      // Mark as initialized to trigger markdown cell rendering
+      setInitialized(true);
+    };
 
-    // Mark as initialized to trigger markdown cell rendering
-    setInitialized(true);
-  }, [model, reactiveStore, formulaEngine]);
+    initializeNotebook();
+  }, [model, reactiveStore, formulaEngine, codeCellEngine]);
 
   const renderCell = (cell: CellDefinition) => {
     switch (cell.type) {
@@ -35,8 +50,8 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
         return <InputCell key={cell.id} definition={cell} />;
       case 'markdown':
         return <MarkdownCell key={cell.id} definition={cell} initialized={initialized} />;
-      case 'formula':
-        return <FormulaCell key={cell.id} definition={cell} />;
+      case 'code':
+        return <CodeCell key={cell.id} definition={cell} initialized={initialized} />;
       default:
         return null;
     }
@@ -214,6 +229,56 @@ function FormulaCell({ definition }: { definition: FormulaCellDefinition }) {
       <div className="formula-output">
         {formatValue(value)}
       </div>
+    </div>
+  );
+}
+
+// Add CodeCell component for display purposes
+function CodeCell({ definition, initialized }: { definition: CodeCellDefinition; initialized: boolean }) {
+  const { codeCellEngine } = useReactiveSystem();
+  const [exports, setExports] = React.useState<string[]>([]);
+  const [error, setError] = React.useState<Error | null>(null);
+  const [dependencies, setDependencies] = React.useState<string[]>([]);
+
+  useEffect(() => {
+    if (!initialized) return;
+
+    try {
+      setError(null);
+      const newExports = codeCellEngine.executeCodeCell(definition.id, definition.code);
+      const newDependencies = codeCellEngine.getCellDependencies(definition.id);
+      setExports(newExports);
+      setDependencies(newDependencies);
+    } catch (err) {
+      setError(err as Error);
+      setExports([]);
+      setDependencies([]);
+    }
+  }, [initialized, definition.id, definition.code, codeCellEngine]);
+
+  return (
+    <div className="cell code-cell">
+      <div className="code-header">
+        <span>Code Cell: {definition.id}</span>
+        {dependencies.length > 0 && (
+          <span className="dependencies">
+            Dependencies: {dependencies.join(', ')}
+          </span>
+        )}
+      </div>
+      <pre className="code-content">
+        <code>{definition.code}</code>
+      </pre>
+      {error && (
+        <div className="code-error">
+          Error: {error.message}
+        </div>
+      )}
+      {exports.length > 0 && (
+        <div className="code-exports">
+          Exports: {exports.join(', ')}
+        </div>
+      )}
     </div>
   );
 }

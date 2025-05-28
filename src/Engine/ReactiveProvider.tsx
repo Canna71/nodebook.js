@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ReactiveStore, ReactiveFormulaEngine, CodeCellEngine, createReactiveSystem } from './RactiveSystem';
 import anylogger from "anylogger";
 const log = anylogger("ReactiveProvider");
@@ -90,30 +90,4 @@ export function useReactiveFormula<T>(name: string, formula: string): T | undefi
     }, [name, formula, formulaEngine, reactiveStore]);
 
     return value;
-}
-
-// Hook for executing code cells
-export function useCodeCell(cellId: string, code: string, autoExecute: boolean = false): [string[], () => void, Error | null] {
-    const { codeCellEngine } = useReactiveSystem();
-    const [exports, setExports] = useState<string[]>([]);
-    const [error, setError] = useState<Error | null>(null);
-
-    const executeCell = useCallback(() => {
-        try {
-            setError(null);
-            const newExports = codeCellEngine.executeCodeCell(cellId, code);
-            setExports(newExports);
-        } catch (err) {
-            setError(err as Error);
-            setExports([]);
-        }
-    }, [cellId, code, codeCellEngine]);
-
-    useEffect(() => {
-        if (autoExecute && code.trim()) {
-            executeCell();
-        }
-    }, [autoExecute, code, executeCell]);
-
-    return [exports, executeCell, error];
 }

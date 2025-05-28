@@ -33,9 +33,12 @@ interface Filters {
 }
 
 const filters: Filters = {
-    currency: (value: number): string => `$${value.toLocaleString()}`,
+    currency: (value: number): string => new Intl.NumberFormat('en-US', { 
+        style: 'currency', 
+        currency: 'USD' 
+    }).format(value),
     round: (value: number, decimals: number = 0): string => value.toFixed(decimals),
-    percent: (value: number): string => `${value}%`
+    percent: (value: number): string => `${(value * 100).toFixed(1)}%`
 };
 
 function applyFilter(value: any, filter: string): string {

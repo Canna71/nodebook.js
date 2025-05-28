@@ -101,7 +101,7 @@
     {
       "type": "code",
       "id": "tax-calculation",
-      "code": "// Calculate tax and final total\nconst taxRate = 0.08;\nconst totalBeforeTax = get('total');\nconst taxAmount = totalBeforeTax * taxRate;\nconst finalTotal = totalBeforeTax + taxAmount;\n\n// Export calculated values\nexport('taxAmount', taxAmount);\nexport('finalTotal', finalTotal);\nexport('taxRate', taxRate);",
+      "code": "// Calculate tax and final total (auto-executes when total changes)\nconst taxRate = 0.08; // 8% as decimal\nconst totalBeforeTax = get('total');\nconst taxAmount = totalBeforeTax * taxRate;\nconst finalTotal = totalBeforeTax + taxAmount;\n\nconsole.log('Tax calculation executed:', { taxRate, totalBeforeTax, taxAmount, finalTotal });\n\n// Export calculated values\nexport('taxAmount', taxAmount);\nexport('finalTotal', finalTotal);\nexport('taxRate', taxRate);",
       "exports": ["taxAmount", "finalTotal", "taxRate"]
     },
     {

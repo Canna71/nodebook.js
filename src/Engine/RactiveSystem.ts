@@ -493,7 +493,7 @@ interface CodeExecutionContext {
  */
 export class CodeCellEngine {
   private reactiveStore: ReactiveStore;
-  private executedCells: Map<string, { code: string; exports: string[] }>;
+  private executedCells: Map<string, { code: string; exports: string[]; dependencies: string[] }>;
 
   constructor(reactiveStore: ReactiveStore) {
     this.reactiveStore = reactiveStore;
@@ -505,11 +505,15 @@ export class CodeCellEngine {
    */
   public executeCodeCell(cellId: string, code: string): string[] {
     const exports: string[] = [];
+    const dependencies = new Set<string>();
     
     try {
       // Create execution context
       const context: CodeExecutionContext = {
-        get: (name: string) => this.reactiveStore.getValue(name),
+        get: (name: string) => {
+          dependencies.add(name); // Track dependencies
+          return this.reactiveStore.getValue(name);
+        },
         export: (name: string, value: any) => {
           // Create or update reactive value
           this.reactiveStore.define(name, value);
@@ -522,24 +526,44 @@ export class CodeCellEngine {
       // Create safe execution function
       const executeCode = new Function(
         'get', 'export', 'console', 'Math',
-        `
-        ${code}
-        `
+        code
       );
 
       // Execute the code
       executeCode(context.get, context.export, context.console, context.Math);
 
       // Store execution info
-      this.executedCells.set(cellId, { code, exports });
+      const dependencyArray = Array.from(dependencies);
+      this.executedCells.set(cellId, { code, exports, dependencies: dependencyArray });
 
-      log.debug(`Code cell ${cellId} executed successfully, exported:`, exports);
+      // Set up reactive execution for dependencies
+      this.setupReactiveExecution(cellId, code, dependencyArray);
+
+      log.debug(`Code cell ${cellId} executed successfully, exported:`, exports, 'dependencies:', dependencyArray);
       return exports;
 
     } catch (error) {
       console.error(`Error executing code cell ${cellId}:`, error);
       throw new Error(`Code execution error: ${error instanceof Error ? error.message : String(error)}`);
     }
+  }
+
+  /**
+   * Set up reactive execution for a code cell
+   */
+  private setupReactiveExecution(cellId: string, code: string, dependencies: string[]): void {
+    // Subscribe to all dependencies
+    dependencies.forEach(depName => {
+      this.reactiveStore.subscribe(depName, () => {
+        log.debug(`Dependency ${depName} changed, re-executing code cell ${cellId}`);
+        // Re-execute the code cell when dependency changes
+        try {
+          this.executeCodeCell(cellId, code);
+        } catch (error) {
+          console.error(`Error re-executing code cell ${cellId}:`, error);
+        }
+      });
+    });
   }
 
   /**
@@ -558,6 +582,13 @@ export class CodeCellEngine {
    */
   public getCellExports(cellId: string): string[] {
     return this.executedCells.get(cellId)?.exports || [];
+  }
+
+  /**
+   * Get dependencies from a code cell
+   */
+  public getCellDependencies(cellId: string): string[] {
+    return this.executedCells.get(cellId)?.dependencies || [];
   }
 
   /**
