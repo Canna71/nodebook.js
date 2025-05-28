@@ -52,6 +52,7 @@
     "vite": "6.3.4"
   },
   "dependencies": {
+    "danfojs": "^1.2.0",
     "electron-squirrel-startup": "^1.0.1",
     "handsontable": "^15.3.0",
     "react": "^19.1.0",
