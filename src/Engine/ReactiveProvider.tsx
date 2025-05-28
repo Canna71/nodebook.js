@@ -14,8 +14,11 @@ interface ReactiveContextType {
 const ReactiveContext = createContext<ReactiveContextType | null>(null);
 
 // Provider component
-export const ReactiveProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [system] = useState(() => createReactiveSystem());
+export const ReactiveProvider: React.FC<{ 
+  children: React.ReactNode;
+  allowedModules?: string[];
+}> = ({ children, allowedModules }) => {
+    const [system] = useState(() => createReactiveSystem({}, allowedModules));
 
     return (
         <ReactiveContext.Provider value={system}>
@@ -90,4 +93,15 @@ export function useReactiveFormula<T>(name: string, formula: string): T | undefi
     }, [name, formula, formulaEngine, reactiveStore]);
 
     return value;
+}
+
+// Hook for managing allowed modules
+export function useCodeCellModules() {
+    const { codeCellEngine } = useReactiveSystem();
+    
+    return {
+        getAllowedModules: () => codeCellEngine.getAllowedModules(),
+        addAllowedModule: (moduleName: string) => codeCellEngine.addAllowedModule(moduleName),
+        removeAllowedModule: (moduleName: string) => codeCellEngine.removeAllowedModule(moduleName)
+    };
 }

@@ -486,6 +486,12 @@ interface CodeExecutionContext {
   // Utility functions
   console: Console;
   Math: typeof Math;
+  // Node.js modules
+  require: (moduleName: string) => any;
+  process: typeof process;
+  Buffer: typeof Buffer;
+  __dirname: string;
+  __filename: string;
 }
 
 /**
@@ -512,11 +518,63 @@ export class CodeCellEngine {
     lastOutput: ConsoleOutput[];
   }>;
   private executingCells: Set<string>; // Track cells currently executing to prevent cycles
+  private allowedModules: Set<string>;
 
-  constructor(reactiveStore: ReactiveStore) {
+  constructor(reactiveStore: ReactiveStore, allowedModules?: string[]) {
     this.reactiveStore = reactiveStore;
     this.executedCells = new Map();
     this.executingCells = new Set();
+    
+    // Default allowed modules - can be customized
+    this.allowedModules = new Set(allowedModules || [
+      'fs', 'path', 'os', 'crypto', 'util', 'url', 'querystring',
+      'buffer', 'stream', 'events', 'assert', 'zlib',
+      'lodash', 'axios', 'moment', 'uuid', 'chalk'
+    ]);
+  }
+
+  /**
+   * Add allowed module
+   */
+  public addAllowedModule(moduleName: string): void {
+    this.allowedModules.add(moduleName);
+  }
+
+  /**
+   * Remove allowed module
+   */
+  public removeAllowedModule(moduleName: string): void {
+    this.allowedModules.delete(moduleName);
+  }
+
+  /**
+   * Get list of allowed modules
+   */
+  public getAllowedModules(): string[] {
+    return Array.from(this.allowedModules);
+  }
+
+  /**
+   * Create a secure require function for code cells
+   */
+  private createSecureRequire(): (moduleName: string) => any {
+    return (moduleName: string) => {
+      // Check if module is allowed
+      if (!this.allowedModules.has(moduleName)) {
+        throw new Error(`Module '${moduleName}' is not allowed in code cells. Allowed modules: ${Array.from(this.allowedModules).join(', ')}`);
+      }
+      
+      try {
+        // Use dynamic import or require based on environment
+        if (typeof require !== 'undefined') {
+          return require(moduleName);
+        } else {
+          throw new Error('Module loading not available in this environment');
+        }
+      } catch (error) {
+        throw new Error(`Failed to load module '${moduleName}': ${error instanceof Error ? error.message : String(error)}`);
+      }
+    };
   }
 
   /**
@@ -636,6 +694,13 @@ export class CodeCellEngine {
               if (prop === 'Math') return Math;
               if (prop === '__exportValue') return this.createExportFunction(exportValues, exportedVars);
               
+              // Node.js globals
+              if (prop === 'require') return this.createSecureRequire();
+              if (prop === 'process' && typeof process !== 'undefined') return process;
+              if (prop === 'Buffer' && typeof Buffer !== 'undefined') return Buffer;
+              if (prop === '__dirname') return process?.cwd() || '/';
+              if (prop === '__filename') return `${cellId}.js`;
+              
               // If variable exists in local scope, return it
               if (prop in target) {
                 return target[prop];
@@ -672,7 +737,7 @@ export class CodeCellEngine {
             return typeof prop === 'string' && (
               prop in target || 
               this.reactiveStore.get(prop) !== undefined ||
-              ['console', 'Math', '__exportValue'].includes(prop)
+              ['console', 'Math', '__exportValue', 'require', 'process', 'Buffer', '__dirname', '__filename'].includes(prop)
             );
           }
         });
@@ -943,15 +1008,15 @@ export class CodeCellEngine {
 }
 
 // Example usage
-export function createReactiveSystem(options: ReactiveFormulaEngineOptions = {}) {
+export function createReactiveSystem(options: ReactiveFormulaEngineOptions = {}, allowedModules?: string[]) {
   // Create reactive store
   const reactiveStore = new ReactiveStore();
   
   // Create formula engine
   const formulaEngine = new ReactiveFormulaEngine(reactiveStore, options);
   
-  // Create code cell engine
-  const codeCellEngine = new CodeCellEngine(reactiveStore);
+  // Create code cell engine with module support
+  const codeCellEngine = new CodeCellEngine(reactiveStore, allowedModules);
   
   return {
     reactiveStore,

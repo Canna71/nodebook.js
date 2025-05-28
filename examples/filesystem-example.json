@@ -1,0 +1,70 @@
+{
+  "title": "File System Operations Example",
+  "description": "Demonstrates Node.js module capabilities for file system operations",
+  "reactiveValues": [],
+  "formulas": [
+    {
+      "name": "fileSystemSummary",
+      "formula": "`Project: ${$projectName} v${$projectVersion} | Files: ${$totalFiles} | Dirs: ${$totalDirectories} | Deps: ${$dependencies ? $dependencies.length : 0}`"
+    }
+  ],
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "intro",
+      "content": "# File System Operations Example\n\nThis notebook demonstrates how to use Node.js modules like `fs` and `path` to read files from disk and process them within the reactive notebook environment."
+    },
+    {
+      "type": "code",
+      "id": "system-info",
+      "code": "// Import required Node.js modules\nconst fs = require('fs');\nconst path = require('path');\nconst os = require('os');\n\n// Get current working directory and system info\nexport const currentDir = process.cwd();\nexport const homeDir = os.homedir();\nexport const platform = os.platform();\n\nconsole.log('📁 Current directory:', currentDir);\nconsole.log('🏠 Home directory:', homeDir);\nconsole.log('💻 Platform:', platform);",
+      "exports": ["currentDir", "homeDir", "platform"]
+    },
+    {
+      "type": "code",
+      "id": "list-files",
+      "code": "// List files in current directory\nconst files = fs.readdirSync(currentDir);\nexport const fileList = files;\n\nconsole.log('📋 Files in current directory:');\nfiles.forEach((file, index) => {\n  const fullPath = path.join(currentDir, file);\n  const stats = fs.statSync(fullPath);\n  const type = stats.isDirectory() ? '📁 DIR' : '📄 FILE';\n  const size = stats.isFile() ? `${stats.size} bytes` : '';\n  console.log(`${index + 1}. ${type} ${file} ${size}`);\n});",
+      "exports": ["fileList"]
+    },
+    {
+      "type": "code",
+      "id": "read-package-json",
+      "code": "// Try to read package.json if it exists\nconst packageJsonPath = path.join(currentDir, 'package.json');\nlet packageData = null;\n\nif (fs.existsSync(packageJsonPath)) {\n  try {\n    const packageContent = fs.readFileSync(packageJsonPath, 'utf8');\n    packageData = JSON.parse(packageContent);\n    export const projectName = packageData.name || 'Unknown';\n    export const projectVersion = packageData.version || '0.0.0';\n    export const dependencies = Object.keys(packageData.dependencies || {});\n    \n    console.log('📦 Package Information:');\n    console.log('  Name:', projectName);\n    console.log('  Version:', projectVersion);\n    console.log('  Dependencies:', dependencies.length);\n    console.log('📋 Full package.json:');\n    console.log(packageData);\n  } catch (error) {\n    console.error('❌ Error reading package.json:', error.message);\n    export const projectName = 'Error reading package';\n    export const projectVersion = '0.0.0';\n    export const dependencies = [];\n  }\n} else {\n  console.log('⚠️ No package.json found in current directory');\n  export const projectName = 'No package.json found';\n  export const projectVersion = '0.0.0';\n  export const dependencies = [];\n}",
+      "exports": ["projectName", "projectVersion", "dependencies"]
+    },
+    {
+      "type": "code",
+      "id": "analyze-files",
+      "code": "// File analysis using reactive calculations\nexport const totalFiles = fileList.filter(file => {\n  const fullPath = path.join(currentDir, file);\n  return fs.statSync(fullPath).isFile();\n}).length;\n\nexport const totalDirectories = fileList.filter(file => {\n  const fullPath = path.join(currentDir, file);\n  return fs.statSync(fullPath).isDirectory();\n}).length;\n\nconsole.log(`📊 Analysis: ${totalFiles} files, ${totalDirectories} directories`);\nconsole.log(`Dependencies count: ${dependencies.length}`);",
+      "exports": ["totalFiles", "totalDirectories"]
+    },
+    {
+      "type": "markdown",
+      "id": "summary",
+      "content": "## File System Summary\n\n- **Project**: {{projectName}} v{{projectVersion}}\n- **Total Files**: {{totalFiles}}\n- **Total Directories**: {{totalDirectories}}\n- **Dependencies**: {{dependencies.length}}\n- **Current Directory**: {{currentDir}}\n- **Platform**: {{platform}}\n\n**Dynamic Summary**: {{fileSystemSummary}}",
+      "variables": ["projectName", "projectVersion", "totalFiles", "totalDirectories", "dependencies", "currentDir", "platform", "fileSystemSummary"]
+    },
+    {
+      "type": "code",
+      "id": "crypto-analysis",
+      "code": "// Advanced file operations with crypto hashing\nconst crypto = require('crypto');\n\nfunction getFileHash(filePath) {\n  try {\n    if (!fs.existsSync(filePath)) return null;\n    const content = fs.readFileSync(filePath);\n    return crypto.createHash('md5').update(content).digest('hex');\n  } catch (error) {\n    return `Error: ${error.message}`;\n  }\n}\n\n// Analyze common project files\nconst commonFiles = ['package.json', 'README.md', 'index.js', 'src/index.ts', 'tsconfig.json'];\nconst fileHashes = {};\nlet analyzedCount = 0;\n\nconsole.log('🔍 Analyzing common project files:');\ncommonFiles.forEach(fileName => {\n  const filePath = path.join(currentDir, fileName);\n  const hash = getFileHash(filePath);\n  \n  if (hash && !hash.startsWith('Error:')) {\n    fileHashes[fileName] = hash;\n    const stats = fs.statSync(filePath);\n    console.log(`🔒 ${fileName}: ${hash.substring(0, 8)}... (${stats.size} bytes)`);\n    analyzedCount++;\n  } else if (fs.existsSync(filePath)) {\n    console.log(`❌ Error hashing ${fileName}: ${hash}`);\n  }\n});\n\nexport const analyzedFiles = fileHashes;\nexport const fileCount = analyzedCount;\n\nconsole.log(`\\n✅ Successfully analyzed ${fileCount} files with MD5 hashes`);",
+      "exports": ["analyzedFiles", "fileCount"]
+    },
+    {
+      "type": "code",
+      "id": "system-report",
+      "code": "// Create a comprehensive system report\nconst systemReport = {\n  system: {\n    platform: platform,\n    currentDirectory: currentDir,\n    homeDirectory: homeDir\n  },\n  project: {\n    name: projectName,\n    version: projectVersion,\n    dependencyCount: dependencies.length\n  },\n  filesystem: {\n    totalFiles: totalFiles,\n    totalDirectories: totalDirectories,\n    analyzedFiles: fileCount,\n    fileHashes: Object.keys(analyzedFiles)\n  },\n  timestamp: new Date().toISOString()\n};\n\nexport const report = systemReport;\n\nconsole.log('📊 System Report Generated:');\nconsole.log(systemReport);\n\n// Calculate some derived metrics\nexport const filesPerDirectory = totalDirectories > 0 ? (totalFiles / totalDirectories).toFixed(2) : totalFiles;\nexport const hashCoverage = totalFiles > 0 ? ((fileCount / totalFiles) * 100).toFixed(1) : '0';\n\nconsole.log(`\\n📈 Derived Metrics:`);\nconsole.log(`  Files per directory: ${filesPerDirectory}`);\nconsole.log(`  Hash coverage: ${hashCoverage}%`);",
+      "exports": ["report", "filesPerDirectory", "hashCoverage"]
+    },
+    {
+      "type": "markdown",
+      "id": "conclusion",
+      "content": "## 📋 File System Analysis Results\n\n### Project Information\n- **Name**: {{projectName}}\n- **Version**: {{projectVersion}}  \n- **Dependencies**: {{dependencies.length}} packages\n\n### File System Statistics\n- **Total Files**: {{totalFiles}}\n- **Total Directories**: {{totalDirectories}}\n- **Files per Directory**: {{filesPerDirectory}}\n- **Platform**: {{platform}}\n\n### Security Analysis\n- **Files Analyzed**: {{fileCount}} files with MD5 hashes\n- **Hash Coverage**: {{hashCoverage}}% of total files\n- **Current Directory**: {{currentDir}}\n\n### Summary\nThis notebook successfully demonstrated Node.js module integration including:\n- File system operations (`fs` module)\n- Path manipulation (`path` module) \n- System information (`os` module)\n- Cryptographic hashing (`crypto` module)\n- JSON data processing\n- Reactive variable exports and interpolation\n\nAll data is now available as reactive variables that can be used in formulas and other notebook cells.",
+      "variables": ["projectName", "projectVersion", "dependencies", "totalFiles", "totalDirectories", "filesPerDirectory", "platform", "fileCount", "hashCoverage", "currentDir"]
+    }
+  ],
+  "metadata": {
+    "allowedModules": ["fs", "path", "os", "crypto", "util"],
+    "tags": ["nodejs", "filesystem", "file-operations", "crypto"]
+  }
+}

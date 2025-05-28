@@ -60,9 +60,14 @@ export interface FormulaDefinition {
 }
 
 export interface NotebookModel {
-  title: string;
+  title?: string;
   description?: string;
-  reactiveValues: ReactiveValueDefinition[];
-  formulas: FormulaDefinition[];
+  reactiveValues?: ReactiveValueDefinition[];
+  formulas?: FormulaDefinition[];
   cells: CellDefinition[];
+  metadata?: {
+    allowedModules?: string[];
+    tags?: string[];
+    [key: string]: any;
+  };
 }
