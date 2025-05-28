@@ -7,6 +7,7 @@ log.debug("Initializing App");
 
 import pricingModel from "../../examples/pricingModel.json";
 import filesystemExample from "../../examples/filesystem-example.json";
+import danfojsExample from "../../examples/danfojs-example.json";
 import { NotebookViewer } from './NotebookViewer';
 import { NotebookModel } from 'src/Types/NotebookModel';
 
@@ -15,8 +16,8 @@ export default function App() {
         <div>
             <h2>NotebookJS</h2>
            
-            <ReactiveProvider allowedModules={['fs', 'path', 'os', 'crypto', 'util']}>
-                <NotebookViewer model={filesystemExample as NotebookModel} />
+            <ReactiveProvider allowedModules={['fs', 'path', 'os', 'crypto', 'util', 'danfojs']}>
+                <NotebookViewer model={danfojsExample as NotebookModel} />
             </ReactiveProvider>
         </div>
     )
