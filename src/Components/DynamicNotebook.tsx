@@ -239,6 +239,7 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
   const [exports, setExports] = React.useState<string[]>([]);
   const [error, setError] = React.useState<Error | null>(null);
   const [dependencies, setDependencies] = React.useState<string[]>([]);
+  const [output, setOutput] = React.useState<string>('');
 
   useEffect(() => {
     if (!initialized) return;
@@ -247,12 +248,18 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
       setError(null);
       const newExports = codeCellEngine.executeCodeCell(definition.id, definition.code);
       const newDependencies = codeCellEngine.getCellDependencies(definition.id);
+      const cellOutput = codeCellEngine.getCellOutputText(definition.id);
+      
       setExports(newExports);
       setDependencies(newDependencies);
+      setOutput(cellOutput);
     } catch (err) {
       setError(err as Error);
       setExports([]);
       setDependencies([]);
+      // Get output even on error (it might contain error info)
+      const cellOutput = codeCellEngine.getCellOutputText(definition.id);
+      setOutput(cellOutput);
     }
   }, [initialized, definition.id, definition.code, codeCellEngine]);
 
@@ -269,6 +276,15 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
       <pre className="code-content">
         <code>{definition.code}</code>
       </pre>
+      
+      {/* Console Output Display */}
+      {output && (
+        <div className="console-output">
+          <div className="console-header">Console Output:</div>
+          <pre className="console-content">{output}</pre>
+        </div>
+      )}
+      
       {error && (
         <div className="code-error">
           Error: {error.message}

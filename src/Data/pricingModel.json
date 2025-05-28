@@ -107,8 +107,8 @@
     {
       "type": "markdown",
       "id": "tax-display",
-      "content": "**Tax ({{taxRate | percent}}):** {{taxAmount | currency}}<br>**Final Total:** {{finalTotal | currency}}",
-      "variables": ["taxRate", "taxAmount", "finalTotal"]
+      "content": "**Tax ({{taxRate | percent}}):** {{finalTaxAmount | currency}}<br>**Final Total:** {{finalTotal | currency}}",
+      "variables": ["taxRate", "finalTaxAmount", "finalTotal"]
     }
   ]
 }
