@@ -1,10 +1,10 @@
 import React, { JSX } from 'react';
-import ReactJson from 'react-json-view';
+import ReactJson, { ThemeKeys, ThemeObject } from 'react-json-view';
 
 interface ObjectDisplayProps {
   data: any;
-  name?: string;
-  theme?: string;
+  name?: string | false;
+  theme?: ThemeKeys |  ThemeObject;
   collapsed?: boolean;
   displayDataTypes?: boolean;
   displayObjectSize?: boolean;
@@ -12,7 +12,7 @@ interface ObjectDisplayProps {
 
 export const ObjectDisplay: React.FC<ObjectDisplayProps> = ({
   data,
-  name = false,
+  name = false as string | false,
   theme = 'rjv-default',
   collapsed = false,
   displayDataTypes = true,
