@@ -1,5 +1,5 @@
 import React from 'react'
-import { PricingCalculator } from './PricingCalculator';
+
 import { ReactiveProvider } from '../Engine/ReactiveProvider';
 import anylogger from "anylogger";
 const log = anylogger("App");
