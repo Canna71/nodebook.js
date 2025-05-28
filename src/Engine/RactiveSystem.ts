@@ -482,7 +482,7 @@ interface CodeExecutionContext {
   // Input: access to reactive values
   get: (name: string) => any;
   // Output: export reactive values
-  export: (name: string, value: any) => void;
+  exportValue: (name: string, value: any) => void;
   // Utility functions
   console: Console;
   Math: typeof Math;
@@ -493,19 +493,29 @@ interface CodeExecutionContext {
  */
 export class CodeCellEngine {
   private reactiveStore: ReactiveStore;
-  private executedCells: Map<string, { code: string; exports: string[]; dependencies: string[] }>;
+  private executedCells: Map<string, { code: string; exports: string[]; dependencies: string[]; lastExportValues: Map<string, any> }>;
+  private executingCells: Set<string>; // Track cells currently executing to prevent cycles
 
   constructor(reactiveStore: ReactiveStore) {
     this.reactiveStore = reactiveStore;
     this.executedCells = new Map();
+    this.executingCells = new Set();
   }
 
   /**
    * Execute code cell and handle exports
    */
   public executeCodeCell(cellId: string, code: string): string[] {
+    // Prevent circular execution
+    if (this.executingCells.has(cellId)) {
+      log.debug(`Code cell ${cellId} is already executing, skipping to prevent circular reference`);
+      return this.executedCells.get(cellId)?.exports || [];
+    }
+
+    this.executingCells.add(cellId);
     const exports: string[] = [];
     const dependencies = new Set<string>();
+    const exportValues = new Map<string, any>();
     
     try {
       // Create execution context
@@ -514,30 +524,63 @@ export class CodeCellEngine {
           dependencies.add(name); // Track dependencies
           return this.reactiveStore.getValue(name);
         },
-        export: (name: string, value: any) => {
-          // Create or update reactive value
-          this.reactiveStore.define(name, value);
+        exportValue: (name: string, value: any) => {
           exports.push(name);
+          exportValues.set(name, value);
         },
         console: console,
         Math: Math
       };
 
-      // Create safe execution function
+      // Create safe execution function with renamed export function
       const executeCode = new Function(
-        'get', 'export', 'console', 'Math',
-        code
+        'get', 'exportValue', 'console', 'Math',
+        `
+        // Make exportValue available as 'export' in the code
+        const export_ = exportValue;
+        ${code}
+        `
       );
 
       // Execute the code
-      executeCode(context.get, context.export, context.console, context.Math);
+      executeCode(context.get, context.exportValue, context.console, context.Math);
+
+      // Check if exports have actually changed
+      const cellInfo = this.executedCells.get(cellId);
+      const lastExportValues = cellInfo?.lastExportValues || new Map();
+      let hasChanges = false;
+
+      // Compare with previous export values
+      for (const [name, value] of exportValues) {
+        if (!lastExportValues.has(name) || lastExportValues.get(name) !== value) {
+          hasChanges = true;
+          break;
+        }
+      }
+
+      // Only update reactive values if there are actual changes
+      if (hasChanges || !cellInfo) {
+        exportValues.forEach((value, name) => {
+          this.reactiveStore.define(name, value);
+        });
+        log.debug(`Code cell ${cellId} exported changed values:`, Array.from(exportValues.entries()));
+      } else {
+        log.debug(`Code cell ${cellId} exports unchanged, skipping reactive value updates`);
+      }
 
       // Store execution info
       const dependencyArray = Array.from(dependencies);
-      this.executedCells.set(cellId, { code, exports, dependencies: dependencyArray });
+      this.executedCells.set(cellId, { 
+        code, 
+        exports, 
+        dependencies: dependencyArray, 
+        lastExportValues: new Map(exportValues)
+      });
 
-      // Set up reactive execution for dependencies
-      this.setupReactiveExecution(cellId, code, dependencyArray);
+      // Set up reactive execution for dependencies (only if not already set up)
+      if (!cellInfo || JSON.stringify(cellInfo.dependencies) !== JSON.stringify(dependencyArray)) {
+        this.setupReactiveExecution(cellId, code, dependencyArray);
+      }
 
       log.debug(`Code cell ${cellId} executed successfully, exported:`, exports, 'dependencies:', dependencyArray);
       return exports;
@@ -545,6 +588,8 @@ export class CodeCellEngine {
     } catch (error) {
       console.error(`Error executing code cell ${cellId}:`, error);
       throw new Error(`Code execution error: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      this.executingCells.delete(cellId);
     }
   }
 
@@ -552,6 +597,9 @@ export class CodeCellEngine {
    * Set up reactive execution for a code cell
    */
   private setupReactiveExecution(cellId: string, code: string, dependencies: string[]): void {
+    // Clear existing subscriptions for this cell
+    // Note: In a more complete implementation, we'd track and unsubscribe from previous subscriptions
+    
     // Subscribe to all dependencies
     dependencies.forEach(depName => {
       this.reactiveStore.subscribe(depName, () => {
