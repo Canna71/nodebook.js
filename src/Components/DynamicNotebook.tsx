@@ -152,40 +152,46 @@ function MarkdownCell({ definition, initialized }: { definition: MarkdownCellDef
   const { reactiveStore } = useReactiveSystem();
   const [renderedContent, setRenderedContent] = React.useState(definition.content);
 
+  // Utility to extract variable names from {{var}} in markdown content
+  function extractVariablesFromContent(content: string): string[] {
+    const regex = /\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(\|[^}]*)?\}\}/g;
+    const vars = new Set<string>();
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+      vars.add(match[1]);
+    }
+    return Array.from(vars);
+  }
+
   useEffect(() => {
     if (!initialized) return; // Wait for initialization
 
+    // Automatically extract variables from content if not explicitly provided
+    const variables = definition.variables && definition.variables.length > 0
+      ? definition.variables
+      : extractVariablesFromContent(definition.content);
+
     const updateContent = () => {
-      if (definition.variables && definition.variables.length > 0) {
-        // Get all calculated values
+      if (variables.length > 0) {
         const calculatedValues: { [key: string]: any } = {};
-        definition.variables.forEach(varName => {
+        variables.forEach(varName => {
           const value = reactiveStore.getValue(varName);
           calculatedValues[varName] = value;
-          console.log(`Variable ${varName}:`, value); // Debug log
         });
-        
-        console.log('Calculated values:', calculatedValues); // Debug log
-        
-        // Use the markdown renderer with values
         const rendered = renderMarkdownWithValues(definition.content, calculatedValues);
-        console.log('Rendered content:', rendered); // Debug log
         setRenderedContent(rendered);
       } else {
         setRenderedContent(definition.content);
       }
     };
 
-    if (definition.variables && definition.variables.length > 0) {
-      // Subscribe to all variables mentioned in this cell
-      const unsubscribers = definition.variables.map(varName => {
-        return reactiveStore.subscribe(varName, (value) => {
-          console.log(`Variable ${varName} changed to:`, value); // Debug log
+    if (variables.length > 0) {
+      const unsubscribers = variables.map(varName => {
+        return reactiveStore.subscribe(varName, () => {
           updateContent();
         });
       });
 
-      // Initial render
       updateContent();
 
       return () => {

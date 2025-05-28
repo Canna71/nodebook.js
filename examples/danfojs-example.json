@@ -36,8 +36,7 @@
     {
       "type": "markdown",
       "id": "summary",
-      "content": "The sum of column **C** is: **{{sumC}}**",
-      "variables": ["sumC"]
+      "content": "The sum of column **C** is: **{{sumC}}**"
     }
   ],
   "metadata": {
