@@ -513,9 +513,9 @@ export class CodeCellEngine {
     }
 
     this.executingCells.add(cellId);
-    const exports: string[] = [];
     const dependencies = new Set<string>();
     const exportValues = new Map<string, any>();
+    const exportedVars = new Set<string>(); // Single source of truth for exported variables
     
     try {
       // Transform export statements to regular assignments
@@ -524,7 +524,6 @@ export class CodeCellEngine {
       // Create a smart proxy that handles both reading and writing
       const createSmartProxy = () => {
         const localScope: { [key: string]: any } = {};
-        const exportedVars = new Set<string>(); // Track which variables are exported
         
         return new Proxy(localScope, {
           get: (target, prop) => {
@@ -532,7 +531,7 @@ export class CodeCellEngine {
               // Special handling for built-in functions
               if (prop === 'console') return console;
               if (prop === 'Math') return Math;
-              if (prop === '__exportValue') return this.createExportFunction(exports, exportValues, exportedVars);
+              if (prop === '__exportValue') return this.createExportFunction(exportValues, exportedVars);
               
               // If variable exists in local scope, return it
               if (prop in target) {
@@ -590,6 +589,9 @@ export class CodeCellEngine {
       const smartProxy = createSmartProxy();
       executeCode(smartProxy);
 
+      // Convert Set to Array for the return value and storage
+      const exportsArray = Array.from(exportedVars);
+
       // Check if exports have actually changed
       const cellInfo = this.executedCells.get(cellId);
       const lastExportValues = cellInfo?.lastExportValues || new Map();
@@ -617,7 +619,7 @@ export class CodeCellEngine {
       const dependencyArray = Array.from(dependencies);
       this.executedCells.set(cellId, { 
         code, 
-        exports, 
+        exports: exportsArray, 
         dependencies: dependencyArray, 
         lastExportValues: new Map(exportValues)
       });
@@ -627,8 +629,8 @@ export class CodeCellEngine {
         this.setupReactiveExecution(cellId, code, dependencyArray);
       }
 
-      log.debug(`Code cell ${cellId} executed successfully, exported:`, exports, 'dependencies:', dependencyArray);
-      return exports;
+      log.debug(`Code cell ${cellId} executed successfully, exported:`, exportsArray, 'dependencies:', dependencyArray);
+      return exportsArray;
 
     } catch (error) {
       console.error(`Error executing code cell ${cellId}:`, error);
@@ -673,11 +675,10 @@ export class CodeCellEngine {
   /**
    * Create export function for the execution context
    */
-  private createExportFunction(exports: string[], exportValues: Map<string, any>, exportedVars: Set<string>) {
+  private createExportFunction(exportValues: Map<string, any>, exportedVars: Set<string>) {
     return (name: string, value: any) => {
-      exports.push(name);
-      exportValues.set(name, value);
       exportedVars.add(name); // Track that this variable is exported
+      exportValues.set(name, value);
       log.debug(`Exporting variable ${name} with value:`, value);
     };
   }
