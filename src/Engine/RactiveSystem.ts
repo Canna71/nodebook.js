@@ -524,6 +524,7 @@ export class CodeCellEngine {
       // Create a smart proxy that handles both reading and writing
       const createSmartProxy = () => {
         const localScope: { [key: string]: any } = {};
+        const exportedVars = new Set<string>(); // Track which variables are exported
         
         return new Proxy(localScope, {
           get: (target, prop) => {
@@ -531,7 +532,7 @@ export class CodeCellEngine {
               // Special handling for built-in functions
               if (prop === 'console') return console;
               if (prop === 'Math') return Math;
-              if (prop === '__exportValue') return this.createExportFunction(exports, exportValues);
+              if (prop === '__exportValue') return this.createExportFunction(exports, exportValues, exportedVars);
               
               // If variable exists in local scope, return it
               if (prop in target) {
@@ -551,6 +552,14 @@ export class CodeCellEngine {
             if (typeof prop === 'string') {
               // Store in local scope
               target[prop] = value;
+              
+              // If this variable was exported, update the reactive store too
+              if (exportedVars.has(prop)) {
+                log.debug(`Updating exported variable ${prop} with new value:`, value);
+                exportValues.set(prop, value);
+                this.reactiveStore.define(prop, value); // Update reactive store immediately
+              }
+              
               return true;
             }
             return false;
@@ -664,10 +673,11 @@ export class CodeCellEngine {
   /**
    * Create export function for the execution context
    */
-  private createExportFunction(exports: string[], exportValues: Map<string, any>) {
+  private createExportFunction(exports: string[], exportValues: Map<string, any>, exportedVars: Set<string>) {
     return (name: string, value: any) => {
       exports.push(name);
       exportValues.set(name, value);
+      exportedVars.add(name); // Track that this variable is exported
       log.debug(`Exporting variable ${name} with value:`, value);
     };
   }
