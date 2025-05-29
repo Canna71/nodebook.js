@@ -516,6 +516,7 @@ export class CodeCellEngine {
     dependencies: string[]; 
     lastExportValues: Map<string, any>;
     lastOutput: ConsoleOutput[];
+    returnValue?: any; // --- NEW: Store return value ---
   }>;
   private executingCells: Set<string>; // Track cells currently executing to prevent cycles
   private moduleCache: Map<string, any>; // Global module cache
@@ -666,8 +667,11 @@ export class CodeCellEngine {
     const { console: wrappedConsole, getOutput } = this.createWrappedConsole();
     
     try {
-      // --- NEW: Create exports object for reactive exports ---
+      // Create exports object for reactive exports
       const exports: Record<string, any> = {};
+      
+      // Store for return value capture
+      let returnValue: any = undefined;
 
       // Create a smart proxy that handles both reading and writing
       const createSmartProxy = () => {
@@ -679,7 +683,15 @@ export class CodeCellEngine {
               // Special handling for built-in functions
               if (prop === 'console') return wrappedConsole;
               if (prop === 'Math') return Math;
-              if (prop === 'exports') return exports; // --- NEW: Provide exports object ---
+              if (prop === 'exports') return exports;
+              
+              // Special function to capture return values
+              if (prop === '__return__') {
+                return (value: any) => {
+                  returnValue = value;
+                  return value;
+                };
+              }
               
               // Node.js globals
               if (prop === 'require') return this.createSecureRequire();
@@ -736,18 +748,23 @@ export class CodeCellEngine {
               prop in target || 
               prop in this.globalScope ||
               this.reactiveStore.get(prop) !== undefined ||
-              ['console', 'Math', 'exports', 'require', 'process', 'Buffer', '__dirname', '__filename'].includes(prop)
+              ['console', 'Math', 'exports', 'require', 'process', 'Buffer', '__dirname', '__filename', '__return__'].includes(prop)
             );
           }
         });
       };
 
-      // --- NEW: Execute code without transformation ---
+      // Check if code has a return statement - if so, wrap it to capture the value
+      const hasReturn = /\breturn\b/.test(code);
+      const processedCode = hasReturn 
+        ? code.replace(/\breturn\s+([^;]+);?\s*$/gm, '__return__($1);')
+        : code;
+
       const executeCode = new Function(
         'scope',
         `
         with (scope) {
-          ${code}
+          ${processedCode}
         }
         `
       );
@@ -756,7 +773,7 @@ export class CodeCellEngine {
       const smartProxy = createSmartProxy();
       executeCode(smartProxy);
 
-      // --- NEW: Collect exports from the exports object ---
+      // Collect exports from the exports object
       const exportValues = new Map<string, any>();
       Object.keys(exports).forEach(varName => {
         exportValues.set(varName, exports[varName]);
@@ -793,14 +810,15 @@ export class CodeCellEngine {
         log.debug(`Code cell ${cellId} exports unchanged, skipping reactive value updates`);
       }
 
-      // Store execution info including console output
+      // Store execution info including console output and return value
       const dependencyArray = Array.from(dependencies);
       this.executedCells.set(cellId, { 
         code, 
         exports: exportsArray, 
         dependencies: dependencyArray, 
         lastExportValues: new Map(exportValues),
-        lastOutput
+        lastOutput,
+        returnValue
       });
 
       // Set up reactive execution for dependencies (only if not already set up)
@@ -808,7 +826,7 @@ export class CodeCellEngine {
         this.setupReactiveExecution(cellId, code, dependencyArray);
       }
 
-      log.debug(`Code cell ${cellId} executed successfully, exported:`, exportsArray, 'dependencies:', dependencyArray, 'output lines:', lastOutput.length);
+      log.debug(`Code cell ${cellId} executed successfully, exported:`, exportsArray, 'dependencies:', dependencyArray, 'output lines:', lastOutput.length, 'return value:', returnValue);
       return exportsArray;
 
     } catch (error) {
@@ -823,13 +841,14 @@ export class CodeCellEngine {
       // Store error state
       const exportsArray = Array.from(exportedVars);
       const dependencyArray = Array.from(dependencies);
-      const exportValues = new Map<string, any>(); // --- FIXED: Define exportValues for error case ---
+      const exportValues = new Map<string, any>();
       this.executedCells.set(cellId, { 
         code, 
         exports: exportsArray, 
         dependencies: dependencyArray, 
         lastExportValues: exportValues,
-        lastOutput
+        lastOutput,
+        returnValue: undefined
       });
       
       console.error(`Error executing code cell ${cellId}:`, error);
@@ -837,6 +856,13 @@ export class CodeCellEngine {
     } finally {
       this.executingCells.delete(cellId);
     }
+  }
+
+  /**
+   * Get return value from a code cell
+   */
+  public getCellReturnValue(cellId: string): any {
+    return this.executedCells.get(cellId)?.returnValue;
   }
 
   /**

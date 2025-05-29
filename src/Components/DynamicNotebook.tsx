@@ -247,6 +247,7 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
   const [error, setError] = React.useState<Error | null>(null);
   const [dependencies, setDependencies] = React.useState<string[]>([]);
   const [consoleOutput, setConsoleOutput] = React.useState<any[]>([]);
+  const [returnValue, setReturnValue] = React.useState<any>(undefined); // --- NEW: Track return value ---
 
   useEffect(() => {
     if (!initialized) return;
@@ -256,14 +257,17 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
       const newExports = codeCellEngine.executeCodeCell(definition.id, definition.code);
       const newDependencies = codeCellEngine.getCellDependencies(definition.id);
       const rawOutput = codeCellEngine.getCellOutput(definition.id);
+      const cellReturnValue = codeCellEngine.getCellReturnValue(definition.id); // --- NEW: Get return value ---
       
       setExports(newExports);
       setDependencies(newDependencies);
       setConsoleOutput(rawOutput);
+      setReturnValue(cellReturnValue); // --- NEW: Set return value ---
     } catch (err) {
       setError(err as Error);
       setExports([]);
       setDependencies([]);
+      setReturnValue(undefined); // --- NEW: Clear return value on error ---
       // Get output even on error (it might contain error info)
       const rawOutput = codeCellEngine.getCellOutput(definition.id);
       setConsoleOutput(rawOutput);
@@ -343,6 +347,28 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
       <pre className="code-content bg-gray-900 text-green-400 px-4 py-3 overflow-x-auto">
         <code>{definition.code}</code>
       </pre>
+      
+      {/* --- NEW: Return Value Display --- */}
+      {returnValue !== undefined && (
+        <div className="return-value bg-blue-50 px-4 py-3 border-t border-blue-200">
+          <div className="text-xs font-medium text-blue-800 mb-2">Return Value:</div>
+          <div className="return-content">
+            {typeof returnValue === 'object' && returnValue !== null ? (
+              <ObjectDisplay 
+                data={returnValue} 
+                theme="light" 
+                collapsed={false}
+                displayDataTypes={false}
+                displayObjectSize={false}
+              />
+            ) : (
+              <span className="text-blue-700 font-mono text-sm">
+                {returnValue === null ? 'null' : String(returnValue)}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
       
       {/* Console Output Display */}
       {consoleOutput.length > 0 && (
