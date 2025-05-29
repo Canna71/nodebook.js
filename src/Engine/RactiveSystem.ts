@@ -516,7 +516,8 @@ export class CodeCellEngine {
     dependencies: string[]; 
     lastExportValues: Map<string, any>;
     lastOutput: ConsoleOutput[];
-    returnValue?: any; // --- NEW: Store return value ---
+    outputValues: any[];
+    executionCount: number; // --- NEW: Track execution count for UI updates ---
   }>;
   private executingCells: Set<string>; // Track cells currently executing to prevent cycles
   private moduleCache: Map<string, any>; // Global module cache
@@ -670,8 +671,8 @@ export class CodeCellEngine {
       // Create exports object for reactive exports
       const exports: Record<string, any> = {};
       
-      // Store for return value capture
-      let returnValue: any = undefined;
+      // Store for output values capture
+      const outputValues: any[] = [];
 
       // Create a smart proxy that handles both reading and writing
       const createSmartProxy = () => {
@@ -685,11 +686,12 @@ export class CodeCellEngine {
               if (prop === 'Math') return Math;
               if (prop === 'exports') return exports;
               
-              // Special function to capture return values
-              if (prop === '__return__') {
-                return (value: any) => {
-                  returnValue = value;
-                  return value;
+              // Special function to capture output values
+              if (prop === 'output') {
+                return (...values: any[]) => {
+                  outputValues.push(...values);
+                  log.debug(`Output captured for cell ${cellId}:`, values);
+                  return values.length === 1 ? values[0] : values;
                 };
               }
               
@@ -748,23 +750,17 @@ export class CodeCellEngine {
               prop in target || 
               prop in this.globalScope ||
               this.reactiveStore.get(prop) !== undefined ||
-              ['console', 'Math', 'exports', 'require', 'process', 'Buffer', '__dirname', '__filename', '__return__'].includes(prop)
+              ['console', 'Math', 'exports', 'require', 'process', 'Buffer', '__dirname', '__filename', 'output'].includes(prop)
             );
           }
         });
       };
 
-      // Check if code has a return statement - if so, wrap it to capture the value
-      const hasReturn = /\breturn\b/.test(code);
-      const processedCode = hasReturn 
-        ? code.replace(/\breturn\s+([^;]+);?\s*$/gm, '__return__($1);')
-        : code;
-
       const executeCode = new Function(
         'scope',
         `
         with (scope) {
-          ${processedCode}
+          ${code}
         }
         `
       );
@@ -788,8 +784,8 @@ export class CodeCellEngine {
       const exportsArray = Array.from(exportedVars);
 
       // Check if exports have actually changed
-      const cellInfo = this.executedCells.get(cellId);
-      const lastExportValues = cellInfo?.lastExportValues || new Map();
+      const previousCellInfo = this.executedCells.get(cellId);
+      const lastExportValues = previousCellInfo?.lastExportValues || new Map();
       let hasChanges = false;
 
       // Compare with previous export values
@@ -801,7 +797,7 @@ export class CodeCellEngine {
       }
 
       // Only update reactive values if there are actual changes
-      if (hasChanges || !cellInfo) {
+      if (hasChanges || !previousCellInfo) {
         exportValues.forEach((value, name) => {
           this.reactiveStore.define(name, value);
         });
@@ -810,23 +806,29 @@ export class CodeCellEngine {
         log.debug(`Code cell ${cellId} exports unchanged, skipping reactive value updates`);
       }
 
-      // Store execution info including console output and return value
+      // Store execution info including execution count
       const dependencyArray = Array.from(dependencies);
+      const executionCount = (previousCellInfo?.executionCount || 0) + 1;
+      
       this.executedCells.set(cellId, { 
         code, 
         exports: exportsArray, 
         dependencies: dependencyArray, 
         lastExportValues: new Map(exportValues),
         lastOutput,
-        returnValue
+        outputValues: [...outputValues],
+        executionCount
       });
 
+      // Create a reactive value for this cell's execution state
+      this.reactiveStore.define(`__cell_${cellId}_execution`, executionCount);
+
       // Set up reactive execution for dependencies (only if not already set up)
-      if (!cellInfo || JSON.stringify(cellInfo.dependencies) !== JSON.stringify(dependencyArray)) {
+      if (!previousCellInfo || JSON.stringify(previousCellInfo.dependencies) !== JSON.stringify(dependencyArray)) {
         this.setupReactiveExecution(cellId, code, dependencyArray);
       }
 
-      log.debug(`Code cell ${cellId} executed successfully, exported:`, exportsArray, 'dependencies:', dependencyArray, 'output lines:', lastOutput.length, 'return value:', returnValue);
+      log.debug(`Code cell ${cellId} executed successfully, exported:`, exportsArray, 'dependencies:', dependencyArray, 'output lines:', lastOutput.length, 'output values:', outputValues);
       return exportsArray;
 
     } catch (error) {
@@ -842,13 +844,17 @@ export class CodeCellEngine {
       const exportsArray = Array.from(exportedVars);
       const dependencyArray = Array.from(dependencies);
       const exportValues = new Map<string, any>();
+      const previousCellInfo = this.executedCells.get(cellId);
+      const executionCount = (previousCellInfo?.executionCount || 0) + 1;
+      
       this.executedCells.set(cellId, { 
         code, 
         exports: exportsArray, 
         dependencies: dependencyArray, 
         lastExportValues: exportValues,
         lastOutput,
-        returnValue: undefined
+        outputValues: [], // Empty output values on error
+        executionCount // --- FIX: Add missing executionCount ---
       });
       
       console.error(`Error executing code cell ${cellId}:`, error);
@@ -859,19 +865,31 @@ export class CodeCellEngine {
   }
 
   /**
-   * Get return value from a code cell
+   * Get execution count for a cell (for UI updates)
+   */
+  public getCellExecutionCount(cellId: string): number {
+    return this.executedCells.get(cellId)?.executionCount || 0;
+  }
+
+  /**
+   * Get output values from a code cell
+   */
+  public getCellOutputValues(cellId: string): any[] {
+    return this.executedCells.get(cellId)?.outputValues || [];
+  }
+
+  /**
+   * Get return value from a code cell (for backward compatibility)
    */
   public getCellReturnValue(cellId: string): any {
-    return this.executedCells.get(cellId)?.returnValue;
+    const outputValues = this.getCellOutputValues(cellId);
+    return outputValues.length === 1 ? outputValues[0] : outputValues.length > 1 ? outputValues : undefined;
   }
 
   /**
    * Set up reactive execution for a code cell
    */
   private setupReactiveExecution(cellId: string, code: string, dependencies: string[]): void {
-    // Clear existing subscriptions for this cell
-    // Note: In a more complete implementation, we'd track and unsubscribe from previous subscriptions
-    
     // Subscribe to all dependencies
     dependencies.forEach(depName => {
       this.reactiveStore.subscribe(depName, () => {

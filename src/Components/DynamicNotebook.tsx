@@ -243,36 +243,37 @@ function FormulaCell({ definition }: { definition: FormulaCellDefinition }) {
 // Add CodeCell component for display purposes
 function CodeCell({ definition, initialized }: { definition: CodeCellDefinition; initialized: boolean }) {
   const { codeCellEngine } = useReactiveSystem();
+  
+  // Subscribe to execution count to know when cell re-executes
+  const [executionCount] = useReactiveValue(`__cell_${definition.id}_execution`, 0);
+  
   const [exports, setExports] = React.useState<string[]>([]);
   const [error, setError] = React.useState<Error | null>(null);
   const [dependencies, setDependencies] = React.useState<string[]>([]);
   const [consoleOutput, setConsoleOutput] = React.useState<any[]>([]);
-  const [returnValue, setReturnValue] = React.useState<any>(undefined); // --- NEW: Track return value ---
+  const [outputValues, setOutputValues] = React.useState<any[]>([]);
 
   useEffect(() => {
     if (!initialized) return;
 
     try {
       setError(null);
-      const newExports = codeCellEngine.executeCodeCell(definition.id, definition.code);
+      const newExports = codeCellEngine.getCellExports(definition.id);
       const newDependencies = codeCellEngine.getCellDependencies(definition.id);
       const rawOutput = codeCellEngine.getCellOutput(definition.id);
-      const cellReturnValue = codeCellEngine.getCellReturnValue(definition.id); // --- NEW: Get return value ---
+      const cellOutputValues = codeCellEngine.getCellOutputValues(definition.id);
       
       setExports(newExports);
       setDependencies(newDependencies);
       setConsoleOutput(rawOutput);
-      setReturnValue(cellReturnValue); // --- NEW: Set return value ---
+      setOutputValues(cellOutputValues);
     } catch (err) {
       setError(err as Error);
       setExports([]);
       setDependencies([]);
-      setReturnValue(undefined); // --- NEW: Clear return value on error ---
-      // Get output even on error (it might contain error info)
-      const rawOutput = codeCellEngine.getCellOutput(definition.id);
-      setConsoleOutput(rawOutput);
+      setOutputValues([]);
     }
-  }, [initialized, definition.id, definition.code, codeCellEngine]);
+  }, [initialized, definition.id, codeCellEngine, executionCount]); // --- NEW: Depend on executionCount
 
   // Render individual console output line
   const renderConsoleOutput = (output: any, index: number) => {
@@ -348,24 +349,33 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
         <code>{definition.code}</code>
       </pre>
       
-      {/* --- NEW: Return Value Display --- */}
-      {returnValue !== undefined && (
-        <div className="return-value bg-blue-50 px-4 py-3 border-t border-blue-200">
-          <div className="text-xs font-medium text-blue-800 mb-2">Return Value:</div>
-          <div className="return-content">
-            {typeof returnValue === 'object' && returnValue !== null ? (
-              <ObjectDisplay 
-                data={returnValue} 
-                theme="light" 
-                collapsed={false}
-                displayDataTypes={false}
-                displayObjectSize={false}
-              />
-            ) : (
-              <span className="text-blue-700 font-mono text-sm">
-                {returnValue === null ? 'null' : String(returnValue)}
-              </span>
-            )}
+      {/* --- NEW: Output Values Display --- */}
+      {outputValues.length > 0 && (
+        <div className="output-values bg-blue-50 px-4 py-3 border-t border-blue-200">
+          <div className="text-xs font-medium text-blue-800 mb-2">
+            Output Values {outputValues.length > 1 && `(${outputValues.length})`}:
+          </div>
+          <div className="output-content space-y-2">
+            {outputValues.map((value, index) => (
+              <div key={index} className="output-item">
+                {outputValues.length > 1 && (
+                  <div className="text-xs text-blue-600 mb-1">#{index + 1}:</div>
+                )}
+                {typeof value === 'object' && value !== null ? (
+                  <ObjectDisplay 
+                    data={value} 
+                    theme="light" 
+                    collapsed={false}
+                    displayDataTypes={false}
+                    displayObjectSize={false}
+                  />
+                ) : (
+                  <span className="text-blue-700 font-mono text-sm">
+                    {value === null ? 'null' : String(value)}
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}

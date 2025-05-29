@@ -12,22 +12,22 @@
     {
       "type": "code",
       "id": "import-danfo",
-      "code": "// Import Danfo.js and create a small dataset\nexports.dfd = require('danfojs');\nexports.data = {\n  A: [1, 2, 3],\n  B: [10, 20, 30]\n};\nconsole.log('Danfo.js imported. Data:', exports.data);\n\n// Return module info\nreturn {\n  module: 'danfojs',\n  version: exports.dfd.version || 'unknown',\n  dataShape: { rows: exports.data.A.length, columns: Object.keys(exports.data).length }\n};"
+      "code": "// Import Danfo.js and create a small dataset\nexports.dfd = require('danfojs');\nexports.data = {\n  A: [1, 2, 3],\n  B: [10, 20, 30]\n};\nconsole.log('Danfo.js imported. Data:', exports.data);\n\n// Output module info\noutput({\n  module: 'danfojs',\n  version: exports.dfd.version || 'unknown',\n  dataShape: { rows: exports.data.A.length, columns: Object.keys(exports.data).length }\n});"
     },
     {
       "type": "code",
       "id": "create-df",
-      "code": "// Create DataFrame from data\nexports.df = new dfd.DataFrame(data);\nconsole.log('DataFrame created:');\nexports.df.print();\n\n// Return DataFrame info\nreturn {\n  shape: exports.df.shape,\n  columns: exports.df.columns,\n  dtypes: exports.df.dtypes\n};"
+      "code": "// Create DataFrame from data\nexports.df = new dfd.DataFrame(data);\nconsole.log('DataFrame created:');\nexports.df.print();\n\n// Output DataFrame info\noutput({\n  shape: exports.df.shape,\n  columns: exports.df.columns,\n  dtypes: exports.df.dtypes\n});"
     },
     {
       "type": "code",
       "id": "add-column",
-      "code": "// Add a new column C = A + B\nexports.C = df['A'].add(df['B']);\nexports.df2 = df.addColumn('C', exports.C, { inplace: false });\nconsole.log('DataFrame with new column C:');\nexports.df2.print();\n\n// Return operation result\nreturn {\n  operation: 'addColumn',\n  newColumn: 'C',\n  newShape: exports.df2.shape,\n  columnC_values: exports.C.values\n};"
+      "code": "// Add a new column C = A + B\nexports.C = df['A'].add(df['B']);\nexports.df2 = df.addColumn('C', exports.C, { inplace: false });\nconsole.log('DataFrame with new column C:');\nexports.df2.print();\n\n// Output operation result\noutput({\n  operation: 'addColumn',\n  newColumn: 'C',\n  newShape: exports.df2.shape,\n  columnC_values: exports.C.values\n});"
     },
     {
       "type": "code",
       "id": "sum-column",
-      "code": "// Sum column C\nexports.sumC = df2['C'].sum();\nconsole.log('Sum of column C:', exports.sumC);\n\n// Return calculation summary\nreturn {\n  calculation: 'sum',\n  column: 'C',\n  result: exports.sumC,\n  verification: exports.data.A.reduce((a, b) => a + b, 0) + exports.data.B.reduce((a, b) => a + b, 0)\n};"
+      "code": "// Sum column C\nexports.sumC = df2['C'].sum();\nconsole.log('Sum of column C:', exports.sumC);\n\n// Output calculation summary\noutput({\n  calculation: 'sum',\n  column: 'C',\n  result: exports.sumC,\n  verification: exports.data.A.reduce((a, b) => a + b, 0) + exports.data.B.reduce((a, b) => a + b, 0)\n});"
     },
     {
       "type": "markdown",

@@ -51,12 +51,12 @@
     {
       "type": "code",
       "id": "os-info",
-      "code": "// Import os module and export platform info using exports object\nconst os = require('os');\nexports.platform = os.platform();\nexports.homedir = os.homedir();\nconsole.log('Platform:', exports.platform);\nconsole.log('Home directory:', exports.homedir);\n\n// Return system summary object\nreturn {\n  system: 'Node.js',\n  platform: exports.platform,\n  homeDirectory: exports.homedir,\n  processId: process.pid,\n  nodeVersion: process.version\n};"
+      "code": "// Import os module and export platform info using exports object\nconst os = require('os');\nexports.platform = os.platform();\nexports.homedir = os.homedir();\nconsole.log('Platform:', exports.platform);\nconsole.log('Home directory:', exports.homedir);\n\n// Output system summary object\noutput({\n  system: 'Node.js',\n  platform: exports.platform,\n  homeDirectory: exports.homedir,\n  processId: process.pid,\n  nodeVersion: process.version\n});"
     },
     {
       "type": "code",
       "id": "membership-message",
-      "code": "// Export a message based on membership using exports object\nexports.memberMessage = isMember ? `Welcome, ${username}!` : `Please sign up, ${username}.`;\nconsole.log(exports.memberMessage);\n\n// Return membership analysis\nreturn {\n  user: { name: username, age: age, isMember: isMember },\n  message: exports.memberMessage,\n  recommendation: age < 18 ? 'Youth discount available' : age > 65 ? 'Senior discount available' : 'Standard pricing',\n  timestamp: new Date().toISOString()\n};"
+      "code": "// Export a message based on membership using exports object\nexports.memberMessage = isMember ? `Welcome, ${username}!` : `Please sign up, ${username}.`;\nconsole.log(exports.memberMessage);\n\n// Output multiple values\noutput(\n  // User info\n  { name: username, age: age, isMember: isMember },\n  // Message\n  exports.memberMessage,\n  // Recommendation\n  {\n    recommendation: age < 18 ? 'Youth discount available' : age > 65 ? 'Senior discount available' : 'Standard pricing',\n    timestamp: new Date().toISOString()\n  }\n);"
     },
     {
       "type": "markdown",
