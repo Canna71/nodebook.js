@@ -1,37 +1,33 @@
 {
   "title": "Danfo.js Minimal Example",
-  "description": "A minimal notebook showing Danfo.js DataFrame creation and column operations.",
+  "description": "A minimal notebook showing Danfo.js DataFrame creation and column operations using exports object.",
   "reactiveValues": [],
   "formulas": [],
   "cells": [
     {
       "type": "markdown",
       "id": "intro",
-      "content": "# Minimal Danfo.js Example\n\nThis notebook demonstrates basic DataFrame creation and column operations using Danfo.js."
+      "content": "# Minimal Danfo.js Example\n\nThis notebook demonstrates basic DataFrame creation and column operations using Danfo.js with the new `exports` object syntax."
     },
     {
       "type": "code",
       "id": "import-danfo",
-      "code": "// Import Danfo.js and create a small dataset\nexport var dfd = require('danfojs');\nexport var data = {\n  A: [1, 2, 3],\n  B: [10, 20, 30]\n};\nconsole.log('Danfo.js imported. Data:', data);",
-      "exports": ["dfd", "data"]
+      "code": "// Import Danfo.js and create a small dataset\nexports.dfd = require('danfojs');\nexports.data = {\n  A: [1, 2, 3],\n  B: [10, 20, 30]\n};\nconsole.log('Danfo.js imported. Data:', exports.data);"
     },
     {
       "type": "code",
       "id": "create-df",
-      "code": "// Create DataFrame from data\nexport var df = new dfd.DataFrame(data);\nconsole.log('DataFrame:');\ndf.print();",
-      "exports": ["df"]
+      "code": "// Create DataFrame from data\nexports.df = new dfd.DataFrame(data);\nconsole.log('DataFrame:');\nexports.df.print();"
     },
     {
       "type": "code",
       "id": "add-column",
-      "code": "// Add a new column C = A + B\nexport var C = df['A'].add(df['B']);\nexport var df2 = df.addColumn('C', C, { inplace: false });\nconsole.log('DataFrame with new column C:');\ndf2.print();",
-      "exports": ["C", "df2"]
+      "code": "// Add a new column C = A + B\nexports.C = df['A'].add(df['B']);\nexports.df2 = df.addColumn('C', exports.C, { inplace: false });\nconsole.log('DataFrame with new column C:');\nexports.df2.print();"
     },
     {
       "type": "code",
       "id": "sum-column",
-      "code": "// Sum column C\nexport var sumC = df2['C'].sum();\nconsole.log('Sum of column C:', sumC);",
-      "exports": ["sumC"]
+      "code": "// Sum column C\nexports.sumC = df2['C'].sum();\nconsole.log('Sum of column C:', exports.sumC);"
     },
     {
       "type": "markdown",

@@ -660,15 +660,14 @@ export class CodeCellEngine {
 
     this.executingCells.add(cellId);
     const dependencies = new Set<string>();
-    const exportValues = new Map<string, any>();
-    const exportedVars = new Set<string>(); // Single source of truth for exported variables
+    const exportedVars = new Set<string>();
     
     // Create wrapped console for this execution
     const { console: wrappedConsole, getOutput } = this.createWrappedConsole();
     
     try {
-      // Transform export statements to regular assignments
-      const transformedCode = this.transformExportsToAssignments(code);
+      // --- NEW: Create exports object for reactive exports ---
+      const exports: Record<string, any> = {};
 
       // Create a smart proxy that handles both reading and writing
       const createSmartProxy = () => {
@@ -678,9 +677,9 @@ export class CodeCellEngine {
           get: (target, prop) => {
             if (typeof prop === 'string') {
               // Special handling for built-in functions
-              if (prop === 'console') return wrappedConsole; // Use wrapped console
+              if (prop === 'console') return wrappedConsole;
               if (prop === 'Math') return Math;
-              if (prop === '__exportValue') return this.createExportFunction(exportValues, exportedVars);
+              if (prop === 'exports') return exports; // --- NEW: Provide exports object ---
               
               // Node.js globals
               if (prop === 'require') return this.createSecureRequire();
@@ -726,13 +725,6 @@ export class CodeCellEngine {
               // Also store in global scope for persistence across cells
               this.globalScope[prop] = value;
               
-              // If this variable was exported, update the reactive store too
-              if (exportedVars.has(prop)) {
-                log.debug(`Updating exported variable ${prop} with new value:`, value);
-                exportValues.set(prop, value);
-                this.reactiveStore.define(prop, value); // Update reactive store immediately
-              }
-              
               return true;
             }
             return false;
@@ -744,18 +736,18 @@ export class CodeCellEngine {
               prop in target || 
               prop in this.globalScope ||
               this.reactiveStore.get(prop) !== undefined ||
-              ['console', 'Math', '__exportValue', 'require', 'process', 'Buffer', '__dirname', '__filename'].includes(prop)
+              ['console', 'Math', 'exports', 'require', 'process', 'Buffer', '__dirname', '__filename'].includes(prop)
             );
           }
         });
       };
 
-      // Create execution function
+      // --- NEW: Execute code without transformation ---
       const executeCode = new Function(
         'scope',
         `
         with (scope) {
-          ${transformedCode}
+          ${code}
         }
         `
       );
@@ -763,6 +755,14 @@ export class CodeCellEngine {
       // Execute the code with the smart proxy
       const smartProxy = createSmartProxy();
       executeCode(smartProxy);
+
+      // --- NEW: Collect exports from the exports object ---
+      const exportValues = new Map<string, any>();
+      Object.keys(exports).forEach(varName => {
+        exportValues.set(varName, exports[varName]);
+        exportedVars.add(varName);
+        log.debug(`Exported variable ${varName} with value:`, exports[varName]);
+      });
 
       // Capture console output
       const lastOutput = getOutput();
@@ -823,11 +823,12 @@ export class CodeCellEngine {
       // Store error state
       const exportsArray = Array.from(exportedVars);
       const dependencyArray = Array.from(dependencies);
+      const exportValues = new Map<string, any>(); // --- FIXED: Define exportValues for error case ---
       this.executedCells.set(cellId, { 
         code, 
         exports: exportsArray, 
         dependencies: dependencyArray, 
-        lastExportValues: new Map(exportValues),
+        lastExportValues: exportValues,
         lastOutput
       });
       
@@ -836,99 +837,6 @@ export class CodeCellEngine {
     } finally {
       this.executingCells.delete(cellId);
     }
-  }
-
-  /**
-   * Transform export statements to regular assignments with export calls
-   */
-  private transformExportsToAssignments(code: string): string {
-    console.log('=== CODE TRANSFORMATION START ===');
-    console.log('Original code:');
-    console.log(code);
-    console.log('=== APPLYING TRANSFORMATIONS ===');
-    
-    // Split code into lines for easier processing
-    const lines = code.split('\n');
-    const transformedLines: string[] = [];
-    const exportedVariables: string[] = [];
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const trimmedLine = line.trim();
-      
-      // Skip empty lines and comments
-      if (!trimmedLine || trimmedLine.startsWith('//')) {
-        transformedLines.push(line);
-        continue;
-      }
-      
-      // Handle export statements
-      if (trimmedLine.startsWith('export ')) {
-        const exportMatch = trimmedLine.match(/^export\s+(const|let|var)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=/);
-        
-        if (exportMatch) {
-          const [, keyword, varName] = exportMatch;
-          // Remove 'export ' from the line
-          const newLine = line.replace(/export\s+/, '');
-          transformedLines.push(newLine);
-          exportedVariables.push(varName);
-          console.log(`Found export: ${varName}, transformed line: ${newLine}`);
-        } else {
-          // Handle export { ... } syntax
-          const exportObjMatch = trimmedLine.match(/^export\s*\{\s*([^}]+)\s*\}/);
-          if (exportObjMatch) {
-            const variables = exportObjMatch[1].split(',').map(v => v.trim());
-            variables.forEach(varName => {
-              exportedVariables.push(varName);
-              console.log(`Found export object variable: ${varName}`);
-            });
-            // Skip this line entirely (don't add export { } to output)
-            continue;
-          } else {
-            // Unknown export format, keep as is but warn
-            console.warn(`Unknown export format: ${trimmedLine}`);
-            transformedLines.push(line);
-          }
-        }
-      } else {
-        transformedLines.push(line);
-      }
-    }
-    
-    // Add export calls at the end
-    exportedVariables.forEach(varName => {
-      transformedLines.push(`__exportValue('${varName}', ${varName});`);
-    });
-    
-    const transformedCode = transformedLines.join('\n');
-    
-    console.log('=== TRANSFORMATION COMPLETE ===');
-    console.log('Final transformed code:');
-    console.log(transformedCode);
-    console.log('Exported variables:', exportedVariables);
-    console.log('=== END ===');
-
-    // Validate the syntax
-    try {
-      new Function('scope', `with (scope) { ${transformedCode} }`);
-      console.log('✅ Transformed code syntax is valid');
-    } catch (syntaxError) {
-      console.error('❌ Syntax error in transformed code:', syntaxError);
-      console.error('Problematic code:', transformedCode);
-    }
-
-    return transformedCode;
-  }
-
-  /**
-   * Create export function for the execution context
-   */
-  private createExportFunction(exportValues: Map<string, any>, exportedVars: Set<string>) {
-    return (name: string, value: any) => {
-      exportedVars.add(name); // Track that this variable is exported
-      exportValues.set(name, value);
-      log.debug(`Exporting variable ${name} with value:`, value);
-    };
   }
 
   /**

@@ -16,7 +16,7 @@
     {
       "type": "markdown",
       "id": "intro",
-      "content": "# Simple Inputs and Code Example\n\nThis notebook demonstrates input cells, code cells, exported values, and module importing."
+      "content": "# Simple Inputs and Code Example\n\nThis notebook demonstrates input cells, code cells, exported values, and module importing using the new `exports` object syntax."
     },
     {
       "type": "input",
@@ -51,14 +51,12 @@
     {
       "type": "code",
       "id": "os-info",
-      "code": "// Import os module and export platform info\nconst os = require('os');\nexport var platform = os.platform();\nexport var homedir = os.homedir();\nconsole.log('Platform:', platform);\nconsole.log('Home directory:', homedir);",
-      "exports": ["platform", "homedir"]
+      "code": "// Import os module and export platform info using exports object\nconst os = require('os');\nexports.platform = os.platform();\nexports.homedir = os.homedir();\nconsole.log('Platform:', exports.platform);\nconsole.log('Home directory:', exports.homedir);"
     },
     {
       "type": "code",
       "id": "membership-message",
-      "code": "// Export a message based on membership\nexport var memberMessage = isMember ? `Welcome, ${username}!` : `Please sign up, ${username}.`;\nconsole.log(memberMessage);",
-      "exports": ["memberMessage"]
+      "code": "// Export a message based on membership using exports object\nexports.memberMessage = isMember ? `Welcome, ${username}!` : `Please sign up, ${username}.`;\nconsole.log(exports.memberMessage);"
     },
     {
       "type": "markdown",
