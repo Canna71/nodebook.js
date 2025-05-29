@@ -13,7 +13,7 @@ interface ObjectDisplayProps {
 export const ObjectDisplay: React.FC<ObjectDisplayProps> = ({
   data,
   name = false as string | false,
-  theme = 'rjv-default',
+  theme = 'monokai',
   collapsed = false,
   displayDataTypes = true,
   displayObjectSize = true

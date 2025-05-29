@@ -294,7 +294,7 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
                     {arg.type === 'object' ? (
                       <ObjectDisplay 
                         data={arg.data} 
-                        theme="monokai" 
+                        // theme="monokai" 
                         collapsed={false}
                         displayDataTypes={false}
                         displayObjectSize={false}
@@ -309,7 +309,7 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
               // Single object
               <ObjectDisplay 
                 data={output.data} 
-                theme="monokai" 
+                // theme="monokai" 
                 collapsed={false}
                 displayDataTypes={false}
                 displayObjectSize={false}
@@ -364,7 +364,7 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
                 {typeof value === 'object' && value !== null ? (
                   <ObjectDisplay 
                     data={value} 
-                    theme="light" 
+                    // theme="light" 
                     collapsed={false}
                     displayDataTypes={false}
                     displayObjectSize={false}
