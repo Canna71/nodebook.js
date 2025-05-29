@@ -1,0 +1,72 @@
+{
+  "title": "Simple Inputs and Code Example",
+  "description": "Demonstrates input cells, code cells, exported values, and module importing.",
+  "reactiveValues": [
+    { "name": "username", "defaultValue": "Alice", "type": "string" },
+    { "name": "age", "defaultValue": 30, "type": "number" },
+    { "name": "isMember", "defaultValue": true, "type": "boolean" }
+  ],
+  "formulas": [
+    {
+      "name": "greeting",
+      "formula": "`Hello, ${$username}! You are ${$age} years old.`"
+    }
+  ],
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "intro",
+      "content": "# Simple Inputs and Code Example\n\nThis notebook demonstrates input cells, code cells, exported values, and module importing."
+    },
+    {
+      "type": "input",
+      "id": "username-input",
+      "label": "Username",
+      "inputType": "text",
+      "variableName": "username",
+      "defaultValue": "Alice"
+    },
+    {
+      "type": "input",
+      "id": "age-input",
+      "label": "Age",
+      "inputType": "number",
+      "variableName": "age",
+      "defaultValue": 30,
+      "props": { "min": 0, "max": 120 }
+    },
+    {
+      "type": "input",
+      "id": "is-member-input",
+      "label": "Is Member",
+      "inputType": "checkbox",
+      "variableName": "isMember",
+      "defaultValue": true
+    },
+    {
+      "type": "markdown",
+      "id": "greeting-display",
+      "content": "## Greeting\n\n{{greeting}}"
+    },
+    {
+      "type": "code",
+      "id": "os-info",
+      "code": "// Import os module and export platform info\nconst os = require('os');\nexport var platform = os.platform();\nexport var homedir = os.homedir();\nconsole.log('Platform:', platform);\nconsole.log('Home directory:', homedir);",
+      "exports": ["platform", "homedir"]
+    },
+    {
+      "type": "code",
+      "id": "membership-message",
+      "code": "// Export a message based on membership\nexport var memberMessage = isMember ? `Welcome, ${username}!` : `Please sign up, ${username}.`;\nconsole.log(memberMessage);",
+      "exports": ["memberMessage"]
+    },
+    {
+      "type": "markdown",
+      "id": "summary",
+      "content": "### System Info\n- Platform: {{platform}}\n- Home Directory: {{homedir}}\n\n### Membership\n- {{memberMessage}}"
+    }
+  ],
+  "metadata": {
+    "tags": ["inputs", "code", "modules", "example"]
+  }
+}
