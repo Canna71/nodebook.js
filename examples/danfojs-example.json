@@ -1,36 +1,36 @@
 {
   "title": "Danfo.js Minimal Example",
-  "description": "A minimal notebook showing Danfo.js DataFrame creation and column operations.",
+  "description": "A minimal notebook showing Danfo.js DataFrame creation and column operations using the new $ syntax.",
   "reactiveValues": [],
   "formulas": [],
   "cells": [
     {
       "type": "markdown",
       "id": "intro",
-      "content": "# Minimal Danfo.js Example\n\nThis notebook demonstrates basic DataFrame creation and column operations using Danfo.js."
+      "content": "# Minimal Danfo.js Example\n\nThis notebook demonstrates basic DataFrame creation and column operations using Danfo.js with the new `$` syntax."
     },
     {
       "type": "code",
       "id": "import-danfo",
-      "code": "// Import Danfo.js and create a small dataset\nexport var dfd = require('danfojs');\nexport var data = {\n  A: [1, 2, 3],\n  B: [10, 20, 30]\n};\nconsole.log('Danfo.js imported. Data:', data);",
+      "code": "// Import Danfo.js and create a small dataset\n$.dfd = require('danfojs');\n$.data = {\n  A: [1, 2, 3],\n  B: [10, 20, 30]\n};\nconsole.log('Danfo.js imported. Data:', $.data);\n\n// Return the data object for display\nreturn $.data;",
       "exports": ["dfd", "data"]
     },
     {
       "type": "code",
       "id": "create-df",
-      "code": "// Create DataFrame from data\nexport var df = new dfd.DataFrame(data);\nconsole.log('DataFrame:');\ndf.print();",
+      "code": "// Create DataFrame from data\n$.df = new $.dfd.DataFrame($.data);\nconsole.log('DataFrame:');\n$.df.print();\n\n// Return the DataFrame for display\nreturn $.df;",
       "exports": ["df"]
     },
     {
       "type": "code",
       "id": "add-column",
-      "code": "// Add a new column C = A + B\nexport var C = df['A'].add(df['B']);\nexport var df2 = df.addColumn('C', C, { inplace: false });\nconsole.log('DataFrame with new column C:');\ndf2.print();",
+      "code": "// Add a new column C = A + B\n$.C = $.df['A'].add($.df['B']);\n$.df2 = $.df.addColumn('C', $.C, { inplace: false });\nconsole.log('DataFrame with new column C:');\n$.df2.print();\n\n// Return the new DataFrame\nreturn $.df2;",
       "exports": ["C", "df2"]
     },
     {
       "type": "code",
       "id": "sum-column",
-      "code": "// Sum column C\nexport var sumC = df2['C'].sum();\nconsole.log('Sum of column C:', sumC);",
+      "code": "// Sum column C\n$.sumC = $.df2['C'].sum();\nconsole.log('Sum of column C:', $.sumC);\n\n// Return summary statistics\nreturn {\n  sumC: $.sumC,\n  meanC: $.df2['C'].mean(),\n  maxC: $.df2['C'].max(),\n  minC: $.df2['C'].min()\n};",
       "exports": ["sumC"]
     },
     {
@@ -40,6 +40,6 @@
     }
   ],
   "metadata": {
-    "tags": ["danfojs", "minimal", "dataframe"]
+    "tags": ["danfojs", "minimal", "dataframe", "dollar-syntax"]
   }
 }

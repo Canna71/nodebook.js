@@ -516,6 +516,8 @@ export class CodeCellEngine {
     dependencies: string[]; 
     lastExportValues: Map<string, any>;
     lastOutput: ConsoleOutput[];
+    returnValue?: any;
+    subscriptions?: (() => void)[]; // Track subscriptions for cleanup
   }>;
   private executingCells: Set<string>; // Track cells currently executing to prevent cycles
   private moduleCache: Map<string, any>; // Global module cache
@@ -649,6 +651,84 @@ export class CodeCellEngine {
   }
 
   /**
+   * Create a reactive proxy that allows setting variables via $.varName = value
+   */
+  private createReactiveProxy(exportedVars: Set<string>, dependencies: Set<string>) {
+    const reactiveStore = this.reactiveStore;
+    
+    return new Proxy({}, {
+      get: (target, prop) => {
+        if (typeof prop === 'string') {
+          // Track this as a dependency when reading
+          dependencies.add(prop);
+          // Return the current value from the reactive store
+          const value = reactiveStore.getValue(prop);
+          log.debug(`Reading reactive variable ${prop} with value:`, value);
+          return value;
+        }
+        return undefined;
+      },
+      
+      set: (target, prop, value) => {
+        if (typeof prop === 'string') {
+          // Create/update reactive variable
+          reactiveStore.define(prop, value);
+          exportedVars.add(prop);
+          log.debug(`Created reactive variable ${prop} with value:`, value);
+          return true;
+        }
+        return false;
+      },
+      
+      has: (target, prop) => {
+        return typeof prop === 'string' && reactiveStore.get(prop) !== undefined;
+      }
+    });
+  }
+
+  /**
+   * Set up reactive execution for a code cell
+   */
+  private setupReactiveExecution(cellId: string, code: string, dependencies: string[]): void {
+    // Clear existing subscriptions for this cell
+    const cellInfo = this.executedCells.get(cellId);
+    if (cellInfo?.subscriptions) {
+      cellInfo.subscriptions.forEach(unsubscribe => unsubscribe());
+    }
+    
+    // Create new subscriptions
+    const subscriptions: (() => void)[] = [];
+    
+    // Subscribe to all dependencies
+    dependencies.forEach(depName => {
+      const unsubscribe = this.reactiveStore.subscribe(depName, (newValue) => {
+        // Prevent re-execution if this cell is already executing
+        if (this.executingCells.has(cellId)) {
+          log.debug(`Skipping re-execution of ${cellId} because it's already executing`);
+          return;
+        }
+        
+        log.debug(`Dependency ${depName} changed to:`, newValue, `re-executing code cell ${cellId}`);
+        // Re-execute the code cell when dependency changes
+        try {
+          this.executeCodeCell(cellId, code);
+        } catch (error) {
+          console.error(`Error re-executing code cell ${cellId}:`, error);
+        }
+      });
+      
+      if (unsubscribe) {
+        subscriptions.push(unsubscribe);
+      }
+    });
+    
+    // Store subscriptions for cleanup
+    if (cellInfo) {
+      cellInfo.subscriptions = subscriptions;
+    }
+  }
+
+  /**
    * Execute code cell and handle exports
    */
   public executeCodeCell(cellId: string, code: string): string[] {
@@ -660,16 +740,13 @@ export class CodeCellEngine {
 
     this.executingCells.add(cellId);
     const dependencies = new Set<string>();
-    const exportValues = new Map<string, any>();
-    const exportedVars = new Set<string>(); // Single source of truth for exported variables
+    const exportedVars = new Set<string>(); // Track variables created via $
+    let returnValue: any = undefined;
     
     // Create wrapped console for this execution
     const { console: wrappedConsole, getOutput } = this.createWrappedConsole();
     
     try {
-      // Transform export statements to regular assignments
-      const transformedCode = this.transformExportsToAssignments(code);
-
       // Create a smart proxy that handles both reading and writing
       const createSmartProxy = () => {
         const localScope: { [key: string]: any } = {};
@@ -680,7 +757,7 @@ export class CodeCellEngine {
               // Special handling for built-in functions
               if (prop === 'console') return wrappedConsole; // Use wrapped console
               if (prop === 'Math') return Math;
-              if (prop === '__exportValue') return this.createExportFunction(exportValues, exportedVars);
+              if (prop === '$') return this.createReactiveProxy(exportedVars, dependencies);
               
               // Node.js globals
               if (prop === 'require') return this.createSecureRequire();
@@ -726,13 +803,6 @@ export class CodeCellEngine {
               // Also store in global scope for persistence across cells
               this.globalScope[prop] = value;
               
-              // If this variable was exported, update the reactive store too
-              if (exportedVars.has(prop)) {
-                log.debug(`Updating exported variable ${prop} with new value:`, value);
-                exportValues.set(prop, value);
-                this.reactiveStore.define(prop, value); // Update reactive store immediately
-              }
-              
               return true;
             }
             return false;
@@ -744,71 +814,53 @@ export class CodeCellEngine {
               prop in target || 
               prop in this.globalScope ||
               this.reactiveStore.get(prop) !== undefined ||
-              ['console', 'Math', '__exportValue', 'require', 'process', 'Buffer', '__dirname', '__filename'].includes(prop)
+              ['console', 'Math', '$', 'require', 'process', 'Buffer', '__dirname', '__filename'].includes(prop)
             );
           }
         });
       };
 
-      // Create execution function
+      // Create execution function that wraps the code in a function to capture return value
       const executeCode = new Function(
         'scope',
         `
         with (scope) {
-          ${transformedCode}
+          return (function() {
+            ${code}
+          })();
         }
         `
       );
 
-      // Execute the code with the smart proxy
+      // Execute the code with the smart proxy and capture return value
       const smartProxy = createSmartProxy();
-      executeCode(smartProxy);
+      returnValue = executeCode(smartProxy);
 
       // Capture console output
       const lastOutput = getOutput();
 
       // Convert Set to Array for the return value and storage
       const exportsArray = Array.from(exportedVars);
-
-      // Check if exports have actually changed
-      const cellInfo = this.executedCells.get(cellId);
-      const lastExportValues = cellInfo?.lastExportValues || new Map();
-      let hasChanges = false;
-
-      // Compare with previous export values
-      for (const [name, value] of exportValues) {
-        if (!lastExportValues.has(name) || lastExportValues.get(name) !== value) {
-          hasChanges = true;
-          break;
-        }
-      }
-
-      // Only update reactive values if there are actual changes
-      if (hasChanges || !cellInfo) {
-        exportValues.forEach((value, name) => {
-          this.reactiveStore.define(name, value);
-        });
-        log.debug(`Code cell ${cellId} exported changed values:`, Array.from(exportValues.entries()));
-      } else {
-        log.debug(`Code cell ${cellId} exports unchanged, skipping reactive value updates`);
-      }
-
-      // Store execution info including console output
       const dependencyArray = Array.from(dependencies);
+
+      // Filter out self-dependencies (variables that this cell exports)
+      const filteredDependencies = dependencyArray.filter(dep => !exportsArray.includes(dep));
+
+      // Store execution info including console output and return value
       this.executedCells.set(cellId, { 
         code, 
         exports: exportsArray, 
-        dependencies: dependencyArray, 
-        lastExportValues: new Map(exportValues),
-        lastOutput
+        dependencies: filteredDependencies, // Use filtered dependencies
+        lastExportValues: new Map(),
+        lastOutput,
+        returnValue,
+        subscriptions: []
       });
 
-      // Set up reactive execution for dependencies (only if not already set up)
-      if (!cellInfo || JSON.stringify(cellInfo.dependencies) !== JSON.stringify(dependencyArray)) {
-        this.setupReactiveExecution(cellId, code, dependencyArray);
-      }
+      // Set up reactive execution for dependencies (excluding self-dependencies)
+      this.setupReactiveExecution(cellId, code, filteredDependencies);
 
-      log.debug(`Code cell ${cellId} executed successfully, exported:`, exportsArray, 'dependencies:', dependencyArray, 'output lines:', lastOutput.length);
+      log.debug(`Code cell ${cellId} executed successfully, exported:`, exportsArray, 'dependencies:', filteredDependencies, 'output lines:', lastOutput.length, 'return value:', returnValue);
       return exportsArray;
 
     } catch (error) {
@@ -827,8 +879,10 @@ export class CodeCellEngine {
         code, 
         exports: exportsArray, 
         dependencies: dependencyArray, 
-        lastExportValues: new Map(exportValues),
-        lastOutput
+        lastExportValues: new Map(),
+        lastOutput,
+        returnValue: undefined,
+        subscriptions: []
       });
       
       console.error(`Error executing code cell ${cellId}:`, error);
@@ -839,128 +893,23 @@ export class CodeCellEngine {
   }
 
   /**
-   * Transform export statements to regular assignments with export calls
+   * Clear a code cell's exports and subscriptions
    */
-  private transformExportsToAssignments(code: string): string {
-    console.log('=== CODE TRANSFORMATION START ===');
-    console.log('Original code:');
-    console.log(code);
-    console.log('=== APPLYING TRANSFORMATIONS ===');
-    
-    // Split code into lines for easier processing
-    const lines = code.split('\n');
-    const transformedLines: string[] = [];
-    const exportedVariables: string[] = [];
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const trimmedLine = line.trim();
-      
-      // Skip empty lines and comments
-      if (!trimmedLine || trimmedLine.startsWith('//')) {
-        transformedLines.push(line);
-        continue;
-      }
-      
-      // Handle export statements
-      if (trimmedLine.startsWith('export ')) {
-        const exportMatch = trimmedLine.match(/^export\s+(const|let|var)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=/);
-        
-        if (exportMatch) {
-          const [, keyword, varName] = exportMatch;
-          // Remove 'export ' from the line
-          const newLine = line.replace(/export\s+/, '');
-          transformedLines.push(newLine);
-          exportedVariables.push(varName);
-          console.log(`Found export: ${varName}, transformed line: ${newLine}`);
-        } else {
-          // Handle export { ... } syntax
-          const exportObjMatch = trimmedLine.match(/^export\s*\{\s*([^}]+)\s*\}/);
-          if (exportObjMatch) {
-            const variables = exportObjMatch[1].split(',').map(v => v.trim());
-            variables.forEach(varName => {
-              exportedVariables.push(varName);
-              console.log(`Found export object variable: ${varName}`);
-            });
-            // Skip this line entirely (don't add export { } to output)
-            continue;
-          } else {
-            // Unknown export format, keep as is but warn
-            console.warn(`Unknown export format: ${trimmedLine}`);
-            transformedLines.push(line);
-          }
-        }
-      } else {
-        transformedLines.push(line);
-      }
-    }
-    
-    // Add export calls at the end
-    exportedVariables.forEach(varName => {
-      transformedLines.push(`__exportValue('${varName}', ${varName});`);
-    });
-    
-    const transformedCode = transformedLines.join('\n');
-    
-    console.log('=== TRANSFORMATION COMPLETE ===');
-    console.log('Final transformed code:');
-    console.log(transformedCode);
-    console.log('Exported variables:', exportedVariables);
-    console.log('=== END ===');
-
-    // Validate the syntax
-    try {
-      new Function('scope', `with (scope) { ${transformedCode} }`);
-      console.log('✅ Transformed code syntax is valid');
-    } catch (syntaxError) {
-      console.error('❌ Syntax error in transformed code:', syntaxError);
-      console.error('Problematic code:', transformedCode);
-    }
-
-    return transformedCode;
-  }
-
-  /**
-   * Create export function for the execution context
-   */
-  private createExportFunction(exportValues: Map<string, any>, exportedVars: Set<string>) {
-    return (name: string, value: any) => {
-      exportedVars.add(name); // Track that this variable is exported
-      exportValues.set(name, value);
-      log.debug(`Exporting variable ${name} with value:`, value);
-    };
-  }
-
-  /**
-   * Set up reactive execution for a code cell
-   */
-  private setupReactiveExecution(cellId: string, code: string, dependencies: string[]): void {
-    // Clear existing subscriptions for this cell
-    // Note: In a more complete implementation, we'd track and unsubscribe from previous subscriptions
-    
-    // Subscribe to all dependencies
-    dependencies.forEach(depName => {
-      this.reactiveStore.subscribe(depName, () => {
-        log.debug(`Dependency ${depName} changed, re-executing code cell ${cellId}`);
-        // Re-execute the code cell when dependency changes
-        try {
-          this.executeCodeCell(cellId, code);
-        } catch (error) {
-          console.error(`Error re-executing code cell ${cellId}:`, error);
-        }
-      });
-    });
-  }
-
-  /**
-   * Re-execute a code cell
-   */
-  public reExecuteCodeCell(cellId: string): string[] {
+  public clearCellExports(cellId: string): void {
     const cellInfo = this.executedCells.get(cellId);
-    if (!cellInfo) {
-      throw new Error(`Code cell ${cellId} has not been executed before`);
+    if (cellInfo) {
+      // Unsubscribe from all reactive dependencies
+      if (cellInfo.subscriptions) {
+        cellInfo.subscriptions.forEach(unsubscribe => unsubscribe());
+      }
+      
+      // Remove exported reactive values
+      cellInfo.exports.forEach(exportName => {
+        // Note: We might want to keep the values but mark them as orphaned
+        // For now, we'll leave them in the store
+      });
+      this.executedCells.delete(cellId);
     }
-    return this.executeCodeCell(cellId, cellInfo.code);
   }
 
   /**
@@ -978,25 +927,17 @@ export class CodeCellEngine {
   }
 
   /**
-   * Clear a code cell's exports
-   */
-  public clearCellExports(cellId: string): void {
-    const cellInfo = this.executedCells.get(cellId);
-    if (cellInfo) {
-      // Remove exported reactive values
-      cellInfo.exports.forEach(exportName => {
-        // Note: We might want to keep the values but mark them as orphaned
-        // For now, we'll leave them in the store
-      });
-      this.executedCells.delete(cellId);
-    }
-  }
-
-  /**
    * Get last console output from a code cell
    */
   public getCellOutput(cellId: string): ConsoleOutput[] {
     return this.executedCells.get(cellId)?.lastOutput || [];
+  }
+
+  /**
+   * Get return value from a code cell
+   */
+  public getCellReturnValue(cellId: string): any {
+    return this.executedCells.get(cellId)?.returnValue;
   }
 
   /**

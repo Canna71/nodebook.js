@@ -59,14 +59,16 @@ export interface FormulaDefinition {
   dependencies?: string[];
 }
 
+export interface NotebookMetadata {
+  tags?: string[];
+  [key: string]: any;
+}
+
 export interface NotebookModel {
   title?: string;
   description?: string;
   reactiveValues?: ReactiveValueDefinition[];
   formulas?: FormulaDefinition[];
   cells: CellDefinition[];
-  metadata?: {
-    tags?: string[];
-    [key: string]: any;
-  };
+  metadata?: NotebookMetadata;
 }

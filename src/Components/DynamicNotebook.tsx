@@ -247,6 +247,7 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
   const [error, setError] = React.useState<Error | null>(null);
   const [dependencies, setDependencies] = React.useState<string[]>([]);
   const [consoleOutput, setConsoleOutput] = React.useState<any[]>([]);
+  const [returnValue, setReturnValue] = React.useState<any>(undefined);
 
   useEffect(() => {
     if (!initialized) return;
@@ -256,14 +257,17 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
       const newExports = codeCellEngine.executeCodeCell(definition.id, definition.code);
       const newDependencies = codeCellEngine.getCellDependencies(definition.id);
       const rawOutput = codeCellEngine.getCellOutput(definition.id);
+      const cellReturnValue = codeCellEngine.getCellReturnValue(definition.id);
       
       setExports(newExports);
       setDependencies(newDependencies);
       setConsoleOutput(rawOutput);
+      setReturnValue(cellReturnValue);
     } catch (err) {
       setError(err as Error);
       setExports([]);
       setDependencies([]);
+      setReturnValue(undefined);
       // Get output even on error (it might contain error info)
       const rawOutput = codeCellEngine.getCellOutput(definition.id);
       setConsoleOutput(rawOutput);
@@ -322,6 +326,35 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
     );
   };
 
+  // Render return value
+  const renderReturnValue = () => {
+    if (returnValue === undefined) return null;
+    
+    // Check if return value is a plain object or array that should use ObjectDisplay
+    const isComplexObject = returnValue !== null && 
+                           typeof returnValue === 'object' && 
+                           (returnValue.constructor === Object || Array.isArray(returnValue) || returnValue.constructor?.name === 'Object');
+    
+    return (
+      <div className="return-value bg-blue-900 text-blue-100 px-4 py-3 border-t border-blue-700">
+        <div className="text-xs font-medium text-blue-200 mb-2">Return Value:</div>
+        {isComplexObject ? (
+          <ObjectDisplay 
+            data={returnValue} 
+            theme="monokai" 
+            collapsed={false}
+            displayDataTypes={false}
+            displayObjectSize={false}
+          />
+        ) : (
+          <div className="text-sm font-mono text-blue-100">
+            {returnValue === null ? 'null' : String(returnValue)}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="cell code-cell border border-gray-300 rounded-lg mb-4 bg-white">
       <div className="code-header bg-gray-50 px-4 py-2 border-b border-gray-200">
@@ -343,6 +376,9 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
       <pre className="code-content bg-gray-900 text-green-400 px-4 py-3 overflow-x-auto">
         <code>{definition.code}</code>
       </pre>
+      
+      {/* Return Value Display */}
+      {renderReturnValue()}
       
       {/* Console Output Display */}
       {consoleOutput.length > 0 && (
