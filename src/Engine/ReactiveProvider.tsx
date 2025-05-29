@@ -73,9 +73,8 @@ export function useReactiveFormula<T>(name: string, formula: string): T | undefi
     const [value, setValue] = useState<T | undefined>(undefined);
 
     useEffect(() => {
-        console.debug(`useReactiveFormula: ${name} with expression: ${formula}`);
+        log.debug(`useReactiveFormula: ${name} with expression: ${formula}`);
 
-        log.debug(`Creatingformula: ${name} with expression: ${formula}`);
         // Create or update formula
         formulaEngine.createFormula(name, formula);
 

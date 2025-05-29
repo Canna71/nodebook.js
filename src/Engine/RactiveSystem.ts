@@ -76,7 +76,7 @@ class ReactiveValue<T> implements IReactiveValue<T> {
       try {
         callback(this.value);
       } catch (error) {
-        console.error('Error in reactive value subscriber:', error);
+        log.error('Error in reactive value subscriber:', error);
       }
     });
   }
@@ -408,7 +408,7 @@ export class ReactiveFormulaEngine {
         log.debug(`Evaluating formula "${formula}" resulted in:`, val);
         return val;
       } catch (error) {
-        console.error(`Error evaluating formula "${formula}":`, error);
+        log.error(`Error evaluating formula "${formula}":`, error);
         throw new FormulaError(`Error evaluating formula: ${error instanceof Error ? error.message : String(error)}`);
       }
     };
@@ -857,7 +857,7 @@ export class CodeCellEngine {
         executionCount // --- FIX: Add missing executionCount ---
       });
       
-      console.error(`Error executing code cell ${cellId}:`, error);
+      log.error(`Error executing code cell ${cellId}:`, error);
       throw new Error(`Code execution error: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       this.executingCells.delete(cellId);
@@ -898,7 +898,7 @@ export class CodeCellEngine {
         try {
           this.executeCodeCell(cellId, code);
         } catch (error) {
-          console.error(`Error re-executing code cell ${cellId}:`, error);
+          log.error(`Error re-executing code cell ${cellId}:`, error);
         }
       });
     });
@@ -1008,7 +1008,7 @@ export class CodeCellEngine {
           this.globalScope[moduleName] = moduleExports;
           log.debug(`Pre-loaded module: ${moduleName}`);
         } catch (error) {
-          console.warn(`Failed to pre-load module ${moduleName}:`, error);
+          log.warn(`Failed to pre-load module ${moduleName}:`, error);
         }
       }
     });

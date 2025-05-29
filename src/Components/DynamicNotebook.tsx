@@ -3,6 +3,8 @@ import { NotebookModel, CellDefinition, InputCellDefinition, MarkdownCellDefinit
 import { useReactiveSystem, useReactiveValue, useReactiveFormula } from '../Engine/ReactiveProvider';
 import { renderMarkdownWithValues } from '../Engine/markdown';
 import { ObjectDisplay } from './ObjectDisplay';
+import anylogger from 'anylogger';
+const log = anylogger("DynamicNotebook");
 
 interface DynamicNotebookProps {
   model: NotebookModel;
@@ -32,9 +34,9 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
       for (const codeCell of codeCells) {
         try {
           const exports = codeCellEngine.executeCodeCell(codeCell.id, codeCell.code);
-          console.log(`Code cell ${codeCell.id} executed, exports:`, exports);
+          log.info(`Code cell ${codeCell.id} executed, exports:`, exports);
         } catch (error) {
-          console.error(`Error executing code cell ${codeCell.id}:`, error);
+          log.error(`Error executing code cell ${codeCell.id}:`, error);
         }
       }
 
@@ -267,13 +269,19 @@ function CodeCell({ definition, initialized }: { definition: CodeCellDefinition;
       setDependencies(newDependencies);
       setConsoleOutput(rawOutput);
       setOutputValues(cellOutputValues);
+
+      log.debug(`Code cell ${definition.id} UI updated:`, {
+        exports: newExports,
+        dependencies: newDependencies,
+        outputValues: cellOutputValues
+      });
     } catch (err) {
       setError(err as Error);
       setExports([]);
       setDependencies([]);
       setOutputValues([]);
     }
-  }, [initialized, definition.id, codeCellEngine, executionCount]); // --- NEW: Depend on executionCount
+  }, [initialized, definition.id, codeCellEngine, executionCount]);
 
   // Render individual console output line
   const renderConsoleOutput = (output: any, index: number) => {
