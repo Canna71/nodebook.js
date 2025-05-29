@@ -64,7 +64,6 @@
     }
   ],
   "metadata": {
-    "allowedModules": ["fs", "path", "os", "crypto", "util"],
     "tags": ["nodejs", "filesystem", "file-operations", "crypto"]
   }
 }
