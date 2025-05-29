@@ -66,7 +66,6 @@ export interface NotebookModel {
   formulas?: FormulaDefinition[];
   cells: CellDefinition[];
   metadata?: {
-    allowedModules?: string[];
     tags?: string[];
     [key: string]: any;
   };

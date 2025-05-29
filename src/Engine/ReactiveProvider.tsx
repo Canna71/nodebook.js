@@ -16,9 +16,8 @@ const ReactiveContext = createContext<ReactiveContextType | null>(null);
 // Provider component
 export const ReactiveProvider: React.FC<{ 
   children: React.ReactNode;
-  allowedModules?: string[];
-}> = ({ children, allowedModules }) => {
-    const [system] = useState(() => createReactiveSystem({}, allowedModules));
+}> = ({ children }) => {
+    const [system] = useState(() => createReactiveSystem());
 
     return (
         <ReactiveContext.Provider value={system}>
@@ -100,9 +99,6 @@ export function useCodeCellModules() {
     const { codeCellEngine } = useReactiveSystem();
     
     return {
-        getAllowedModules: () => codeCellEngine.getAllowedModules(),
-        addAllowedModule: (moduleName: string) => codeCellEngine.addAllowedModule(moduleName),
-        removeAllowedModule: (moduleName: string) => codeCellEngine.removeAllowedModule(moduleName),
         getCachedModules: () => codeCellEngine.getCachedModules(),
         getGlobalVariables: () => codeCellEngine.getGlobalVariables(),
         clearModuleCache: () => codeCellEngine.clearModuleCache(),

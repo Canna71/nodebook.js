@@ -518,44 +518,15 @@ export class CodeCellEngine {
     lastOutput: ConsoleOutput[];
   }>;
   private executingCells: Set<string>; // Track cells currently executing to prevent cycles
-  private allowedModules: Set<string>;
   private moduleCache: Map<string, any>; // Global module cache
   private globalScope: { [key: string]: any }; // Persistent global scope
 
-  constructor(reactiveStore: ReactiveStore, allowedModules?: string[]) {
+  constructor(reactiveStore: ReactiveStore) {
     this.reactiveStore = reactiveStore;
     this.executedCells = new Map();
     this.executingCells = new Set();
     this.moduleCache = new Map();
     this.globalScope = {};
-    
-    // Default allowed modules - can be customized
-    this.allowedModules = new Set(allowedModules || [
-      'fs', 'path', 'os', 'crypto', 'util', 'url', 'querystring',
-      'buffer', 'stream', 'events', 'assert', 'zlib',
-      'lodash', 'axios', 'moment', 'uuid', 'chalk'
-    ]);
-  }
-
-  /**
-   * Add allowed module
-   */
-  public addAllowedModule(moduleName: string): void {
-    this.allowedModules.add(moduleName);
-  }
-
-  /**
-   * Remove allowed module
-   */
-  public removeAllowedModule(moduleName: string): void {
-    this.allowedModules.delete(moduleName);
-  }
-
-  /**
-   * Get list of allowed modules
-   */
-  public getAllowedModules(): string[] {
-    return Array.from(this.allowedModules);
   }
 
   /**
@@ -563,11 +534,6 @@ export class CodeCellEngine {
    */
   private createSecureRequire(): (moduleName: string) => any {
     return (moduleName: string) => {
-      // Check if module is allowed
-      if (!this.allowedModules.has(moduleName)) {
-        throw new Error(`Module '${moduleName}' is not allowed in code cells. Allowed modules: ${Array.from(this.allowedModules).join(', ')}`);
-      }
-      
       // Check cache first
       if (this.moduleCache.has(moduleName)) {
         log.debug(`Loading cached module: ${moduleName}`);
@@ -1083,7 +1049,7 @@ export class CodeCellEngine {
   public preloadModules(moduleNames: string[]): void {
     const secureRequire = this.createSecureRequire();
     moduleNames.forEach(moduleName => {
-      if (this.allowedModules.has(moduleName) && !this.moduleCache.has(moduleName)) {
+      if (!this.moduleCache.has(moduleName)) {
         try {
           const moduleExports = secureRequire(moduleName);
           // Ensure it's also in global scope
@@ -1098,7 +1064,7 @@ export class CodeCellEngine {
 }
 
 // Example usage
-export function createReactiveSystem(options: ReactiveFormulaEngineOptions = {}, allowedModules?: string[]) {
+export function createReactiveSystem(options: ReactiveFormulaEngineOptions = {}) {
   // Create reactive store
   const reactiveStore = new ReactiveStore();
   
@@ -1106,18 +1072,7 @@ export function createReactiveSystem(options: ReactiveFormulaEngineOptions = {},
   const formulaEngine = new ReactiveFormulaEngine(reactiveStore, options);
   
   // Create code cell engine with module support
-  const codeCellEngine = new CodeCellEngine(reactiveStore, allowedModules);
-  
-  // Pre-load common modules for better performance
-  if (allowedModules) {
-    const commonModules = ['fs', 'path', 'os'];
-    const modulesToPreload = commonModules.filter(mod => allowedModules.includes(mod));
-    if (modulesToPreload.length > 0) {
-      setTimeout(() => {
-        codeCellEngine.preloadModules(modulesToPreload);
-      }, 100); // Small delay to allow initialization
-    }
-  }
+  const codeCellEngine = new CodeCellEngine(reactiveStore);
   
   return {
     reactiveStore,

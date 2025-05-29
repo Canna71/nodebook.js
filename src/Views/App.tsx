@@ -16,7 +16,7 @@ export default function App() {
         <div>
             <h2>NotebookJS</h2>
            
-            <ReactiveProvider allowedModules={['fs', 'path', 'os', 'crypto', 'util', 'danfojs']}>
+            <ReactiveProvider>
                 <NotebookViewer model={danfojsExample as NotebookModel} />
             </ReactiveProvider>
         </div>

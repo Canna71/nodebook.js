@@ -40,7 +40,6 @@
     }
   ],
   "metadata": {
-    "allowedModules": ["danfojs"],
     "tags": ["danfojs", "minimal", "dataframe"]
   }
 }
