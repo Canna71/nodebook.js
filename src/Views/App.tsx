@@ -8,6 +8,7 @@ log.debug("Initializing App");
 import pricingModel from "../../examples/pricingModel.json";
 import filesystemExample from "../../examples/filesystem-example.json";
 import danfojsExample from "../../examples/danfojs-example.json";
+import tensorFlowExample from "../../examples/tensorflow-example.json";
 import simpleExample from "../../examples/simple-inputs-example.json";
 import { NotebookViewer } from './NotebookViewer';
 import { NotebookModel } from 'src/Types/NotebookModel';
@@ -18,7 +19,7 @@ export default function App() {
             <h2>NotebookJS</h2>
            
             <ReactiveProvider>
-                <NotebookViewer model={simpleExample as NotebookModel} />
+                <NotebookViewer model={tensorFlowExample as NotebookModel} />
             </ReactiveProvider>
         </div>
     )

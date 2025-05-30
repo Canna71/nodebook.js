@@ -1,0 +1,96 @@
+{
+  "title": "TensorFlow.js Numeric Operations Example",
+  "description": "A comprehensive notebook demonstrating TensorFlow.js for numeric operations on arrays as an alternative to numpy.",
+  "reactiveValues": [
+    { "name": "arraySize", "defaultValue": 10, "type": "number" },
+    { "name": "multiplier", "defaultValue": 2.5, "type": "number" },
+    { "name": "useRandomData", "defaultValue": true, "type": "boolean" }
+  ],
+  "formulas": [],
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "intro",
+      "content": "# TensorFlow.js Numeric Operations\n\nThis notebook demonstrates how to use TensorFlow.js for numeric operations on arrays, serving as an alternative to numpy in JavaScript environments.\n\n## Features Covered\n- Tensor creation and manipulation\n- Mathematical operations (sum, mean, std, etc.)\n- Matrix operations\n- Element-wise operations\n- Statistical functions"
+    },
+    {
+      "type": "input",
+      "id": "array-size-input",
+      "label": "Array Size",
+      "inputType": "range",
+      "variableName": "arraySize",
+      "defaultValue": 10,
+      "props": { "min": 5, "max": 100, "step": 1 }
+    },
+    {
+      "type": "input",
+      "id": "multiplier-input",
+      "label": "Multiplier",
+      "inputType": "number",
+      "variableName": "multiplier",
+      "defaultValue": 2.5,
+      "props": { "min": 0.1, "max": 10, "step": 0.1 }
+    },
+    {
+      "type": "input",
+      "id": "random-data-input",
+      "label": "Use Random Data",
+      "inputType": "checkbox",
+      "variableName": "useRandomData",
+      "defaultValue": true
+    },
+    {
+      "type": "code",
+      "id": "import-tensorflow",
+      "code": "// Import TensorFlow.js\nexports.tf = require('@tensorflow/tfjs');\nconsole.log('TensorFlow.js imported successfully');\nconsole.log('Backend:', exports.tf.getBackend());\n\n// Output TensorFlow info\noutput({\n  library: 'TensorFlow.js',\n  version: exports.tf.version_core || 'unknown',\n  backend: exports.tf.getBackend(),\n  memory: exports.tf.memory()\n});"
+    },
+    {
+      "type": "code",
+      "id": "create-data",
+      "code": "// Create sample data based on user preferences\nif (useRandomData) {\n  // Create random data\n  exports.data1 = tf.randomUniform([arraySize], 0, 100).arraySync();\n  exports.data2 = tf.randomUniform([arraySize], 0, 50).arraySync();\n} else {\n  // Create sequential data\n  exports.data1 = Array.from({length: arraySize}, (_, i) => i + 1);\n  exports.data2 = Array.from({length: arraySize}, (_, i) => (i + 1) * 0.5);\n}\n\nconsole.log('Data 1:', exports.data1);\nconsole.log('Data 2:', exports.data2);\n\n// Output data info\noutput({\n  dataType: useRandomData ? 'random' : 'sequential',\n  arraySize: arraySize,\n  data1_sample: exports.data1.slice(0, 5),\n  data2_sample: exports.data2.slice(0, 5)\n});"
+    },
+    {
+      "type": "code",
+      "id": "basic-tensors",
+      "code": "// Convert arrays to tensors and export them\nexports.tensor1 = tf.tensor1d(data1);\nexports.tensor2 = tf.tensor1d(data2);\n\nconsole.log('Tensor 1 shape:', exports.tensor1.shape);\nconsole.log('Tensor 2 shape:', exports.tensor2.shape);\n\n// Basic tensor info\nexports.tensor1Info = {\n  shape: exports.tensor1.shape,\n  dtype: exports.tensor1.dtype,\n  size: exports.tensor1.size\n};\n\nconsole.log('Tensor 1 info:', exports.tensor1Info);\n\n// Output tensor information\noutput({\n  tensor1: {\n    shape: exports.tensor1.shape,\n    dtype: exports.tensor1.dtype,\n    size: exports.tensor1.size\n  },\n  tensor2: {\n    shape: exports.tensor2.shape,\n    dtype: exports.tensor2.dtype,\n    size: exports.tensor2.size\n  }\n});"
+    },
+    {
+      "type": "code",
+      "id": "basic-operations",
+      "code": "// Basic mathematical operations\nexports.sum1 = tf.sum(tensor1).arraySync();\nexports.mean1 = tf.mean(tensor1).arraySync();\nexports.std1 = tf.moments(tensor1).variance.sqrt().arraySync();\nexports.min1 = tf.min(tensor1).arraySync();\nexports.max1 = tf.max(tensor1).arraySync();\n\nconsole.log('Statistics for Tensor 1:');\nconsole.log('Sum:', exports.sum1);\nconsole.log('Mean:', exports.mean1);\nconsole.log('Standard Deviation:', exports.std1);\nconsole.log('Min:', exports.min1);\nconsole.log('Max:', exports.max1);\n\n// Output statistics\noutput({\n  operation: 'Basic Statistics',\n  tensor: 'data1',\n  statistics: {\n    sum: exports.sum1,\n    mean: exports.mean1,\n    std: exports.std1,\n    min: exports.min1,\n    max: exports.max1,\n    range: exports.max1 - exports.min1\n  }\n});"
+    },
+    {
+      "type": "code",
+      "id": "element-wise-operations",
+      "code": "// Element-wise operations\nexports.added = tf.add(tensor1, tensor2).arraySync();\nexports.multiplied = tf.mul(tensor1, tensor2).arraySync();\nexports.scaled = tf.mul(tensor1, multiplier).arraySync();\nexports.squared = tf.square(tensor1).arraySync();\nexports.sqrt_vals = tf.sqrt(tf.abs(tensor1)).arraySync();\n\nconsole.log('Element-wise operations:');\nconsole.log('Added (first 5):', exports.added.slice(0, 5));\nconsole.log('Multiplied (first 5):', exports.multiplied.slice(0, 5));\nconsole.log('Scaled by', multiplier, '(first 5):', exports.scaled.slice(0, 5));\n\n// Output operation results\noutput({\n  operation: 'Element-wise Operations',\n  results: {\n    addition_sample: exports.added.slice(0, 3),\n    multiplication_sample: exports.multiplied.slice(0, 3),\n    scaling_factor: multiplier,\n    scaled_sample: exports.scaled.slice(0, 3),\n    squared_sample: exports.squared.slice(0, 3)\n  }\n});"
+    },
+    {
+      "type": "code",
+      "id": "matrix-operations",
+      "code": "// Matrix operations - reshape to 2D for demonstration\nconst matrixSize = Math.floor(Math.sqrt(arraySize));\nconst actualSize = matrixSize * matrixSize;\n\n// Create matrices and export them\nexports.matrix1 = tf.tensor2d(data1.slice(0, actualSize), [matrixSize, matrixSize]);\nexports.matrix2 = tf.tensor2d(data2.slice(0, actualSize), [matrixSize, matrixSize]);\n\n// Matrix operations\nexports.matrixSum = tf.add(exports.matrix1, exports.matrix2).arraySync();\nexports.matrixProduct = tf.matMul(exports.matrix1, exports.matrix2).arraySync();\nexports.transpose1 = tf.transpose(exports.matrix1).arraySync();\n\n// Calculate trace (sum of diagonal elements) instead of determinant\nconst diagonalElements = [];\nfor (let i = 0; i < matrixSize; i++) {\n  diagonalElements.push(exports.matrix1.arraySync()[i][i]);\n}\nexports.trace = diagonalElements.reduce((sum, val) => sum + val, 0);\n\nconsole.log(`Matrix operations (${matrixSize}x${matrixSize}):`);\nconsole.log('Matrix 1:', exports.matrix1.arraySync());\nconsole.log('Matrix sum:', exports.matrixSum);\nconsole.log('Trace (sum of diagonal):', exports.trace);\n\n// Output matrix operations\noutput({\n  operation: 'Matrix Operations',\n  matrixSize: `${matrixSize}x${matrixSize}`,\n  trace: exports.trace,\n  matrixSum_diagonal: exports.matrixSum.map((row, i) => row[i]),\n  transpose_shape: [matrixSize, matrixSize]\n});"
+    },
+    {
+      "type": "code",
+      "id": "advanced-operations",
+      "code": "// Advanced statistical operations\nexports.normalized1 = tf.div(tf.sub(tensor1, tf.mean(tensor1)), tf.moments(tensor1).variance.sqrt()).arraySync();\nexports.cumsum1 = tf.cumsum(tensor1).arraySync();\nexports.sorted1 = tf.topk(tensor1, arraySize).values.arraySync();\n\n// Percentiles (approximate using sorting)\nconst sortedTensor = tf.topk(tensor1, arraySize).values;\nexports.median = tf.slice(sortedTensor, [Math.floor(arraySize/2)], [1]).arraySync()[0];\nexports.q25 = tf.slice(sortedTensor, [Math.floor(arraySize*0.25)], [1]).arraySync()[0];\nexports.q75 = tf.slice(sortedTensor, [Math.floor(arraySize*0.75)], [1]).arraySync()[0];\n\nconsole.log('Advanced operations:');\nconsole.log('Normalized (first 5):', exports.normalized1.slice(0, 5));\nconsole.log('Cumulative sum (first 5):', exports.cumsum1.slice(0, 5));\nconsole.log('Median:', exports.median);\nconsole.log('Q25:', exports.q25, 'Q75:', exports.q75);\n\n// Clean up intermediate tensors\nsortedTensor.dispose();\n\n// Output advanced statistics\noutput({\n  operation: 'Advanced Statistics',\n  quartiles: {\n    q25: exports.q25,\n    median: exports.median,\n    q75: exports.q75,\n    iqr: exports.q75 - exports.q25\n  },\n  normalized_stats: {\n    mean: tf.mean(tf.tensor1d(exports.normalized1)).arraySync(),\n    std: tf.moments(tf.tensor1d(exports.normalized1)).variance.sqrt().arraySync()\n  },\n  cumsum_final: exports.cumsum1[exports.cumsum1.length - 1]\n});"
+    },
+    {
+      "type": "code",
+      "id": "memory-cleanup",
+      "code": "// Clean up tensors to free memory\nexports.initialMemory = tf.memory().numTensors;\n\n// Safely dispose of tensors with existence checks\nconst tensorsToDispose = [tensor1, tensor2, matrix1, matrix2];\nconst tensorNames = ['tensor1', 'tensor2', 'matrix1', 'matrix2'];\nlet disposedCount = 0;\n\ntensorsToDispose.forEach((tensor, index) => {\n  if (tensor && typeof tensor.dispose === 'function') {\n    try {\n      tensor.dispose();\n      disposedCount++;\n      console.log(`Disposed ${tensorNames[index]}`);\n    } catch (error) {\n      console.warn(`Failed to dispose ${tensorNames[index]}:`, error.message);\n    }\n  } else {\n    console.warn(`${tensorNames[index]} is not available for disposal`);\n  }\n});\n\nexports.finalMemory = tf.memory().numTensors;\nexports.tensorsFreed = exports.initialMemory - exports.finalMemory;\n\nconsole.log('Memory cleanup:');\nconsole.log('Initial tensors:', exports.initialMemory);\nconsole.log('Final tensors:', exports.finalMemory);\nconsole.log('Tensors disposed:', disposedCount);\nconsole.log('Net tensors freed:', exports.tensorsFreed);\n\n// Output memory info\noutput({\n  memoryManagement: {\n    initialTensors: exports.initialMemory,\n    finalTensors: exports.finalMemory,\n    tensorsDisposed: disposedCount,\n    tensorsFreed: exports.tensorsFreed,\n    memoryInfo: tf.memory()\n  }\n});"
+    },
+    {
+      "type": "markdown",
+      "id": "results-summary",
+      "content": "## Results Summary\n\n### Basic Statistics (Array 1)\n- **Sum**: {{sum1}}\n- **Mean**: {{mean1}}\n- **Standard Deviation**: {{std1}}\n- **Range**: {{min1}} to {{max1}}\n\n### Quartiles\n- **Q25**: {{q25}}\n- **Median**: {{median}}\n- **Q75**: {{q75}}\n\n### Matrix Operations\n- **Matrix Size**: {{matrixSize}}×{{matrixSize}}\n- **Trace**: {{trace}}\n\n### Memory Management\n- **Tensors Freed**: {{tensorsFreed}}"
+    },
+    {
+      "type": "markdown",
+      "id": "conclusion",
+      "content": "## Conclusion\n\nTensorFlow.js provides powerful numeric computation capabilities that can serve as an excellent alternative to numpy in JavaScript environments. Key advantages:\n\n- **GPU Acceleration**: Automatic GPU utilization when available\n- **Memory Management**: Explicit tensor disposal for optimal memory usage\n- **Broadcasting**: Automatic shape handling for operations\n- **Rich API**: Comprehensive mathematical and statistical functions\n\nThis makes TensorFlow.js ideal for:\n- Scientific computing in Node.js\n- Browser-based data analysis\n- Machine learning preprocessing\n- Real-time numeric computations"
+    }
+  ],
+  "metadata": {
+    "tags": ["tensorflow", "numeric", "arrays", "numpy-alternative", "mathematics"]
+  }
+}
