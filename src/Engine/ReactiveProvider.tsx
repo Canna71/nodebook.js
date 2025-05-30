@@ -20,51 +20,6 @@ export const ReactiveProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
     const [system] = useState(() => createReactiveSystem());
-    const [modulesReady, setModulesReady] = useState(false);
-
-    // Pre-load modules on initialization
-    useEffect(() => {
-        const loadModules = () => {
-            try {
-                // Pre-load common modules that might be needed
-                const moduleNames = [
-                    'danfojs', 'danfojs-node', 
-                    'lodash', 'moment', 'axios',
-                    '@tensorflow/tfjs'
-                ];
-                
-                const results = system.codeCellEngine.preloadModules(moduleNames);
-                
-                log.debug('Module loading results:', results);
-                
-                if (results.loaded.length > 0) {
-                    log.info(`Successfully loaded modules: ${results.loaded.join(', ')}`);
-                }
-                
-                if (results.failed.length > 0) {
-                    log.debug(`Optional modules not available: ${results.failed.join(', ')}`);
-                }
-                
-                setModulesReady(true);
-            } catch (error) {
-                log.error('Error during module loading:', error);
-                setModulesReady(true); // Continue anyway
-            }
-        };
-
-        loadModules();
-    }, [system]);
-
-    if (!modulesReady) {
-        return (
-            <div className="flex items-center justify-center p-8">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <div>Loading modules...</div>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <ReactiveContext.Provider value={system}>
