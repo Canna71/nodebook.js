@@ -1,16 +1,7 @@
 import anylogger from 'anylogger';
 
-// Static import for danfojs to ensure it's bundled
-let danfojs: any = null;
-try {
-  // Use ES6 import() for better bundling support
-  danfojs = require('danfojs');
-} catch (error) {
-  // Silently handle missing danfojs - will be logged later
-}
-
-// Alternative: Direct import (comment out the above and use this if available)
-// import * as danfojs from 'danfojs';
+// Static ES6 import for danfojs to ensure it's bundled
+import * as danfojs from 'danfojs';
 
 const log = anylogger('ModuleRegistry');
 
@@ -71,12 +62,12 @@ export class ModuleRegistry {
       }
     });
 
-    // Register statically imported danfojs if available
+    // Register statically imported danfojs
     if (danfojs) {
       this.modules.set('danfojs', danfojs);
-      log.info('✓ Successfully loaded danfojs (bundled)');
+      log.info('✓ Successfully loaded danfojs (bundled via ES6 import)');
     } else {
-      log.warn('⚠️ danfojs not available - install it with: npm install danfojs');
+      log.warn('⚠️ danfojs not available');
     }
 
     // Optional npm modules
