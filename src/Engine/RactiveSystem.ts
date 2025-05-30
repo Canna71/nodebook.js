@@ -576,19 +576,39 @@ export class CodeCellEngine {
     const captureOutput = (type: ConsoleOutput['type']) => (...args: any[]) => {
       // Process each argument to determine if it should be rendered as an object
       const processedArgs = args.map(arg => {
-        // Check if argument is a plain object or array (not string, not null, not primitive)
-        const isPlainObject = arg !== null && 
-                             typeof arg === 'object' && 
-                             (arg.constructor === Object || Array.isArray(arg) || arg.constructor?.name === 'Object');
+        // Enhanced object detection - check for complex objects including DataFrames, Series, etc.
+        const isComplexObject = arg !== null && 
+                               typeof arg === 'object' && 
+                               (
+                                 // Basic objects and arrays
+                                 arg.constructor === Object || 
+                                 Array.isArray(arg) ||
+                                 // DataFrames and Series (Danfo.js)
+                                 (arg.constructor && arg.constructor.name === 'DataFrame') ||
+                                 (arg.constructor && arg.constructor.name === 'Series') ||
+                                 // TensorFlow tensors
+                                 (arg.constructor && arg.constructor.name === 'Tensor') ||
+                                 // Other structured objects with methods/properties
+                                 (typeof arg.toString === 'function' && arg.toString !== Object.prototype.toString) ||
+                                 // Objects with custom constructors (not built-in types)
+                                 (arg.constructor && 
+                                  arg.constructor !== String && 
+                                  arg.constructor !== Number && 
+                                  arg.constructor !== Boolean && 
+                                  arg.constructor !== Date &&
+                                  arg.constructor !== RegExp &&
+                                  arg.constructor.name !== 'Object' &&
+                                  Object.keys(arg).length > 0)
+                               );
         
-        if (isPlainObject) {
+        if (isComplexObject) {
           // Store as object for ObjectDisplay
           return {
             type: 'object',
             data: arg
           };
         } else {
-          // Store as regular value
+          // Store as regular value (primitives, null, functions, etc.)
           return {
             type: 'primitive',
             data: arg,

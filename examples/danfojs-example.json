@@ -22,7 +22,7 @@
     {
       "type": "code",
       "id": "add-column",
-      "code": "// Add a new column C = A + B\nexports.C = df['A'].add(df['B']);\nexports.df2 = df.addColumn('C', exports.C, { inplace: false });\nconsole.log('DataFrame with new column C:');\nexports.df2.print();\n\n// Output operation result\noutput({\n  operation: 'addColumn',\n  newColumn: 'C',\n  newShape: exports.df2.shape,\n  columnC_values: exports.C.values\n});"
+      "code": "// Add a new column C = A + B\nexports.C = df['A'].add(df['B']);\nexports.df2 = df.addColumn('C', exports.C, { inplace: false });\nconsole.log('DataFrame with new column C:', exports.df2);\n//exports.df2.print();\n\n// Output operation result\noutput({\n  operation: 'addColumn',\n  newColumn: 'C',\n  newShape: exports.df2.shape,\n  columnC_values: exports.C.values\n});"
     },
     {
       "type": "code",
