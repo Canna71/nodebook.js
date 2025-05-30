@@ -19,7 +19,7 @@ export default function App() {
             <h2>NotebookJS</h2>
            
             <ReactiveProvider>
-                <NotebookViewer model={tensorFlowExample as NotebookModel} />
+                <NotebookViewer model={danfojsExample as NotebookModel} />
             </ReactiveProvider>
         </div>
     )
