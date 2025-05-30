@@ -1,7 +1,7 @@
 import anylogger from 'anylogger';
 
 // Static ES6 import for danfojs to ensure it's bundled
-import * as danfojs from 'danfojs';
+import * as danfojs from 'danfojs-node';
 
 const log = anylogger('ModuleRegistry');
 
