@@ -1,5 +1,17 @@
 import anylogger from 'anylogger';
 
+// Static import for danfojs to ensure it's bundled
+let danfojs: any = null;
+try {
+  // Use ES6 import() for better bundling support
+  danfojs = require('danfojs');
+} catch (error) {
+  // Silently handle missing danfojs - will be logged later
+}
+
+// Alternative: Direct import (comment out the above and use this if available)
+// import * as danfojs from 'danfojs';
+
 const log = anylogger('ModuleRegistry');
 
 /**
@@ -35,7 +47,7 @@ export class ModuleRegistry {
   }
 
   /**
-   * Pre-load common Node.js and npm modules
+   * Pre-load common modules using Node.js require
    */
   private preloadCommonModules(): void {
     if (!this.nodeRequire) {
@@ -43,44 +55,51 @@ export class ModuleRegistry {
       return;
     }
 
-    const commonModules = [
-      // Built-in Node.js modules
+    // Built-in Node.js modules
+    const builtinModules = [
       'os', 'path', 'fs', 'util', 'crypto', 'url', 'querystring',
-      // Common npm modules (if available)
-      'lodash', 'moment', 'axios'
+      'events', 'stream', 'buffer', 'process'
     ];
 
-    commonModules.forEach(moduleName => {
+    builtinModules.forEach(moduleName => {
       try {
         const moduleExports = this.nodeRequire(moduleName);
         this.modules.set(moduleName, moduleExports);
-        log.debug(`Pre-loaded module: ${moduleName}`);
+        log.debug(`Pre-loaded builtin module: ${moduleName}`);
       } catch (error) {
-        // Don't log errors for optional modules that might not be installed
-        if (['lodash', 'moment', 'axios'].includes(moduleName)) {
-          log.debug(`Optional module not available: ${moduleName}`);
-        } else {
-          log.warn(`Failed to pre-load module ${moduleName}:`, error);
-        }
+        log.warn(`Failed to pre-load builtin module ${moduleName}:`, error);
       }
     });
 
-    // Try to load danfojs specifically
-    try {
-      const danfojs = this.nodeRequire('danfojs-node');
+    // Register statically imported danfojs if available
+    if (danfojs) {
       this.modules.set('danfojs', danfojs);
-      log.debug('Pre-loaded danfojs-node');
-    } catch (error) {
-      try {
-        const danfojs = this.nodeRequire('danfojs');
-        this.modules.set('danfojs', danfojs);
-        log.debug('Pre-loaded danfojs');
-      } catch (error2) {
-        log.debug('Danfojs not available:', error2);
-      }
+      log.info('✓ Successfully loaded danfojs (bundled)');
+    } else {
+      log.warn('⚠️ danfojs not available - install it with: npm install danfojs');
     }
 
-    log.debug('Pre-loaded modules:', Array.from(this.modules.keys()));
+    // Optional npm modules
+    const optionalModules = [
+      '@tensorflow/tfjs', '@tensorflow/tfjs-node',
+      'lodash', 'moment', 'axios'
+    ];
+
+    optionalModules.forEach(moduleName => {
+      try {
+        const moduleExports = this.nodeRequire(moduleName);
+        this.modules.set(moduleName, moduleExports);
+        log.debug(`Pre-loaded optional module: ${moduleName}`);
+        
+        if (moduleName === '@tensorflow/tfjs-node') {
+          this.modules.set('tensorflow', moduleExports);
+        }
+      } catch (error) {
+        log.debug(`Optional module not available: ${moduleName}`);
+      }
+    });
+
+    log.info('Available modules:', Array.from(this.modules.keys()));
   }
 
   /**
