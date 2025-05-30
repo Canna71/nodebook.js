@@ -30,7 +30,7 @@ export const ReactiveProvider: React.FC<{
                 const moduleNames = [
                     'danfojs', 'danfojs-node', 
                     'lodash', 'moment', 'axios',
-                    '@tensorflow/tfjs-node'
+                    '@tensorflow/tfjs'
                 ];
                 
                 const results = system.codeCellEngine.preloadModules(moduleNames);
