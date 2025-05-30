@@ -29,11 +29,11 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
         formulaEngine.createFormula(formulaDefinition.name, formulaDefinition.formula);
       });
 
-      // Execute all code cells during initialization
+      // Execute all code cells during initialization (now async)
       const codeCells = model.cells.filter(cell => cell.type === 'code') as CodeCellDefinition[];
       for (const codeCell of codeCells) {
         try {
-          const exports = codeCellEngine.executeCodeCell(codeCell.id, codeCell.code);
+          const exports = await codeCellEngine.executeCodeCell(codeCell.id, codeCell.code);
           log.info(`Code cell ${codeCell.id} executed, exports:`, exports);
         } catch (error) {
           log.error(`Error executing code cell ${codeCell.id}:`, error);

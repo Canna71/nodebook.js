@@ -1,0 +1,84 @@
+{
+  "title": "TensorFlow.js with tfvis Visualizations",
+  "description": "Demonstrates TensorFlow.js tensor operations with tfvis visualizations rendered in notebook outputs.",
+  "reactiveValues": [
+    { "name": "dataSize", "defaultValue": 50, "type": "number" },
+    { "name": "chartType", "defaultValue": "scatter", "type": "string" }
+  ],
+  "formulas": [],
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "intro",
+      "content": "# TensorFlow.js with tfvis Visualizations\n\nThis notebook demonstrates how to use TensorFlow.js with tfvis to create interactive visualizations that are captured and displayed in the notebook output."
+    },
+    {
+      "type": "input",
+      "id": "data-size-input",
+      "label": "Data Size",
+      "inputType": "range",
+      "variableName": "dataSize",
+      "defaultValue": 50,
+      "props": { "min": 10, "max": 200, "step": 10 }
+    },
+    {
+      "type": "input",
+      "id": "chart-type-input",
+      "label": "Chart Type",
+      "inputType": "select",
+      "variableName": "chartType",
+      "defaultValue": "scatter",
+      "props": {
+        "options": [
+          { "label": "Scatter Plot", "value": "scatter" },
+          { "label": "Line Chart", "value": "line" },
+          { "label": "Bar Chart", "value": "bar" },
+          { "label": "Histogram", "value": "histogram" }
+        ]
+      }
+    },
+    {
+      "type": "code",
+      "id": "import-libs",
+      "code": "// Import TensorFlow.js and tfvis\nexports.tf = require('@tensorflow/tfjs');\nexports.tfvis = await importES6('@tensorflow/tfjs-vis');\n\nconsole.log('TensorFlow.js version:', tf.version.tfjs);\nconsole.log('Backend:', tf.getBackend());\nconsole.log('tfvis loaded successfully');\n\n// Output library info\noutput({\n  tensorflow: {\n    version: tf.version.tfjs,\n    backend: tf.getBackend(),\n    memory: tf.memory()\n  },\n  tfvis: {\n    available: true,\n    functions: Object.keys(tfvis.render).slice(0, 5)\n  }\n});"
+    },
+    {
+      "type": "code",
+      "id": "create-data",
+      "code": "// Generate sample data using TensorFlow.js\nexports.x = tf.randomUniform([dataSize], 0, 10);\nexports.y = tf.add(tf.mul(exports.x, 2), tf.randomNormal([dataSize], 0, 1));\n\n// Convert to arrays for visualization\nexports.xData = exports.x.arraySync();\nexports.yData = exports.y.arraySync();\n\n// Create data points for visualization\nexports.dataPoints = exports.xData.map((x, i) => ({ x: x, y: exports.yData[i] }));\n\nconsole.log(`Generated ${dataSize} data points`);\nconsole.log('Sample data:', exports.dataPoints.slice(0, 5));\n\n// Output data statistics\noutput({\n  dataGenerated: {\n    size: dataSize,\n    xRange: [Math.min(...exports.xData), Math.max(...exports.xData)],\n    yRange: [Math.min(...exports.yData), Math.max(...exports.yData)],\n    samplePoints: exports.dataPoints.slice(0, 3)\n  }\n});"
+    },
+    {
+      "type": "code",
+      "id": "create-visualizations",
+      "code": "// Create a container div for the visualization\nexports.createVisualization = function(type, data, title) {\n  const container = document.createElement('div');\n  container.style.width = '100%';\n  container.style.height = '400px';\n  container.style.margin = '10px 0';\n  container.id = `viz-${type}-${Date.now()}`;\n  \n  const titleDiv = document.createElement('h4');\n  titleDiv.textContent = title;\n  titleDiv.style.margin = '0 0 10px 0';\n  titleDiv.style.color = '#333';\n  \n  const chartDiv = document.createElement('div');\n  chartDiv.style.width = '100%';\n  chartDiv.style.height = '350px';\n  chartDiv.style.border = '1px solid #ddd';\n  chartDiv.style.borderRadius = '4px';\n  \n  container.appendChild(titleDiv);\n  container.appendChild(chartDiv);\n  \n  return { container, chartDiv };\n};\n\n// Create different types of visualizations based on chartType\nlet visualization;\n\nswitch(chartType) {\n  case 'scatter':\n    visualization = exports.createVisualization('scatter', dataPoints, `Scatter Plot (${dataSize} points)`);\n    tfvis.render.scatterplot(visualization.chartDiv, {\n      values: [dataPoints],\n      series: ['y = 2x + noise']\n    }, {\n      xLabel: 'X Values',\n      yLabel: 'Y Values',\n      height: 300\n    });\n    break;\n    \n  case 'line':\n    visualization = exports.createVisualization('line', dataPoints, `Line Chart (${dataSize} points)`);\n    // Sort data for line chart\n    const sortedData = [...dataPoints].sort((a, b) => a.x - b.x);\n    tfvis.render.linechart(visualization.chartDiv, {\n      values: [sortedData],\n      series: ['Linear Trend']\n    }, {\n      xLabel: 'X Values',\n      yLabel: 'Y Values',\n      height: 300\n    });\n    break;\n    \n  case 'bar':\n    visualization = exports.createVisualization('bar', dataPoints, `Bar Chart (first 10 points)`);\n    const barData = dataPoints.slice(0, 10).map((point, i) => ({ index: i, value: point.y }));\n    tfvis.render.barchart(visualization.chartDiv, {\n      values: [barData]\n    }, {\n      xLabel: 'Data Point Index',\n      yLabel: 'Y Value',\n      height: 300\n    });\n    break;\n    \n  case 'histogram':\n    visualization = exports.createVisualization('histogram', yData, `Histogram of Y Values`);\n    tfvis.render.histogram(visualization.chartDiv, yData, {\n      xLabel: 'Y Value Bins',\n      yLabel: 'Frequency',\n      height: 300\n    });\n    break;\n}\n\nexports.visualization = visualization.container;\nconsole.log(`Created ${chartType} visualization`);\n\n// Output the visualization container\noutput(exports.visualization);"
+    },
+    {
+      "type": "code",
+      "id": "tensor-operations",
+      "code": "// Perform tensor operations and visualize results\nexports.mean_x = tf.mean(x);\nexports.std_x = tf.moments(x).variance.sqrt();\nexports.mean_y = tf.mean(y);\nexports.std_y = tf.moments(y).variance.sqrt();\n\n// Calculate correlation coefficient\nexports.corr = tf.div(\n  tf.mean(tf.mul(tf.sub(x, exports.mean_x), tf.sub(y, exports.mean_y))),\n  tf.mul(exports.std_x, exports.std_y)\n);\n\n// Get scalar values\nexports.stats = {\n  x_mean: exports.mean_x.arraySync(),\n  x_std: exports.std_x.arraySync(),\n  y_mean: exports.mean_y.arraySync(),\n  y_std: exports.std_y.arraySync(),\n  correlation: exports.corr.arraySync()\n};\n\nconsole.log('Statistical analysis:', exports.stats);\n\n// Create a table visualization for statistics\nexports.statsViz = exports.createVisualization('table', exports.stats, 'Statistical Summary');\n\n// Create custom table\nconst table = document.createElement('table');\ntable.style.width = '100%';\ntable.style.borderCollapse = 'collapse';\ntable.style.fontFamily = 'monospace';\n\nconst tableData = [\n  ['Statistic', 'X Values', 'Y Values'],\n  ['Mean', exports.stats.x_mean.toFixed(3), exports.stats.y_mean.toFixed(3)],\n  ['Std Dev', exports.stats.x_std.toFixed(3), exports.stats.y_std.toFixed(3)],\n  ['Correlation', exports.stats.correlation.toFixed(3), '-']\n];\n\ntableData.forEach((row, i) => {\n  const tr = table.insertRow();\n  if (i === 0) tr.style.backgroundColor = '#f0f0f0';\n  row.forEach(cell => {\n    const td = tr.insertCell();\n    td.textContent = cell;\n    td.style.border = '1px solid #ddd';\n    td.style.padding = '8px';\n    if (i === 0) td.style.fontWeight = 'bold';\n  });\n});\n\nexports.statsViz.chartDiv.appendChild(table);\n\n// Output statistics and table\noutput(exports.stats, exports.statsViz.container);"
+    },
+    {
+      "type": "code",
+      "id": "model-visualization",
+      "code": "// Create a simple linear model and visualize training\nexports.model = tf.sequential({\n  layers: [\n    tf.layers.dense({ inputShape: [1], units: 1 })\n  ]\n});\n\nexports.model.compile({\n  optimizer: 'sgd',\n  loss: 'meanSquaredError'\n});\n\nconsole.log('Model created');\nexports.model.summary();\n\n// Prepare training data\nexports.xs = tf.tensor2d(xData.map(x => [x]));\nexports.ys = tf.tensor2d(yData.map(y => [y]));\n\n// Create model architecture visualization\nexports.modelViz = exports.createVisualization('model', null, 'Model Architecture');\ntfvis.show.modelSummary(exports.modelViz.chartDiv, exports.model);\n\n// Output model info and visualization\noutput({\n  model: {\n    layers: exports.model.layers.length,\n    trainableParams: exports.model.countParams(),\n    inputShape: [1],\n    outputShape: [1]\n  }\n}, exports.modelViz.container);"
+    },
+    {
+      "type": "code",
+      "id": "train-model",
+      "code": "// Train the model with visualization\nexports.trainModel = async function() {\n  const lossViz = exports.createVisualization('loss', null, 'Training Loss');\n  \n  const history = await exports.model.fit(exports.xs, exports.ys, {\n    epochs: 50,\n    validationSplit: 0.2,\n    callbacks: tfvis.show.fitCallbacks(lossViz.chartDiv, ['loss', 'val_loss'])\n  });\n  \n  return { history, lossViz };\n};\n\n// Execute training\nexports.trainResult = await exports.trainModel();\n\nconsole.log('Model training completed');\n\n// Make predictions\nexports.predictions = exports.model.predict(exports.xs);\nexports.predData = exports.predictions.arraySync().map(p => p[0]);\n\n// Create prediction vs actual visualization\nexports.predViz = exports.createVisualization('predictions', null, 'Predictions vs Actual');\nconst predPoints = xData.map((x, i) => ({ x: x, y: exports.predData[i] }));\nconst actualPoints = xData.map((x, i) => ({ x: x, y: yData[i] }));\n\ntfvis.render.scatterplot(exports.predViz.chartDiv, {\n  values: [actualPoints, predPoints],\n  series: ['Actual', 'Predicted']\n}, {\n  xLabel: 'X Values',\n  yLabel: 'Y Values',\n  height: 300\n});\n\n// Output training results and prediction visualization\noutput(\n  {\n    training: {\n      epochs: 50,\n      finalLoss: exports.trainResult.history.history.loss.slice(-1)[0],\n      modelAccuracy: 'See visualization'\n    }\n  },\n  exports.trainResult.lossViz.container,\n  exports.predViz.container\n);"
+    },
+    {
+      "type": "code",
+      "id": "cleanup",
+      "code": "// Clean up tensors\nexports.tensorsToCleanup = [x, y, xs, ys, predictions, mean_x, std_x, mean_y, std_y, corr];\nexports.cleanedCount = 0;\n\nexports.tensorsToCleanup.forEach((tensor, index) => {\n  if (tensor && typeof tensor.dispose === 'function') {\n    try {\n      tensor.dispose();\n      exports.cleanedCount++;\n    } catch (error) {\n      console.warn(`Failed to dispose tensor ${index}:`, error.message);\n    }\n  }\n});\n\nconsole.log(`Cleaned up ${exports.cleanedCount} tensors`);\n\n// Output cleanup summary\noutput({\n  memoryCleanup: {\n    tensorsDisposed: exports.cleanedCount,\n    memoryInfo: tf.memory()\n  }\n});"
+    },
+    {
+      "type": "markdown",
+      "id": "summary",
+      "content": "## Visualization Summary\n\n- **Data Size**: {{dataSize}} points\n- **Chart Type**: {{chartType}}\n- **Correlation**: {{correlation}}\n\nThe notebook demonstrates how tfvis visualizations are captured and displayed in the output sections of code cells, allowing for interactive data exploration within the notebook environment."
+    }
+  ],
+  "metadata": {
+    "tags": ["tensorflow", "tfvis", "visualization", "machine-learning"]
+  }
+}

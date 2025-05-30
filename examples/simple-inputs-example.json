@@ -16,7 +16,7 @@
     {
       "type": "markdown",
       "id": "intro",
-      "content": "# Simple Inputs and Code Example\n\nThis notebook demonstrates input cells, code cells, exported values, and module importing using the new `exports` object syntax."
+      "content": "# Simple Inputs and Code Example\n\nThis notebook demonstrates input cells, code cells, exported values, and module importing."
     },
     {
       "type": "input",
@@ -51,17 +51,17 @@
     {
       "type": "code",
       "id": "os-info",
-      "code": "// Import os module and export platform info using exports object\nconst os = require('os');\nexports.platform = os.platform();\nexports.homedir = os.homedir();\nconsole.log('Platform:', exports.platform);\nconsole.log('Home directory:', exports.homedir);\n\n// Output system summary object\noutput({\n  system: 'Node.js',\n  platform: exports.platform,\n  homeDirectory: exports.homedir,\n  processId: process.pid,\n  nodeVersion: process.version\n});"
+      "code": "// Import os module and export platform info\nexports.os = require('os');\nexports.platform = os.platform();\nexports.homedir = os.homedir();\nexports.cpuCount = os.cpus().length;\n\nconsole.log('Platform:', exports.platform);\nconsole.log('Home directory:', exports.homedir);\nconsole.log('CPU cores:', exports.cpuCount);\n\n// Output system summary\noutput({\n  system: {\n    platform: exports.platform,\n    homeDirectory: exports.homedir,\n    cpuCores: exports.cpuCount,\n    totalMemory: Math.round(os.totalmem() / 1024 / 1024 / 1024) + ' GB',\n    nodeVersion: process.version\n  }\n});"
     },
     {
       "type": "code",
-      "id": "membership-message",
-      "code": "// Export a message based on membership using exports object\nexports.memberMessage = isMember ? `Welcome, ${username}!` : `Please sign up, ${username}.`;\nconsole.log(exports.memberMessage);\n\n// Output multiple values\noutput(\n  // User info\n  { name: username, age: age, isMember: isMember },\n  // Message\n  exports.memberMessage,\n  // Recommendation\n  {\n    recommendation: age < 18 ? 'Youth discount available' : age > 65 ? 'Senior discount available' : 'Standard pricing',\n    timestamp: new Date().toISOString()\n  }\n);"
+      "id": "membership-processing",
+      "code": "// Process membership status and generate personalized content\nexports.memberMessage = isMember ? `Welcome back, ${username}!` : `Join us today, ${username}!`;\nexports.ageGroup = age < 18 ? 'Youth' : age < 65 ? 'Adult' : 'Senior';\nexports.discount = age < 18 ? 0.15 : age >= 65 ? 0.10 : (isMember ? 0.05 : 0);\n\nconsole.log('Member message:', exports.memberMessage);\nconsole.log('Age group:', exports.ageGroup);\nconsole.log('Discount rate:', exports.discount);\n\n// Output user profile and recommendations\noutput(\n  {\n    userProfile: {\n      name: username,\n      age: age,\n      ageGroup: exports.ageGroup,\n      isMember: isMember,\n      discountRate: exports.discount\n    }\n  },\n  {\n    message: exports.memberMessage,\n    recommendation: exports.discount > 0 ? `You qualify for a ${Math.round(exports.discount * 100)}% discount!` : 'Consider membership for exclusive benefits',\n    timestamp: new Date().toISOString()\n  }\n);"
     },
     {
       "type": "markdown",
       "id": "summary",
-      "content": "### System Info\n- Platform: {{platform}}\n- Home Directory: {{homedir}}\n\n### Membership\n- {{memberMessage}}"
+      "content": "### System Info\n- **Platform**: {{platform}}\n- **CPU Cores**: {{cpuCount}}\n- **Home Directory**: {{homedir}}\n\n### User Profile\n- **{{memberMessage}}**\n- **Age Group**: {{ageGroup}}\n- **Discount**: {{discount}}%"
     }
   ],
   "metadata": {

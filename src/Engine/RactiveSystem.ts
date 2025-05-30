@@ -546,23 +546,90 @@ export class CodeCellEngine {
       }
       
       try {
-        // Use dynamic import or require based on environment
         let moduleExports;
+        
+        // First try CommonJS require
         if (typeof require !== 'undefined') {
-          moduleExports = require(moduleName);
+          try {
+            moduleExports = require(moduleName);
+            log.debug(`Loaded CommonJS module: ${moduleName}`);
+          } catch (requireError) {
+            // If require fails, check if it's an ES6 module error
+            const errorMessage = requireError instanceof Error ? requireError.message : String(requireError);
+            
+            if (errorMessage.includes('Cannot use import statement') || 
+                errorMessage.includes('Unexpected token') ||
+                errorMessage.includes('SyntaxError') ||
+                errorMessage.includes('import statement outside a module')) {
+              
+              log.debug(`CommonJS require failed for ${moduleName}, trying dynamic import...`);
+              
+              // Try dynamic import for ES6 modules
+              // Note: This returns a Promise, but we need to handle it synchronously for the current context
+              // We'll throw a specific error that can be caught and handled differently
+              throw new Error(`ES6_MODULE_DETECTED:${moduleName}`);
+            } else {
+              // Re-throw other require errors
+              throw requireError;
+            }
+          }
         } else {
           throw new Error('Module loading not available in this environment');
         }
         
-        // Cache the module for future use
+        // Cache the successfully loaded module
         this.moduleCache.set(moduleName, moduleExports);
         // Also store in global scope for direct access
         this.globalScope[moduleName] = moduleExports;
-        log.debug(`Loaded and cached module: ${moduleName}`);
+        log.debug(`Cached CommonJS module: ${moduleName}`);
         
         return moduleExports;
+        
       } catch (error) {
-        throw new Error(`Failed to load module '${moduleName}': ${error instanceof Error ? error.message : String(error)}`);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        
+        // Handle ES6 module detection
+        if (errorMessage.startsWith('ES6_MODULE_DETECTED:')) {
+          const moduleName = errorMessage.split(':')[1];
+          throw new Error(`Module '${moduleName}' is an ES6 module. Use 'await import("${moduleName}")' instead of 'require("${moduleName}")' for ES6 modules.`);
+        }
+        
+        throw new Error(`Failed to load module '${moduleName}': ${errorMessage}`);
+      }
+    };
+  }
+
+  /**
+   * Create an async import function for ES6 modules
+   */
+  private createAsyncImport(): (moduleName: string) => Promise<any> {
+    return async (moduleName: string) => {
+      // Check cache first
+      if (this.moduleCache.has(moduleName)) {
+        log.debug(`Loading cached ES6 module: ${moduleName}`);
+        const cachedModule = this.moduleCache.get(moduleName);
+        // Also store in global scope for direct access
+        this.globalScope[moduleName] = cachedModule;
+        return cachedModule;
+      }
+      
+      try {
+        // Use dynamic import for ES6 modules
+        const moduleExports = await import(moduleName);
+        
+        // For ES6 modules, we typically want the default export or the entire module
+        const finalExports = moduleExports.default || moduleExports;
+        
+        // Cache the module for future use
+        this.moduleCache.set(moduleName, finalExports);
+        // Also store in global scope for direct access
+        this.globalScope[moduleName] = finalExports;
+        log.debug(`Loaded and cached ES6 module: ${moduleName}`);
+        
+        return finalExports;
+        
+      } catch (error) {
+        throw new Error(`Failed to import ES6 module '${moduleName}': ${error instanceof Error ? error.message : String(error)}`);
       }
     };
   }
@@ -673,7 +740,7 @@ export class CodeCellEngine {
   /**
    * Execute code cell and handle exports
    */
-  public executeCodeCell(cellId: string, code: string): string[] {
+  public async executeCodeCell(cellId: string, code: string): Promise<string[]> {
     // Prevent circular execution
     if (this.executingCells.has(cellId)) {
       log.debug(`Code cell ${cellId} is already executing, skipping to prevent circular reference`);
@@ -717,6 +784,7 @@ export class CodeCellEngine {
               
               // Node.js globals
               if (prop === 'require') return this.createSecureRequire();
+              if (prop === 'importES6') return this.createAsyncImport();
               if (prop === 'process' && typeof process !== 'undefined') return process;
               if (prop === 'Buffer' && typeof Buffer !== 'undefined') return Buffer;
               if (prop === '__dirname') return process?.cwd() || '/';
@@ -770,24 +838,27 @@ export class CodeCellEngine {
               prop in target || 
               prop in this.globalScope ||
               this.reactiveStore.get(prop) !== undefined ||
-              ['console', 'Math', 'exports', 'require', 'process', 'Buffer', '__dirname', '__filename', 'output'].includes(prop)
+              ['console', 'Math', 'exports', 'require', 'importES6', 'process', 'Buffer', '__dirname', '__filename', 'output'].includes(prop)
             );
           }
         });
       };
 
+      // Create async function to execute the code
       const executeCode = new Function(
         'scope',
         `
-        with (scope) {
-          ${code}
-        }
+        return (async function() {
+          with (scope) {
+            ${code}
+          }
+        })();
         `
       );
 
-      // Execute the code with the smart proxy
+      // Execute the code with the smart proxy and await the result
       const smartProxy = createSmartProxy();
-      executeCode(smartProxy);
+      await executeCode(smartProxy);
 
       // Collect exports from the exports object
       const exportValues = new Map<string, any>();
@@ -874,7 +945,7 @@ export class CodeCellEngine {
         lastExportValues: exportValues,
         lastOutput,
         outputValues: [], // Empty output values on error
-        executionCount // --- FIX: Add missing executionCount ---
+        executionCount
       });
       
       log.error(`Error executing code cell ${cellId}:`, error);
@@ -914,12 +985,10 @@ export class CodeCellEngine {
     dependencies.forEach(depName => {
       this.reactiveStore.subscribe(depName, () => {
         log.debug(`Dependency ${depName} changed, re-executing code cell ${cellId}`);
-        // Re-execute the code cell when dependency changes
-        try {
-          this.executeCodeCell(cellId, code);
-        } catch (error) {
+        // Re-execute the code cell when dependency changes (async)
+        this.executeCodeCell(cellId, code).catch(error => {
           log.error(`Error re-executing code cell ${cellId}:`, error);
-        }
+        });
       });
     });
   }
@@ -927,7 +996,7 @@ export class CodeCellEngine {
   /**
    * Re-execute a code cell
    */
-  public reExecuteCodeCell(cellId: string): string[] {
+  public async reExecuteCodeCell(cellId: string): Promise<string[]> {
     const cellInfo = this.executedCells.get(cellId);
     if (!cellInfo) {
       throw new Error(`Code cell ${cellId} has not been executed before`);

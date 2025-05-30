@@ -1,41 +1,56 @@
 {
-  "title": "Danfo.js Minimal Example",
-  "description": "A minimal notebook showing Danfo.js DataFrame creation and column operations using exports object.",
+  "title": "Danfo.js DataFrame Example",
+  "description": "A complete notebook showing Danfo.js DataFrame creation, operations, and visualization.",
   "reactiveValues": [],
   "formulas": [],
   "cells": [
     {
       "type": "markdown",
       "id": "intro",
-      "content": "# Minimal Danfo.js Example\n\nThis notebook demonstrates basic DataFrame creation and column operations using Danfo.js with the new `exports` object syntax."
+      "content": "# Danfo.js DataFrame Example\n\nThis notebook demonstrates DataFrame creation, operations, and visualization using Danfo.js with proper object rendering."
     },
     {
       "type": "code",
       "id": "import-danfo",
-      "code": "// Import Danfo.js and create a small dataset\nexports.dfd = require('danfojs');\nexports.data = {\n  A: [1, 2, 3],\n  B: [10, 20, 30]\n};\nconsole.log('Danfo.js imported. Data:', exports.data);\n\n// Output module info\noutput({\n  module: 'danfojs',\n  version: exports.dfd.version || 'unknown',\n  dataShape: { rows: exports.data.A.length, columns: Object.keys(exports.data).length }\n});"
+      "code": "// Import Danfo.js\nexports.dfd = require('danfojs-node');\n\nconsole.log('Danfo.js imported successfully');\noutput({ module: 'danfojs-node', status: 'loaded' });"
     },
     {
       "type": "code",
-      "id": "create-df",
-      "code": "// Create DataFrame from data\nexports.df = new dfd.DataFrame(data);\nconsole.log('DataFrame created:');\nexports.df.print();\n\n// Output DataFrame info\noutput({\n  shape: exports.df.shape,\n  columns: exports.df.columns,\n  dtypes: exports.df.dtypes\n});"
+      "id": "create-data",
+      "code": "// Create sample dataset\nexports.salesData = {\n  product: ['Laptop', 'Phone', 'Tablet', 'Watch', 'Headphones'],\n  price: [999, 599, 399, 299, 199],\n  quantity: [10, 25, 15, 30, 40],\n  category: ['Electronics', 'Electronics', 'Electronics', 'Wearables', 'Audio']\n};\n\nconsole.log('Sample data created:', exports.salesData);\noutput(exports.salesData);"
     },
     {
       "type": "code",
-      "id": "add-column",
-      "code": "// Add a new column C = A + B\nexports.C = df['A'].add(df['B']);\nexports.df2 = df.addColumn('C', exports.C, { inplace: false });\nconsole.log('DataFrame with new column C:', exports.df2);\n//exports.df2.print();\n\n// Output operation result\noutput({\n  operation: 'addColumn',\n  newColumn: 'C',\n  newShape: exports.df2.shape,\n  columnC_values: exports.C.values\n});"
+      "id": "create-dataframe",
+      "code": "// Create DataFrame from data\nexports.df = new dfd.DataFrame(salesData);\n\nconsole.log('DataFrame created:');\nconsole.log('Shape:', df.shape);\nconsole.log('Columns:', df.columns);\n\n// Output the DataFrame - this will be rendered using the specialized renderer\noutput(exports.df);"
     },
     {
       "type": "code",
-      "id": "sum-column",
-      "code": "// Sum column C\nexports.sumC = df2['C'].sum();\nconsole.log('Sum of column C:', exports.sumC);\n\n// Output calculation summary\noutput({\n  calculation: 'sum',\n  column: 'C',\n  result: exports.sumC,\n  verification: data.A.reduce((a, b) => a + b, 0) + data.B.reduce((a, b) => a + b, 0)\n});"
+      "id": "add-revenue-column",
+      "code": "// Calculate revenue (price * quantity) and add as new column\nexports.priceColumn = df.column('price');\nexports.quantityColumn = df.column('quantity');\nexports.revenueColumn = priceColumn.mul(quantityColumn);\n\n// Add revenue column to DataFrame\nexports.dfWithRevenue = df.addColumn('revenue', revenueColumn, { inplace: false });\n\nconsole.log('Added revenue column');\nconsole.log('New shape:', dfWithRevenue.shape);\n\n// Output the updated DataFrame\noutput(exports.dfWithRevenue);"
+    },
+    {
+      "type": "code",
+      "id": "statistical-operations",
+      "code": "// Perform statistical operations\nexports.stats = {\n  totalRevenue: dfWithRevenue.column('revenue').sum(),\n  avgPrice: dfWithRevenue.column('price').mean(),\n  maxQuantity: dfWithRevenue.column('quantity').max(),\n  minPrice: dfWithRevenue.column('price').min()\n};\n\nconsole.log('Statistical summary:', exports.stats);\n\n// Get revenue series for further analysis\nexports.revenueSeries = dfWithRevenue.column('revenue');\n\n// Output statistics and the revenue series\noutput(exports.stats, exports.revenueSeries);"
+    },
+    {
+      "type": "code",
+      "id": "filter-data",
+      "code": "// Filter data for high-value products (price > 300)\nexports.highValueFilter = dfWithRevenue.column('price').gt(300);\nexports.highValueProducts = dfWithRevenue.loc({ rows: highValueFilter });\n\nconsole.log('High-value products (price > $300):');\nconsole.log('Count:', highValueProducts.shape[0]);\n\n// Output the filtered DataFrame\noutput(exports.highValueProducts);"
+    },
+    {
+      "type": "code",
+      "id": "group-operations",
+      "code": "// Group by category and calculate total revenue\nexports.categoryRevenue = dfWithRevenue.groupby(['category']).agg({ revenue: 'sum' });\n\nconsole.log('Revenue by category:');\n\n// Output the grouped result\noutput(exports.categoryRevenue);"
     },
     {
       "type": "markdown",
       "id": "summary",
-      "content": "The sum of column **C** is: **{{sumC}}**"
+      "content": "## Summary\n\n- **Total Revenue**: ${{totalRevenue}}\n- **Average Price**: ${{avgPrice}}\n- **Products with price > $300**: {{highValueProducts.shape[0]}} items\n\nThe DataFrames and Series above are rendered using specialized table components that provide a clean, interactive view of the data."
     }
   ],
   "metadata": {
-    "tags": ["danfojs", "minimal", "dataframe"]
+    "tags": ["danfojs", "dataframe", "data-analysis"]
   }
 }

@@ -35,6 +35,80 @@ const isDanfoSeries = (obj: any): boolean => {
          typeof obj.values !== 'undefined';
 };
 
+// Check if object is a DOM element
+const isDOMElement = (obj: any): boolean => {
+  return obj && 
+         typeof obj === 'object' && 
+         obj.nodeType === Node.ELEMENT_NODE &&
+         typeof obj.nodeName === 'string';
+};
+
+// DOM Element renderer component
+const DOMElementRenderer: React.FC<{ data: any; name?: string | false }> = ({ data, name }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current || !data) return;
+
+    try {
+      // Clear previous content
+      containerRef.current.innerHTML = '';
+      
+      // Clone the DOM element to avoid moving it from its original location
+      const clonedElement = data.cloneNode(true);
+      
+      // Apply some basic styling to ensure it displays properly
+      clonedElement.style.width = clonedElement.style.width || '100%';
+      clonedElement.style.maxWidth = '100%';
+      clonedElement.style.height = clonedElement.style.height || 'auto';
+      
+      containerRef.current.appendChild(clonedElement);
+      
+    } catch (err) {
+      console.error('Error rendering DOM element:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    }
+  }, [data]);
+
+  if (error) {
+    return (
+      <div className="dom-error border border-red-200 rounded p-3 bg-red-50">
+        <div className="text-sm font-medium text-red-800 mb-2">
+          {name && <span>{String(name)}: </span>}DOM Element Rendering Error
+        </div>
+        <div className="text-xs text-red-600">{error}</div>
+        <div className="mt-2 text-xs text-gray-600">
+          Element type: {data?.nodeName || 'unknown'}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="dom-display border border-purple-200 rounded-lg p-3 bg-purple-50">
+      <div className="dom-header mb-2">
+        <div className="text-sm font-medium text-purple-800 mb-1">
+          {name && <span>{String(name)}: </span>}DOM Element
+        </div>
+        <div className="text-xs text-purple-600">
+          Type: {data.nodeName?.toLowerCase()} | ID: {data.id || 'none'}
+        </div>
+      </div>
+      
+      <div 
+        ref={containerRef}
+        className="dom-content bg-white border border-purple-200 rounded"
+        style={{
+          minHeight: '50px',
+          maxHeight: '500px',
+          overflow: 'auto'
+        }}
+      />
+    </div>
+  );
+};
+
 // DataFrame renderer component using @tanstack/react-table
 const DataFrameRenderer: React.FC<{ data: any; name?: string | false }> = ({ data, name }) => {
   const [error, setError] = useState<string | null>(null);
@@ -369,6 +443,10 @@ export const ObjectDisplay: React.FC<ObjectDisplayProps> = ({
   }
 
   // Check for specific object types and use specialized renderers
+  if (isDOMElement(data)) {
+    return <DOMElementRenderer data={data} name={name} />;
+  }
+
   if (isDanfoDataFrame(data)) {
     return <DataFrameRenderer data={data} name={name} />;
   }

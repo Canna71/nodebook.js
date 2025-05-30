@@ -9,6 +9,7 @@ import pricingModel from "../../examples/pricingModel.json";
 import filesystemExample from "../../examples/filesystem-example.json";
 import danfojsExample from "../../examples/danfojs-example.json";
 import tensorFlowExample from "../../examples/tensorflow-example.json";
+import tensorFlowTfvisExample from "../../examples/tensorflow-tfvis-example.json";
 import simpleExample from "../../examples/simple-inputs-example.json";
 import { NotebookViewer } from './NotebookViewer';
 import { NotebookModel } from 'src/Types/NotebookModel';
@@ -19,7 +20,7 @@ export default function App() {
             <h2>NotebookJS</h2>
            
             <ReactiveProvider>
-                <NotebookViewer model={danfojsExample as NotebookModel} />
+                <NotebookViewer model={tensorFlowTfvisExample as NotebookModel} />
             </ReactiveProvider>
         </div>
     )
