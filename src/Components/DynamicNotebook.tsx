@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { NotebookModel, CellDefinition, InputCellDefinition, MarkdownCellDefinition, FormulaCellDefinition, CodeCellDefinition } from '../Types/NotebookModel';
-import { useReactiveSystem, useReactiveValue, useReactiveFormula } from '../Engine/ReactiveProvider';
+import { useReactiveSystem, useReactiveValue, useReactiveFormula, useCodeCellModules } from '../Engine/ReactiveProvider';
 import { renderMarkdownWithValues } from '../Engine/markdown';
 import { ObjectDisplay } from './ObjectDisplay';
 import anylogger from 'anylogger';
@@ -12,6 +12,7 @@ interface DynamicNotebookProps {
 
 export function DynamicNotebook({ model }: DynamicNotebookProps) {
   const { reactiveStore, formulaEngine, codeCellEngine } = useReactiveSystem();
+  const { getAvailableModules } = useCodeCellModules();
   const [initialized, setInitialized] = React.useState(false);
 
   // Initialize reactive values and formulas
@@ -65,6 +66,23 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
       <header>
         <h1>{model.title}</h1>
         {model.description && <p className="description">{model.description}</p>}
+        
+        {/* Module status */}
+        <details className="mb-4 text-sm text-gray-600">
+          <summary className="cursor-pointer hover:text-gray-800">
+            Available Modules ({getAvailableModules().length})
+          </summary>
+          <div className="mt-2 ml-4 grid grid-cols-3 gap-2">
+            {getAvailableModules().map(module => (
+              <span 
+                key={module} 
+                className="inline-block bg-green-100 text-green-800 rounded px-2 py-1 text-xs"
+              >
+                {module}
+              </span>
+            ))}
+          </div>
+        </details>
       </header>
       <div className="notebook-cells">
         {model.cells.map(renderCell)}

@@ -1,4 +1,5 @@
 import anylogger from "anylogger";
+import { moduleRegistry } from './ModuleRegistry';
 
 const log = anylogger("ReactiveSystem");
 /**
@@ -517,11 +518,11 @@ export class CodeCellEngine {
     lastExportValues: Map<string, any>;
     lastOutput: ConsoleOutput[];
     outputValues: any[];
-    executionCount: number; // --- NEW: Track execution count for UI updates ---
+    executionCount: number;
   }>;
-  private executingCells: Set<string>; // Track cells currently executing to prevent cycles
-  private moduleCache: Map<string, any>; // Global module cache
-  private globalScope: { [key: string]: any }; // Persistent global scope
+  private executingCells: Set<string>;
+  private moduleCache: Map<string, any>;
+  private globalScope: { [key: string]: any };
 
   constructor(reactiveStore: ReactiveStore) {
     this.reactiveStore = reactiveStore;
@@ -532,37 +533,38 @@ export class CodeCellEngine {
   }
 
   /**
-   * Create a secure require function for code cells with caching
+   * Register a module for use in code cells
+   */
+  public registerModule(name: string, moduleExports: any): void {
+    moduleRegistry.registerModule(name, moduleExports);
+    this.moduleCache.set(name, moduleExports);
+    this.globalScope[name] = moduleExports;
+    log.debug(`Registered module in code cell engine: ${name}`);
+  }
+
+  /**
+   * Create a secure require function for code cells with Electron support
    */
   private createSecureRequire(): (moduleName: string) => any {
     return (moduleName: string) => {
-      // Check cache first
+      // Check local cache first
       if (this.moduleCache.has(moduleName)) {
         log.debug(`Loading cached module: ${moduleName}`);
         const cachedModule = this.moduleCache.get(moduleName);
-        // Also store in global scope for direct access
         this.globalScope[moduleName] = cachedModule;
         return cachedModule;
       }
       
       try {
-        // Use dynamic import or require based on environment
-        let moduleExports;
-        if (typeof require !== 'undefined') {
-          moduleExports = require(moduleName);
-        } else {
-          throw new Error('Module loading not available in this environment');
-        }
-        
-        // Cache the module for future use
+        // Use module registry (which uses Node.js require in Electron)
+        const moduleExports = moduleRegistry.requireSync(moduleName);
         this.moduleCache.set(moduleName, moduleExports);
-        // Also store in global scope for direct access
         this.globalScope[moduleName] = moduleExports;
-        log.debug(`Loaded and cached module: ${moduleName}`);
-        
+        log.debug(`Loaded module from registry: ${moduleName}`);
         return moduleExports;
       } catch (error) {
-        throw new Error(`Failed to load module '${moduleName}': ${error instanceof Error ? error.message : String(error)}`);
+        log.error(`Failed to load module '${moduleName}':`, error);
+        throw new Error(`Module '${moduleName}' is not available. Available modules: ${moduleRegistry.getAvailableModules().join(', ')}`);
       }
     };
   }
@@ -990,6 +992,7 @@ export class CodeCellEngine {
    */
   public clearModuleCache(): void {
     this.moduleCache.clear();
+    moduleRegistry.clearCache();
     log.debug('Module cache cleared');
   }
 
@@ -1016,22 +1019,37 @@ export class CodeCellEngine {
   }
 
   /**
-   * Pre-load common modules
+   * Pre-load modules synchronously
    */
-  public preloadModules(moduleNames: string[]): void {
-    const secureRequire = this.createSecureRequire();
-    moduleNames.forEach(moduleName => {
-      if (!this.moduleCache.has(moduleName)) {
-        try {
-          const moduleExports = secureRequire(moduleName);
-          // Ensure it's also in global scope
-          this.globalScope[moduleName] = moduleExports;
-          log.debug(`Pre-loaded module: ${moduleName}`);
-        } catch (error) {
-          log.warn(`Failed to pre-load module ${moduleName}:`, error);
-        }
+  public preloadModules(moduleNames: string[]): { loaded: string[], failed: string[] } {
+    const results = moduleRegistry.preloadModules(moduleNames);
+    
+    // Cache successfully loaded modules
+    results.loaded.forEach(moduleName => {
+      try {
+        const moduleExports = moduleRegistry.requireSync(moduleName);
+        this.moduleCache.set(moduleName, moduleExports);
+        this.globalScope[moduleName] = moduleExports;
+      } catch (error) {
+        log.warn(`Failed to cache pre-loaded module ${moduleName}:`, error);
       }
     });
+
+    return results;
+  }
+
+  /**
+   * Get available modules
+   */
+  public getAvailableModules(): string[] {
+    return moduleRegistry.getAvailableModules();
+  }
+
+  /**
+   * Check if a module is available
+   */
+  public hasModule(name: string): boolean {
+    return moduleRegistry.hasModule(name);
   }
 }
 
