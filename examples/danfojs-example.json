@@ -27,7 +27,7 @@
     {
       "type": "code",
       "id": "sum-column",
-      "code": "// Sum column C\nexports.sumC = df2['C'].sum();\nconsole.log('Sum of column C:', exports.sumC);\n\n// Output calculation summary\noutput({\n  calculation: 'sum',\n  column: 'C',\n  result: exports.sumC,\n  verification: exports.data.A.reduce((a, b) => a + b, 0) + exports.data.B.reduce((a, b) => a + b, 0)\n});"
+      "code": "// Sum column C\nexports.sumC = df2['C'].sum();\nconsole.log('Sum of column C:', exports.sumC);\n\n// Output calculation summary\noutput({\n  calculation: 'sum',\n  column: 'C',\n  result: exports.sumC,\n  verification: data.A.reduce((a, b) => a + b, 0) + data.B.reduce((a, b) => a + b, 0)\n});"
     },
     {
       "type": "markdown",
