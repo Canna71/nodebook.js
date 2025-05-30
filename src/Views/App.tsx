@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 
 import { ReactiveProvider } from '../Engine/ReactiveProvider';
 import anylogger from "anylogger";
@@ -18,7 +18,7 @@ import { NotebookModel } from 'src/Types/NotebookModel';
 export default function App() {
     const [appReady, setAppReady] = React.useState(false);
 
-    useEffect(() => {
+    React.useEffect(() => {
         const initializeApp = () => {
             try {
                 // Log available modules
