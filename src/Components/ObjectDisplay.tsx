@@ -71,7 +71,7 @@ const DataFrameRenderer: React.FC<{ data: any; name?: string | false }> = ({ dat
           header: '',
           cell: (info) => (
             <div className="text-xs text-gray-500 font-mono text-right px-2">
-              {info.getValue()}
+              {String(info.getValue())}
             </div>
           ),
           size: 60,
