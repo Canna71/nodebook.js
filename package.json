@@ -19,6 +19,7 @@
   "license": "MIT",
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@tensorflow/tfjs-node",
       "electron"
     ],
     "ignoredBuiltDependencies": [
