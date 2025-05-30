@@ -53,8 +53,9 @@
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
+
     "@tensorflow/tfjs-vis": "^1.5.1",
-    "danfojs": "^1.2.0",
+    "danfojs": "^1.1.2",
     "electron-squirrel-startup": "^1.0.1",
     "handsontable": "^15.3.0",
     "react": "^19.1.0",

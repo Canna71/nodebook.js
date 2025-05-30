@@ -1,4 +1,5 @@
 import anylogger from "anylogger";
+import { moduleRegistry } from './ModuleRegistry';
 
 const log = anylogger("ReactiveSystem");
 /**
@@ -545,10 +546,20 @@ export class CodeCellEngine {
         return cachedModule;
       }
       
+      // Check module registry first (pre-imported modules)
+      const registeredModule = moduleRegistry.getModule(moduleName);
+      if (registeredModule) {
+        log.debug(`Loading from module registry: ${moduleName}`);
+        // Cache it for future use
+        this.moduleCache.set(moduleName, registeredModule);
+        this.globalScope[moduleName] = registeredModule;
+        return registeredModule;
+      }
+      
       try {
         let moduleExports;
         
-        // First try CommonJS require
+        // Try CommonJS require for built-in Node.js modules
         if (typeof require !== 'undefined') {
           try {
             moduleExports = require(moduleName);
@@ -562,12 +573,8 @@ export class CodeCellEngine {
                 errorMessage.includes('SyntaxError') ||
                 errorMessage.includes('import statement outside a module')) {
               
-              log.debug(`CommonJS require failed for ${moduleName}, trying dynamic import...`);
-              
-              // Try dynamic import for ES6 modules
-              // Note: This returns a Promise, but we need to handle it synchronously for the current context
-              // We'll throw a specific error that can be caught and handled differently
-              throw new Error(`ES6_MODULE_DETECTED:${moduleName}`);
+              log.debug(`CommonJS require failed for ${moduleName}, not available in registry`);
+              throw new Error(`Module '${moduleName}' is not available. Available modules: ${moduleRegistry.getAvailableModules().join(', ')}`);
             } else {
               // Re-throw other require errors
               throw requireError;
@@ -587,20 +594,13 @@ export class CodeCellEngine {
         
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        
-        // Handle ES6 module detection
-        if (errorMessage.startsWith('ES6_MODULE_DETECTED:')) {
-          const moduleName = errorMessage.split(':')[1];
-          throw new Error(`Module '${moduleName}' is an ES6 module. Use 'await import("${moduleName}")' instead of 'require("${moduleName}")' for ES6 modules.`);
-        }
-        
         throw new Error(`Failed to load module '${moduleName}': ${errorMessage}`);
       }
     };
   }
 
   /**
-   * Create an async import function for ES6 modules
+   * Create an async import function for ES6 modules (now uses module registry)
    */
   private createAsyncImport(): (moduleName: string) => Promise<any> {
     return async (moduleName: string) => {
@@ -613,23 +613,31 @@ export class CodeCellEngine {
         return cachedModule;
       }
       
+      // Check module registry (pre-imported modules)
+      const registeredModule = moduleRegistry.getModule(moduleName);
+      if (registeredModule) {
+        log.debug(`Loading from module registry (async): ${moduleName}`);
+        // Cache it for future use
+        this.moduleCache.set(moduleName, registeredModule);
+        this.globalScope[moduleName] = registeredModule;
+        return registeredModule;
+      }
+      
+      // If not in registry, try dynamic import (though this likely won't work at runtime)
       try {
-        // Use dynamic import for ES6 modules
-        const moduleExports = await import(moduleName);
-        
-        // For ES6 modules, we typically want the default export or the entire module
+          
+        const moduleExports = await import(moduleName); /* @vite-ignore */
         const finalExports = moduleExports.default || moduleExports;
         
         // Cache the module for future use
         this.moduleCache.set(moduleName, finalExports);
-        // Also store in global scope for direct access
         this.globalScope[moduleName] = finalExports;
         log.debug(`Loaded and cached ES6 module: ${moduleName}`);
         
         return finalExports;
         
       } catch (error) {
-        throw new Error(`Failed to import ES6 module '${moduleName}': ${error instanceof Error ? error.message : String(error)}`);
+        throw new Error(`Module '${moduleName}' is not available. Available modules: ${moduleRegistry.getAvailableModules().join(', ')}`);
       }
     };
   }
@@ -1101,6 +1109,26 @@ export class CodeCellEngine {
         }
       }
     });
+  }
+
+  /**
+   * Get available modules for debugging
+   */
+  public getAvailableModules(): string[] {
+    const cached = Array.from(this.moduleCache.keys());
+    const registry = moduleRegistry.getAvailableModules();
+    return [...new Set([...cached, ...registry])].sort();
+  }
+
+  /**
+   * Get module information for debugging
+   */
+  public getModuleInfo(): any {
+    return {
+      cached: Array.from(this.moduleCache.keys()),
+      registry: moduleRegistry.getModuleInfo(),
+      available: this.getAvailableModules()
+    };
   }
 }
 

@@ -40,7 +40,7 @@
     {
       "type": "code",
       "id": "import-libs",
-      "code": "// Import TensorFlow.js and tfvis\nexports.tf = require('@tensorflow/tfjs');\nexports.tfvis = await importES6('@tensorflow/tfjs-vis');\n\nconsole.log('TensorFlow.js version:', tf.version.tfjs);\nconsole.log('Backend:', tf.getBackend());\nconsole.log('tfvis loaded successfully');\n\n// Output library info\noutput({\n  tensorflow: {\n    version: tf.version.tfjs,\n    backend: tf.getBackend(),\n    memory: tf.memory()\n  },\n  tfvis: {\n    available: true,\n    functions: Object.keys(tfvis.render).slice(0, 5)\n  }\n});"
+      "code": "// Import TensorFlow.js and tfvis (now from pre-registered modules)\nexports.tf = require('@tensorflow/tfjs');\nexports.tfvis = require('@tensorflow/tfjs-vis'); // Now works with require!\n\nconsole.log('TensorFlow.js version:', tf.version.tfjs);\nconsole.log('Backend:', tf.getBackend());\nconsole.log('tfvis loaded successfully');\n\n// Output library info\noutput({\n  tensorflow: {\n    version: tf.version.tfjs,\n    backend: tf.getBackend(),\n    memory: tf.memory()\n  },\n  tfvis: {\n    available: true,\n    functions: Object.keys(tfvis.render).slice(0, 5)\n  }\n});"
     },
     {
       "type": "code",
