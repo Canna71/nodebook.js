@@ -6,10 +6,17 @@ import { MakerRpm } from '@electron-forge/maker-rpm';
 import { VitePlugin } from '@electron-forge/plugin-vite';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
 import { FuseV1Options, FuseVersion } from '@electron/fuses';
+import path from 'node:path';
+import fs from 'fs-extra';
 
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
+    // extraResource: [
+    //   "./node_modules/danfojs/",
+    //   "./node_modules/danfojs-node/",
+    //   "./node_modules/@tensorflow/",
+    // ]
   },
   rebuildConfig: {},
   makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],
@@ -49,6 +56,34 @@ const config: ForgeConfig = {
       [FuseV1Options.OnlyLoadAppFromAsar]: true,
     }),
   ],
+  hooks: {
+    packageAfterCopy: async (config, buildPath, electronVersion, platform, arch) => {
+      const fs = require('fs-extra');
+      const path = require('path');
+      
+      // Create directory for external modules
+      // This will be at the same level as app.asar
+      const resourcesDir = path.join(buildPath, '..');
+      const externalModulesDir = path.join(resourcesDir, 'node_modules');
+      await fs.ensureDir(externalModulesDir);
+      
+      // List of modules to place outside ASAR
+      const modulesToExternalize = ['danfojs','long','@tensorflow','seedrandom'];
+      
+      for (const moduleName of modulesToExternalize) {
+        const src = path.join(__dirname, 'node_modules', moduleName);
+        const dest = path.join(externalModulesDir, moduleName);
+        
+        if (await fs.pathExists(src)) {
+          await fs.copy(src, dest);
+          console.log(`✅ Copied ${moduleName} to: ${dest}`);
+        } else {
+          console.warn(`⚠️ Module not found: ${moduleName}`);
+        }
+      }
+    }
+  }
+
 };
 
 export default config;

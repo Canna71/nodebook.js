@@ -1,10 +1,10 @@
 import anylogger from 'anylogger';
 
-// Static ES6 import for danfojs to ensure it's bundled
-import * as danfojs from 'danfojs-node';
+// Static ES6 import for danfojs to ensure it's bundle
+import util from 'util';
 
 const log = anylogger('ModuleRegistry');
-
+// Ensure TextDecoder is available globally
 /**
  * Registry for managing modules available to code cells in Electron environment
  */
@@ -61,6 +61,30 @@ export class ModuleRegistry {
         log.warn(`Failed to pre-load builtin module ${moduleName}:`, error);
       }
     });
+
+ // Ensure path.join is available globally
+
+ // add process.resourcesPath to node module search path
+    if (this.nodeRequire) {
+      const path = this.nodeRequire('path');
+      const resourcesPath = process.resourcesPath || __dirname;
+      const nodeModulesPath = path.join(resourcesPath);
+      // Add node_modules to require paths
+      if (this.nodeRequire.paths) {
+        this.nodeRequire.paths.unshift(nodeModulesPath);
+      } else {
+        // For older Node.js versions
+        this.nodeRequire.paths = [nodeModulesPath];
+      }
+      log.debug(`Added node_modules path: ${nodeModulesPath}`);
+    } else {
+      log.warn('Node.js require not available, cannot add node_modules path');
+    }   
+ 
+    const danfojs = this.nodeRequire('danfojs'); // Try both danfojs-node and danfojs
+
+    // const danfojs = this.nodeRequire("/Users/gcannata/Projects/notebookjs/node_modules/danfojs/dist/danfojs-browser/src/index.js"); // || this.nodeRequire(process.resourcesPath + "/" + 'danfojs/lib/bundle.js'); // Try both danfojs-node and danfojs
+    
 
     // Register statically imported danfojs
     if (danfojs) {
