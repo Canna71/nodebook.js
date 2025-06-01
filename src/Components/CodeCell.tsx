@@ -67,7 +67,7 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
                         <span className="font-medium text-secondary">Code Cell: {definition.id}</span>
                         <button
                             onClick={onExecute}
-                            className="flex items-center justify-center w-6 h-6 rounded bg-green-600 hover:bg-green-700 text-white transition-colors"
+                            className="flex items-center justify-center w-6 h-6 rounded bg-background border-border border-1 hover:bg-background-hover text-secondary transition-colors"
                             title="Execute cell"
                         >
                             <PlayIcon className="w-3 h-3" />
