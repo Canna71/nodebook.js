@@ -48,7 +48,10 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
         }
     }, [initialized, definition.id, codeCellEngine, executionCount]);
 
-
+    const onCodeChange = (newCode: string) => {
+        codeCellEngine.updateCodeCell(definition.id, newCode);
+        log.debug(`Code cell ${definition.id} code updated`);
+    };
 
     return (
         <div className="cell code-cell border border-border rounded-lg mb-4 bg-white">
@@ -74,6 +77,7 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
                     value={definition.code}
                     language="javascript"
                     theme={oneDark} // NEW: Apply dark theme
+                    onChange={onCodeChange}
                     />
             </pre>
 
