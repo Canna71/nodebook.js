@@ -1,5 +1,5 @@
 import anylogger from 'anylogger';
-import { ipcRenderer } from 'electron';
+// import { ipcRenderer } from 'electron';
 // const { app, remote } = require('electron');
 // const path = require('node:path');
 
@@ -14,7 +14,7 @@ export class ModuleRegistry {
 
   constructor() {
     this.initializeNodeRequire();
-    // this.addCustomFolderToRequirePaths();
+    this.addCustomFolderToRequirePaths();
     this.preloadCommonModules();
   }
 
@@ -40,10 +40,12 @@ export class ModuleRegistry {
 
   private addCustomFolderToRequirePaths(): void {
     
-    ipcRenderer.invoke('get-user-data-path').then((userDataPath: string) => {
-        console.log('User Data Path:', userDataPath);
-        log.info(`User Data Path: ${userDataPath}`);
-    })
+    (window as any).getUserDataPath().then((userDataPath: string) => {
+      console.log('User data path:', userDataPath);
+      log.debug(`Adding custom module directory to require paths: ${userDataPath}`);
+    }).catch((error: any) => {
+      log.error('Failed to get user data path:', error);
+    });
         // Use the user data path to create a custom module director+}
     
     // const moduleDir = path.join(app.getPath('userData'), 'modules');
