@@ -5,6 +5,7 @@ import { log } from './DynamicNotebook';
 import { ObjectDisplay } from './ObjectDisplay';
 import Editor from './Editor';
 import { oneDark } from '@codemirror/theme-one-dark'; // NEW: Import dark theme
+import ConsoleOutput from './ConsoleOutput';
 
 // Add CodeCell component for display purposes
 export function CodeCell({ definition, initialized }: { definition: CodeCellDefinition; initialized: boolean; }) {
@@ -47,55 +48,7 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
         }
     }, [initialized, definition.id, codeCellEngine, executionCount]);
 
-    // Render individual console output line
-    const renderConsoleOutput = (output: any, index: number) => {
-        const prefix = output.type === 'log' ? '' : `[${output.type.toUpperCase()}] `;
 
-        if (output.isObject && output.data) {
-            return (
-                <div key={index} className="console-line mb-3">
-                    <div className="mb-1">
-                        <span className="text-xs text-primary">{prefix}</span>
-                    </div>
-                    <div className="ml-0">
-                        {Array.isArray(output.data) ? (
-                            // Mixed arguments - render each one appropriately
-                            <div className="space-y-2">
-                                {output.data.map((arg: any, argIndex: number) => (
-                                    <div key={argIndex}>
-                                        {arg.type === 'object' ? (
-                                            <ObjectDisplay
-                                                data={arg.data}
-                                                name={false}
-                                                collapsed={false}
-                                                displayDataTypes={false}
-                                                displayObjectSize={false} />
-                                        ) : (
-                                            <span className="text-accent font-mono text-sm">{arg.message}</span>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            // Single object
-                            <ObjectDisplay
-                                data={output.data}
-                                name={false}
-                                collapsed={false}
-                                displayDataTypes={false}
-                                displayObjectSize={false} />
-                        )}
-                    </div>
-                </div>
-            );
-        }
-
-        return (
-            <div key={index} className="console-line">
-                <span className="text-xs">{prefix}{output.message}</span>
-            </div>
-        );
-    };
 
     return (
         <div className="cell code-cell border border-border rounded-lg mb-4 bg-white">
@@ -134,7 +87,7 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
                         {outputValues.map((value, index) => (
                             <div key={index} className="output-item">
                                 {outputValues.length > 1 && (
-                                    <div className="text-xs text-accent mb-1">#{index + 1}:</div>
+                                    <div className="text-xs text-secondary mb-1">#{index + 1}:</div>
                                 )}
                                 {typeof value === 'object' && value !== null ? (
                                     <ObjectDisplay
@@ -156,10 +109,10 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
 
             {/* Console Output Display */}
             {consoleOutput.length > 0 && (
-                <div className="console-output bg-black text-green-400 px-4 py-3 border-t border-gray-700">
-                    <div className="text-xs font-medium text-gray-300 mb-2">Console Output:</div>
+                <div className="console-output bg-background text-secondary px-4 py-3 border-t border-border">
+                    <div className="text-xs font-medium text-primary mb-2">Console Output:</div>
                     <div className="space-y-1">
-                        {consoleOutput.map((output, index) => renderConsoleOutput(output, index))}
+                        {consoleOutput.map((output, index) => ConsoleOutput(output, index))}
                     </div>
                 </div>
             )}
