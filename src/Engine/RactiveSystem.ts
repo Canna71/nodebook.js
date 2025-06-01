@@ -520,6 +520,7 @@ export class CodeCellEngine {
         lastOutput: ConsoleOutput[];
         outputValues: any[];
         executionCount: number;
+        lastOutputContainer?: HTMLElement; // Add this to remember the container
     }>;
     private executingCells: Set<string>;
     private moduleCache: Map<string, any>;
@@ -806,7 +807,7 @@ export class CodeCellEngine {
                             prop in target ||
                             prop in this.globalScope ||
                             this.reactiveStore.get(prop) !== undefined ||
-                            ['console', 'Math', 'exports', 'require', 'process', 'Buffer', '__dirname', '__filename', 'output'].includes(prop)
+                            ['console', 'Math', 'exports', 'require', 'process', 'Buffer', '__dirname', '__filename', 'output', 'outEl'].includes(prop)
                         );
                     }
                 });
@@ -862,7 +863,7 @@ export class CodeCellEngine {
                 log.debug(`Code cell ${cellId} exports unchanged, skipping reactive value updates`);
             }
 
-            // Store execution info including execution count
+            // Store execution info including execution count and container
             const dependencyArray = Array.from(dependencies);
             const executionCount = (previousCellInfo?.executionCount || 0) + 1;
 
@@ -873,7 +874,8 @@ export class CodeCellEngine {
                 lastExportValues: new Map(exportValues),
                 lastOutput,
                 outputValues: [...outputValues],
-                executionCount
+                executionCount,
+                lastOutputContainer: outputContainer // Store the container for reactive execution
             });
 
             // Create a reactive value for this cell's execution state
@@ -910,7 +912,8 @@ export class CodeCellEngine {
                 lastExportValues: exportValues,
                 lastOutput,
                 outputValues: [], // Empty output values on error
-                executionCount // --- FIX: Add missing executionCount ---
+                executionCount,
+                lastOutputContainer: outputContainer // Store container even on error
             });
 
             log.error(`Error executing code cell ${cellId}:`, error);
@@ -918,28 +921,6 @@ export class CodeCellEngine {
         } finally {
             this.executingCells.delete(cellId);
         }
-    }
-
-    /**
-     * Get execution count for a cell (for UI updates)
-     */
-    public getCellExecutionCount(cellId: string): number {
-        return this.executedCells.get(cellId)?.executionCount || 0;
-    }
-
-    /**
-     * Get output values from a code cell
-     */
-    public getCellOutputValues(cellId: string): any[] {
-        return this.executedCells.get(cellId)?.outputValues || [];
-    }
-
-    /**
-     * Get return value from a code cell (for backward compatibility)
-     */
-    public getCellReturnValue(cellId: string): any {
-        const outputValues = this.getCellOutputValues(cellId);
-        return outputValues.length === 1 ? outputValues[0] : outputValues.length > 1 ? outputValues : undefined;
     }
 
     /**
@@ -952,7 +933,17 @@ export class CodeCellEngine {
                 log.debug(`Dependency ${depName} changed, re-executing code cell ${cellId}`);
                 // Re-execute the code cell when dependency changes
                 try {
-                    this.executeCodeCell(cellId, code);
+                    // Get the last used container from cell info
+                    const cellInfo = this.executedCells.get(cellId);
+                    const lastContainer = cellInfo?.lastOutputContainer;
+                    
+                    // Clear previous DOM output if container is available
+                    if (lastContainer) {
+                        lastContainer.innerHTML = '';
+                    }
+                    
+                    // Re-execute with the same container that was last used
+                    this.executeCodeCell(cellId, code, lastContainer);
                 } catch (error) {
                     log.error(`Error re-executing code cell ${cellId}:`, error);
                 }
@@ -983,6 +974,28 @@ export class CodeCellEngine {
      */
     public getCellDependencies(cellId: string): string[] {
         return this.executedCells.get(cellId)?.dependencies || [];
+    }
+
+    /**
+     * Get execution count for a cell (for UI updates)
+     */
+    public getCellExecutionCount(cellId: string): number {
+        return this.executedCells.get(cellId)?.executionCount || 0;
+    }
+
+    /**
+     * Get output values from a code cell
+     */
+    public getCellOutputValues(cellId: string): any[] {
+        return this.executedCells.get(cellId)?.outputValues || [];
+    }
+
+    /**
+     * Get return value from a code cell (for backward compatibility)
+     */
+    public getCellReturnValue(cellId: string): any {
+        const outputValues = this.getCellOutputValues(cellId);
+        return outputValues.length === 1 ? outputValues[0] : outputValues.length > 1 ? outputValues : undefined;
     }
 
     /**
