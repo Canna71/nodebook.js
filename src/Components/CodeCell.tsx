@@ -4,8 +4,9 @@ import { CodeCellDefinition } from '@/Types/NotebookModel';
 import { log } from './DynamicNotebook';
 import { ObjectDisplay } from './ObjectDisplay';
 import Editor from './Editor';
-import { oneDark } from '@codemirror/theme-one-dark'; // NEW: Import dark theme
+import { oneDark } from '@codemirror/theme-one-dark';
 import ConsoleOutput from './ConsoleOutput';
+import { PlayIcon } from '@heroicons/react/24/solid'; // NEW: Import play icon
 
 // Add CodeCell component for display purposes
 export function CodeCell({ definition, initialized }: { definition: CodeCellDefinition; initialized: boolean; }) {
@@ -53,11 +54,25 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
         log.debug(`Code cell ${definition.id} code updated`);
     };
 
+    const onExecute = () => {
+        codeCellEngine.reExecuteCodeCell(definition.id);
+        log.debug(`Code cell ${definition.id} re-executed manually`);
+    };
+
     return (
         <div className="cell code-cell border border-border rounded-lg mb-4 bg-white">
             <div className="code-header bg-background-secondary px-4 py-2 border-b border-border">
                 <div className="flex justify-between items-center">
-                    <span className="font-medium text-secondary">Code Cell: {definition.id}</span>
+                    <div className="flex items-center gap-3">
+                        <span className="font-medium text-secondary">Code Cell: {definition.id}</span>
+                        <button
+                            onClick={onExecute}
+                            className="flex items-center justify-center w-6 h-6 rounded bg-green-600 hover:bg-green-700 text-white transition-colors"
+                            title="Execute cell"
+                        >
+                            <PlayIcon className="w-3 h-3" />
+                        </button>
+                    </div>
                     {dependencies.length > 0 && (
                         <span className="text-xs text-primary">
                             Dependencies: {dependencies.join(', ')}
