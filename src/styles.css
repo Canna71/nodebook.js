@@ -10,7 +10,7 @@
         --color-accent: #007acc;
         --color-background: #ffffff;
         --color-background-secondary: #ededed;
-
+        --color-background-error: #ffcccc;
         --color-background-hover: #6a7282;
         --color-success: #16a34a;
         --color-warning: #ca8a04;
@@ -30,6 +30,7 @@
         --color-background: #27282c;
         --color-background-secondary: #23272e;
         --color-background-hover: #3b3d43;
+        --color-background-error: #350000;
         --color-success: #22c55e;
         --color-warning: #eab308;
         --color-error: #ef4444;
