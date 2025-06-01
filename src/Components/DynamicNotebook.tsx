@@ -32,9 +32,12 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
       });
 
       // Execute all code cells during initialization with fallback to empty array
+      // Note: Initial execution won't have DOM containers, but that's ok for setup
       const codeCells = (model.cells ?? []).filter(cell => cell.type === 'code') as CodeCellDefinition[];
       for (const codeCell of codeCells) {
         try {
+          // For initial execution, we don't pass outputContainer since DOM isn't ready yet
+          // Individual CodeCell components will handle DOM output when they mount
           const exports = codeCellEngine.executeCodeCell(codeCell.id, codeCell.code);
           log.info(`Code cell ${codeCell.id} executed, exports:`, exports);
         } catch (error) {

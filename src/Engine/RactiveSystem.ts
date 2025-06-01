@@ -692,7 +692,7 @@ export class CodeCellEngine {
     /**
      * Execute code cell and handle exports
      */
-    public executeCodeCell(cellId: string, code: string): string[] {
+    public executeCodeCell(cellId: string, code: string, outputContainer?: HTMLElement): string[] {
         // Prevent circular execution
         if (this.executingCells.has(cellId)) {
             log.debug(`Code cell ${cellId} is already executing, skipping to prevent circular reference`);
@@ -725,10 +725,27 @@ export class CodeCellEngine {
                             if (prop === 'Math') return Math;
                             if (prop === 'exports') return exports;
 
-                            // Special function to capture output values
+                            // Generic DOM output container (Scenario 2)
+                            if (prop === 'outEl') return outputContainer || null;
+
+                            // Enhanced output function (Scenario 1)
                             if (prop === 'output') {
                                 return (...values: any[]) => {
-                                    outputValues.push(...values);
+                                    values.forEach(value => {
+                                        // Check if value is a DOM element
+                                        if (value instanceof HTMLElement) {
+                                            if (outputContainer) {
+                                                // Append DOM element to container
+                                                outputContainer.appendChild(value);
+                                                log.debug(`DOM element appended to output container for cell ${cellId}`);
+                                            } else {
+                                                log.warn(`DOM element output attempted but no container available for cell ${cellId}`);
+                                            }
+                                        } else {
+                                            // Handle as regular output value
+                                            outputValues.push(value);
+                                        }
+                                    });
                                     log.debug(`Output captured for cell ${cellId}:`, values);
                                     return values.length === 1 ? values[0] : values;
                                 };

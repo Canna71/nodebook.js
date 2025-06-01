@@ -15,6 +15,9 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
     // Subscribe to execution count to know when cell re-executes
     const [executionCount] = useReactiveValue(`__cell_${definition.id}_execution`, 0);
 
+    // Add ref for DOM output container
+    const outputContainerRef = React.useRef<HTMLDivElement>(null);
+
     const [exports, setExports] = React.useState<string[]>([]);
     const [error, setError] = React.useState<Error | null>(null);
     const [dependencies, setDependencies] = React.useState<string[]>([]);
@@ -41,6 +44,17 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
                 dependencies: newDependencies,
                 outputValues: cellOutputValues
             });
+
+            // Re-execute with DOM container now that component is mounted and initialized
+            // This ensures DOM output works for cells that output DOM elements
+            if (outputContainerRef.current && executionCount > 0) {
+                // Clear previous DOM output
+                outputContainerRef.current.innerHTML = '';
+                
+                // Re-execute with container to capture any DOM output
+                codeCellEngine.executeCodeCell(definition.id, definition.code, outputContainerRef.current);
+                log.debug(`Code cell ${definition.id} re-executed with DOM container`);
+            }
         } catch (err) {
             setError(err as Error);
             setExports([]);
@@ -55,7 +69,13 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
     };
 
     const onExecute = () => {
-        codeCellEngine.reExecuteCodeCell(definition.id);
+        // Clear previous DOM output
+        if (outputContainerRef.current) {
+            outputContainerRef.current.innerHTML = '';
+        }
+        
+        // Execute with DOM container support
+        codeCellEngine.executeCodeCell(definition.id, definition.code, outputContainerRef.current || undefined);
         log.debug(`Code cell ${definition.id} re-executed manually`);
     };
 
@@ -87,7 +107,6 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
             </div>
 
             <pre className="code-content bg-background-secondary px-4 py-3 overflow-x-auto">
-                {/* <code>{definition.code}</code> */}
                 <Editor
                     value={definition.code}
                     language="javascript"
@@ -95,6 +114,13 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
                     onChange={onCodeChange}
                     />
             </pre>
+
+            {/* DOM Output Container */}
+            <div 
+                ref={outputContainerRef}
+                className="dom-output-container bg-white border-t border-border"
+                style={{ minHeight: '0px' }}
+            />
 
             {/* --- Enhanced Output Values Display --- */}
             {outputValues.length > 0 && (

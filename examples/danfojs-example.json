@@ -35,6 +35,11 @@
       "type": "markdown",
       "id": "summary",
       "content": "The sum of column **C** is: **{{sumC}}**"
+    },
+    {
+      "type": "code",
+      "id": "plotting-demo",
+      "code": "// Demonstrate both DOM output approaches\n\n// Scenario 1: Create DOM element and use output()\nconst div1 = document.createElement('div');\ndiv1.innerHTML = '<h3>Method 1: output(domElement)</h3><p>DataFrame shape: ' + JSON.stringify(df2.shape) + '</p>';\ndiv1.style.padding = '10px';\ndiv1.style.border = '1px solid #ccc';\ndiv1.style.margin = '5px 0';\ndiv1.style.backgroundColor = '#f9f9f9';\n\n// Output the DOM element\noutput(div1);\n\n// Scenario 2: Render directly to outEl container\nif (outEl) {\n  const div2 = document.createElement('div');\n  div2.innerHTML = '<h3>Method 2: Direct to outEl</h3><p>Column C sum: ' + sumC + '</p>';\n  div2.style.padding = '10px';\n  div2.style.border = '1px solid #007acc';\n  div2.style.margin = '5px 0';\n  div2.style.backgroundColor = '#e6f3ff';\n  \n  outEl.appendChild(div2);\n} else {\n  console.log('outEl container not available');\n}"
     }
   ],
   "metadata": {
