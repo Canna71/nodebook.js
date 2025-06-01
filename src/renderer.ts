@@ -26,7 +26,7 @@
  * ```
  */
 
-import './index.css';
+import './styles.css';
 import "ulog";
 import anylogger from 'anylogger';
 const log = anylogger('Renderer');
