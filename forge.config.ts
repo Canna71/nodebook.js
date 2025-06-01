@@ -9,6 +9,39 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 import path from 'node:path';
 import fs from 'fs-extra';
 
+// List of modules to place outside ASAR
+    const modulesToExternalize = [
+    'danfojs',
+    'long',
+    '@tensorflow',
+    'seedrandom',
+    'mathjs',
+    '@babel/runtime',
+    'typed-function',
+    'decimal.js',
+    'complex.js',
+    'fraction.js',
+    'javascript-natural-sort',
+    'lodash',
+    'moment',
+    'axios',
+    'node-fetch',
+    'escape-latex',
+    'tiny-emitter',
+    'table',
+    'papaparse',
+    'plotly.js-dist-min',
+    'xlsx',
+    'string-width',
+    'strip-ansi',
+    'is-fullwidth-code-point',
+    'astral-regex',
+    'ansi-styles',
+    'lodash.clonedeep',
+    'fast-deep-equal',
+    'lodash.truncate'
+];
+
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
@@ -19,7 +52,12 @@ const config: ForgeConfig = {
     // ]
   },
   rebuildConfig: {},
-  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],
+  makers: [
+    new MakerSquirrel({}), 
+    new MakerZIP({}, ['darwin']), 
+    new MakerRpm({}), 
+    new MakerDeb({})
+    ],
   plugins: [
     new VitePlugin({
       // `build` can specify multiple entry builds, which can be Main process, Preload scripts, Worker process, etc.
@@ -67,8 +105,7 @@ const config: ForgeConfig = {
       const externalModulesDir = path.join(resourcesDir, 'node_modules');
       await fs.ensureDir(externalModulesDir);
       
-      // List of modules to place outside ASAR
-      const modulesToExternalize = ['danfojs','long','@tensorflow','seedrandom'];
+      
       
       for (const moduleName of modulesToExternalize) {
         const src = path.join(__dirname, 'node_modules', moduleName);
