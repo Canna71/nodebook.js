@@ -595,6 +595,8 @@ export class CodeCellEngine {
 
         const captureOutput = (type: ConsoleOutput['type']) => (...args: any[]) => {
             // Process each argument to determine if it should be rendered as an object
+            // Also call the real console for debugging
+            (console as any)[type](...args);
             const processedArgs = args.map(arg => {
                 // Enhanced object detection - check for complex objects including DataFrames, Series, etc.
                 const isComplexObject = arg !== null &&
@@ -662,8 +664,7 @@ export class CodeCellEngine {
                 });
             }
 
-            // Also call the real console for debugging
-            (console as any)[type](...args);
+            
         };
 
         const wrappedConsole = {
