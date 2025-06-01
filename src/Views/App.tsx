@@ -19,22 +19,22 @@ export default function App() {
     const [appReady, setAppReady] = React.useState(false);
 
     React.useEffect(() => {
-        const initializeApp = () => {
+        const initializeApp = async () => {
             try {
-                // Log available modules
-                const availableModules = moduleRegistry.getAvailableModules();
-                log.info('Available modules:', availableModules);
+                // // Log available modules
+                // const availableModules = moduleRegistry.getAvailableModules();
+                // log.info('Available modules:', availableModules);
 
-                // Check for specific modules we care about
-                const importantModules = ['os', 'path', 'fs', 'danfojs'];
-                importantModules.forEach(moduleName => {
-                    if (moduleRegistry.hasModule(moduleName)) {
-                        log.info(`✓ ${moduleName} is available`);
-                    } else {
-                        log.warn(`✗ ${moduleName} is not available`);
-                    }
-                });
-
+                // // Check for specific modules we care about
+                // const importantModules = ['os', 'path', 'fs', 'danfojs'];
+                // importantModules.forEach(moduleName => {
+                //     if (moduleRegistry.hasModule(moduleName)) {
+                //         log.info(`✓ ${moduleName} is available`);
+                //     } else {
+                //         log.warn(`✗ ${moduleName} is not available`);
+                //     }
+                // });
+                const initialize = await moduleRegistry.initialize();
                 setAppReady(true);
             } catch (error) {
                 log.error('Error initializing app:', error);

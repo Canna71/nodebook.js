@@ -1,7 +1,7 @@
 import anylogger from 'anylogger';
 // import { ipcRenderer } from 'electron';
 // const { app, remote } = require('electron');
-// const path = require('node:path');
+const path = require('node:path');
 
 const log = anylogger('ModuleRegistry');
 // Ensure TextDecoder is available globally
@@ -14,7 +14,6 @@ export class ModuleRegistry {
 
   constructor() {
     this.initializeNodeRequire();
-    this.addCustomFolderToRequirePaths();
     this.preloadCommonModules();
   }
 
@@ -38,29 +37,26 @@ export class ModuleRegistry {
     }
   }
 
-  private addCustomFolderToRequirePaths(): void {
-    
-    (window as any).getUserDataPath().then((userDataPath: string) => {
-      console.log('User data path:', userDataPath);
-      log.debug(`Adding custom module directory to require paths: ${userDataPath}`);
-    }).catch((error: any) => {
-      log.error('Failed to get user data path:', error);
-    });
-        // Use the user data path to create a custom module director+}
-    
+  public async initialize(): Promise<boolean> {
+
+    const userDataPath = await (window as any).getUserDataPath();
+    console.log('User data path:', userDataPath);
+    log.debug(`Adding custom module directory to require paths: ${userDataPath}`);
+
+    // Use the user data path to create a custom module director+}
+
     // const moduleDir = path.join(app.getPath('userData'), 'modules');
-    // const moduleDir = path.join(remote.app.getPath('userData'), 'modules'); // Use remote.app for compatibility with renderer process
-    // log.debug(`Adding custom module directory to require paths: ${moduleDir}`);
-    // // Set NODE_PATH to include your custom directory
-    // process.env.NODE_PATH = process.env.NODE_PATH ? 
-    // `${process.env.NODE_PATH}${path.delimiter}${moduleDir}` : 
-    // moduleDir;
+    const moduleDir = path.join(userDataPath, 'node_modules'); // Use remote.app for compatibility with renderer process
+    log.debug(`Adding custom module directory to require paths: ${moduleDir}`);
+    // Set NODE_PATH to include your custom directory
+    process.env.NODE_PATH = process.env.NODE_PATH ? 
+    `${process.env.NODE_PATH}${path.delimiter}${moduleDir}` : 
+    moduleDir;
 
-    // // Force Node to update its module paths
-    // require('module').Module._initPaths();
+    // Force Node to update its module paths
+    require('module').Module._initPaths();
 
-    // Now you can require modules from your custom directory
-    // const customModule = require('custom-module-name');
+    return true;
   }
 
 
@@ -89,9 +85,9 @@ export class ModuleRegistry {
       }
     });
 
- // Ensure path.join is available globally
+    // Ensure path.join is available globally
 
- // add process.resourcesPath to node module search path
+    // add process.resourcesPath to node module search path
     if (this.nodeRequire) {
       const path = this.nodeRequire('path');
       const resourcesPath = process.resourcesPath || __dirname;
@@ -106,12 +102,12 @@ export class ModuleRegistry {
       log.debug(`Added node_modules path: ${nodeModulesPath}`);
     } else {
       log.warn('Node.js require not available, cannot add node_modules path');
-    }   
- 
+    }
+
     const danfojs = this.nodeRequire('danfojs'); // Try both danfojs-node and danfojs
 
     // const danfojs = this.nodeRequire("/Users/gcannata/Projects/notebookjs/node_modules/danfojs/dist/danfojs-browser/src/index.js"); // || this.nodeRequire(process.resourcesPath + "/" + 'danfojs/lib/bundle.js'); // Try both danfojs-node and danfojs
-    
+
 
     // Register statically imported danfojs
     if (danfojs) {
@@ -132,7 +128,7 @@ export class ModuleRegistry {
         const moduleExports = this.nodeRequire(moduleName);
         this.modules.set(moduleName, moduleExports);
         log.debug(`Pre-loaded optional module: ${moduleName}`);
-        
+
         if (moduleName === '@tensorflow/tfjs-node') {
           this.modules.set('tensorflow', moduleExports);
         }
@@ -217,7 +213,7 @@ export class ModuleRegistry {
    */
   public preloadModules(moduleNames: string[]): { loaded: string[], failed: string[] } {
     const results = { loaded: [] as string[], failed: [] as string[] };
-    
+
     moduleNames.forEach((name) => {
       try {
         this.getModule(name);

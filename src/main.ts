@@ -1,6 +1,9 @@
 import { app, BrowserWindow, ipcMain, session } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
+import anylogger from 'anylogger';
+
+const log = anylogger('Main');
 const os = require('node:os')
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -88,7 +91,7 @@ app.whenReady().then(async () => {
     ipcMain.handle('get-user-data-path', () => {
         return app.getPath('userData');
     });
-
+    log.info('App user data path:', app.getPath('userData'));
     // Load the extensions
     const platform = process.platform === 'darwin' ? 'mac' : 'win';
     const extensionsToLoad = extensions[platform];

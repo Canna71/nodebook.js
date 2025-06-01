@@ -28,5 +28,9 @@
 
 import './index.css';
 import "ulog";
+import anylogger from 'anylogger';
+const log = anylogger('Renderer');
+log.log('👋 This message is being logged by "renderer.ts", included via Vite');
 console.log('👋 This message is being logged by "renderer.ts", included via Vite');
+
 import './root';
