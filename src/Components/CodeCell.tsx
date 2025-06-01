@@ -3,6 +3,8 @@ import { useReactiveSystem, useReactiveValue } from '@/Engine/ReactiveProvider';
 import { CodeCellDefinition } from '@/Types/NotebookModel';
 import { log } from './DynamicNotebook';
 import { ObjectDisplay } from './ObjectDisplay';
+import Editor from './Editor';
+import { oneDark } from '@codemirror/theme-one-dark'; // NEW: Import dark theme
 
 // Add CodeCell component for display purposes
 export function CodeCell({ definition, initialized }: { definition: CodeCellDefinition; initialized: boolean; }) {
@@ -114,7 +116,12 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
             </div>
 
             <pre className="code-content bg-gray-900 text-green-400 px-4 py-3 overflow-x-auto">
-                <code>{definition.code}</code>
+                {/* <code>{definition.code}</code> */}
+                <Editor
+                    value={definition.code}
+                    language="javascript"
+                    theme={oneDark} // NEW: Apply dark theme
+                    />
             </pre>
 
             {/* --- Enhanced Output Values Display --- */}

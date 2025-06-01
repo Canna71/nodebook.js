@@ -17,7 +17,8 @@ type EditorProps = {
     customCompletions?: Completion[]
     customVariableCompletions?: string[]
     objectCompletions?: { object: string, methods: Completion[] }[]
-    placeholder?: string // NEW
+    placeholder?: string
+    theme?: Extension // NEW: theme prop
 }
 
 function getLanguageExtension(language: string | undefined): Extension {
@@ -43,7 +44,8 @@ export default function Editor({
     customCompletions,
     customVariableCompletions,
     objectCompletions,
-    placeholder // NEW
+    placeholder,
+    theme // NEW
 }: EditorProps) {
     const editorRef = useRef<HTMLDivElement | null>(null)
     const viewRef = useRef<EditorView | null>(null)
@@ -53,7 +55,8 @@ export default function Editor({
     const languageCompartment = useRef(new Compartment()).current
     const listenerCompartment = useRef(new Compartment()).current
     const completionCompartment = useRef(new Compartment()).current
-    const placeholderCompartment = useRef(new Compartment()).current // NEW
+    const placeholderCompartment = useRef(new Compartment()).current
+    const themeCompartment = useRef(new Compartment()).current // NEW
 
     // Custom variable completion source for {{variable}} in JSON
     const variableCompletionSource: CompletionSource = customVariableCompletions
@@ -163,6 +166,11 @@ export default function Editor({
                 ? placeholderCompartment.of(cmPlaceholder(placeholder))
                 : []
 
+            // Theme extension
+            let themeExt = theme
+                ? themeCompartment.of(theme)
+                : themeCompartment.of([])
+
             const startState = EditorState.create({
                 doc: value,
                 extensions: [
@@ -187,7 +195,8 @@ export default function Editor({
                             : []
                     ),
                     ...urlExtensions,
-                    placeholderExt
+                    placeholderExt,
+                    themeExt // NEW
                 ]
             })
             viewRef.current = new EditorView({
@@ -279,6 +288,15 @@ export default function Editor({
             }
         }
     }, [placeholder])
+
+    // Update theme if prop changes
+    useEffect(() => {
+        if (viewRef.current) {
+            viewRef.current.dispatch({
+                effects: themeCompartment.reconfigure(theme || [])
+            })
+        }
+    }, [theme])
 
     return (
         <div
