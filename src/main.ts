@@ -1,4 +1,4 @@
-import { app, BrowserWindow, session } from 'electron';
+import { app, BrowserWindow, ipcMain, session } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 const os = require('node:os')
@@ -83,6 +83,12 @@ app.on('activate', () => {
 // code. You can also put them in separate files and import them here.
 
 app.whenReady().then(async () => {
+
+    // Set up IPC handler for user data path
+    ipcMain.handle('get-user-data-path', () => {
+        return app.getPath('userData');
+    });
+
     // Load the extensions
     const platform = process.platform === 'darwin' ? 'mac' : 'win';
     const extensionsToLoad = extensions[platform];

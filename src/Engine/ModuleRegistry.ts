@@ -1,7 +1,7 @@
 import anylogger from 'anylogger';
-
-// Static ES6 import for danfojs to ensure it's bundle
-import util from 'util';
+import { ipcRenderer } from 'electron';
+// const { app, remote } = require('electron');
+// const path = require('node:path');
 
 const log = anylogger('ModuleRegistry');
 // Ensure TextDecoder is available globally
@@ -14,6 +14,7 @@ export class ModuleRegistry {
 
   constructor() {
     this.initializeNodeRequire();
+    // this.addCustomFolderToRequirePaths();
     this.preloadCommonModules();
   }
 
@@ -36,6 +37,30 @@ export class ModuleRegistry {
       log.error('Failed to initialize Node.js require:', error);
     }
   }
+
+  private addCustomFolderToRequirePaths(): void {
+    
+    ipcRenderer.invoke('get-user-data-path').then((userDataPath: string) => {
+        console.log('User Data Path:', userDataPath);
+        log.info(`User Data Path: ${userDataPath}`);
+    })
+        // Use the user data path to create a custom module director+}
+    
+    // const moduleDir = path.join(app.getPath('userData'), 'modules');
+    // const moduleDir = path.join(remote.app.getPath('userData'), 'modules'); // Use remote.app for compatibility with renderer process
+    // log.debug(`Adding custom module directory to require paths: ${moduleDir}`);
+    // // Set NODE_PATH to include your custom directory
+    // process.env.NODE_PATH = process.env.NODE_PATH ? 
+    // `${process.env.NODE_PATH}${path.delimiter}${moduleDir}` : 
+    // moduleDir;
+
+    // // Force Node to update its module paths
+    // require('module').Module._initPaths();
+
+    // Now you can require modules from your custom directory
+    // const customModule = require('custom-module-name');
+  }
+
 
   /**
    * Pre-load common modules using Node.js require
