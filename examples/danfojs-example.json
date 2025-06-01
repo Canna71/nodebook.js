@@ -1,4 +1,6 @@
 {
+  "id": "danfojs-minimal-example",
+  "name": "Danfo.js Minimal Example", 
   "title": "Danfo.js Minimal Example",
   "description": "A minimal notebook showing Danfo.js DataFrame creation and column operations using exports object.",
   "reactiveValues": [],

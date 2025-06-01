@@ -19,20 +19,20 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
   // Initialize reactive values and formulas
   useEffect(() => {
     const initializeNotebook = async () => {
-      // Initialize reactive values first
-      model.reactiveValues.forEach(valueDefinition => {
+      // Initialize reactive values first with fallback to empty array
+      (model.reactiveValues ?? []).forEach(valueDefinition => {
         if (!reactiveStore.get(valueDefinition.name)) {
           reactiveStore.define(valueDefinition.name, valueDefinition.defaultValue);
         }
       });
 
-      // Initialize formulas after reactive values
-      model.formulas.forEach(formulaDefinition => {
+      // Initialize formulas after reactive values with fallback to empty array
+      (model.formulas ?? []).forEach(formulaDefinition => {
         formulaEngine.createFormula(formulaDefinition.name, formulaDefinition.formula);
       });
 
-      // Execute all code cells during initialization
-      const codeCells = model.cells.filter(cell => cell.type === 'code') as CodeCellDefinition[];
+      // Execute all code cells during initialization with fallback to empty array
+      const codeCells = (model.cells ?? []).filter(cell => cell.type === 'code') as CodeCellDefinition[];
       for (const codeCell of codeCells) {
         try {
           const exports = codeCellEngine.executeCodeCell(codeCell.id, codeCell.code);
@@ -86,7 +86,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
         </details>
       </header>
       <div className="notebook-cells">
-        {model.cells.map(renderCell)}
+        {(model.cells ?? []).map(renderCell)}
       </div>
     </div>
   );

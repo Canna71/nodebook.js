@@ -1,0 +1,57 @@
+{
+  "id": "danfojs-plotting-showcase",
+  "name": "Danfo.js Plotting Showcase",
+  "description": "Comprehensive example demonstrating Danfo.js plotting capabilities including line charts, bar charts, scatter plots, and histograms",
+  "cells": [
+    {
+      "id": "setup-danfojs",
+      "type": "code",
+      "code": "// Import Danfo.js library\nconst dfd = require('danfojs-node');\n\n// Create sample sales data\nconst salesData = {\n  month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],\n  revenue: [45000, 52000, 48000, 61000, 55000, 67000, 73000, 69000, 58000, 62000, 71000, 78000],\n  costs: [32000, 38000, 35000, 42000, 39000, 47000, 51000, 48000, 41000, 44000, 50000, 54000],\n  customers: [450, 520, 480, 610, 550, 670, 730, 690, 580, 620, 710, 780]\n};\n\nconst df = new dfd.DataFrame(salesData);\nconsole.log('Sales DataFrame created:');\nconsole.log(df);\n\n// Calculate profit margin\ndf.addColumn('profit', df['revenue'].sub(df['costs']));\ndf.addColumn('profit_margin', df['profit'].div(df['revenue']).mul(100));\n\nconsole.log('\\nDataFrame with calculated fields:');\nconsole.log(df);\n\nexports.salesDataFrame = df;"
+    },
+    {
+      "id": "line-chart-revenue",
+      "type": "code", 
+      "code": "// Create line chart for revenue trend\nconst revenueChart = salesDataFrame.plot('month').line({\n  columns: ['revenue'],\n  layout: {\n    title: 'Monthly Revenue Trend',\n    xaxis: { title: 'Month' },\n    yaxis: { title: 'Revenue ($)' },\n    width: 800,\n    height: 400\n  }\n});\n\nconsole.log('Revenue trend line chart created');\noutput(revenueChart);"
+    },
+    {
+      "id": "multi-line-chart",
+      "type": "code",
+      "code": "// Create multi-line chart comparing revenue vs costs\nconst comparisonChart = salesDataFrame.plot('month').line({\n  columns: ['revenue', 'costs'],\n  layout: {\n    title: 'Revenue vs Costs Comparison',\n    xaxis: { title: 'Month' },\n    yaxis: { title: 'Amount ($)' },\n    width: 800,\n    height: 400,\n    legend: { x: 0.1, y: 1 }\n  }\n});\n\nconsole.log('Revenue vs Costs comparison chart created');\noutput(comparisonChart);"
+    },
+    {
+      "id": "bar-chart-profit",
+      "type": "code",
+      "code": "// Create bar chart for monthly profit\nconst profitChart = salesDataFrame.plot('month').bar({\n  columns: ['profit'],\n  layout: {\n    title: 'Monthly Profit',\n    xaxis: { title: 'Month' },\n    yaxis: { title: 'Profit ($)' },\n    width: 800,\n    height: 400,\n    marker: { color: 'green' }\n  }\n});\n\nconsole.log('Monthly profit bar chart created');\noutput(profitChart);"
+    },
+    {
+      "id": "scatter-plot",
+      "type": "code",
+      "code": "// Create scatter plot: customers vs revenue\nconst scatterChart = salesDataFrame.plot('customers').scatter({\n  x: 'customers',\n  y: 'revenue',\n  layout: {\n    title: 'Customer Count vs Revenue',\n    xaxis: { title: 'Number of Customers' },\n    yaxis: { title: 'Revenue ($)' },\n    width: 800,\n    height: 400\n  }\n});\n\nconsole.log('Customer vs Revenue scatter plot created');\noutput(scatterChart);"
+    },
+    {
+      "id": "histogram-analysis",
+      "type": "code",
+      "code": "// Create histogram for profit margin distribution\nconst histogramChart = salesDataFrame['profit_margin'].plot().hist({\n  layout: {\n    title: 'Profit Margin Distribution',\n    xaxis: { title: 'Profit Margin (%)' },\n    yaxis: { title: 'Frequency' },\n    width: 800,\n    height: 400,\n    bargap: 0.1\n  }\n});\n\nconsole.log('Profit margin histogram created');\noutput(histogramChart);"
+    },
+    {
+      "id": "advanced-analytics",
+      "type": "code",
+      "code": "// Perform some advanced analytics\nconst quarterlyData = {\n  quarter: ['Q1', 'Q2', 'Q3', 'Q4'],\n  revenue: [\n    salesDataFrame['revenue'].iloc([0, 1, 2]).sum(),\n    salesDataFrame['revenue'].iloc([3, 4, 5]).sum(),\n    salesDataFrame['revenue'].iloc([6, 7, 8]).sum(),\n    salesDataFrame['revenue'].iloc([9, 10, 11]).sum()\n  ],\n  costs: [\n    salesDataFrame['costs'].iloc([0, 1, 2]).sum(),\n    salesDataFrame['costs'].iloc([3, 4, 5]).sum(),\n    salesDataFrame['costs'].iloc([6, 7, 8]).sum(),\n    salesDataFrame['costs'].iloc([9, 10, 11]).sum()\n  ]\n};\n\nconst quarterlyDf = new dfd.DataFrame(quarterlyData);\nquarterlyDf.addColumn('profit', quarterlyDf['revenue'].sub(quarterlyDf['costs']));\n\nconsole.log('Quarterly summary:');\nconsole.log(quarterlyDf);\n\nexports.quarterlyDataFrame = quarterlyDf;"
+    },
+    {
+      "id": "quarterly-comparison",
+      "type": "code",
+      "code": "// Create grouped bar chart for quarterly comparison\nconst quarterlyChart = quarterlyDataFrame.plot('quarter').bar({\n  columns: ['revenue', 'costs', 'profit'],\n  layout: {\n    title: 'Quarterly Financial Performance',\n    xaxis: { title: 'Quarter' },\n    yaxis: { title: 'Amount ($)' },\n    width: 800,\n    height: 500,\n    barmode: 'group'\n  }\n});\n\nconsole.log('Quarterly comparison chart created');\noutput(quarterlyChart);"
+    },
+    {
+      "id": "pie-chart-quarterly",
+      "type": "code",
+      "code": "// Create pie chart for quarterly revenue distribution\nconst pieChart = quarterlyDataFrame.plot().pie({\n  labels: quarterlyDataFrame['quarter'].values,\n  values: quarterlyDataFrame['revenue'].values,\n  layout: {\n    title: 'Quarterly Revenue Distribution',\n    width: 600,\n    height: 500\n  }\n});\n\nconsole.log('Quarterly revenue pie chart created');\noutput(pieChart);"
+    },
+    {
+      "id": "statistics-summary",
+      "type": "code",
+      "code": "// Generate statistical summary\nconsole.log('Sales Data Statistics:');\nconsole.log('\\nRevenue Statistics:');\nconsole.log(salesDataFrame['revenue'].describe());\n\nconsole.log('\\nProfit Statistics:');\nconsole.log(salesDataFrame['profit'].describe());\n\nconsole.log('\\nCustomer Statistics:');\nconsole.log(salesDataFrame['customers'].describe());\n\n// Calculate correlations\nconst correlation = salesDataFrame.corr();\nconsole.log('\\nCorrelation Matrix:');\nconsole.log(correlation);\n\noutput({\n  totalRevenue: salesDataFrame['revenue'].sum(),\n  totalProfit: salesDataFrame['profit'].sum(),\n  avgProfitMargin: salesDataFrame['profit_margin'].mean(),\n  bestMonth: salesDataFrame.loc({ rows: [salesDataFrame['revenue'].argMax()] })['month'].values[0],\n  worstMonth: salesDataFrame.loc({ rows: [salesDataFrame['revenue'].argMin()] })['month'].values[0]\n});"
+    }
+  ]
+}
