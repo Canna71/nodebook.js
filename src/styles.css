@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Dark mode as default */
+@theme {
+        --color-primary: #222222;
+        --color-secondary: #333333;
+        --color-accent: #007acc;
+        --color-background: #ffffff;
+        --color-background-secondary: #ededed;
+
+        --color-background-hover: #6a7282;
+        --color-success: #16a34a;
+        --color-warning: #ca8a04;
+        --color-error: #dc2626;
+        --color-info: #0ea5e9;
+        --color-border: #e5e7eb;
+        --color-muted: #6b7280;
+        --color-overlay: rgba(255, 255, 255, 0.8);
+        --color-card: #f9fafb;
+}
+
+@layer base {
+    @variant dark {
+        --color-primary: #dadada;
+        --color-secondary: #f0f0f0;
+        --color-accent: #005f9e;
+        --color-background: #27282c;
+        --color-background-secondary: #23272e;
+        --color-background-hover: #3b3d43;
+        --color-success: #22c55e;
+        --color-warning: #eab308;
+        --color-error: #ef4444;
+        --color-info: #38bdf8;
+        --color-border: #5b6372;
+        --color-muted: #8b949e;
+        --color-overlay: rgba(30, 30, 30, 0.8);
+        --color-card: #23272e;
+    }
+}
+
+/* Tailwind base layer for dark mode */
+@layer base {
+    html {
+        color-scheme: dark;
+        color: var(--color-primary);
+        
+        font-family: Roboto, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    body {
+        background-color: var(--color-background);
+        color: var(--color-primary);
+    }
+}
+body {
+    background-color: var(--color-background);
+    color: var(--color-primary);
+}
+@utility border-err {
+  @apply border-1 border-error;
+}
+
