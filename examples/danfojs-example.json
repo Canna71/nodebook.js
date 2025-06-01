@@ -24,12 +24,12 @@
     {
       "type": "code",
       "id": "add-column",
-      "code": "// Add a new column C = A + B\nexports.C = df['A'].add(df['B']);\nexports.df2 = df.addColumn('C', exports.C, { inplace: false });\nconsole.log('DataFrame with new column C:', exports.df2);\n//exports.df2.print();\n\n// Output operation result\noutput({\n  operation: 'addColumn',\n  newColumn: 'C',\n  newShape: exports.df2.shape,\n  columnC_values: exports.C.values\n});"
+      "code": "// Add a new column C = A + B (immutable approach)\nexports.df2 = df.addColumn('C', df['A'].add(df['B']), { inplace: false });\nconsole.log('New DataFrame with column C:');\nexports.df2.print();\n\n// Output operation result\noutput({\n  operation: 'addColumn',\n  newColumn: 'C',\n  originalShape: exports.df.shape,\n  newShape: exports.df2.shape,\n  columnC_values: exports.df2['C'].values,\n  inplace: false\n});"
     },
     {
       "type": "code",
       "id": "sum-column",
-      "code": "// Sum column C\nexports.sumC = df2['C'].sum();\nconsole.log('Sum of column C:', exports.sumC);\n\n// Output calculation summary\noutput({\n  calculation: 'sum',\n  column: 'C',\n  result: exports.sumC,\n  verification: data.A.reduce((a, b) => a + b, 0) + data.B.reduce((a, b) => a + b, 0)\n});"
+      "code": "// Sum column C from the new DataFrame\nexports.sumC = df2['C'].sum();\nconsole.log('Sum of column C:', exports.sumC);\n\n// Output calculation summary\noutput({\n  calculation: 'sum',\n  column: 'C',\n  result: exports.sumC,\n  verification: data.A.reduce((a, b) => a + b, 0) + data.B.reduce((a, b) => a + b, 0)\n});"
     },
     {
       "type": "markdown",

@@ -2,11 +2,13 @@
   "id": "danfojs-plotting-showcase",
   "name": "Danfo.js Plotting Showcase",
   "description": "Comprehensive example demonstrating Danfo.js plotting capabilities including line charts, bar charts, scatter plots, and histograms",
+  "reactiveValues": [],
+  "formulas": [],
   "cells": [
     {
       "id": "setup-danfojs",
       "type": "code",
-      "code": "// Import Danfo.js library\nconst dfd = require('danfojs-node');\n\n// Create sample sales data\nconst salesData = {\n  month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],\n  revenue: [45000, 52000, 48000, 61000, 55000, 67000, 73000, 69000, 58000, 62000, 71000, 78000],\n  costs: [32000, 38000, 35000, 42000, 39000, 47000, 51000, 48000, 41000, 44000, 50000, 54000],\n  customers: [450, 520, 480, 610, 550, 670, 730, 690, 580, 620, 710, 780]\n};\n\nconst df = new dfd.DataFrame(salesData);\nconsole.log('Sales DataFrame created:');\nconsole.log(df);\n\n// Calculate profit margin\ndf.addColumn('profit', df['revenue'].sub(df['costs']));\ndf.addColumn('profit_margin', df['profit'].div(df['revenue']).mul(100));\n\nconsole.log('\\nDataFrame with calculated fields:');\nconsole.log(df);\n\nexports.salesDataFrame = df;"
+      "code": "// Import Danfo.js library\nconst dfd = require('danfojs-node');\n\n// Create sample sales data\nconst salesData = {\n  month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],\n  revenue: [45000, 52000, 48000, 61000, 55000, 67000, 73000, 69000, 58000, 62000, 71000, 78000],\n  costs: [32000, 38000, 35000, 42000, 39000, 47000, 51000, 48000, 41000, 44000, 50000, 54000],\n  customers: [450, 520, 480, 610, 550, 670, 730, 690, 580, 620, 710, 780]\n};\n\nexports.df = new dfd.DataFrame(salesData);\nconsole.log('Sales DataFrame created:');\nconsole.log(exports.df);\n\n// Calculate profit and profit margin (immutable operations)\nexports.salesDataFrame = exports.df\n  .addColumn('profit', exports.df['revenue'].sub(exports.df['costs']), { inplace: false })\n  .addColumn('profit_margin', exports.df['revenue'].sub(exports.df['costs']).div(exports.df['revenue']).mul(100), { inplace: false });\n\nconsole.log('\\nDataFrame with calculated fields:');\nconsole.log(exports.salesDataFrame);"
     },
     {
       "id": "line-chart-revenue",
@@ -36,7 +38,7 @@
     {
       "id": "advanced-analytics",
       "type": "code",
-      "code": "// Perform some advanced analytics\nconst quarterlyData = {\n  quarter: ['Q1', 'Q2', 'Q3', 'Q4'],\n  revenue: [\n    salesDataFrame['revenue'].iloc([0, 1, 2]).sum(),\n    salesDataFrame['revenue'].iloc([3, 4, 5]).sum(),\n    salesDataFrame['revenue'].iloc([6, 7, 8]).sum(),\n    salesDataFrame['revenue'].iloc([9, 10, 11]).sum()\n  ],\n  costs: [\n    salesDataFrame['costs'].iloc([0, 1, 2]).sum(),\n    salesDataFrame['costs'].iloc([3, 4, 5]).sum(),\n    salesDataFrame['costs'].iloc([6, 7, 8]).sum(),\n    salesDataFrame['costs'].iloc([9, 10, 11]).sum()\n  ]\n};\n\nconst quarterlyDf = new dfd.DataFrame(quarterlyData);\nquarterlyDf.addColumn('profit', quarterlyDf['revenue'].sub(quarterlyDf['costs']));\n\nconsole.log('Quarterly summary:');\nconsole.log(quarterlyDf);\n\nexports.quarterlyDataFrame = quarterlyDf;"
+      "code": "// Perform some advanced analytics\nconst quarterlyData = {\n  quarter: ['Q1', 'Q2', 'Q3', 'Q4'],\n  revenue: [\n    salesDataFrame['revenue'].iloc([0, 1, 2]).sum(),\n    salesDataFrame['revenue'].iloc([3, 4, 5]).sum(),\n    salesDataFrame['revenue'].iloc([6, 7, 8]).sum(),\n    salesDataFrame['revenue'].iloc([9, 10, 11]).sum()\n  ],\n  costs: [\n    salesDataFrame['costs'].iloc([0, 1, 2]).sum(),\n    salesDataFrame['costs'].iloc([3, 4, 5]).sum(),\n    salesDataFrame['costs'].iloc([6, 7, 8]).sum(),\n    salesDataFrame['costs'].iloc([9, 10, 11]).sum()\n  ]\n};\n\nconst quarterlyDf = new dfd.DataFrame(quarterlyData);\n// Add profit column using immutable operation\nexports.quarterlyDataFrame = quarterlyDf.addColumn('profit', quarterlyDf['revenue'].sub(quarterlyDf['costs']), { inplace: false });\n\nconsole.log('Quarterly summary:');\nconsole.log(exports.quarterlyDataFrame);"
     },
     {
       "id": "quarterly-comparison",
