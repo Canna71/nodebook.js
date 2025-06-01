@@ -320,16 +320,16 @@ const SeriesRenderer: React.FC<{ data: any; name?: string | false }> = ({ data, 
               </tr>
             ))}
           </thead>
-          <tbody className="bg-white divide-y divide-gray-100">
+          <tbody className="bg-background divide-y divide-border">
             {table.getRowModel().rows.slice(0, 50).map((row, index) => (
               <tr 
                 key={row.id} 
-                className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}
+                className={`hover:bg-background-secondary ${index % 2 === 0 ? 'bg-background' : 'bg-background-secondary'}`}
               >
                 {row.getVisibleCells().map(cell => (
                   <td
                     key={cell.id}
-                    className="py-1 border-r border-gray-100 last:border-r-0"
+                    className="py-1 border-r border-border last:border-r-0"
                     style={{ width: cell.column.getSize() }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -341,7 +341,7 @@ const SeriesRenderer: React.FC<{ data: any; name?: string | false }> = ({ data, 
         </table>
         
         {tableData.length > 50 && (
-          <div className="bg-gray-50 border-t border-gray-200 px-3 py-2 text-center text-xs text-gray-500">
+          <div className="bg-background border-t border-border px-3 py-2 text-center text-xs text-secondary">
             Showing first 50 of {tableData.length} rows
           </div>
         )}
