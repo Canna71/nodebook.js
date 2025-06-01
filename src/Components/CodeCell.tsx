@@ -97,7 +97,7 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
                                         displayDataTypes={false}
                                         displayObjectSize={false} />
                                 ) : (
-                                    <span className="text-blue-700 font-mono text-sm">
+                                    <span className="text-accent font-mono text-sm">
                                         {value === null ? 'null' : String(value)}
                                     </span>
                                 )}
