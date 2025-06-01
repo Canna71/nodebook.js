@@ -61,7 +61,7 @@ export default function App() {
             <h2>NotebookJS</h2>
 
             <ReactiveProvider>
-                <NotebookViewer model={danfojsExample as NotebookModel} />
+                <NotebookViewer model={pricingModel as NotebookModel} />
             </ReactiveProvider>
         </div>
     )
