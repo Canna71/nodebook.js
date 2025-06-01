@@ -361,7 +361,7 @@ export const ObjectDisplay: React.FC<ObjectDisplayProps> = ({
 }) => {
   // Handle different data types
   if (data === null || data === undefined) {
-    return <span className="text-gray-500 italic">null</span>;
+    return <span className="text-secondary italic">null</span>;
   }
 
   if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
@@ -384,7 +384,7 @@ export const ObjectDisplay: React.FC<ObjectDisplayProps> = ({
 
   // Default fallback to ReactJson for generic objects and arrays
   return (
-    <div className="object-display border border-gray-200 rounded p-2 bg-gray-50">
+    <div className="object-display border border-border rounded p-2 bg-background-secondary">
       <ReactJson
         src={data}
         name={name}

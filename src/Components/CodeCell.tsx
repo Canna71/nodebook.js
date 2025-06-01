@@ -55,7 +55,7 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
             return (
                 <div key={index} className="console-line mb-3">
                     <div className="mb-1">
-                        <span className="text-xs text-gray-300">{prefix}</span>
+                        <span className="text-xs text-primary">{prefix}</span>
                     </div>
                     <div className="ml-0">
                         {Array.isArray(output.data) ? (
@@ -71,7 +71,7 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
                                                 displayDataTypes={false}
                                                 displayObjectSize={false} />
                                         ) : (
-                                            <span className="text-green-400 font-mono text-sm">{arg.message}</span>
+                                            <span className="text-accent font-mono text-sm">{arg.message}</span>
                                         )}
                                     </div>
                                 ))}
@@ -98,24 +98,24 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
     };
 
     return (
-        <div className="cell code-cell border border-gray-300 rounded-lg mb-4 bg-white">
-            <div className="code-header bg-gray-50 px-4 py-2 border-b border-gray-200">
+        <div className="cell code-cell border border-border rounded-lg mb-4 bg-white">
+            <div className="code-header bg-background-secondary px-4 py-2 border-b border-border">
                 <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-700">Code Cell: {definition.id}</span>
+                    <span className="font-medium text-secondary">Code Cell: {definition.id}</span>
                     {dependencies.length > 0 && (
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-primary">
                             Dependencies: {dependencies.join(', ')}
                         </span>
                     )}
                 </div>
                 {exports.length > 0 && (
-                    <div className="mt-1 text-xs text-gray-600">
+                    <div className="mt-1 text-xs text-primary">
                         <strong>Exports:</strong> {exports.join(', ')}
                     </div>
                 )}
             </div>
 
-            <pre className="code-content bg-gray-900 text-green-400 px-4 py-3 overflow-x-auto">
+            <pre className="code-content bg-background-secondary px-4 py-3 overflow-x-auto">
                 {/* <code>{definition.code}</code> */}
                 <Editor
                     value={definition.code}
@@ -126,15 +126,15 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
 
             {/* --- Enhanced Output Values Display --- */}
             {outputValues.length > 0 && (
-                <div className="output-values bg-blue-50 px-4 py-3 border-t border-blue-200">
-                    <div className="text-xs font-medium text-blue-800 mb-2">
+                <div className="output-values bg-background-secondary px-4 py-3 border-t border-border">
+                    <div className="text-xs font-medium text-primary mb-2">
                         Output Values {outputValues.length > 1 && `(${outputValues.length})`}:
                     </div>
                     <div className="output-content space-y-2">
                         {outputValues.map((value, index) => (
                             <div key={index} className="output-item">
                                 {outputValues.length > 1 && (
-                                    <div className="text-xs text-blue-600 mb-1">#{index + 1}:</div>
+                                    <div className="text-xs text-accent mb-1">#{index + 1}:</div>
                                 )}
                                 {typeof value === 'object' && value !== null ? (
                                     <ObjectDisplay
