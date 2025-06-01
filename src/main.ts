@@ -1,7 +1,10 @@
 import { app, BrowserWindow, ipcMain, session } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
+import "anylogger-loglevel";
+import loglevel from "loglevel";
 import anylogger from 'anylogger';
+import 'anylogger-console'
 
 const log = anylogger('Main');
 const os = require('node:os')

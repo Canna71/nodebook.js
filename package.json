@@ -61,6 +61,8 @@
     "@codemirror/lang-xml": "^6.1.0",
     "@codemirror/theme-one-dark": "^6.1.2",
     "@tanstack/react-table": "^8.21.3",
+    "anylogger-console": "^1.0.0",
+    "anylogger-loglevel": "^1.0.0",
     "axios": "^1.9.0",
     "codemirror": "^6.0.1",
     "danfojs": "^1.2.0",
@@ -68,6 +70,7 @@
     "electron-settings": "5.0.0",
     "electron-squirrel-startup": "^1.0.1",
     "handsontable": "^15.3.0",
+    "loglevel": "^1.9.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-json-view": "^1.21.3"

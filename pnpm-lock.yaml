@@ -26,6 +26,12 @@ importers:
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      anylogger-console:
+        specifier: ^1.0.0
+        version: 1.0.0(anylogger@1.0.11)
+      anylogger-loglevel:
+        specifier: ^1.0.0
+        version: 1.0.0(anylogger@1.0.11)(loglevel@1.9.2)
       axios:
         specifier: ^1.9.0
         version: 1.9.0
@@ -47,6 +53,9 @@ importers:
       handsontable:
         specifier: ^15.3.0
         version: 15.3.0
+      loglevel:
+        specifier: ^1.9.2
+        version: 1.9.2
       react:
         specifier: ^19.1.0
         version: 19.1.0
@@ -1184,6 +1193,17 @@ packages:
   ansi-styles@6.2.1:
     resolution: {integrity: sha512-bN798gFfQX+viw3R7yrGWRqnrN2oRkEkUjjl4JNn4E8GxxbjtG3FbrEIIY3l8/hrwUwIeCZvi4QuOTP4MErVug==}
     engines: {node: '>=12'}
+
+  anylogger-console@1.0.0:
+    resolution: {integrity: sha512-xI6P4THJxkxOZP6JOqWttyiSS4P73wXXoMXK/eaMKtOKQtosMEboOcVR2J3J6I/OK5nkO3FIexKZiH3si0psmg==}
+    peerDependencies:
+      anylogger: ^1.0.6
+
+  anylogger-loglevel@1.0.0:
+    resolution: {integrity: sha512-3MYHDlTkB10GNHO8eLZaAa8fS24Gz6Bz1BGegwkjF2I349U7tj5bqP7lsEn0EvyGW6CMJNDNxpxN/84LphrSzw==}
+    peerDependencies:
+      anylogger: ^1.0.3
+      loglevel: ^1.6.6
 
   anylogger@1.0.11:
     resolution: {integrity: sha512-sKTWPTG2/d71kLGVmymMJQQslUppxvCz6DN/eODL3/ckmfygZzD0t4P5tRXE3qpM62jI98F/YTHHzFhM12jiJQ==}
@@ -2665,6 +2685,10 @@ packages:
   log-update@5.0.1:
     resolution: {integrity: sha512-5UtUDQ/6edw4ofyljDNcOVJQ4c7OjDro4h3y8e1GQL5iYElYclVHJ3zeWchylvMaKnDbDilC8irOVyexnA/Slw==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+
+  loglevel@1.9.2:
+    resolution: {integrity: sha512-HgMmCqIJSAKqo68l0rS2AanEWfkxaZ5wNiEFb5ggm08lDs9Xl2KxBlX3PTcaD2chBM1gXAYf491/M2Rv8Jwayg==}
+    engines: {node: '>= 0.6.0'}
 
   long@4.0.0:
     resolution: {integrity: sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA==}
@@ -5406,6 +5430,15 @@ snapshots:
 
   ansi-styles@6.2.1: {}
 
+  anylogger-console@1.0.0(anylogger@1.0.11):
+    dependencies:
+      anylogger: 1.0.11
+
+  anylogger-loglevel@1.0.0(anylogger@1.0.11)(loglevel@1.9.2):
+    dependencies:
+      anylogger: 1.0.11
+      loglevel: 1.9.2
+
   anylogger@1.0.11: {}
 
   aproba@2.0.0: {}
@@ -7199,6 +7232,8 @@ snapshots:
       slice-ansi: 5.0.0
       strip-ansi: 7.1.0
       wrap-ansi: 8.1.0
+
+  loglevel@1.9.2: {}
 
   long@4.0.0: {}
 

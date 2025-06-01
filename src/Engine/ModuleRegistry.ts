@@ -40,7 +40,6 @@ export class ModuleRegistry {
   public async initialize(): Promise<boolean> {
 
     const userDataPath = await (window as any).getUserDataPath();
-    console.log('User data path:', userDataPath);
     log.debug(`Adding custom module directory to require paths: ${userDataPath}`);
 
     // Use the user data path to create a custom module director+}

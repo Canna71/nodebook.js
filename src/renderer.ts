@@ -27,10 +27,12 @@
  */
 
 import './styles.css';
-import "ulog";
+// import "ulog";
+import 'anylogger-loglevel';
 import anylogger from 'anylogger';
 const log = anylogger('Renderer');
+import loglevel from "loglevel";
+loglevel.enableAll();
 log.log('👋 This message is being logged by "renderer.ts", included via Vite');
-console.log('👋 This message is being logged by "renderer.ts", included via Vite');
 
 import './root';
