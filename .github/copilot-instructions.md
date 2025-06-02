@@ -28,7 +28,7 @@ NotebookJS is a reactive notebook application built with React, TypeScript, and 
 - Use Tailwind CSS classes for styling
 - Try not to use explicit color, but use one from variables defined in `src/styles.css`
 - Follow consistent color scheme:
-  - `text-primary-foreground` for main text
+  - `text-foreground` for main text
   - `text-secondary-foreground` for secondary text
   - `text-accent-foreground` for highlighted text
   - `bg-background` for main backgrounds
