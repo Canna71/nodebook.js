@@ -60,7 +60,7 @@ export default function App() {
 
     return (
         <Layout>
-            <div>
+            <div className=''>
 
                 <h2>NotebookJS</h2>
 
