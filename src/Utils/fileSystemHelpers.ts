@@ -2,6 +2,7 @@ import anylogger from 'anylogger';
 import { NotebookModel } from '@/Types/NotebookModel';
 import { use } from 'react';
 
+
 const log = anylogger('FileSystemHelpers');
 
 // Get required modules for Electron environment
@@ -45,13 +46,15 @@ export class FileSystemHelpers {
     private userDataPath: string;
     private examplesPath: string;
     private userNotebooksPath: string;
+    private isPackaged: boolean;
 
-    constructor(userDataPath = '') {
+    constructor(userDataPath = '', isPackaged = true) {
         // Get application user data directory
         this.userDataPath = userDataPath;
-        this.examplesPath = path.join(this.userDataPath, 'examples');
+        const resourcesPath = isPackaged ? process.resourcesPath : process.cwd();
+        this.examplesPath = path.join(resourcesPath, 'examples');
         this.userNotebooksPath = path.join(this.userDataPath, 'notebooks');
-        
+
         log.debug('FileSystemHelpers initialized:', {
             userDataPath: this.userDataPath,
             examplesPath: this.examplesPath,
@@ -59,7 +62,7 @@ export class FileSystemHelpers {
         });
 
         // Ensure directories exist
-        this.ensureDirectories();
+        // this.ensureDirectories();
     }
 
     /**
@@ -106,14 +109,14 @@ export class FileSystemHelpers {
     public async saveExample(example: NotebookModel, filename?: string): Promise<FileSystemResult<string>> {
         try {
             // Use provided filename or generate one from available properties, falling back to a default
-            const fileName = filename || 
-                             `${(example as any).id || (example as any).title || 'example'}.json`;
+            const fileName = filename ||
+                `${(example as any).id || (example as any).title || 'example'}.json`;
             const filePath = path.join(this.examplesPath, fileName);
-            
+
             const jsonContent = JSON.stringify(example, null, 2);
-            
+
             await fs.promises.writeFile(filePath, jsonContent, 'utf8');
-            
+
             log.debug(`Example saved successfully: ${filePath}`);
             return {
                 success: true,
@@ -135,7 +138,7 @@ export class FileSystemHelpers {
     public async loadExample(filename: string): Promise<FileSystemResult<NotebookModel>> {
         try {
             const filePath = path.join(this.examplesPath, filename);
-            
+
             if (!fs.existsSync(filePath)) {
                 return {
                     success: false,
@@ -145,7 +148,7 @@ export class FileSystemHelpers {
 
             const content = await fs.promises.readFile(filePath, 'utf8');
             const notebook: NotebookModel = JSON.parse(content);
-            
+
             log.debug(`Example loaded successfully: ${filename}`);
             return {
                 success: true,
@@ -170,21 +173,21 @@ export class FileSystemHelpers {
         try {
             const files = await fs.promises.readdir(this.examplesPath);
             const jsonFiles = files.filter(file => file.endsWith('.json'));
-            
+
             const examples: NotebookFileInfo[] = [];
-            
+
             for (const file of jsonFiles) {
                 const filePath = path.join(this.examplesPath, file);
                 const stats = await fs.promises.stat(filePath);
-                
+
                 try {
                     // Try to read the file to get metadata
                     const content = await fs.promises.readFile(filePath, 'utf8');
                     const notebook = JSON.parse(content) as NotebookModel;
-                    
+
                     // Use filename as fallback for name
                     const baseFileName = path.basename(file, '.json');
-                    
+
                     examples.push({
                         description: notebook.description,
                         filepath: filePath,
@@ -202,10 +205,10 @@ export class FileSystemHelpers {
                     });
                 }
             }
-            
+
             // Sort by last modified date (newest first)
             examples.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
-            
+
             log.debug(`Found ${examples.length} examples`);
             return {
                 success: true,
@@ -227,14 +230,14 @@ export class FileSystemHelpers {
     public async saveNotebook(notebook: NotebookModel, filename?: string): Promise<FileSystemResult<string>> {
         try {
             // Use provided filename or generate one from available properties, falling back to a default
-            const fileName = filename || 
-                             `${(notebook as any).id || (notebook as any).title || 'notebook'}.json`;
+            const fileName = filename ||
+                `${(notebook as any).id || (notebook as any).title || 'notebook'}.json`;
             const filePath = path.join(this.userNotebooksPath, fileName);
-            
+
             const jsonContent = JSON.stringify(notebook, null, 2);
-            
+
             await fs.promises.writeFile(filePath, jsonContent, 'utf8');
-            
+
             log.debug(`Notebook saved successfully: ${filePath}`);
             return {
                 success: true,
@@ -256,7 +259,7 @@ export class FileSystemHelpers {
     public async loadNotebook(filename: string): Promise<FileSystemResult<NotebookModel>> {
         try {
             const filePath = path.join(this.userNotebooksPath, filename);
-            
+
             if (!fs.existsSync(filePath)) {
                 return {
                     success: false,
@@ -266,7 +269,7 @@ export class FileSystemHelpers {
 
             const content = await fs.promises.readFile(filePath, 'utf8');
             const notebook: NotebookModel = JSON.parse(content);
-            
+
             log.debug(`Notebook loaded successfully: ${filename}`);
             return {
                 success: true,
@@ -289,20 +292,20 @@ export class FileSystemHelpers {
         try {
             const files = await fs.promises.readdir(this.userNotebooksPath);
             const jsonFiles = files.filter(file => file.endsWith('.json'));
-            
+
             const notebooks: NotebookFileInfo[] = [];
-            
+
             for (const file of jsonFiles) {
                 const filePath = path.join(this.userNotebooksPath, file);
                 const stats = await fs.promises.stat(filePath);
-                
+
                 try {
                     const content = await fs.promises.readFile(filePath, 'utf8');
                     const notebook = JSON.parse(content) as NotebookModel;
-                    
+
                     // Use filename as fallback for name
                     const baseFileName = path.basename(file, '.json');
-                    
+
                     notebooks.push({
                         description: notebook.description,
                         filepath: filePath,
@@ -320,10 +323,10 @@ export class FileSystemHelpers {
                     });
                 }
             }
-            
+
             // Sort by last modified date (newest first)
             notebooks.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
-            
+
             log.debug(`Found ${notebooks.length} user notebooks`);
             return {
                 success: true,
@@ -339,7 +342,7 @@ export class FileSystemHelpers {
         }
     }
 
-  
+
 
 
 
@@ -349,7 +352,7 @@ export class FileSystemHelpers {
     public async deleteNotebook(filename: string): Promise<FileSystemResult<boolean>> {
         try {
             const filePath = path.join(this.userNotebooksPath, filename);
-            
+
             if (!fs.existsSync(filePath)) {
                 return {
                     success: false,
@@ -358,7 +361,7 @@ export class FileSystemHelpers {
             }
 
             await fs.promises.unlink(filePath);
-            
+
             log.debug(`Notebook deleted successfully: ${filename}`);
             return {
                 success: true,
@@ -396,7 +399,7 @@ export class FileSystemHelpers {
     public async getExampleStats(filename: string): Promise<FileSystemResult<NotebookFileInfo>> {
         try {
             const filePath = path.join(this.examplesPath, filename);
-            
+
             if (!fs.existsSync(filePath)) {
                 return {
                     success: false,
@@ -405,20 +408,20 @@ export class FileSystemHelpers {
             }
 
             const stats = await fs.promises.stat(filePath);
-            
+
             try {
                 const content = await fs.promises.readFile(filePath, 'utf8');
                 const notebook = JSON.parse(content) as NotebookModel;
-                
+
                 // Use filename as fallback for name
                 const baseFileName = path.basename(filename, '.json');
-                
+
                 const fileInfo: NotebookFileInfo = {
                     filepath: filePath,
                     lastModified: stats.mtime,
                     size: stats.size
                 };
-                
+
                 return {
                     success: true,
                     data: fileInfo
@@ -441,18 +444,20 @@ export class FileSystemHelpers {
 }
 
 // Create singleton instance
-let fileSystemHelpers : FileSystemHelpers = undefined;
+let fileSystemHelpers: FileSystemHelpers = undefined;
 
-export async function  initializeFileSystemHelpers(): Promise<FileSystemHelpers> {
+export async function initializeFileSystemHelpers(): Promise<FileSystemHelpers> {
 
     if (fileSystemHelpers) {
         log.debug('FileSystemHelpers already initialized, returning existing instance');
         return fileSystemHelpers;
     }
     // Reinitialize with the provided user data path
-    const userDataPath = await (window as any).getUserDataPath();
+    const [userDataPath, isPackaged] = await Promise.all(
+        [(window as any).getUserDataPath(),
+        (window as any).isPackaged()])
 
-    fileSystemHelpers =  new FileSystemHelpers(userDataPath);
+    fileSystemHelpers = new FileSystemHelpers(userDataPath, isPackaged);
     return fileSystemHelpers;
 }
 

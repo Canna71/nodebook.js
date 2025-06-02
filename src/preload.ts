@@ -12,3 +12,7 @@ const { ipcRenderer } = require('electron');
 (window as any).getUserDataPath = (): Promise<string> => {
     return ipcRenderer.invoke('get-user-data-path')
 }
+
+(window as any).isPackaged = (): Promise<boolean> => {
+    return ipcRenderer.invoke('is-packaged')
+}

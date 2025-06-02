@@ -94,6 +94,10 @@ app.whenReady().then(async () => {
     ipcMain.handle('get-user-data-path', () => {
         return app.getPath('userData');
     });
+
+    ipcMain.handle('is-packaged', () => {
+        return app.isPackaged;
+    });
     log.info('App user data path:', app.getPath('userData'));
     // Load the extensions
     const platform = process.platform === 'darwin' ? 'mac' : 'win';

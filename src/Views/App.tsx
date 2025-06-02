@@ -16,6 +16,7 @@ import simpleExample from "../../examples/simple-inputs-example.json";
 import { NotebookViewer } from './NotebookViewer';
 import { NotebookModel } from 'src/Types/NotebookModel';
 import Layout from '@/app/layout';
+import { getFileSystemHelpers } from '@/Utils/fileSystemHelpers';
 
 export default function App() {
     const [appReady, setAppReady] = React.useState(false);
@@ -37,6 +38,11 @@ export default function App() {
                 //     }
                 // });
                 const initialize = await moduleRegistry.initialize();
+                const fs = getFileSystemHelpers();
+
+                const examples = await fs.listExamples();
+                log.debug('Available examples:', examples);
+
                 setAppReady(true);
             } catch (error) {
                 log.error('Error initializing app:', error);
