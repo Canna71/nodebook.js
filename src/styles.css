@@ -65,6 +65,10 @@ body {
 }
 
 /* Utility classes for dark mode */
-/* .dark2 .plot-container { */
-	/* filter: invert(100%) hue-rotate(180deg); */
-/* } */
+.dark .plot-container { 
+	 filter: invert(100%) hue-rotate(180deg); 
+ }
+
+.dark .plot-container g.cartesianlayer  g.gridlayer path {
+    stroke: var(--color-muted) !important;
+}
