@@ -81,23 +81,23 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
             <div className="code-header bg-background-secondary px-4 py-2 border-b border-border">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <span className="font-medium text-secondary-foreground">Code Cell: {definition.id}</span>
+                        <span className="font-medium text-primary">Code Cell: {definition.id}</span>
                         <button
                             onClick={onExecute}
-                            className="flex items-center justify-center w-6 h-6 rounded bg-background border-border border-1 hover:bg-background-hover text-secondary-foreground transition-colors"
+                            className="flex items-center justify-center w-6 h-6 rounded bg-background border-border border-1 hover:bg-background-hover text-primary transition-colors"
                             title="Execute cell"
                         >
                             <PlayIcon className="w-3 h-3" />
                         </button>
                     </div>
                     {dependencies.length > 0 && (
-                        <span className="text-xs text-primary-foreground">
+                        <span className="text-xs text-primary">
                             Dependencies: {dependencies.join(', ')}
                         </span>
                     )}
                 </div>
                 {exports.length > 0 && (
-                    <div className="mt-1 text-xs text-primary-foreground">
+                    <div className="mt-1 text-xs text-primary">
                         <strong>Exports:</strong> {exports.join(', ')}
                     </div>
                 )}
@@ -122,14 +122,14 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
             {/* --- Enhanced Output Values Display --- */}
             {outputValues.length > 0 && (
                 <div className="output-values bg-background-secondary px-4 py-3 border-t border-border">
-                    <div className="text-xs font-medium text-primary-foreground mb-2">
+                    <div className="text-xs font-medium text-primary mb-2">
                         Output Values {outputValues.length > 1 && `(${outputValues.length})`}:
                     </div>
                     <div className="output-content space-y-2">
                         {outputValues.map((value, index) => (
                             <div key={index} className="output-item">
                                 {outputValues.length > 1 && (
-                                    <div className="text-xs text-secondary-foreground mb-1">#{index + 1}:</div>
+                                    <div className="text-xs text-primary mb-1">#{index + 1}:</div>
                                 )}
                                 {typeof value === 'object' && value !== null ? (
                                     <ObjectDisplay
@@ -151,8 +151,8 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
 
             {/* Console Output Display */}
             {consoleOutput.length > 0 && (
-                <div className="console-output bg-background text-secondary-foreground px-4 py-3 border-t border-border">
-                    <div className="text-xs font-medium text-primary-foreground mb-2">Console Output:</div>
+                <div className="console-output bg-background text-primary px-4 py-3 border-t border-border">
+                    <div className="text-xs font-medium text-primary mb-2">Console Output:</div>
                     <div className="space-y-1">
                         {consoleOutput.map((output, index) => ConsoleOutput(output, index))}
                     </div>

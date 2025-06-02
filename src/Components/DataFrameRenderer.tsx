@@ -37,7 +37,7 @@ const DataFrameRenderer: React.FC<{ data: any; name?: string | false }> = ({ dat
           id: 'index',
           header: '',
           cell: (info) => (
-            <div className="text-xs text-secondary-foreground font-mono text-right px-2">
+            <div className="text-xs text-primary font-mono text-right px-2">
               {String(info.getValue())}
             </div>
           ),
@@ -105,11 +105,11 @@ const DataFrameRenderer: React.FC<{ data: any; name?: string | false }> = ({ dat
   return (
     <div className="dataframe-display border border-border rounded-lg p-3 bg-background">
       <div className="dataframe-header mb-3">
-        <div className="text-sm font-medium text-primary-foreground mb-1">
+        <div className="text-sm font-medium text-primary mb-1">
           {name && <span>{String(name)}: </span>}DataFrame
         </div>
         {info && (
-          <div className="text-xs text-primary-foreground">
+          <div className="text-xs text-primary">
             Shape: {info.shape?.join('×')} | Columns: {info.columns?.length || 0}
           </div>
         )}
@@ -123,7 +123,7 @@ const DataFrameRenderer: React.FC<{ data: any; name?: string | false }> = ({ dat
                 {headerGroup.headers.map(header => (
                   <th
                     key={header.id}
-                    className="px-3 py-2 text-left text-xs font-medium text-primary-foreground uppercase tracking-wider border-r border-border last:border-r-0"
+                    className="px-3 py-2 text-left text-xs font-medium text-primary uppercase tracking-wider border-r border-border last:border-r-0"
                     style={{ width: header.getSize() }}
                   >
                     {header.isPlaceholder
@@ -155,7 +155,7 @@ const DataFrameRenderer: React.FC<{ data: any; name?: string | false }> = ({ dat
         </table>
         
         {tableData.length > 100 && (
-          <div className="bg-background-secondary border-t border-border px-3 py-2 text-center text-xs text-secondary-foreground">
+          <div className="bg-background-secondary border-t border-border px-3 py-2 text-center text-xs text-primary">
             Showing first 100 of {tableData.length} rows
           </div>
         )}

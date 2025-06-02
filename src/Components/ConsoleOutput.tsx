@@ -13,7 +13,7 @@ const ConsoleOutput = (output: any, index: number) => {
         return (
             <div key={index} className="console-line mb-3">
                 <div className="mb-1">
-                    <span className="text-xs text-primary-foreground">{prefix}</span>
+                    <span className="text-xs text-primary">{prefix}</span>
                 </div>
                 <div className="ml-0">
                     {Array.isArray(output.data) ? (
@@ -29,7 +29,7 @@ const ConsoleOutput = (output: any, index: number) => {
                                             displayDataTypes={false}
                                             displayObjectSize={false} />
                                     ) : (
-                                        <span className="text-secondary-foreground font-mono text-sm">{arg.message}</span>
+                                        <span className="text-primary font-mono text-sm">{arg.message}</span>
                                     )}
                                 </div>
                             ))}
