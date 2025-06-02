@@ -65,6 +65,6 @@ body {
 }
 
 /* Utility classes for dark mode */
-.dark .plot-container {
-	filter: invert(75%) hue-rotate(180deg);
-}
+/* .dark2 .plot-container { */
+	/* filter: invert(100%) hue-rotate(180deg); */
+/* } */
