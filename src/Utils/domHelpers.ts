@@ -92,7 +92,7 @@ export function createContainer(options: Parameters<typeof createElement>[1] = {
  * Create a title element
  */
 export function createTitle(text: string, level: 1 | 2 | 3 | 4 | 5 | 6 = 3, options: Parameters<typeof createElement>[1] = {}): HTMLHeadingElement {
-    const defaultStyle = 'margin: 0 0 15px 0; color: var(--color-primary);';
+    const defaultStyle = 'margin: 0 0 15px 0; color: var(--color-accent); font-weight: 600;';
     return createElement(`h${level}`, {
         textContent: text,
         ...options,
@@ -174,7 +174,7 @@ export function createButton(
     onClick?: () => void,
     options: Parameters<typeof createElement>[1] = {}
 ): HTMLButtonElement {
-    const defaultStyle = 'background: var(--color-accent); color: var(--color-background); border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;';
+    const defaultStyle = 'background: var(--color-accent); color: var(--color-background); border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease;';
     const button = createElement('button', {
         textContent: text,
         ...options,
@@ -185,11 +185,15 @@ export function createButton(
         button.addEventListener('click', onClick);
     }
     
-    // Add hover effect using opacity
+    // Enhanced hover effect
     button.addEventListener('mouseover', () => {
-        button.style.opacity = '0.8';
+        button.style.transform = 'translateY(-1px)';
+        button.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+        button.style.opacity = '0.9';
     });
     button.addEventListener('mouseout', () => {
+        button.style.transform = 'translateY(0)';
+        button.style.boxShadow = 'none';
         button.style.opacity = '1';
     });
     
@@ -206,28 +210,38 @@ export function createKeyValueGrid(
         itemStyle?: string; // Style for each grid item
     } = {}
 ): HTMLDivElement {
-    const { columns = 'repeat(auto-fit, minmax(150px, 1fr))', itemStyle = '', ...containerOptions } = options;
+    const { columns = 'repeat(auto-fit, minmax(160px, 1fr))', itemStyle = '', ...containerOptions } = options;
     
-    const defaultStyle = `display: grid; grid-template-columns: ${columns}; gap: 10px;`;
+    const defaultStyle = `display: grid; grid-template-columns: ${columns}; gap: 12px; margin: 10px 0;`;
     const grid = createDiv({
         ...containerOptions,
         style: containerOptions.style ? `${defaultStyle} ${containerOptions.style}` : defaultStyle
     });
     
     Object.entries(data).forEach(([key, value]) => {
-        const defaultItemStyle = 'background: var(--color-background-secondary); padding: 10px; border-radius: 4px; text-align: center; border: 1px solid var(--color-border);';
+        const defaultItemStyle = 'background: var(--color-card); padding: 16px; border-radius: 8px; text-align: center; border: 1px solid var(--color-border); transition: all 0.2s ease;';
         const item = createDiv({
             style: itemStyle ? `${defaultItemStyle} ${itemStyle}` : defaultItemStyle
         });
         
+        // Add hover effect to grid items
+        item.addEventListener('mouseover', () => {
+            item.style.transform = 'translateY(-2px)';
+            item.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+        });
+        item.addEventListener('mouseout', () => {
+            item.style.transform = 'translateY(0)';
+            item.style.boxShadow = 'none';
+        });
+        
         const label = createDiv({
             textContent: key,
-            style: 'font-size: 11px; color: var(--color-muted); margin-bottom: 5px;'
+            style: 'font-size: 12px; color: var(--color-muted); margin-bottom: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;'
         });
         
         const valueEl = createDiv({
             textContent: String(value),
-            style: 'font-size: 16px; font-weight: bold; color: var(--color-primary);'
+            style: 'font-size: 18px; font-weight: 700; color: var(--color-primary); line-height: 1.2;'
         });
         
         item.appendChild(label);
@@ -245,14 +259,14 @@ export function createGradientContainer(
     title: string,
     options: Parameters<typeof createElement>[1] = {}
 ): HTMLDivElement {
-    const defaultStyle = 'margin: 20px 0; padding: 15px; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 8px;';
+    const defaultStyle = 'margin: 20px 0; padding: 20px; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);';
     const container = createDiv({
         ...options,
         style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
     });
     
     const titleEl = createTitle(title, 3, {
-        style: 'margin: 0 0 15px 0; color: var(--color-accent);'
+        style: 'margin: 0 0 16px 0; color: var(--color-accent); font-size: 20px;'
     });
     
     container.appendChild(titleEl);
@@ -270,7 +284,7 @@ export function createGradientContainer(
  * Create a container specifically for outEl usage (doesn't auto-output)
  */
 export function createOutElContainer(options: Parameters<typeof createElement>[1] = {}): HTMLDivElement {
-    const defaultStyle = 'margin: 20px 0; padding: 15px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-background);';
+    const defaultStyle = 'margin: 20px 0; padding: 20px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-background); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);';
     return createDiv({
         ...options,
         style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
@@ -284,14 +298,14 @@ export function createOutElGradientContainer(
     title: string,
     options: Parameters<typeof createElement>[1] = {}
 ): HTMLDivElement {
-    const defaultStyle = 'margin: 20px 0; padding: 15px; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 8px;';
+    const defaultStyle = 'margin: 20px 0; padding: 20px; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);';
     const container = createDiv({
         ...options,
         style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
     });
     
     const titleEl = createTitle(title, 3, {
-        style: 'margin: 0 0 15px 0; color: var(--color-accent);'
+        style: 'margin: 0 0 16px 0; color: var(--color-accent); font-size: 20px;'
     });
     
     container.appendChild(titleEl);
@@ -310,7 +324,7 @@ export function createList(
 ): HTMLUListElement | HTMLOListElement {
     const { ordered = false, itemStyle = '', ...containerOptions } = options;
     
-    const defaultStyle = 'margin: 10px 0; padding-left: 20px;';
+    const defaultStyle = 'margin: 12px 0; padding-left: 24px; line-height: 1.6;';
     const listTag = ordered ? 'ol' : 'ul';
     const list = createElement(listTag, {
         ...containerOptions,
@@ -318,7 +332,7 @@ export function createList(
     }) as HTMLUListElement | HTMLOListElement;
     
     items.forEach(item => {
-        const defaultItemStyle = 'margin: 5px 0; color: var(--color-primary);';
+        const defaultItemStyle = 'margin: 8px 0; color: var(--color-primary); font-size: 14px;';
         const li = createElement('li', {
             style: itemStyle ? `${defaultItemStyle} ${itemStyle}` : defaultItemStyle
         });
@@ -384,7 +398,7 @@ export function build(element: HTMLElement): ElementBuilder {
 export function createBoundDomHelpers(outputFn: (value: any) => any) {
     // Create bound versions of auto-outputting functions
     const boundCreateContainer = (options: Parameters<typeof createElement>[1] = {}) => {
-        const defaultStyle = 'margin: 20px 0; padding: 15px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-background);';
+        const defaultStyle = 'margin: 20px 0; padding: 20px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-background); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);';
         const container = createDiv({
             ...options,
             style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
@@ -399,14 +413,14 @@ export function createBoundDomHelpers(outputFn: (value: any) => any) {
         title: string,
         options: Parameters<typeof createElement>[1] = {}
     ) => {
-        const defaultStyle = 'margin: 20px 0; padding: 15px; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 8px;';
+        const defaultStyle = 'margin: 20px 0; padding: 20px; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);';
         const container = createDiv({
             ...options,
             style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
         });
         
         const titleEl = createTitle(title, 3, {
-            style: 'margin: 0 0 15px 0; color: var(--color-accent);'
+            style: 'margin: 0 0 16px 0; color: var(--color-accent); font-size: 20px;'
         });
         
         container.appendChild(titleEl);
