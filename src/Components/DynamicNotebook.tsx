@@ -62,7 +62,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
         {model.description && <p className="description">{model.description}</p>}
         
         {/* Module status */}
-        <details className="mb-4 text-sm text-primary">
+        <details className="mb-4 text-sm text-primary-foreground">
           <summary className="cursor-pointer hover:bg-background-hover">
             Available Modules ({getAvailableModules().length})
           </summary>
@@ -70,7 +70,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
             {getAvailableModules().map(module => (
               <span 
                 key={module} 
-                className="inline-block bg-background-secondary text-primary rounded px-2 py-1 text-xs"
+                className="inline-block bg-background-secondary text-primary-foreground rounded px-2 py-1 text-xs"
               >
                 {module}
               </span>

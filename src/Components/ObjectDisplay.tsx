@@ -45,7 +45,7 @@ export const ObjectDisplay: React.FC<ObjectDisplayProps> = ({
 }) => {
   // Handle different data types
   if (data === null || data === undefined) {
-    return <span className="text-primary italic">null</span>;
+    return <span className="text-primary-foreground italic">null</span>;
   }
 
   if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
