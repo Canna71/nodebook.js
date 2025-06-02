@@ -1,22 +1,67 @@
 import React, { useEffect } from 'react'
 
 import { ReactiveProvider } from '../Engine/ReactiveProvider';
+import { ApplicationProvider, useApplication } from '../Engine/ApplicationProvider';
 import anylogger from "anylogger";
 import { moduleRegistry } from '../Engine/ModuleRegistry';
 
 const log = anylogger("App");
 log.debug("Initializing App");
 
-import pricingModel from "../../examples/pricingModel.json";
-import filesystemExample from "../../examples/filesystem-example.json";
-import danfojsExample from "../../examples/danfojs-example.json";
 import danfojsPlottingExample from "../../examples/danfojs-plotting-example.json";
-import tensorFlowExample from "../../examples/tensorflow-example.json";
-import simpleExample from "../../examples/simple-inputs-example.json";
 import { NotebookViewer } from './NotebookViewer';
 import { NotebookModel } from 'src/Types/NotebookModel';
 import Layout from '@/app/layout';
 import { getFileSystemHelpers } from '@/Utils/fileSystemHelpers';
+
+function AppContent() {
+    const { currentModel, setModel, isLoading, error } = useApplication();
+
+    useEffect(() => {
+        // Load default example on startup
+        if (!currentModel) {
+            setModel(danfojsPlottingExample as NotebookModel);
+        }
+    }, [currentModel, setModel]);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <div>Loading notebook...</div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center text-red-500">
+                    <div className="text-xl mb-4">Error</div>
+                    <div>{error}</div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!currentModel) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div>No notebook loaded</div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <ReactiveProvider>
+            <NotebookViewer model={currentModel} />
+        </ReactiveProvider>
+    );
+}
 
 export default function App() {
     const [appReady, setAppReady] = React.useState(false);
@@ -24,19 +69,6 @@ export default function App() {
     React.useEffect(() => {
         const initializeApp = async () => {
             try {
-                // // Log available modules
-                // const availableModules = moduleRegistry.getAvailableModules();
-                // log.info('Available modules:', availableModules);
-
-                // // Check for specific modules we care about
-                // const importantModules = ['os', 'path', 'fs', 'danfojs'];
-                // importantModules.forEach(moduleName => {
-                //     if (moduleRegistry.hasModule(moduleName)) {
-                //         log.info(`✓ ${moduleName} is available`);
-                //     } else {
-                //         log.warn(`✗ ${moduleName} is not available`);
-                //     }
-                // });
                 const initialize = await moduleRegistry.initialize();
                 const fs = getFileSystemHelpers();
 
@@ -67,14 +99,11 @@ export default function App() {
     return (
         <Layout>
             <div>
-
                 <h2>NotebookJS</h2>
-
-                <ReactiveProvider>
-                    <NotebookViewer model={danfojsPlottingExample as NotebookModel} />
-                </ReactiveProvider>
+                <ApplicationProvider>
+                    <AppContent />
+                </ApplicationProvider>
             </div>
         </Layout>
-
-    )
+    );
 }
