@@ -1,6 +1,6 @@
 import anylogger from "anylogger";
 import { moduleRegistry } from './ModuleRegistry';
-import { domHelpers } from '../Utils/domHelpers';
+import { domHelpers, createBoundDomHelpers } from '../Utils/domHelpers';
 
 const log = anylogger("ReactiveSystem");
 /**
@@ -533,7 +533,7 @@ export class CodeCellEngine {
         this.executingCells = new Set();
         this.moduleCache = new Map();
         this.globalScope = {
-            // Add DOM helpers to global scope
+            // Add basic DOM helpers to global scope (non-auto-outputting versions)
             ...domHelpers
         };
     }
@@ -763,6 +763,28 @@ export class CodeCellEngine {
                             if (prop === 'Buffer' && typeof Buffer !== 'undefined') return Buffer;
                             if (prop === '__dirname') return process?.cwd() || '/';
                             if (prop === '__filename') return `${cellId}.js`;
+
+                            // Check for DOM helper functions that need output binding
+                            if (prop === 'createContainer' || prop === 'createGradientContainer') {
+                                // Create bound version with output function
+                                const outputFn = (...values: any[]) => {
+                                    values.forEach(value => {
+                                        if (value instanceof HTMLElement) {
+                                            if (outputContainer) {
+                                                outputContainer.appendChild(value);
+                                                log.debug(`DOM element auto-output to container for cell ${cellId}`);
+                                            } else {
+                                                log.warn(`DOM element auto-output attempted but no container available for cell ${cellId}`);
+                                            }
+                                        } else {
+                                            outputValues.push(value);
+                                        }
+                                    });
+                                };
+                                
+                                const boundHelpers = createBoundDomHelpers(outputFn);
+                                return boundHelpers[prop as keyof typeof boundHelpers];
+                            }
 
                             // Check global scope first (for cached modules and globals)
                             if (prop in this.globalScope) {

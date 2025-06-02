@@ -70,14 +70,22 @@ export function createDiv(options: Parameters<typeof createElement>[1] = {}): HT
 }
 
 /**
- * Create a container with padding and border
+ * Create a container with padding and border that auto-outputs itself
  */
 export function createContainer(options: Parameters<typeof createElement>[1] = {}): HTMLDivElement {
     const defaultStyle = 'margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: white;';
-    return createDiv({
+    const container = createDiv({
         ...options,
         style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
     });
+    
+    // Auto-output the container to ensure it's in the DOM
+    // Use the bound output function if available
+    if (typeof (createContainer as any)._boundOutput === 'function') {
+        (createContainer as any)._boundOutput(container);
+    }
+    
+    return container;
 }
 
 /**
@@ -225,9 +233,48 @@ export function createStatsGrid(
 }
 
 /**
- * Create a gradient background container
+ * Create a gradient background container that auto-outputs itself
  */
 export function createGradientContainer(
+    title: string,
+    options: Parameters<typeof createElement>[1] = {}
+): HTMLDivElement {
+    const defaultStyle = 'margin: 20px 0; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px;';
+    const container = createDiv({
+        ...options,
+        style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
+    });
+    
+    const titleEl = createTitle(title, 3, {
+        style: 'margin: 0 0 15px 0; color: white;'
+    });
+    
+    container.appendChild(titleEl);
+    
+    // Auto-output the container to ensure it's in the DOM
+    // Use the bound output function if available
+    if (typeof (createGradientContainer as any)._boundOutput === 'function') {
+        (createGradientContainer as any)._boundOutput(container);
+    }
+    
+    return container;
+}
+
+/**
+ * Create a container specifically for outEl usage (doesn't auto-output)
+ */
+export function createOutElContainer(options: Parameters<typeof createElement>[1] = {}): HTMLDivElement {
+    const defaultStyle = 'margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: white;';
+    return createDiv({
+        ...options,
+        style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
+    });
+}
+
+/**
+ * Create a gradient container for outEl usage (doesn't auto-output)
+ */
+export function createOutElGradientContainer(
     title: string,
     options: Parameters<typeof createElement>[1] = {}
 ): HTMLDivElement {
@@ -288,16 +335,72 @@ export function build(element: HTMLElement): ElementBuilder {
     return new ElementBuilder(element);
 }
 
-// Global helpers that can be injected into code cell scope
+/**
+ * Create DOM helpers with bound output function
+ */
+export function createBoundDomHelpers(outputFn: (value: any) => any) {
+    // Create bound versions of auto-outputting functions
+    const boundCreateContainer = (options: Parameters<typeof createElement>[1] = {}) => {
+        const defaultStyle = 'margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: white;';
+        const container = createDiv({
+            ...options,
+            style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
+        });
+        
+        // Auto-output the container
+        outputFn(container);
+        return container;
+    };
+
+    const boundCreateGradientContainer = (
+        title: string,
+        options: Parameters<typeof createElement>[1] = {}
+    ) => {
+        const defaultStyle = 'margin: 20px 0; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px;';
+        const container = createDiv({
+            ...options,
+            style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
+        });
+        
+        const titleEl = createTitle(title, 3, {
+            style: 'margin: 0 0 15px 0; color: white;'
+        });
+        
+        container.appendChild(titleEl);
+        
+        // Auto-output the container
+        outputFn(container);
+        return container;
+    };
+
+    return {
+        createElement,
+        createDiv,
+        createContainer: boundCreateContainer,
+        createTitle,
+        createTable,
+        createButton,
+        createStatsGrid,
+        createGradientContainer: boundCreateGradientContainer,
+        createOutElContainer,
+        createOutElGradientContainer,
+        build,
+        generateId
+    };
+}
+
+// Global helpers that can be injected into code cell scope (non-auto-outputting versions)
 export const domHelpers = {
     createElement,
     createDiv,
-    createContainer,
+    createContainer: createOutElContainer, // Use non-auto-outputting version by default
     createTitle,
     createTable,
     createButton,
     createStatsGrid,
-    createGradientContainer,
+    createGradientContainer: createOutElGradientContainer, // Use non-auto-outputting version by default
+    createOutElContainer,
+    createOutElGradientContainer,
     build,
     generateId
 };
