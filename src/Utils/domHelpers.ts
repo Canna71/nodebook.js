@@ -236,7 +236,7 @@ export function createKeyValueGrid(
         
         const label = createDiv({
             textContent: key,
-            style: 'font-size: 12px; color: var(--color-muted); margin-bottom: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;'
+            style: 'font-size: 12px; color: var(--color-muted-foreground); margin-bottom: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;'
         });
         
         const valueEl = createDiv({

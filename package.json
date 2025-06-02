@@ -60,10 +60,13 @@
     "@codemirror/lang-markdown": "^6.3.2",
     "@codemirror/lang-xml": "^6.1.0",
     "@codemirror/theme-one-dark": "^6.1.2",
+    "@heroicons/react": "^2.2.0",
     "@tanstack/react-table": "^8.21.3",
     "anylogger-console": "^1.0.0",
     "anylogger-loglevel": "^1.0.0",
     "axios": "^1.9.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "codemirror": "^6.0.1",
     "danfojs": "^1.2.0",
     "danfojs-node": "^1.2.0",
@@ -71,9 +74,11 @@
     "electron-squirrel-startup": "^1.0.1",
     "handsontable": "^15.3.0",
     "loglevel": "^1.9.2",
+    "lucide-react": "^0.511.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-json-view": "^1.21.3",
-    "@heroicons/react": "^2.2.0"
+    "tailwind-merge": "^3.3.0",
+    "tw-animate-css": "^1.3.3"
   }
 }
