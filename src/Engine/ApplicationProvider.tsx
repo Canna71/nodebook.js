@@ -1,32 +1,12 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { NotebookModel } from '@/Types/NotebookModel';
+import { ApplicationState, ApplicationContextType, ApplicationProviderProps } from '@/Types/ApplicationTypes';
 import { getFileSystemHelpers } from '@/Utils/fileSystemHelpers';
 import anylogger from 'anylogger';
 
 const log = anylogger('ApplicationProvider');
 
-interface ApplicationState {
-    currentFilePath: string | null;
-    currentModel: NotebookModel | null;
-    isDirty: boolean;
-    isLoading: boolean;
-    error: string | null;
-}
-
-interface ApplicationContextType extends ApplicationState {
-    loadNotebook: (filePath: string) => Promise<void>;
-    saveNotebook: (filePath?: string) => Promise<void>;
-    newNotebook: () => void;
-    setModel: (model: NotebookModel) => void;
-    setDirty: (dirty: boolean) => void;
-    clearError: () => void;
-}
-
 const ApplicationContext = createContext<ApplicationContextType | undefined>(undefined);
-
-interface ApplicationProviderProps {
-    children: React.ReactNode;
-}
 
 export function ApplicationProvider({ children }: ApplicationProviderProps) {
     const [state, setState] = useState<ApplicationState>({
