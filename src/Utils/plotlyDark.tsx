@@ -124,7 +124,7 @@ export default useMutationObserver;
 function applyDarkModeToPlotly(el: HTMLElement) {
     // Check if dark mode is enabled by looking for 'dark' class on html element
     const isDarkMode = document.documentElement.classList.contains('dark');
-    
+    // return Promise.resolve();
     if (!isDarkMode) {
         // If not in dark mode, don't apply dark theme
         return Promise.resolve();
@@ -138,185 +138,186 @@ function applyDarkModeToPlotly(el: HTMLElement) {
     // Mark element as being styled
     el.setAttribute('data-plotly-dark-applied', 'true');
     
-    return Plotly.relayout(el as HTMLElement, {
-        "template.layout": {
-            annotationdefaults: {
-                arrowcolor: "#f2f5fa",
-                arrowhead: 0,
-                arrowwidth: 1,
-            },
-            autotypenumbers: "strict",
-            coloraxis: {
-                colorbar: {
-                    outlinewidth: 0,
-                    ticks: ""
-                }
-            },
-            colorscale: {
-                diverging: [
-                    [0, "#8e0152"],
-                    [0.1, "#c51b7d"],
-                    [0.2, "#de77ae"],
-                    [0.3, "#f1b6da"],
-                    [0.4, "#fde0ef"],
-                    [0.5, "#f7f7f7"],
-                    [0.6, "#e6f5d0"],
-                    [0.7, "#b8e186"],
-                    [0.8, "#7fbc41"],
-                    [0.9, "#4d9221"],
-                    [1, "#276419"],
-                ],
-                sequential: [
-                    [0.0, "#0d0887"],
-                    [0.1111111111111111, "#46039f"],
-                    [0.2222222222222222, "#7201a8"],
-                    [0.3333333333333333, "#9c179e"],
-                    [0.4444444444444444, "#bd3786"],
-                    [0.5555555555555556, "#d8576b"],
-                    [0.6666666666666666, "#ed7953"],
-                    [0.7777777777777778, "#fb9f3a"],
-                    [0.8888888888888888, "#fdca26"],
-                    [1.0, "#f0f921"],
-                ],
-                sequentialminus: [
-                    [0.0, "#0d0887"],
-                    [0.1111111111111111, "#46039f"],
-                    [0.2222222222222222, "#7201a8"],
-                    [0.3333333333333333, "#9c179e"],
-                    [0.4444444444444444, "#bd3786"],
-                    [0.5555555555555556, "#d8576b"],
-                    [0.6666666666666666, "#ed7953"],
-                    [0.7777777777777778, "#fb9f3a"],
-                    [0.8888888888888888, "#fdca26"],
-                    [1.0, "#f0f921"],
-                ],
-            },
-            font: {
-                color: "#f2f5fa"
-            },
-            geo: {
-                bgcolor: "#161a1d",
-                lakecolor: "#161a1d",
-                landcolor: "#161a1d",
-                showlakes: true,
-                showland: true,
-                subunitcolor: "#506784",
-            },
-            hoverlabel: {
-                align: "left"
-            },
-            hovermode: "closest",
-            mapbox: {
-                style: "dark"
-            },
-            paper_bgcolor: "#161a1d",
-            plot_bgcolor: "#161a1d",
-            polar: {
-                angularaxis: {
-                    gridcolor: "#506784",
-                    linecolor: "#506784",
-                    ticks: "",
-                },
-                bgcolor: "#161a1d",
-                radialaxis: {
-                    gridcolor: "#506784",
-                    linecolor: "#506784",
-                    ticks: "",
-                },
-            },
-            scene: {
-                xaxis: {
-                    backgroundcolor: "#161a1d",
-                    gridcolor: "#506784",
-                    gridwidth: 2,
-                    linecolor: "#506784",
-                    showbackground: true,
-                    ticks: "",
-                    zerolinecolor: "#C8D4E3",
-                },
-                yaxis: {
-                    backgroundcolor: "#161a1d",
-                    gridcolor: "#506784",
-                    gridwidth: 2,
-                    linecolor: "#506784",
-                    showbackground: true,
-                    ticks: "",
-                    zerolinecolor: "#C8D4E3",
-                },
-                zaxis: {
-                    backgroundcolor: "#161a1d",
-                    gridcolor: "#506784",
-                    gridwidth: 2,
-                    linecolor: "#506784",
-                    showbackground: true,
-                    ticks: "",
-                    zerolinecolor: "#C8D4E3",
-                },
-            },
-            shapedefaults: {
-                line: {
-                    color: "#f2f5fa"
-                }
-            },
-            sliderdefaults: {
-                bgcolor: "#C8D4E3",
-                bordercolor: "#161a1d",
-                borderwidth: 1,
-                tickwidth: 0,
-            },
-            ternary: {
-                aaxis: {
-                    gridcolor: "#506784",
-                    linecolor: "#506784",
-                    ticks: "",
-                },
-                baxis: {
-                    gridcolor: "#506784",
-                    linecolor: "#506784",
-                    ticks: "",
-                },
-                bgcolor: "#161a1d",
-                caxis: {
-                    gridcolor: "#506784",
-                    linecolor: "#506784",
-                    ticks: "",
-                },
-            },
-            title: {
-                x: 0.05
-            },
-            updatemenudefaults: {
-                bgcolor: "#506784",
-                borderwidth: 0
-            },
-            xaxis: {
-                automargin: true,
-                gridcolor: "#283442",
-                linecolor: "#506784",
-                ticks: "",
-                title: {
-                    standoff: 15
-                },
-                zerolinecolor: "#283442",
-                zerolinewidth: 2,
-            },
-            yaxis: {
-                automargin: true,
-                gridcolor: "#283442",
-                linecolor: "#506784",
-                ticks: "",
-                title: {
-                    standoff: 15
-                },
-                zerolinecolor: "#283442",
-                zerolinewidth: 2,
-            },
-        },
-    }).catch(error => {
-        console.warn('Failed to apply Plotly dark mode:', error);
-        // Remove marker on error so we can try again later
-        el.removeAttribute('data-plotly-dark-applied');
-    });
+    return Plotly.restyle(el as HTMLElement, 
+        {
+            // annotationdefaults: {
+            //     arrowcolor: "#f2f5fa",
+            //     arrowhead: 0,
+            //     arrowwidth: 1,
+            // },
+            // autotypenumbers: "strict",
+            // coloraxis: {
+            //     colorbar: {
+            //         outlinewidth: 0,
+            //         ticks: ""
+            //     }
+            // },
+            // colorscale: {
+            //     diverging: [
+            //         [0, "#8e0152"],
+            //         [0.1, "#c51b7d"],
+            //         [0.2, "#de77ae"],
+            //         [0.3, "#f1b6da"],
+            //         [0.4, "#fde0ef"],
+            //         [0.5, "#f7f7f7"],
+            //         [0.6, "#e6f5d0"],
+            //         [0.7, "#b8e186"],
+            //         [0.8, "#7fbc41"],
+            //         [0.9, "#4d9221"],
+            //         [1, "#276419"],
+            //     ],
+            //     sequential: [
+            //         [0.0, "#0d0887"],
+            //         [0.1111111111111111, "#46039f"],
+            //         [0.2222222222222222, "#7201a8"],
+            //         [0.3333333333333333, "#9c179e"],
+            //         [0.4444444444444444, "#bd3786"],
+            //         [0.5555555555555556, "#d8576b"],
+            //         [0.6666666666666666, "#ed7953"],
+            //         [0.7777777777777778, "#fb9f3a"],
+            //         [0.8888888888888888, "#fdca26"],
+            //         [1.0, "#f0f921"],
+            //     ],
+            //     sequentialminus: [
+            //         [0.0, "#0d0887"],
+            //         [0.1111111111111111, "#46039f"],
+            //         [0.2222222222222222, "#7201a8"],
+            //         [0.3333333333333333, "#9c179e"],
+            //         [0.4444444444444444, "#bd3786"],
+            //         [0.5555555555555556, "#d8576b"],
+            //         [0.6666666666666666, "#ed7953"],
+            //         [0.7777777777777778, "#fb9f3a"],
+            //         [0.8888888888888888, "#fdca26"],
+            //         [1.0, "#f0f921"],
+            //     ],
+            // },
+            // font: {
+            //     color: "#f2f5fa"
+            // },
+            // geo: {
+            //     bgcolor: "#161a1d",
+            //     lakecolor: "#161a1d",
+            //     landcolor: "#161a1d",
+            //     showlakes: true,
+            //     showland: true,
+            //     subunitcolor: "#506784",
+            // },
+            // hoverlabel: {
+            //     align: "left"
+            // },
+            // hovermode: "closest",
+            // mapbox: {
+            //     style: "dark"
+            // },
+            // paper_bgcolor: "#161a1d",
+            // plot_bgcolor: "#161a1d",
+            // polar: {
+            //     angularaxis: {
+            //         gridcolor: "#506784",
+            //         linecolor: "#506784",
+            //         ticks: "",
+            //     },
+            //     bgcolor: "#161a1d",
+            //     radialaxis: {
+            //         gridcolor: "#506784",
+            //         linecolor: "#506784",
+            //         ticks: "",
+            //     },
+            // },
+            // scene: {
+            //     xaxis: {
+            //         backgroundcolor: "#161a1d",
+            //         gridcolor: "#506784",
+            //         gridwidth: 2,
+            //         linecolor: "#506784",
+            //         showbackground: true,
+            //         ticks: "",
+            //         zerolinecolor: "#C8D4E3",
+            //     },
+            //     yaxis: {
+            //         backgroundcolor: "#161a1d",
+            //         gridcolor: "#506784",
+            //         gridwidth: 2,
+            //         linecolor: "#506784",
+            //         showbackground: true,
+            //         ticks: "",
+            //         zerolinecolor: "#C8D4E3",
+            //     },
+            //     zaxis: {
+            //         backgroundcolor: "#161a1d",
+            //         gridcolor: "#506784",
+            //         gridwidth: 2,
+            //         linecolor: "#506784",
+            //         showbackground: true,
+            //         ticks: "",
+            //         zerolinecolor: "#C8D4E3",
+            //     },
+            // },
+            // shapedefaults: {
+            //     line: {
+            //         color: "#f2f5fa"
+            //     }
+            // },
+            // sliderdefaults: {
+            //     bgcolor: "#C8D4E3",
+            //     bordercolor: "#161a1d",
+            //     borderwidth: 1,
+            //     tickwidth: 0,
+            // },
+            // ternary: {
+            //     aaxis: {
+            //         gridcolor: "#506784",
+            //         linecolor: "#506784",
+            //         ticks: "",
+            //     },
+            //     baxis: {
+            //         gridcolor: "#506784",
+            //         linecolor: "#506784",
+            //         ticks: "",
+            //     },
+            //     bgcolor: "#161a1d",
+            //     caxis: {
+            //         gridcolor: "#506784",
+            //         linecolor: "#506784",
+            //         ticks: "",
+            //     },
+            // },
+            // title: {
+            //     x: 0.05
+            // },
+            // updatemenudefaults: {
+            //     bgcolor: "#506784",
+            //     borderwidth: 0
+            // },
+            // xaxis: {
+            //     automargin: true,
+            //     gridcolor: "#283442",
+            //     linecolor: "#506784",
+            //     ticks: "",
+            //     title: {
+            //         standoff: 15
+            //     },
+            //     zerolinecolor: "#283442",
+            //     zerolinewidth: 2,
+            // },
+            // yaxis: {
+            //     automargin: true,
+            //     gridcolor: "#283442",
+            //     linecolor: "#506784",
+            //     ticks: "",
+            //     title: {
+            //         standoff: 15
+            //     },
+            //     zerolinecolor: "#283442",
+            //     zerolinewidth: 2,
+            // },
+        
+    })
+    // .catch(error => {
+    //     console.warn('Failed to apply Plotly dark mode:', error);
+    //     // Remove marker on error so we can try again later
+    //     el.removeAttribute('data-plotly-dark-applied');
+    // });
 }
 
 export function switchPlotlyMode() {
