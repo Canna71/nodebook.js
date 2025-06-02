@@ -15,6 +15,7 @@ import tensorFlowExample from "../../examples/tensorflow-example.json";
 import simpleExample from "../../examples/simple-inputs-example.json";
 import { NotebookViewer } from './NotebookViewer';
 import { NotebookModel } from 'src/Types/NotebookModel';
+import Layout from '@/app/layout';
 
 export default function App() {
     const [appReady, setAppReady] = React.useState(false);
@@ -58,12 +59,16 @@ export default function App() {
     }
 
     return (
-        <div>
-            <h2>NotebookJS</h2>
+        <Layout>
+            <div>
 
-            <ReactiveProvider>
-                <NotebookViewer model={danfojsPlottingExample as NotebookModel} />
-            </ReactiveProvider>
-        </div>
+                <h2>NotebookJS</h2>
+
+                <ReactiveProvider>
+                    <NotebookViewer model={danfojsPlottingExample as NotebookModel} />
+                </ReactiveProvider>
+            </div>
+        </Layout>
+
     )
 }
