@@ -299,6 +299,43 @@ export function createOutElGradientContainer(
 }
 
 /**
+ * Create a list (ul or ol) with items
+ */
+export function createList(
+    items: (string | HTMLElement)[],
+    options: Parameters<typeof createElement>[1] & {
+        ordered?: boolean; // true for <ol>, false for <ul>
+        itemStyle?: string; // Style for each list item
+    } = {}
+): HTMLUListElement | HTMLOListElement {
+    const { ordered = false, itemStyle = '', ...containerOptions } = options;
+    
+    const defaultStyle = 'margin: 10px 0; padding-left: 20px;';
+    const listTag = ordered ? 'ol' : 'ul';
+    const list = createElement(listTag, {
+        ...containerOptions,
+        style: containerOptions.style ? `${defaultStyle} ${containerOptions.style}` : defaultStyle
+    }) as HTMLUListElement | HTMLOListElement;
+    
+    items.forEach(item => {
+        const defaultItemStyle = 'margin: 5px 0; color: var(--color-primary);';
+        const li = createElement('li', {
+            style: itemStyle ? `${defaultItemStyle} ${itemStyle}` : defaultItemStyle
+        });
+        
+        if (typeof item === 'string') {
+            li.textContent = item;
+        } else {
+            li.appendChild(item);
+        }
+        
+        list.appendChild(li);
+    });
+    
+    return list;
+}
+
+/**
  * Chain helper for fluent API
  */
 export class ElementBuilder {
@@ -386,6 +423,7 @@ export function createBoundDomHelpers(outputFn: (value: any) => any) {
         createTitle,
         createTable,
         createButton,
+        createList,
         createKeyValueGrid,
         createGradientContainer: boundCreateGradientContainer,
         createOutElContainer,
@@ -403,6 +441,7 @@ export const domHelpers = {
     createTitle,
     createTable,
     createButton,
+    createList,
     createKeyValueGrid, // Renamed from createStatsGrid
     createGradientContainer: createOutElGradientContainer, // Use non-auto-outputting version by default
     createOutElContainer,
