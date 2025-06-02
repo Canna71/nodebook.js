@@ -47,14 +47,14 @@ const createWindow = async () => {
     
     // Create the browser window.
     const mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
+        ...mainWindowStateKeeper.rectangle,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: true,
             contextIsolation: false
         },
     });
+    mainWindowStateKeeper.track(mainWindow);
 
     // and load the index.html of the app.
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
