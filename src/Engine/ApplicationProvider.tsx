@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { NotebookModel } from '@/Types/NotebookModel';
 import { ApplicationState, ApplicationContextType, ApplicationProviderProps } from '@/Types/ApplicationTypes';
-import { getFileSystemHelpers } from '@/Utils/fileSystemHelpers';
+import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
 import anylogger from 'anylogger';
 
 const log = anylogger('ApplicationProvider');

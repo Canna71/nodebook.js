@@ -12,7 +12,7 @@ import danfojsPlottingExample from "../../examples/danfojs-plotting-example.json
 import { NotebookViewer } from './NotebookViewer';
 import { NotebookModel } from 'src/Types/NotebookModel';
 import Layout from '@/app/layout';
-import { getFileSystemHelpers } from '@/Utils/fileSystemHelpers';
+import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
 
 function AppContent() {
     const { currentModel, setModel, isLoading, error } = useApplication();

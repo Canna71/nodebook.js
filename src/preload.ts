@@ -1,6 +1,6 @@
 // See the Electron documentation for details on how to use preload scripts:
 
-import { ElectronApi } from "./Utils/electronHelpers";
+import { ElectronApi } from "./lib/electronHelpers";
 
 
 

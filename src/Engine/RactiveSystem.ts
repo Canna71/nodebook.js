@@ -1,6 +1,6 @@
 import anylogger from "anylogger";
 import { moduleRegistry } from './ModuleRegistry';
-import { domHelpers, createBoundDomHelpers } from '@/Utils/domHelpers';
+import { domHelpers, createBoundDomHelpers } from '@/lib/domHelpers';
 
 const log = anylogger("ReactiveSystem");
 /**

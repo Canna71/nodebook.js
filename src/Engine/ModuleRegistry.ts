@@ -1,4 +1,4 @@
-import { initializeFileSystemHelpers } from '@/Utils/fileSystemHelpers';
+import { initializeFileSystemHelpers } from '@/lib/fileSystemHelpers';
 import anylogger from 'anylogger';
 // import { ipcRenderer } from 'electron';
 // const { app, remote } = require('electron');
