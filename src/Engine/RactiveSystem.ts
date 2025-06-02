@@ -548,20 +548,35 @@ export class CodeCellEngine {
         log.debug(`Registered module in code cell engine: ${name}`);
     }
 
+    /**
+     * Update the stored code for a cell (internal tracking only)
+     * Note: This does not update the notebook model - use ApplicationProvider for that
+     */
     updateCodeCell(id: string, newCode: string) {
         const cellInfo = this.executedCells.get(id);
         if (cellInfo) {
-            log.debug(`Updating code cell ${id} with new code`);
+            log.debug(`Updating code cell ${id} internal code`);
             cellInfo.code = newCode;
-            // Reset exports and dependencies
-            cellInfo.exports = [];
-            cellInfo.dependencies = [];
-            cellInfo.lastExportValues.clear();
-            cellInfo.lastOutput = [];
-            cellInfo.outputValues = [];
         } else {
-            log.warn(`Code cell ${id} not found for update`);
+            // Create new cell info if it doesn't exist
+            log.debug(`Creating new code cell info for ${id}`);
+            this.executedCells.set(id, {
+                code: newCode,
+                exports: [],
+                dependencies: [],
+                lastExportValues: new Map(),
+                lastOutput: [],
+                outputValues: [],
+                executionCount: 0
+            });
         }
+    }
+
+    /**
+     * Get the current code for a cell (as stored in the engine)
+     */
+    getCurrentCode(cellId: string): string | undefined {
+        return this.executedCells.get(cellId)?.code;
     }
 
     /**

@@ -1,19 +1,24 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useReactiveSystem, useReactiveValue } from '@/Engine/ReactiveProvider';
+import { useApplication } from '@/Engine/ApplicationProvider';
 import { CodeCellDefinition } from '@/Types/NotebookModel';
 import { log } from './DynamicNotebook';
 import { ObjectDisplay } from './ObjectDisplay';
 import Editor from './Editor';
 import { oneDark } from '@codemirror/theme-one-dark';
 import ConsoleOutput from './ConsoleOutput';
-import { PlayIcon } from '@heroicons/react/24/solid'; // NEW: Import play icon
+import { PlayIcon } from '@heroicons/react/24/solid';
 
 // Add CodeCell component for display purposes
 export function CodeCell({ definition, initialized }: { definition: CodeCellDefinition; initialized: boolean; }) {
     const { codeCellEngine } = useReactiveSystem();
+    const { currentModel, setModel, setDirty } = useApplication();
 
     // Subscribe to execution count to know when cell re-executes
     const [executionCount] = useReactiveValue(`__cell_${definition.id}_execution`, 0);
+
+    // Local state for the code being edited
+    const [currentCode, setCurrentCode] = useState(definition.code);
 
     // Add ref for DOM output container
     const outputContainerRef = React.useRef<HTMLDivElement>(null);
@@ -23,6 +28,11 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
     const [dependencies, setDependencies] = React.useState<string[]>([]);
     const [consoleOutput, setConsoleOutput] = React.useState<any[]>([]);
     const [outputValues, setOutputValues] = React.useState<any[]>([]);
+
+    // Update local state when definition changes
+    useEffect(() => {
+        setCurrentCode(definition.code);
+    }, [definition.code]);
 
     useEffect(() => {
         if (!initialized) return;
@@ -49,7 +59,7 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
             // This ensures DOM output works from the start
             if (outputContainerRef.current && executionCount === 0) {
                 log.debug(`Code cell ${definition.id} executing for the first time with DOM container`);
-                codeCellEngine.executeCodeCell(definition.id, definition.code, outputContainerRef.current);
+                codeCellEngine.executeCodeCell(definition.id, currentCode, outputContainerRef.current);
             }
 
         } catch (err) {
@@ -58,10 +68,29 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
             setDependencies([]);
             setOutputValues([]);
         }
-    }, [initialized, definition.id, codeCellEngine, executionCount]);
+    }, [initialized, definition.id, codeCellEngine, executionCount, currentCode]);
 
     const onCodeChange = (newCode: string) => {
+        // Update local state immediately for responsive editing
+        setCurrentCode(newCode);
+        
+        // Update the engine's internal tracking
         codeCellEngine.updateCodeCell(definition.id, newCode);
+        
+        // Update the notebook model to persist changes
+        if (currentModel) {
+            const updatedModel = {
+                ...currentModel,
+                cells: currentModel.cells.map(cell => 
+                    cell.id === definition.id 
+                        ? { ...cell, code: newCode }
+                        : cell
+                )
+            };
+            setModel(updatedModel);
+            setDirty(true);
+        }
+        
         log.debug(`Code cell ${definition.id} code updated`);
     };
 
@@ -71,9 +100,9 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
             outputContainerRef.current.innerHTML = '';
         }
         
-        // Execute with DOM container support
-        codeCellEngine.executeCodeCell(definition.id, definition.code, outputContainerRef.current || undefined);
-        log.debug(`Code cell ${definition.id} re-executed manually`);
+        // Execute with the current code (which might be different from definition.code)
+        codeCellEngine.executeCodeCell(definition.id, currentCode, outputContainerRef.current || undefined);
+        log.debug(`Code cell ${definition.id} executed with current code`);
     };
 
     return (
@@ -89,6 +118,9 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
                         >
                             <PlayIcon className="w-3 h-3" />
                         </button>
+                        {currentCode !== definition.code && (
+                            <span className="text-xs text-amber-500">• Modified</span>
+                        )}
                     </div>
                     {dependencies.length > 0 && (
                         <span className="text-xs text-foreground">
@@ -105,7 +137,7 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
 
             <pre className="code-content bg-background-secondary px-4 py-3 overflow-x-auto">
                 <Editor
-                    value={definition.code}
+                    value={currentCode}
                     language="javascript"
                     theme={oneDark} // NEW: Apply dark theme
                     onChange={onCodeChange}
