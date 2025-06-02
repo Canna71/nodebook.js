@@ -15,14 +15,17 @@ import Layout from '@/app/layout';
 import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
 
 function AppContent() {
-    const { currentModel, setModel, isLoading, error } = useApplication();
+    const { currentModel, loadNotebook, isLoading, error } = useApplication();
 
     useEffect(() => {
         // Load default example on startup
         if (!currentModel) {
-            setModel(danfojsPlottingExample as NotebookModel);
+            const fs = getFileSystemHelpers();
+            // fs.loadNotebook("../../examples/danfojs-plotting-example.json")
+            loadNotebook("/Users/gcannata/Projects/notebookjs/examples/danfojs-plotting-example.json")
+            
         }
-    }, [currentModel, setModel]);
+    }, [currentModel, loadNotebook]);
 
     if (isLoading) {
         return (
@@ -72,8 +75,7 @@ export default function App() {
                 const initialize = await moduleRegistry.initialize();
                 const fs = getFileSystemHelpers();
 
-                const examples = await fs.listExamples();
-                log.debug('Available examples:', examples);
+               
 
                 setAppReady(true);
             } catch (error) {

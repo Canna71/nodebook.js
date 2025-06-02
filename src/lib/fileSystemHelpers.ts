@@ -256,28 +256,29 @@ export class FileSystemHelpers {
     /**
      * Load a user notebook from the notebooks folder
      */
-    public async loadNotebook(filename: string): Promise<FileSystemResult<NotebookModel>> {
+    public async loadNotebook(filePath: string): Promise<FileSystemResult<NotebookModel>> {
         try {
-            const filePath = path.join(this.userNotebooksPath, filename);
-
-            if (!fs.existsSync(filePath)) {
-                return {
-                    success: false,
-                    error: `Notebook file not found: ${filename}`
-                };
-            }
+            // const filePath = path.join(this.userNotebooksPath, filename);
+            // fs.exists
+            // if (!fs.existsSync(filePath)) {
+            //     return {
+            //         success: false,
+            //         error: `Notebook file not found: ${filePath}`
+            //     };
+            // }
 
             const content = await fs.promises.readFile(filePath, 'utf8');
             const notebook: NotebookModel = JSON.parse(content);
 
-            log.debug(`Notebook loaded successfully: ${filename}`);
+            log.debug(`Notebook loaded successfully: ${filePath}`);
             return {
                 success: true,
                 data: notebook
             };
         } catch (error) {
-            const errorMsg = `Failed to load notebook ${filename}: ${error instanceof Error ? error.message : String(error)}`;
+            const errorMsg = `Failed to load notebook ${filePath}: ${error instanceof Error ? error.message : String(error)}`;
             log.error(errorMsg, error);
+            window.api.showErrorBox('Load Notebook Error', errorMsg);
             return {
                 success: false,
                 error: errorMsg
