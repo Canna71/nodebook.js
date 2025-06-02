@@ -73,7 +73,7 @@ export function createDiv(options: Parameters<typeof createElement>[1] = {}): HT
  * Create a container with padding and border that auto-outputs itself
  */
 export function createContainer(options: Parameters<typeof createElement>[1] = {}): HTMLDivElement {
-    const defaultStyle = 'margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: white;';
+    const defaultStyle = 'margin: 20px 0; padding: 15px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-background);';
     const container = createDiv({
         ...options,
         style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
@@ -92,7 +92,7 @@ export function createContainer(options: Parameters<typeof createElement>[1] = {
  * Create a title element
  */
 export function createTitle(text: string, level: 1 | 2 | 3 | 4 | 5 | 6 = 3, options: Parameters<typeof createElement>[1] = {}): HTMLHeadingElement {
-    const defaultStyle = 'margin: 0 0 15px 0; color: #333;';
+    const defaultStyle = 'margin: 0 0 15px 0; color: var(--color-primary);';
     return createElement(`h${level}`, {
         textContent: text,
         ...options,
@@ -108,7 +108,7 @@ export function createTable(
     rows: (string | number)[][],
     options: Parameters<typeof createElement>[1] = {}
 ): HTMLTableElement {
-    const defaultStyle = 'width: 100%; border-collapse: collapse; font-family: Arial, sans-serif;';
+    const defaultStyle = 'width: 100%; border-collapse: collapse; font-family: inherit;';
     const table = createElement('table', {
         ...options,
         style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
@@ -122,7 +122,7 @@ export function createTable(
         headers.forEach(headerText => {
             const th = createElement('th', {
                 textContent: headerText,
-                style: 'padding: 10px; border: 1px solid #ddd; background: #f5f5f5; text-align: left; font-weight: bold;'
+                style: 'padding: 10px; border: 1px solid var(--color-border); background: var(--color-background-secondary); text-align: left; font-weight: bold; color: var(--color-primary);'
             });
             headerRow.appendChild(th);
         });
@@ -140,19 +140,19 @@ export function createTable(
                 style: 'cursor: pointer; transition: background-color 0.2s;'
             });
             
-            // Add hover effects
+            // Add hover effects using CSS custom properties
             tr.addEventListener('mouseover', () => {
-                tr.style.backgroundColor = '#f0f0f0';
+                tr.style.backgroundColor = 'var(--color-background-hover)';
             });
             tr.addEventListener('mouseout', () => {
-                tr.style.backgroundColor = 'white';
+                tr.style.backgroundColor = 'var(--color-background)';
             });
             
             rowData.forEach((cellData, i) => {
                 const isNumeric = typeof cellData === 'number';
                 const td = createElement('td', {
                     textContent: isNumeric ? cellData.toLocaleString() : String(cellData),
-                    style: `padding: 8px 10px; border: 1px solid #ddd; text-align: ${isNumeric ? 'right' : 'left'};`
+                    style: `padding: 8px 10px; border: 1px solid var(--color-border); text-align: ${isNumeric ? 'right' : 'left'}; color: var(--color-primary);`
                 });
                 tr.appendChild(td);
             });
@@ -174,7 +174,7 @@ export function createButton(
     onClick?: () => void,
     options: Parameters<typeof createElement>[1] = {}
 ): HTMLButtonElement {
-    const defaultStyle = 'background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;';
+    const defaultStyle = 'background: var(--color-accent); color: var(--color-background); border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;';
     const button = createElement('button', {
         textContent: text,
         ...options,
@@ -185,7 +185,7 @@ export function createButton(
         button.addEventListener('click', onClick);
     }
     
-    // Add hover effect
+    // Add hover effect using opacity
     button.addEventListener('mouseover', () => {
         button.style.opacity = '0.8';
     });
@@ -197,36 +197,42 @@ export function createButton(
 }
 
 /**
- * Create a statistics grid
+ * Create a responsive key-value grid (useful for metrics, stats, properties, etc.)
  */
-export function createStatsGrid(
-    stats: Record<string, string | number>,
-    options: Parameters<typeof createElement>[1] = {}
+export function createKeyValueGrid(
+    data: Record<string, string | number>,
+    options: Parameters<typeof createElement>[1] & {
+        columns?: string; // CSS grid-template-columns value
+        itemStyle?: string; // Style for each grid item
+    } = {}
 ): HTMLDivElement {
-    const defaultStyle = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;';
+    const { columns = 'repeat(auto-fit, minmax(150px, 1fr))', itemStyle = '', ...containerOptions } = options;
+    
+    const defaultStyle = `display: grid; grid-template-columns: ${columns}; gap: 10px;`;
     const grid = createDiv({
-        ...options,
-        style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
+        ...containerOptions,
+        style: containerOptions.style ? `${defaultStyle} ${containerOptions.style}` : defaultStyle
     });
     
-    Object.entries(stats).forEach(([key, value]) => {
-        const statBox = createDiv({
-            style: 'background: rgba(255,255,255,0.1); padding: 10px; border-radius: 4px; text-align: center;'
+    Object.entries(data).forEach(([key, value]) => {
+        const defaultItemStyle = 'background: var(--color-background-secondary); padding: 10px; border-radius: 4px; text-align: center; border: 1px solid var(--color-border);';
+        const item = createDiv({
+            style: itemStyle ? `${defaultItemStyle} ${itemStyle}` : defaultItemStyle
         });
         
         const label = createDiv({
             textContent: key,
-            style: 'font-size: 11px; opacity: 0.8; margin-bottom: 5px;'
+            style: 'font-size: 11px; color: var(--color-muted); margin-bottom: 5px;'
         });
         
         const valueEl = createDiv({
             textContent: String(value),
-            style: 'font-size: 16px; font-weight: bold;'
+            style: 'font-size: 16px; font-weight: bold; color: var(--color-primary);'
         });
         
-        statBox.appendChild(label);
-        statBox.appendChild(valueEl);
-        grid.appendChild(statBox);
+        item.appendChild(label);
+        item.appendChild(valueEl);
+        grid.appendChild(item);
     });
     
     return grid;
@@ -239,14 +245,14 @@ export function createGradientContainer(
     title: string,
     options: Parameters<typeof createElement>[1] = {}
 ): HTMLDivElement {
-    const defaultStyle = 'margin: 20px 0; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px;';
+    const defaultStyle = 'margin: 20px 0; padding: 15px; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 8px;';
     const container = createDiv({
         ...options,
         style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
     });
     
     const titleEl = createTitle(title, 3, {
-        style: 'margin: 0 0 15px 0; color: white;'
+        style: 'margin: 0 0 15px 0; color: var(--color-accent);'
     });
     
     container.appendChild(titleEl);
@@ -264,7 +270,7 @@ export function createGradientContainer(
  * Create a container specifically for outEl usage (doesn't auto-output)
  */
 export function createOutElContainer(options: Parameters<typeof createElement>[1] = {}): HTMLDivElement {
-    const defaultStyle = 'margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: white;';
+    const defaultStyle = 'margin: 20px 0; padding: 15px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-background);';
     return createDiv({
         ...options,
         style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
@@ -278,14 +284,14 @@ export function createOutElGradientContainer(
     title: string,
     options: Parameters<typeof createElement>[1] = {}
 ): HTMLDivElement {
-    const defaultStyle = 'margin: 20px 0; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px;';
+    const defaultStyle = 'margin: 20px 0; padding: 15px; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 8px;';
     const container = createDiv({
         ...options,
         style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
     });
     
     const titleEl = createTitle(title, 3, {
-        style: 'margin: 0 0 15px 0; color: white;'
+        style: 'margin: 0 0 15px 0; color: var(--color-accent);'
     });
     
     container.appendChild(titleEl);
@@ -341,7 +347,7 @@ export function build(element: HTMLElement): ElementBuilder {
 export function createBoundDomHelpers(outputFn: (value: any) => any) {
     // Create bound versions of auto-outputting functions
     const boundCreateContainer = (options: Parameters<typeof createElement>[1] = {}) => {
-        const defaultStyle = 'margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: white;';
+        const defaultStyle = 'margin: 20px 0; padding: 15px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-background);';
         const container = createDiv({
             ...options,
             style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
@@ -356,14 +362,14 @@ export function createBoundDomHelpers(outputFn: (value: any) => any) {
         title: string,
         options: Parameters<typeof createElement>[1] = {}
     ) => {
-        const defaultStyle = 'margin: 20px 0; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px;';
+        const defaultStyle = 'margin: 20px 0; padding: 15px; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 8px;';
         const container = createDiv({
             ...options,
             style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
         });
         
         const titleEl = createTitle(title, 3, {
-            style: 'margin: 0 0 15px 0; color: white;'
+            style: 'margin: 0 0 15px 0; color: var(--color-accent);'
         });
         
         container.appendChild(titleEl);
@@ -380,7 +386,7 @@ export function createBoundDomHelpers(outputFn: (value: any) => any) {
         createTitle,
         createTable,
         createButton,
-        createStatsGrid,
+        createKeyValueGrid,
         createGradientContainer: boundCreateGradientContainer,
         createOutElContainer,
         createOutElGradientContainer,
@@ -397,7 +403,7 @@ export const domHelpers = {
     createTitle,
     createTable,
     createButton,
-    createStatsGrid,
+    createKeyValueGrid, // Renamed from createStatsGrid
     createGradientContainer: createOutElGradientContainer, // Use non-auto-outputting version by default
     createOutElContainer,
     createOutElGradientContainer,
