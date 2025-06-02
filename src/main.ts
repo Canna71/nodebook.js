@@ -24,7 +24,7 @@ const extensions = {
         ),
         "reduxDevTools": path.join(
             os.homedir(),
-            '/Library/Application Support/Microsoft Edge/Default/Extensions/nnkgneoiohoecpdiaponcejilbhhikei/3.2.10_0'
+            '/Library/Application Support/Microsoft Edge/Default/Extensions/lmhkpmbekcpmknklioeibfkpmmfibljd/3.2.10_0'
         )
     },
     "win": {
