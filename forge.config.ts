@@ -45,11 +45,12 @@ import fs from 'fs-extra';
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
-    // extraResource: [
+    extraResource: [
     //   "./node_modules/danfojs/",
     //   "./node_modules/danfojs-node/",
     //   "./node_modules/@tensorflow/",
-    // ]
+    "./examples/"
+    ]
   },
   rebuildConfig: {},
   makers: [

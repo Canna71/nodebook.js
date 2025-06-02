@@ -1,5 +1,6 @@
 import anylogger from 'anylogger';
 import { NotebookModel } from '@/Types/NotebookModel';
+import { use } from 'react';
 
 const log = anylogger('FileSystemHelpers');
 
@@ -29,23 +30,13 @@ interface FileSystemResult<T> {
 /**
  * Interface for example file metadata
  */
-export interface ExampleFileInfo {
-    id: string;
-    name: string;
+export interface NotebookFileInfo {
     description?: string;
     filepath: string;
     lastModified: Date;
     size: number;
 }
 
-/**
- * Extended NotebookModel interface that includes optional properties found in JSON files
- */
-interface ExtendedNotebookModel extends NotebookModel {
-    id?: string;
-    title?: string;
-    description?: string;
-}
 
 /**
  * File system helper class for managing notebook examples and user data
@@ -55,9 +46,9 @@ export class FileSystemHelpers {
     private examplesPath: string;
     private userNotebooksPath: string;
 
-    constructor() {
+    constructor(userDataPath = '') {
         // Get application user data directory
-        this.userDataPath = electron.app?.getPath('userData') || process.cwd();
+        this.userDataPath = userDataPath;
         this.examplesPath = path.join(this.userDataPath, 'examples');
         this.userNotebooksPath = path.join(this.userDataPath, 'notebooks');
         
@@ -170,109 +161,17 @@ export class FileSystemHelpers {
         }
     }
 
-    /**
-     * Initialize examples and return default example to load
-     */
-    public async initializeExamplesAndGetDefault(builtInExamples: { [key: string]: NotebookModel }): Promise<{
-        initResult: FileSystemResult<string[]>;
-        availableExamples: ExampleFileInfo[];
-        defaultExample: NotebookModel | null;
-    }> {
-        try {
-            // Copy built-in examples to file system (only if they don't exist)
-            const initResult = await this.initializeExamples(builtInExamples);
-            
-            // Load available examples from file system
-            const examplesResult = await this.listExamples();
-            
-            if (!examplesResult.success || !examplesResult.data) {
-                return {
-                    initResult,
-                    availableExamples: [],
-                    defaultExample: null
-                };
-            }
 
-            const availableExamples = examplesResult.data;
-            let defaultExample: NotebookModel | null = null;
-
-            // Try to find and load default example (danfojs-plotting-example)
-            const defaultExampleInfo = availableExamples.find(ex => 
-                ex.id === 'danfojs-plotting-showcase' || 
-                ex.name.includes('plotting') ||
-                ex.name.includes('Plotting')
-            );
-            
-            if (defaultExampleInfo) {
-                const filename = path.basename(defaultExampleInfo.filepath);
-                const loadResult = await this.loadExample(filename);
-                if (loadResult.success && loadResult.data) {
-                    defaultExample = loadResult.data;
-                    log.info(`Found default example: ${defaultExampleInfo.name}`);
-                }
-            } else if (availableExamples.length > 0) {
-                // Fallback to first available example
-                const firstExample = availableExamples[0];
-                const filename = path.basename(firstExample.filepath);
-                const loadResult = await this.loadExample(filename);
-                if (loadResult.success && loadResult.data) {
-                    defaultExample = loadResult.data;
-                    log.info(`Using fallback example: ${firstExample.name}`);
-                }
-            }
-
-            return {
-                initResult,
-                availableExamples,
-                defaultExample
-            };
-
-        } catch (error) {
-            const errorMsg = `Failed to initialize examples: ${error instanceof Error ? error.message : String(error)}`;
-            log.error(errorMsg, error);
-            return {
-                initResult: { success: false, error: errorMsg },
-                availableExamples: [],
-                defaultExample: null
-            };
-        }
-    }
-
-    /**
-     * Load example by ID (searches for the example file)
-     */
-    public async loadExampleById(exampleId: string, availableExamples: ExampleFileInfo[]): Promise<FileSystemResult<NotebookModel>> {
-        try {
-            // Find the example by ID to get the correct filename
-            const example = availableExamples.find(ex => ex.id === exampleId);
-            if (!example) {
-                return {
-                    success: false,
-                    error: `Example with ID ${exampleId} not found`
-                };
-            }
-            
-            const filename = path.basename(example.filepath);
-            return await this.loadExample(filename);
-        } catch (error) {
-            const errorMsg = `Failed to load example by ID ${exampleId}: ${error instanceof Error ? error.message : String(error)}`;
-            log.error(errorMsg, error);
-            return {
-                success: false,
-                error: errorMsg
-            };
-        }
-    }
 
     /**
      * List all available examples
      */
-    public async listExamples(): Promise<FileSystemResult<ExampleFileInfo[]>> {
+    public async listExamples(): Promise<FileSystemResult<NotebookFileInfo[]>> {
         try {
             const files = await fs.promises.readdir(this.examplesPath);
             const jsonFiles = files.filter(file => file.endsWith('.json'));
             
-            const examples: ExampleFileInfo[] = [];
+            const examples: NotebookFileInfo[] = [];
             
             for (const file of jsonFiles) {
                 const filePath = path.join(this.examplesPath, file);
@@ -281,14 +180,12 @@ export class FileSystemHelpers {
                 try {
                     // Try to read the file to get metadata
                     const content = await fs.promises.readFile(filePath, 'utf8');
-                    const notebook = JSON.parse(content) as ExtendedNotebookModel;
+                    const notebook = JSON.parse(content) as NotebookModel;
                     
                     // Use filename as fallback for name
                     const baseFileName = path.basename(file, '.json');
                     
                     examples.push({
-                        id: notebook.id || notebook.title || baseFileName,
-                        name: notebook.title || baseFileName,
                         description: notebook.description,
                         filepath: filePath,
                         lastModified: stats.mtime,
@@ -298,8 +195,6 @@ export class FileSystemHelpers {
                     log.warn(`Failed to parse example file ${file}, including with basic info:`, parseError);
                     const baseFileName = path.basename(file, '.json');
                     examples.push({
-                        id: baseFileName,
-                        name: baseFileName,
                         description: 'Invalid JSON file',
                         filepath: filePath,
                         lastModified: stats.mtime,
@@ -390,12 +285,12 @@ export class FileSystemHelpers {
     /**
      * List all user notebooks
      */
-    public async listNotebooks(): Promise<FileSystemResult<ExampleFileInfo[]>> {
+    public async listNotebooks(): Promise<FileSystemResult<NotebookFileInfo[]>> {
         try {
             const files = await fs.promises.readdir(this.userNotebooksPath);
             const jsonFiles = files.filter(file => file.endsWith('.json'));
             
-            const notebooks: ExampleFileInfo[] = [];
+            const notebooks: NotebookFileInfo[] = [];
             
             for (const file of jsonFiles) {
                 const filePath = path.join(this.userNotebooksPath, file);
@@ -403,14 +298,12 @@ export class FileSystemHelpers {
                 
                 try {
                     const content = await fs.promises.readFile(filePath, 'utf8');
-                    const notebook = JSON.parse(content) as ExtendedNotebookModel;
+                    const notebook = JSON.parse(content) as NotebookModel;
                     
                     // Use filename as fallback for name
                     const baseFileName = path.basename(file, '.json');
                     
                     notebooks.push({
-                        id: notebook.id || notebook.title || baseFileName,
-                        name: notebook.title || baseFileName,
                         description: notebook.description,
                         filepath: filePath,
                         lastModified: stats.mtime,
@@ -420,8 +313,6 @@ export class FileSystemHelpers {
                     log.warn(`Failed to parse notebook file ${file}:`, parseError);
                     const baseFileName = path.basename(file, '.json');
                     notebooks.push({
-                        id: baseFileName,
-                        name: baseFileName,
                         description: 'Invalid JSON file',
                         filepath: filePath,
                         lastModified: stats.mtime,
@@ -448,70 +339,9 @@ export class FileSystemHelpers {
         }
     }
 
-    /**
-     * Copy built-in examples to the examples folder
-     */
-    public async initializeExamples(builtInExamples: { [key: string]: NotebookModel }): Promise<FileSystemResult<string[]>> {
-        try {
-            const savedFiles: string[] = [];
-            
-            for (const [filename, example] of Object.entries(builtInExamples)) {
-                const exampleFilename = filename.endsWith('.json') ? filename : `${filename}.json`;
-                const result = await this.saveExample(example, exampleFilename);
-                
-                if (result.success && result.data) {
-                    savedFiles.push(result.data);
-                    log.debug(`Initialized example: ${exampleFilename}`);
-                } else {
-                    log.warn(`Failed to initialize example ${exampleFilename}: ${result.error}`);
-                }
-            }
-            
-            log.info(`Initialized ${savedFiles.length} examples in ${this.examplesPath}`);
-            return {
-                success: true,
-                data: savedFiles
-            };
-        } catch (error) {
-            const errorMsg = `Failed to initialize examples: ${error instanceof Error ? error.message : String(error)}`;
-            log.error(errorMsg, error);
-            return {
-                success: false,
-                error: errorMsg
-            };
-        }
-    }
+  
 
-    /**
-     * Delete an example file
-     */
-    public async deleteExample(filename: string): Promise<FileSystemResult<boolean>> {
-        try {
-            const filePath = path.join(this.examplesPath, filename);
-            
-            if (!fs.existsSync(filePath)) {
-                return {
-                    success: false,
-                    error: `Example file not found: ${filename}`
-                };
-            }
 
-            await fs.promises.unlink(filePath);
-            
-            log.debug(`Example deleted successfully: ${filename}`);
-            return {
-                success: true,
-                data: true
-            };
-        } catch (error) {
-            const errorMsg = `Failed to delete example ${filename}: ${error instanceof Error ? error.message : String(error)}`;
-            log.error(errorMsg, error);
-            return {
-                success: false,
-                error: errorMsg
-            };
-        }
-    }
 
     /**
      * Delete a notebook file
@@ -563,7 +393,7 @@ export class FileSystemHelpers {
     /**
      * Get file stats for a specific example
      */
-    public async getExampleStats(filename: string): Promise<FileSystemResult<ExampleFileInfo>> {
+    public async getExampleStats(filename: string): Promise<FileSystemResult<NotebookFileInfo>> {
         try {
             const filePath = path.join(this.examplesPath, filename);
             
@@ -578,15 +408,12 @@ export class FileSystemHelpers {
             
             try {
                 const content = await fs.promises.readFile(filePath, 'utf8');
-                const notebook = JSON.parse(content) as ExtendedNotebookModel;
+                const notebook = JSON.parse(content) as NotebookModel;
                 
                 // Use filename as fallback for name
                 const baseFileName = path.basename(filename, '.json');
                 
-                const fileInfo: ExampleFileInfo = {
-                    id: notebook.id || notebook.title || baseFileName,
-                    name: notebook.title || baseFileName,
-                    description: notebook.description,
+                const fileInfo: NotebookFileInfo = {
                     filepath: filePath,
                     lastModified: stats.mtime,
                     size: stats.size
@@ -614,7 +441,27 @@ export class FileSystemHelpers {
 }
 
 // Create singleton instance
-export const fileSystemHelpers = new FileSystemHelpers();
+let fileSystemHelpers : FileSystemHelpers = undefined;
+
+export async function  initializeFileSystemHelpers(): Promise<FileSystemHelpers> {
+
+    if (fileSystemHelpers) {
+        log.debug('FileSystemHelpers already initialized, returning existing instance');
+        return fileSystemHelpers;
+    }
+    // Reinitialize with the provided user data path
+    const userDataPath = await (window as any).getUserDataPath();
+
+    fileSystemHelpers =  new FileSystemHelpers(userDataPath);
+    return fileSystemHelpers;
+}
+
+export function getFileSystemHelpers(): FileSystemHelpers {
+    if (!fileSystemHelpers) {
+        throw new Error('FileSystemHelpers not initialized. Call initializeFileSystemHelpers first.');
+    }
+    return fileSystemHelpers;
+}
 
 // Export utility functions
 export async function loadExampleFromDisk(filename: string): Promise<NotebookModel | null> {
@@ -626,16 +473,8 @@ export async function loadExampleFromDisk(filename: string): Promise<NotebookMod
     return null;
 }
 
-export async function saveExampleToDisk(example: NotebookModel, filename?: string): Promise<string | null> {
-    const result = await fileSystemHelpers.saveExample(example, filename);
-    if (result.success && result.data) {
-        return result.data;
-    }
-    log.error(`Failed to save example: ${result.error}`);
-    return null;
-}
 
-export async function getAllExamples(): Promise<ExampleFileInfo[]> {
+export async function getAllExamples(): Promise<NotebookFileInfo[]> {
     const result = await fileSystemHelpers.listExamples();
     if (result.success && result.data) {
         return result.data;
@@ -644,7 +483,7 @@ export async function getAllExamples(): Promise<ExampleFileInfo[]> {
     return [];
 }
 
-export async function getAllNotebooks(): Promise<ExampleFileInfo[]> {
+export async function getAllNotebooks(): Promise<NotebookFileInfo[]> {
     const result = await fileSystemHelpers.listNotebooks();
     if (result.success && result.data) {
         return result.data;
