@@ -454,8 +454,8 @@ export async function initializeFileSystemHelpers(): Promise<FileSystemHelpers> 
     }
     // Reinitialize with the provided user data path
     const [userDataPath, isPackaged] = await Promise.all(
-        [(window as any).getUserDataPath(),
-        (window as any).isPackaged()])
+        [window.api.getUserDataPath(),
+        window.api.isPackaged()])
 
     fileSystemHelpers = new FileSystemHelpers(userDataPath, isPackaged);
     return fileSystemHelpers;

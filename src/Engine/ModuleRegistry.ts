@@ -46,7 +46,6 @@ export class ModuleRegistry {
       return false;
     }
     const userDataPath = fs.getUserDataPath();
-    // const userDataPath = await (window as any).getUserDataPath();
     log.debug(`Adding custom module directory to require paths: ${userDataPath}`);
 
     // Use the user data path to create a custom module director+}
