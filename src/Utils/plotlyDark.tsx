@@ -1,6 +1,6 @@
 import * as Plotly from 'plotly.js-dist-min';
 
-import { useEffect, useRef, useCallback, createContext, useState } from 'react';
+import { useEffect, useRef, useCallback, createContext, useState, useContext } from 'react';
 
 /**
  * Custom hook to observe DOM mutations and apply styling to specific elements
@@ -122,6 +122,14 @@ const useMutationObserver = ({
 export default useMutationObserver;
 
 function applyDarkModeToPlotly(el: HTMLElement) {
+    // Check if dark mode is enabled by looking for 'dark' class on html element
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    
+    if (!isDarkMode) {
+        // If not in dark mode, don't apply dark theme
+        return Promise.resolve();
+    }
+    
     return Plotly.relayout(el as HTMLElement, {
         "template.layout": {
             annotationdefaults: {
@@ -300,47 +308,108 @@ function applyDarkModeToPlotly(el: HTMLElement) {
 }
 
 export function switchPlotlyMode() {
-    const theme = localStorage.getItem('theme');
-    if (theme === "dark-mode") {
-        // $("body").addClass("dark-mode");
-        javascript: document.querySelectorAll(".js-plotly-plot").forEach(function (gd) {
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    
+    if (isDarkMode) {
+        document.querySelectorAll(".js-plotly-plot").forEach(function (gd) {
             applyDarkModeToPlotly(gd as HTMLElement);
         });
     }
 }
 
+// Create context with proper typing
+interface PlotlyStyleContextType {
+    applyStylesManually: () => boolean;
+    enableStyling: () => void;
+    disableStyling: () => void;
+    toggleStyling: () => void;
+    isEnabled: boolean;
+    disconnect: () => void;
+    reconnect: () => void;
+    applyPlotlyDarkMode: () => void;
+}
 
-// Create context
-const PlotlyStyleContext = createContext();
+const PlotlyStyleContext = createContext<PlotlyStyleContextType | null>(null);
 
 // Provider component
-export function PlotlyStyleProvider({ children, stylingOptions = {} }) {
+export function PlotlyStyleProvider({ children, stylingOptions = {} }: {
+    children: React.ReactNode;
+    stylingOptions?: any;
+}) {
     const [isEnabled, setIsEnabled] = useState(true);
 
-    // Default styling function
-    const defaultStylingFunction = (elements) => {
+    // Plotly dark mode styling function
+    const applyPlotlyDarkMode = (elements: NodeListOf<Element>) => {
         elements.forEach(el => {
-            // Apply default styling
-            // ...
+            if (el instanceof HTMLElement) {
+                try {
+                    // Check if this is a Plotly plot element
+                    if (el.classList.contains('js-plotly-plot') || el.classList.contains('plotly')) {
+                        console.log('Applying dark mode to Plotly plot:', el);
+                        applyDarkModeToPlotly(el);
+                    }
+                } catch (error) {
+                    console.warn('Failed to apply dark mode to Plotly element:', error);
+                }
+            }
         });
     };
 
-    // Use the custom hook
+    // Enhanced observer to also watch for theme changes on html element
     const { applyStylesManually, disconnect, reconnect } = useMutationObserver({
-        targetSelector: stylingOptions.selector || '.plotly, .js-plotly-plot',
-        onElementsDetected: stylingOptions.onElementsDetected || defaultStylingFunction,
+        targetSelector: stylingOptions.selector || '.plotly, .js-plotly-plot, [data-plotly]',
+        onElementsDetected: stylingOptions.onElementsDetected || applyPlotlyDarkMode,
         enabled: isEnabled,
+        observerOptions: {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['class', 'style', 'data-plotly'],
+            ...stylingOptions.observerOptions
+        }
     });
 
+    // Watch for theme changes on html element
+    useEffect(() => {
+        if (!isEnabled) return;
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach(mutation => {
+                if (mutation.type === 'attributes' && 
+                    mutation.attributeName === 'class' &&
+                    mutation.target === document.documentElement) {
+                    
+                    console.log('Theme change detected, reapplying Plotly styling');
+                    // Theme changed, reapply styling to all Plotly plots
+                    const plotlyElements = document.querySelectorAll('.js-plotly-plot, .plotly, [data-plotly]');
+                    applyPlotlyDarkMode(plotlyElements);
+                }
+            });
+        });
+
+        // Observe class changes on html element
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+
+        return () => observer.disconnect();
+    }, [isEnabled, applyPlotlyDarkMode]);
+
     // Value to provide to consumers
-    const value = {
+    const value: PlotlyStyleContextType = {
         applyStylesManually,
         enableStyling: () => setIsEnabled(true),
         disableStyling: () => setIsEnabled(false),
         toggleStyling: () => setIsEnabled(prev => !prev),
         isEnabled,
         disconnect,
-        reconnect
+        reconnect,
+        applyPlotlyDarkMode: () => {
+            // Manual function to apply dark mode to all existing Plotly plots
+            const plotlyElements = document.querySelectorAll('.js-plotly-plot, .plotly, [data-plotly]');
+            applyPlotlyDarkMode(plotlyElements);
+        }
     };
 
     return (
@@ -348,4 +417,93 @@ export function PlotlyStyleProvider({ children, stylingOptions = {} }) {
             {children}
         </PlotlyStyleContext.Provider>
     );
+}
+
+// Hook to use the Plotly styling context
+export function usePlotlyDarkMode(): PlotlyStyleContextType {
+    const context = useContext(PlotlyStyleContext);
+    if (!context) {
+        throw new Error('usePlotlyDarkMode must be used within a PlotlyStyleProvider');
+    }
+    return context;
+}
+
+// Initialize global Plotly dark mode observer
+export function initPlotlyDarkModeObserver() {
+    const observer = new MutationObserver((mutations) => {
+        let plotlyElementsFound = false;
+        let themeChanged = false;
+        
+        mutations.forEach(mutation => {
+            // Check for theme changes on html element
+            if (mutation.type === 'attributes' && 
+                mutation.attributeName === 'class' &&
+                mutation.target === document.documentElement) {
+                themeChanged = true;
+                return;
+            }
+
+            if (mutation.target && mutation.target.nodeType === Node.ELEMENT_NODE) {
+                const element = mutation.target as Element;
+                
+                // Check if mutation affects Plotly elements
+                if (element.matches?.('.js-plotly-plot, .plotly, [data-plotly]') ||
+                    element.querySelectorAll?.('.js-plotly-plot, .plotly, [data-plotly]').length > 0) {
+                    plotlyElementsFound = true;
+                }
+                
+                // Check added nodes
+                Array.from(mutation.addedNodes).forEach(node => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        const el = node as Element;
+                        if (el.matches?.('.js-plotly-plot, .plotly, [data-plotly]') ||
+                            el.querySelectorAll?.('.js-plotly-plot, .plotly, [data-plotly]').length > 0) {
+                            plotlyElementsFound = true;
+                        }
+                    }
+                });
+            }
+        });
+        
+        if (plotlyElementsFound || themeChanged) {
+            // Apply dark mode to all Plotly plots (function will check dark mode internally)
+            const plotlyElements = document.querySelectorAll('.js-plotly-plot, .plotly, [data-plotly]');
+            plotlyElements.forEach(el => {
+                if (el instanceof HTMLElement) {
+                    try {
+                        applyDarkModeToPlotly(el);
+                    } catch (error) {
+                        console.warn('Failed to apply dark mode to Plotly element:', error);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Start observing both body (for plotly elements) and html (for theme changes)
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-plotly']
+    });
+
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class']
+    });
+    
+    // Apply to existing elements
+    const existingPlots = document.querySelectorAll('.js-plotly-plot, .plotly, [data-plotly]');
+    existingPlots.forEach(el => {
+        if (el instanceof HTMLElement) {
+            try {
+                applyDarkModeToPlotly(el);
+            } catch (error) {
+                console.warn('Failed to apply dark mode to existing Plotly element:', error);
+            }
+        }
+    });
+    
+    return observer;
 }
