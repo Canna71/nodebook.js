@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 
 import { ReactiveProvider } from '../Engine/ReactiveProvider';
+import { PlotlyStyleProvider } from '../Utils/plotlyDark';
 import anylogger from "anylogger";
 import { moduleRegistry } from '../Engine/ModuleRegistry';
 
@@ -61,9 +62,11 @@ export default function App() {
         <div>
             <h2>NotebookJS</h2>
 
-            <ReactiveProvider>
-                <NotebookViewer model={danfojsPlottingExample as NotebookModel} />
-            </ReactiveProvider>
+            <PlotlyStyleProvider>
+                <ReactiveProvider>
+                    <NotebookViewer model={danfojsPlottingExample as NotebookModel} />
+                </ReactiveProvider>
+            </PlotlyStyleProvider>
         </div>
     )
 }
