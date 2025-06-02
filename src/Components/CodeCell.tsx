@@ -77,7 +77,7 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
     };
 
     return (
-        <div className="cell code-cell border border-border rounded-lg mb-4 bg-white">
+        <div className="cell code-cell border border-border rounded-lg mb-4 bg-background">
             <div className="code-header bg-background-secondary px-4 py-2 border-b border-border">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
@@ -115,7 +115,7 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
             {/* DOM Output Container */}
             <div 
                 ref={outputContainerRef}
-                className="dom-output-container bg-white border-t border-border"
+                className="dom-output-container bg-background border-t border-border"
                 style={{ minHeight: '0px' }}
             />
 
@@ -160,9 +160,9 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
             )}
 
             {error && (
-                <div className="code-error bg-red-50 border-t border-red-200 px-4 py-3">
-                    <div className="text-xs font-medium text-red-800 mb-1">Execution Error:</div>
-                    <div className="text-sm text-red-700">{error.message}</div>
+                <div className="code-error bg-background-error border-t border-error px-4 py-3">
+                    <div className="text-xs font-medium text-error mb-1">Execution Error:</div>
+                    <div className="text-sm text-error">{error.message}</div>
                 </div>
             )}
         </div>
