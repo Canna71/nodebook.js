@@ -1,5 +1,6 @@
 import anylogger from "anylogger";
 import { moduleRegistry } from './ModuleRegistry';
+import { domHelpers } from '../Utils/domHelpers';
 
 const log = anylogger("ReactiveSystem");
 /**
@@ -531,7 +532,10 @@ export class CodeCellEngine {
         this.executedCells = new Map();
         this.executingCells = new Set();
         this.moduleCache = new Map();
-        this.globalScope = {};
+        this.globalScope = {
+            // Add DOM helpers to global scope
+            ...domHelpers
+        };
     }
 
     /**
