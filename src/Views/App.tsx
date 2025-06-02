@@ -15,7 +15,7 @@ import Layout from '@/app/layout';
 import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
 
 function AppContent() {
-    const { currentModel, loadNotebook, isLoading, error } = useApplication();
+    const { currentModel, loadNotebook, isLoading, error, currentFilePath } = useApplication();
 
     useEffect(() => {
         // Load default example on startup
@@ -61,6 +61,7 @@ function AppContent() {
 
     return (
         <ReactiveProvider>
+            File Path: {currentFilePath || 'No file loaded'}
             <NotebookViewer model={currentModel} />
         </ReactiveProvider>
     );
