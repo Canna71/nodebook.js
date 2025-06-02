@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 
 import { ReactiveProvider } from '../Engine/ReactiveProvider';
-import { ApplicationProvider, useApplication } from '../Engine/ApplicationProvider';
+import { ApplicationProvider, useApplication } from '@/Engine/ApplicationProvider';
 import anylogger from "anylogger";
 import { moduleRegistry } from '../Engine/ModuleRegistry';
 

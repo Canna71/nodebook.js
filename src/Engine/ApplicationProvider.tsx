@@ -18,11 +18,11 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
     });
 
     const setLoading = useCallback((loading: boolean) => {
-        setState(prev => ({ ...prev, isLoading: loading }));
+        setState((prev:ApplicationState) => ({ ...prev, isLoading: loading }));
     }, []);
 
     const setError = useCallback((error: string | null) => {
-        setState(prev => ({ ...prev, error }));
+        setState((prev:ApplicationState) => ({ ...prev, error }));
     }, []);
 
     const clearError = useCallback(() => {
@@ -39,7 +39,7 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
             if (content.success) {
                 const model = content.data;
             
-                setState(prev => ({
+                setState((prev:ApplicationState) => ({
                     ...prev,
                     currentFilePath: filePath,
                     currentModel: model,
@@ -79,7 +79,7 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
             const fs = getFileSystemHelpers();
             await fs.saveNotebook(state.currentModel, targetPath);
             
-            setState(prev => ({
+            setState((prev:ApplicationState) => ({
                 ...prev,
                 currentFilePath: targetPath,
                 isDirty: false,
@@ -99,7 +99,7 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
             cells: []
         };
 
-        setState(prev => ({
+        setState((prev:ApplicationState) => ({
             ...prev,
             currentFilePath: null,
             currentModel: emptyNotebook,
@@ -111,7 +111,7 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
     }, []);
 
     const setModel = useCallback((model: NotebookModel) => {
-        setState(prev => ({
+        setState((prev:ApplicationState) => ({
             ...prev,
             currentModel: model,
             isDirty: true,
@@ -119,7 +119,7 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
     }, []);
 
     const setDirty = useCallback((dirty: boolean) => {
-        setState(prev => ({ ...prev, isDirty: dirty }));
+        setState((prev:ApplicationState) => ({ ...prev, isDirty: dirty }));
     }, []);
 
     const contextValue: ApplicationContextType = {
