@@ -1,6 +1,8 @@
 // from: https://medium.com/@hql287/persisting-windows-state-in-electron-using-javascript-closure-17fc0821d37
 import { BrowserWindow, Rectangle } from 'electron';
 import appConfig from 'electron-settings';
+import anylogger from 'anylogger';
+const log = anylogger('WindowStateKeeper');
 
 export type WindowState = {
     rectangle: Rectangle,
@@ -35,8 +37,8 @@ export default async function windowStateKeeper(windowName: string): Promise<Win
                 height: 800,
             },
         };
-        console.log('No window state found, using default');
-        console.log(windowState);
+        log.log('No window state found, using default');
+        log.log(windowState);
     }
 
     async function saveState() {

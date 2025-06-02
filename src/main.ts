@@ -5,6 +5,7 @@ import "anylogger-loglevel";
 import loglevel from "loglevel";
 import anylogger from 'anylogger';
 import 'anylogger-console'
+import windowStateKeeper from './lib/windowStateKeeper';
 
 const log = anylogger('Main');
 import os from 'node:os';
@@ -40,7 +41,10 @@ const extensions = {
 
 
 
-const createWindow = () => {
+const createWindow = async () => {
+    // Get window state
+    const mainWindowStateKeeper = await windowStateKeeper('main');
+    
     // Create the browser window.
     const mainWindow = new BrowserWindow({
         width: 800,
