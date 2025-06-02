@@ -1,5 +1,5 @@
 import React from "react";
-import { DynamicNotebook } from "../Components/DynamicNotebook";
+import { DynamicNotebook } from "../components/DynamicNotebook";
 import { NotebookModel } from "../Types/NotebookModel";
 
 interface NotebookViewerProps {
