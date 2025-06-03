@@ -66,14 +66,14 @@ export function CellContainer({
             className={`cell-container relative border rounded-lg transition-all duration-200 ${
                 isSelected 
                     ? 'border-accent shadow-lg bg-accent/10' 
-                    : 'border-border hover:border-accent/50'
+                    : 'border-transparent hover:border-accent'
             } ${isHovered ? 'shadow-md' : ''}`}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onClick={onSelect}
         >
             {/* Cell Header */}
-            <div className={`cell-header flex items-center justify-between px-3 py-2 border-b border-border bg-background-secondary rounded-t-lg ${
+            <div className={`cell-header flex items-center justify-between px-3 py-2 border-b border-transparent bg-background-secondary rounded-t-lg ${
                 isSelected ? 'bg-accent/20' : ''
             }`}>
                 <div className="flex items-center gap-3">
