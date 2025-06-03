@@ -22,7 +22,8 @@ function AppContent() {
         if (!currentModel) {
             const fs = getFileSystemHelpers();
             // fs.loadNotebook("../../examples/danfojs-plotting-example.json")
-            loadNotebook("/Users/gcannata/Projects/notebookjs/examples/danfojs-plotting-example.json")
+            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/danfojs-plotting-example.json");
+            loadNotebook("/Users/gcannata/Projects/notebookjs/examples/pricingModel.json");
             
         }
     }, [currentModel, loadNotebook]);
