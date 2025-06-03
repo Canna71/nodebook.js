@@ -53,11 +53,11 @@ export function CellContainer({
 
     const getCellTypeColor = (type: string): string => {
         switch (type) {
-            case 'markdown': return 'bg-blue-100 text-blue-800';
-            case 'code': return 'bg-green-100 text-green-800';
-            case 'formula': return 'bg-purple-100 text-purple-800';
-            case 'input': return 'bg-orange-100 text-orange-800';
-            default: return 'bg-gray-100 text-gray-800';
+            case 'markdown': return 'bg-accent text-accent-foreground';
+            case 'code': return 'bg-primary text-primary-foreground';
+            case 'formula': return 'bg-secondary text-secondary-foreground';
+            case 'input': return 'bg-muted text-muted-foreground';
+            default: return 'bg-muted text-muted-foreground';
         }
     };
 
@@ -65,8 +65,8 @@ export function CellContainer({
         <div
             className={`cell-container relative border rounded-lg transition-all duration-200 ${
                 isSelected 
-                    ? 'border-blue-500 shadow-lg bg-blue-50/30' 
-                    : 'border-border hover:border-blue-300'
+                    ? 'border-accent shadow-lg bg-accent/10' 
+                    : 'border-border hover:border-accent/50'
             } ${isHovered ? 'shadow-md' : ''}`}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -74,7 +74,7 @@ export function CellContainer({
         >
             {/* Cell Header */}
             <div className={`cell-header flex items-center justify-between px-3 py-2 border-b border-border bg-background-secondary rounded-t-lg ${
-                isSelected ? 'bg-blue-50' : ''
+                isSelected ? 'bg-accent/20' : ''
             }`}>
                 <div className="flex items-center gap-3">
                     {/* Cell Type Badge */}
@@ -96,7 +96,7 @@ export function CellContainer({
 
                     {/* Edit Mode Indicator */}
                     {isEditMode && (
-                        <span className="edit-indicator text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                        <span className="edit-indicator text-xs bg-accent text-accent-foreground px-2 py-1 rounded">
                             EDIT
                         </span>
                     )}
@@ -113,7 +113,7 @@ export function CellContainer({
                             onMoveUp();
                         }}
                         disabled={cellIndex === 0}
-                        className="action-button p-1 rounded hover:bg-background-hover disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="action-button p-1 rounded hover:bg-accent/20 disabled:opacity-30 disabled:cursor-not-allowed text-foreground"
                         title="Move up"
                     >
                         <ChevronUpIcon className="w-4 h-4" />
@@ -126,14 +126,14 @@ export function CellContainer({
                             onMoveDown();
                         }}
                         disabled={cellIndex === totalCells - 1}
-                        className="action-button p-1 rounded hover:bg-background-hover disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="action-button p-1 rounded hover:bg-accent/20 disabled:opacity-30 disabled:cursor-not-allowed text-foreground"
                         title="Move down"
                     >
                         <ChevronDownIcon className="w-4 h-4" />
                     </button>
 
                     {/* Drag Handle */}
-                    <div className="drag-handle p-1 cursor-grab hover:bg-background-hover rounded" title="Drag to reorder">
+                    <div className="drag-handle p-1 cursor-grab hover:bg-accent/20 rounded text-foreground" title="Drag to reorder">
                         <GripVerticalIcon className="w-4 h-4" />
                     </div>
 
@@ -143,7 +143,7 @@ export function CellContainer({
                             e.stopPropagation();
                             onToggleEditMode();
                         }}
-                        className="action-button p-1 rounded hover:bg-background-hover"
+                        className="action-button p-1 rounded hover:bg-accent/20 text-foreground"
                         title={isEditMode ? 'Switch to view mode' : 'Switch to edit mode'}
                     >
                         {isEditMode ? (
@@ -159,7 +159,7 @@ export function CellContainer({
                             e.stopPropagation();
                             onDelete();
                         }}
-                        className="action-button p-1 rounded hover:bg-red-100 hover:text-red-600"
+                        className="action-button p-1 rounded hover:bg-destructive/20 hover:text-destructive text-foreground"
                         title="Delete cell"
                     >
                         <TrashIcon className="w-4 h-4" />
@@ -174,7 +174,7 @@ export function CellContainer({
 
             {/* Selection Indicator */}
             {isSelected && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-lg" />
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent rounded-l-lg" />
             )}
         </div>
     );

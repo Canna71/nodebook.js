@@ -119,13 +119,13 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                         <span className="font-medium text-foreground">Code Cell: {definition.id}</span>
                         <button
                             onClick={onExecute}
-                            className="flex items-center justify-center w-6 h-6 rounded bg-background border-border border-1 hover:bg-background-hover text-foreground transition-colors"
+                            className="flex items-center justify-center w-6 h-6 rounded bg-background border-border border-1 hover:bg-accent/20 text-foreground transition-colors"
                             title="Execute cell"
                         >
                             <PlayIcon className="w-3 h-3" />
                         </button>
                         {currentCode !== definition.code && (
-                            <span className="text-xs text-amber-500">• Modified</span>
+                            <span className="text-xs text-accent-foreground">• Modified</span>
                         )}
                     </div>
                     {dependencies.length > 0 && (
@@ -202,9 +202,9 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
             )}
 
             {error && (
-                <div className="code-error bg-background-error border-t border-error px-4 py-3">
-                    <div className="text-xs font-medium text-error mb-1">Execution Error:</div>
-                    <div className="text-sm text-error">{error.message}</div>
+                <div className="code-error bg-destructive/10 border-t border-destructive px-4 py-3">
+                    <div className="text-xs font-medium text-destructive mb-1">Execution Error:</div>
+                    <div className="text-sm text-destructive">{error.message}</div>
                 </div>
             )}
         </div>

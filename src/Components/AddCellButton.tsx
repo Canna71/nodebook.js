@@ -59,7 +59,7 @@ export function AddCellButton({ onAddCell, insertIndex }: AddCellButtonProps) {
         <div className="add-cell-button relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-colors"
             >
                 <PlusIcon className="w-4 h-4" />
                 Add Cell
@@ -74,7 +74,7 @@ export function AddCellButton({ onAddCell, insertIndex }: AddCellButtonProps) {
                                 <button
                                     key={template.type}
                                     onClick={() => handleAddCell(template.type)}
-                                    className="w-full text-left px-3 py-2 rounded hover:bg-background-secondary transition-colors"
+                                    className="w-full text-left px-3 py-2 rounded hover:bg-accent/20 transition-colors"
                                 >
                                     <div className="font-medium text-foreground">{template.label}</div>
                                     <div className="text-xs text-secondary-foreground">{template.description}</div>
