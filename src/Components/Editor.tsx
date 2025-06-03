@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react'
 import { EditorView, basicSetup } from 'codemirror'
-import { lineNumbers } from '@codemirror/view' // For future use if needed
+import { lineNumbers } from '@codemirror/view'
 import { keymap } from '@codemirror/view'
 import { EditorState, Compartment, Extension } from '@codemirror/state'
 import { javascript } from "@codemirror/lang-javascript"
@@ -10,6 +10,17 @@ import { indentWithTab } from '@codemirror/commands'
 import { autocompletion, Completion, CompletionSource } from '@codemirror/autocomplete'
 import { placeholder as cmPlaceholder } from '@codemirror/view'
 
+interface EditorDimensions {
+    width?: string | number;
+    height?: string | number;
+    minWidth?: string | number;
+    minHeight?: string | number;
+    maxWidth?: string | number;
+    maxHeight?: string | number;
+    autoHeight?: boolean; // Grow with content
+    autoWidth?: boolean;  // Grow with content
+}
+
 type EditorProps = {
     value: string
     onChange?: (value: string) => void
@@ -18,7 +29,8 @@ type EditorProps = {
     customVariableCompletions?: string[]
     objectCompletions?: { object: string, methods: Completion[] }[]
     placeholder?: string
-    theme?: Extension // NEW: theme prop
+    theme?: Extension
+    dimensions?: EditorDimensions // NEW: flexible dimensions
 }
 
 function getLanguageExtension(language: string | undefined): Extension {
@@ -37,6 +49,143 @@ function getLanguageExtension(language: string | undefined): Extension {
     }
 }
 
+function getDimensionValue(value: string | number | undefined, context?: { fontSize?: number }): string | undefined {
+    if (value === undefined) return undefined;
+    
+    if (typeof value === 'number') {
+        return `${value}px`;
+    }
+    
+    // Handle string values
+    if (typeof value === 'string') {
+        // For em units, convert to pixels if we have font context
+        if (value.endsWith('em') && context?.fontSize) {
+            const emValue = parseFloat(value);
+            return `${emValue * context.fontSize}px`;
+        }
+        
+        // For rem units, convert using default browser font size (16px)
+        if (value.endsWith('rem')) {
+            const remValue = parseFloat(value);
+            return `${remValue * 16}px`;
+        }
+        
+        // Return as-is for other units
+        return value;
+    }
+    
+    return undefined;
+}
+
+function getEditorStyle(language: string | undefined, dimensions?: EditorDimensions): React.CSSProperties {
+    // Default dimensions based on language
+    const isUrl = language === 'url';
+    
+    // Get font context - try to determine the actual font size
+    const defaultFontSize = 14; // Common monospace font size in editors
+    const fontContext = { fontSize: defaultFontSize };
+    
+    // Build style object
+    const style: React.CSSProperties = {
+        border: '1px solid #ccc',
+        fontFamily: 'monospace',
+        fontSize: `${defaultFontSize}px` // Ensure consistent font size
+    };
+
+    if (dimensions) {
+        // Apply custom dimensions with font context
+        if (dimensions.width !== undefined) {
+            style.width = getDimensionValue(dimensions.width, fontContext);
+        }
+        
+        if (dimensions.height !== undefined) {
+            style.height = getDimensionValue(dimensions.height, fontContext);
+        } else if (!dimensions.autoHeight) {
+            style.height = isUrl ? 'auto' : '400px';
+        }
+        
+        if (dimensions.minWidth !== undefined) {
+            style.minWidth = getDimensionValue(dimensions.minWidth, fontContext);
+        }
+        
+        if (dimensions.minHeight !== undefined) {
+            style.minHeight = getDimensionValue(dimensions.minHeight, fontContext);
+        } else if (isUrl) {
+            style.minHeight = '32px';
+        }
+        
+        if (dimensions.maxWidth !== undefined) {
+            style.maxWidth = getDimensionValue(dimensions.maxWidth, fontContext);
+        }
+        
+        if (dimensions.maxHeight !== undefined) {
+            style.maxHeight = getDimensionValue(dimensions.maxHeight, fontContext);
+        }
+        
+        // Auto sizing
+        if (dimensions.autoHeight) {
+            style.height = 'auto';
+            // Convert minHeight to pixels for reliability
+            const computedMinHeight = getDimensionValue(dimensions.minHeight, fontContext) || '60px';
+            style.minHeight = computedMinHeight;
+        }
+        
+        if (dimensions.autoWidth) {
+            style.width = 'auto';
+            const computedMinWidth = getDimensionValue(dimensions.minWidth, fontContext) || '200px';
+            style.minWidth = computedMinWidth;
+        }
+    } else {
+        // Default behavior when no dimensions specified
+        style.height = isUrl ? 'auto' : '400px';
+        if (isUrl) {
+            style.minHeight = '32px';
+        }
+    }
+
+    return style;
+}
+
+function getAutoSizeExtensions(dimensions?: EditorDimensions): Extension[] {
+    const extensions: Extension[] = [];
+    
+    if (dimensions?.autoHeight || dimensions?.autoWidth) {
+        // Convert relative units to pixels for CodeMirror theme
+        const fontContext = { fontSize: 14 };
+        
+        extensions.push(
+            EditorView.theme({
+                '.cm-editor': {
+                    ...(dimensions.autoHeight && { 
+                        height: 'auto',
+                        '& .cm-scroller': { 
+                            overflow: 'auto',
+                            maxHeight: dimensions.maxHeight ? getDimensionValue(dimensions.maxHeight, fontContext) : 'none'
+                        }
+                    }),
+                    ...(dimensions.autoWidth && { 
+                        width: 'auto',
+                        '& .cm-scroller': { 
+                            overflowX: 'auto',
+                            maxWidth: dimensions.maxWidth ? getDimensionValue(dimensions.maxWidth, fontContext) : 'none'
+                        }
+                    })
+                },
+                '.cm-content': {
+                    ...(dimensions.autoHeight && { 
+                        minHeight: getDimensionValue(dimensions.minHeight, fontContext) || '56px' // 4em ≈ 56px at 14px font
+                    }),
+                    ...(dimensions.autoWidth && { 
+                        minWidth: getDimensionValue(dimensions.minWidth, fontContext) || '200px' 
+                    })
+                }
+            })
+        );
+    }
+    
+    return extensions;
+}
+
 export default function Editor({
     value,
     onChange,
@@ -45,7 +194,8 @@ export default function Editor({
     customVariableCompletions,
     objectCompletions,
     placeholder,
-    theme // NEW
+    theme,
+    dimensions // NEW
 }: EditorProps) {
     const editorRef = useRef<HTMLDivElement | null>(null)
     const viewRef = useRef<EditorView | null>(null)
@@ -56,7 +206,8 @@ export default function Editor({
     const listenerCompartment = useRef(new Compartment()).current
     const completionCompartment = useRef(new Compartment()).current
     const placeholderCompartment = useRef(new Compartment()).current
-    const themeCompartment = useRef(new Compartment()).current // NEW
+    const themeCompartment = useRef(new Compartment()).current
+    const dimensionsCompartment = useRef(new Compartment()).current // NEW
 
     // Custom variable completion source for {{variable}} in JSON
     const variableCompletionSource: CompletionSource = customVariableCompletions
@@ -124,7 +275,7 @@ export default function Editor({
             })
 
             // Setup extensions for URL mode
-            let urlExtensions: any[] = []
+            let urlExtensions: Extension[] = []
             if (language === 'url') {
                 urlExtensions = [
                     EditorView.lineWrapping,
@@ -132,7 +283,6 @@ export default function Editor({
                     EditorView.contentAttributes.of({ spellCheck: 'false', autocorrect: 'off', autocomplete: 'off', autocapitalize: 'off' }),
                     EditorView.domEventHandlers({
                         paste(event, view) {
-                            // Remove line breaks from pasted text
                             const text = event.clipboardData?.getData('text/plain') ?? ''
                             if (text.includes('\n')) {
                                 event.preventDefault()
@@ -145,7 +295,6 @@ export default function Editor({
                         }
                     }),
                     EditorView.inputHandler.of((view, from, to, text) => {
-                        // Prevent line breaks
                         if (text.includes('\n')) {
                             view.dispatch({
                                 changes: { from, to, insert: text.replace(/\n/g, '') }
@@ -156,10 +305,13 @@ export default function Editor({
                     }),
                     EditorView.theme({
                         '.cm-content': { whiteSpace: 'pre', overflowX: 'auto' },
-                        '.cm-lineNumbers': { display: 'none' } // Hides line numbers (extra safety)
+                        '.cm-lineNumbers': { display: 'none' }
                     }),
                 ]
             }
+
+            // Auto-size extensions
+            const autoSizeExtensions = getAutoSizeExtensions(dimensions);
 
             // Placeholder extension
             let placeholderExt = placeholder
@@ -179,7 +331,6 @@ export default function Editor({
                             ? [
                                 keymap.of([indentWithTab]),
                                 autocompletion(),
-                                // Do NOT include lineNumbers() or basicSetup
                             ]
                             : [
                                 basicSetup,
@@ -194,9 +345,10 @@ export default function Editor({
                             ? autocompletion({ override: [jsCustomCompletionSource, variableCompletionSource] })
                             : []
                     ),
+                    dimensionsCompartment.of(autoSizeExtensions), // NEW: dimensions
                     ...urlExtensions,
                     placeholderExt,
-                    themeExt // NEW
+                    themeExt
                 ]
             })
             viewRef.current = new EditorView({
@@ -210,8 +362,6 @@ export default function Editor({
                 viewRef.current = null
             }
         }
-    // Only run on mount/unmount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     // Update document if value prop changes
@@ -298,15 +448,20 @@ export default function Editor({
         }
     }, [theme])
 
+    // NEW: Update dimensions when props change
+    useEffect(() => {
+        if (viewRef.current) {
+            const autoSizeExtensions = getAutoSizeExtensions(dimensions);
+            viewRef.current.dispatch({
+                effects: dimensionsCompartment.reconfigure(autoSizeExtensions)
+            })
+        }
+    }, [dimensions])
+
     return (
         <div
             ref={editorRef}
-            style={{
-                height: language === 'url' ? 'auto' : '400px',
-                border: '1px solid #ccc',
-                minHeight: language === 'url' ? '32px' : undefined,
-                fontFamily: 'monospace'
-            }}
+            style={getEditorStyle(language, dimensions)}
         />
     )
 }

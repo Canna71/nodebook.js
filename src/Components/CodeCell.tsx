@@ -141,6 +141,10 @@ export function CodeCell({ definition, initialized }: { definition: CodeCellDefi
                     language="javascript"
                     theme={oneDark} // NEW: Apply dark theme
                     onChange={onCodeChange}
+                    dimensions={{
+                        autoHeight: true,
+                        minHeight: '100px',
+                    }}
                     />
             </pre>
 
