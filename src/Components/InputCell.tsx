@@ -2,7 +2,12 @@ import React from 'react';
 import { useReactiveValue } from '@/Engine/ReactiveProvider';
 import { InputCellDefinition } from '@/Types/NotebookModel';
 
-export function InputCell({ definition }: { definition: InputCellDefinition; }) {
+interface InputCellProps {
+  definition: InputCellDefinition;
+  isEditMode?: boolean; // NEW: Add isEditMode prop
+}
+
+export function InputCell({ definition, isEditMode = false }: InputCellProps) {
   const [value, setValue] = useReactiveValue(definition.variableName, definition.defaultValue);
 
   const renderInput = () => {

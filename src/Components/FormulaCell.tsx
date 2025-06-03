@@ -6,9 +6,10 @@ import { log } from './DynamicNotebook';
 interface FormulaCellProps {
   definition: FormulaCellDefinition;
   initialized: boolean;
+  isEditMode?: boolean; // NEW: Add isEditMode prop
 }
 
-export function FormulaCell({ definition, initialized }: FormulaCellProps) {
+export function FormulaCell({ definition, initialized, isEditMode = false }: FormulaCellProps) {
   const { reactiveStore } = useReactiveSystem();
   const [value, setValue] = useReactiveValue(definition.variableName, null);
   const [error, setError] = useState<string | null>(null);

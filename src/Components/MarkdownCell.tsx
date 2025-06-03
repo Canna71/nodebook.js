@@ -3,7 +3,13 @@ import { renderMarkdownWithValues } from '@/Engine/markdown';
 import { useReactiveSystem } from '@/Engine/ReactiveProvider';
 import { MarkdownCellDefinition } from '@/Types/NotebookModel';
 
-export function MarkdownCell({ definition, initialized }: { definition: MarkdownCellDefinition; initialized: boolean; }) {
+interface MarkdownCellProps {
+  definition: MarkdownCellDefinition;
+  initialized: boolean;
+  isEditMode?: boolean; // NEW: Add isEditMode prop
+}
+
+export function MarkdownCell({ definition, initialized, isEditMode = false }: MarkdownCellProps) {
   const { reactiveStore } = useReactiveSystem();
   const [renderedContent, setRenderedContent] = React.useState(definition.content);
 

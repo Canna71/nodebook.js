@@ -58,3 +58,18 @@ export interface NotebookModel {
     [key: string]: any;
   };
 }
+
+// NEW: Editing state for the notebook
+export interface NotebookEditingState {
+  selectedCellId: string | null;
+  editModeCells: Set<string>; // Cell IDs in edit mode
+  focusedCellId: string | null;
+}
+
+// NEW: Cell creation templates
+export interface CellTemplate {
+  type: CellDefinition['type'];
+  label: string;
+  description: string;
+  defaultDefinition: Partial<CellDefinition>;
+}

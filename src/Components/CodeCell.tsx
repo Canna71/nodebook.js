@@ -9,8 +9,14 @@ import { oneDark } from '@codemirror/theme-one-dark';
 import ConsoleOutput from './ConsoleOutput';
 import { PlayIcon } from '@heroicons/react/24/solid';
 
+interface CodeCellProps {
+  definition: CodeCellDefinition;
+  initialized: boolean;
+  isEditMode?: boolean; // NEW: Add isEditMode prop
+}
+
 // Add CodeCell component for display purposes
-export function CodeCell({ definition, initialized }: { definition: CodeCellDefinition; initialized: boolean; }) {
+export function CodeCell({ definition, initialized, isEditMode = false }: CodeCellProps) {
     const { codeCellEngine } = useReactiveSystem();
     const { currentModel, setModel, setDirty } = useApplication();
 
