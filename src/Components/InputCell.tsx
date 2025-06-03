@@ -1,6 +1,7 @@
 import React from 'react';
 import { useReactiveValue } from '@/Engine/ReactiveProvider';
 import { InputCellDefinition } from '@/Types/NotebookModel';
+import { Input } from './ui/input';
 
 interface InputCellProps {
   definition: InputCellDefinition;
@@ -26,7 +27,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
     switch (definition.inputType) {
       case 'number':
         return (
-          <input
+          <Input
             type="number"
             {...commonProps}
             min={definition.props?.min}
