@@ -26,23 +26,26 @@ class ReactiveValue<T> implements IReactiveValue<T> {
     private dependencies: Set<IReactiveValue<any>>;
     private subscribers: Set<(value: T) => void>;
     private isComputing: boolean = false;
+    private hasBeenComputed: boolean = false;
 
     constructor(initialValue: T, computeFn: ComputeFn<T> | null = null, dependencies: IReactiveValue<any>[] = []) {
         this.value = initialValue;
         this.computeFn = computeFn;
         this.dependencies = new Set(dependencies);
         this.subscribers = new Set();
+        this.hasBeenComputed = computeFn === null; // If no compute function, consider it computed
     }
 
     /**
      * Get current value, compute if needed
      */
     public get(): T {
-        if (this.computeFn && !this.isComputing) {
+        if (this.computeFn && (!this.hasBeenComputed || !this.isComputing)) {
             this.isComputing = true;
             try {
                 const newValue = this.computeFn();
-                this.setValue(newValue, false); // Don't trigger recompute during initial get
+                this.setValue(newValue, !this.hasBeenComputed); // Propagate only after first computation
+                this.hasBeenComputed = true;
             } finally {
                 this.isComputing = false;
             }
@@ -113,6 +116,11 @@ class ReactiveValue<T> implements IReactiveValue<T> {
      */
     public setComputeFn(computeFn: ComputeFn<T> | null): void {
         this.computeFn = computeFn;
+        this.hasBeenComputed = false; // Reset computation state when function changes
+        if (computeFn) {
+            // Trigger initial computation
+            this.get();
+        }
     }
 }
 
@@ -339,13 +347,16 @@ export class ReactiveFormulaEngine {
         // Create compute function
         const computeFn = this.createComputeFunction<T>(formula);
 
-        // Define reactive value
-        this.reactiveStore.define<T>(
+        // Define reactive value with initial computation
+        const reactiveValue = this.reactiveStore.define<T>(
             name,
             null,
             computeFn,
             dependencies
         );
+
+        // Trigger initial computation
+        reactiveValue.get();
 
         return {
             name,

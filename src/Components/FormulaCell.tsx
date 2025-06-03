@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useReactiveValue } from '@/Engine/ReactiveProvider';
+import { useReactiveValue, useReactiveSystem } from '@/Engine/ReactiveProvider';
 import { FormulaCellDefinition } from '@/Types/NotebookModel';
 import { log } from './DynamicNotebook';
 
@@ -9,6 +9,7 @@ interface FormulaCellProps {
 }
 
 export function FormulaCell({ definition, initialized }: FormulaCellProps) {
+  const { reactiveStore } = useReactiveSystem();
   const [value, setValue] = useReactiveValue(definition.variableName, null);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,13 +18,27 @@ export function FormulaCell({ definition, initialized }: FormulaCellProps) {
 
     try {
       setError(null);
-      log.debug(`Formula cell ${definition.id} (${definition.variableName}) evaluated to:`, value);
+      
+      // Force computation of the formula by accessing the reactive value
+      const reactiveValue = reactiveStore.get(definition.variableName);
+      if (reactiveValue) {
+        const computedValue = reactiveValue.get();
+        log.debug(`Formula cell ${definition.id} (${definition.variableName}) computed:`, computedValue);
+      }
+      
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       setError(errorMessage);
       log.error(`Error in formula cell ${definition.id}:`, err);
     }
-  }, [initialized, definition.id, definition.variableName, value]);
+  }, [initialized, definition.id, definition.variableName, reactiveStore]);
+
+  // Also trigger computation when value changes
+  useEffect(() => {
+    if (initialized && value !== null) {
+      log.debug(`Formula cell ${definition.id} (${definition.variableName}) value updated:`, value);
+    }
+  }, [value, initialized, definition.id, definition.variableName]);
 
   const formatValue = (val: any): string => {
     if (val === null || val === undefined) return 'Not calculated';
