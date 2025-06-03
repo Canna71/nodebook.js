@@ -35,6 +35,8 @@ export interface FormulaCellDefinition {
   formula: string;
   outputFormat?: 'number' | 'currency' | 'percentage' | 'text';
   decimals?: number;
+  label?: string; // Optional label for display
+  description?: string; // Optional description
 }
 
 export interface CodeCellDefinition {
@@ -47,23 +49,9 @@ export interface CodeCellDefinition {
 
 export type CellDefinition = InputCellDefinition | MarkdownCellDefinition | FormulaCellDefinition | CodeCellDefinition;
 
-export interface ReactiveValueDefinition {
-  name: string;
-  defaultValue: any;
-  type?: 'number' | 'string' | 'boolean';
-}
-
-export interface FormulaDefinition {
-  name: string;
-  formula: string;
-  dependencies?: string[];
-}
-
 export interface NotebookModel {
   title?: string;
   description?: string;
-  reactiveValues?: ReactiveValueDefinition[];
-  formulas?: FormulaDefinition[];
   cells: CellDefinition[];
   metadata?: {
     tags?: string[];

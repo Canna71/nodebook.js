@@ -1,37 +1,6 @@
 {
   "title": "Pricing Calculator",
   "description": "Calculate total pricing with discounts",
-  "reactiveValues": [
-    {
-      "name": "price",
-      "defaultValue": 100,
-      "type": "number"
-    },
-    {
-      "name": "quantity",
-      "defaultValue": 1,
-      "type": "number"
-    },
-    {
-      "name": "discountPercent",
-      "defaultValue": 0,
-      "type": "number"
-    }
-  ],
-  "formulas": [
-    {
-      "name": "subtotal",
-      "formula": "$price * $quantity"
-    },
-    {
-      "name": "discount",
-      "formula": "$subtotal * ($discountPercent / 100)"
-    },
-    {
-      "name": "total",
-      "formula": "$subtotal - $discount"
-    }
-  ],
   "cells": [
     {
       "type": "markdown",
@@ -74,6 +43,33 @@
         "max": 100,
         "step": 1
       }
+    },
+    {
+      "type": "formula",
+      "id": "subtotal-formula",
+      "variableName": "subtotal",
+      "formula": "$price * $quantity",
+      "label": "Subtotal Calculation",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "formula",
+      "id": "discount-formula",
+      "variableName": "discount",
+      "formula": "$subtotal * ($discountPercent / 100)",
+      "label": "Discount Calculation",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "formula",
+      "id": "total-formula",
+      "variableName": "total",
+      "formula": "$subtotal - $discount",
+      "label": "Total Calculation",
+      "outputFormat": "currency",
+      "decimals": 2
     },
     {
       "type": "markdown",
