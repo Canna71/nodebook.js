@@ -2,81 +2,129 @@ import React from 'react';
 import { useReactiveValue } from '@/Engine/ReactiveProvider';
 import { InputCellDefinition } from '@/Types/NotebookModel';
 import { Input } from './ui/input';
+import { Slider } from './ui/slider';
+import { Checkbox } from './ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Label } from './ui/label';
 
 interface InputCellProps {
   definition: InputCellDefinition;
-  isEditMode?: boolean; // NEW: Add isEditMode prop
+  isEditMode?: boolean;
 }
 
 export function InputCell({ definition, isEditMode = false }: InputCellProps) {
   const [value, setValue] = useReactiveValue(definition.variableName, definition.defaultValue);
 
   const renderInput = () => {
-    const commonProps = {
-      value: value ?? definition.defaultValue,
-      onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const newValue = definition.inputType === 'number' || definition.inputType === 'range'
-          ? Number(e.target.value)
-          : definition.inputType === 'checkbox'
-            ? (e.target as HTMLInputElement).checked
-            : e.target.value;
-        setValue(newValue);
-      }
-    };
-
     switch (definition.inputType) {
       case 'number':
         return (
           <Input
             type="number"
-            {...commonProps}
+            value={value ?? definition.defaultValue}
+            onChange={(e) => setValue(Number(e.target.value))}
             min={definition.props?.min}
             max={definition.props?.max}
-            step={definition.props?.step} />
+            step={definition.props?.step}
+            className="w-full"
+          />
         );
+        
       case 'range':
         return (
-          <div>
-            <input
-              type="range"
-              {...commonProps}
-              min={definition.props?.min}
-              max={definition.props?.max}
-              step={definition.props?.step} />
-            <span>{value}</span>
+          <div className="space-y-2">
+            <Slider
+              value={[value ?? definition.defaultValue]}
+              onValueChange={(values) => setValue(values[0])}
+              min={definition.props?.min ?? 0}
+              max={definition.props?.max ?? 100}
+              step={definition.props?.step ?? 1}
+              className="w-full"
+            />
+            <div className="text-sm text-secondary-foreground text-center">
+              {value ?? definition.defaultValue}
+            </div>
           </div>
         );
+        
       case 'checkbox':
         return (
-          <input
-            type="checkbox"
-            checked={value ?? definition.defaultValue}
-            onChange={(e) => setValue(e.target.checked)} />
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              checked={value ?? definition.defaultValue}
+              onCheckedChange={(checked) => setValue(checked)}
+              id={`checkbox-${definition.id}`}
+            />
+            <Label 
+              htmlFor={`checkbox-${definition.id}`}
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              {definition.label}
+            </Label>
+          </div>
         );
+        
       case 'select':
         return (
-          <select {...commonProps}>
-            {definition.props?.options?.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <Select
+            value={String(value ?? definition.defaultValue)}
+            onValueChange={(selectedValue) => {
+              // Convert back to appropriate type based on the option value type
+              const option = definition.props?.options?.find(opt => String(opt.value) === selectedValue);
+              setValue(option ? option.value : selectedValue);
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select an option..." />
+            </SelectTrigger>
+            <SelectContent>
+              {definition.props?.options?.map(option => (
+                <SelectItem key={String(option.value)} value={String(option.value)}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         );
+        
+      case 'text':
       default:
         return (
-          <input
+          <Input
             type="text"
-            {...commonProps}
-            placeholder={definition.props?.placeholder} />
+            value={value ?? definition.defaultValue}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={definition.props?.placeholder}
+            className="w-full"
+          />
         );
     }
   };
 
   return (
-    <div className="cell input-cell">
-      <label>{definition.label}:</label>
-      {renderInput()}
+    <div className="cell input-cell p-4 space-y-3">
+      {/* Only show label for non-checkbox inputs (checkbox renders its own label) */}
+      {definition.inputType !== 'checkbox' && (
+        <Label 
+          htmlFor={`input-${definition.id}`}
+          className="text-sm font-medium text-foreground"
+        >
+          {definition.label}
+        </Label>
+      )}
+      
+      <div id={`input-${definition.id}`}>
+        {renderInput()}
+      </div>
+      
+      {/* Debug info in edit mode */}
+      {isEditMode && (
+        <div className="text-xs text-secondary-foreground mt-2 p-2 bg-muted rounded">
+          <div><strong>Variable:</strong> {definition.variableName}</div>
+          <div><strong>Current Value:</strong> {JSON.stringify(value)}</div>
+          <div><strong>Default Value:</strong> {JSON.stringify(definition.defaultValue)}</div>
+        </div>
+      )}
     </div>
   );
 }
