@@ -50,8 +50,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
 
     // Validate variable name
     if (!editConfig.variableName.trim()) {
-      alert('Variable name is required');
-      return;
+      return; // Skip update if invalid
     }
 
     // Build props object
@@ -82,6 +81,70 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
       variableName: editConfig.variableName.trim(),
       inputType: editConfig.inputType,
       label: editConfig.label.trim() || undefined, // Use undefined if empty
+      props: Object.keys(props).length > 0 ? props : undefined
+    };
+
+    // Update the model
+    const updatedModel = {
+      ...currentModel,
+      cells: currentModel.cells.map(cell => 
+        cell.id === definition.id ? updatedCell : cell
+      )
+    };
+
+    setModel(updatedModel);
+    setDirty(true);
+  };
+
+  // Helper function to handle config changes and auto-update
+  const handleConfigChange = (updates: Partial<typeof editConfig>) => {
+    const newConfig = { ...editConfig, ...updates };
+    setEditConfig(newConfig);
+    
+    // Auto-update the definition if variable name is valid
+    if (newConfig.variableName.trim()) {
+      // Update immediately instead of using timeout
+      updateCellDefinitionWithConfig(newConfig);
+    }
+  };
+
+  // New function to update with specific config
+  const updateCellDefinitionWithConfig = (config: typeof editConfig) => {
+    if (!currentModel) return;
+
+    // Validate variable name
+    if (!config.variableName.trim()) {
+      return; // Skip update if invalid
+    }
+
+    // Build props object
+    const props: InputCellDefinition['props'] = {};
+    
+    if (config.inputType === 'number' || config.inputType === 'range') {
+      if (config.min !== '') {
+        const minVal = parseFloat(config.min);
+        if (!isNaN(minVal)) props.min = minVal;
+      }
+      if (config.max !== '') {
+        const maxVal = parseFloat(config.max);
+        if (!isNaN(maxVal)) props.max = maxVal;
+      }
+      if (config.step !== '') {
+        const stepVal = parseFloat(config.step);
+        if (!isNaN(stepVal)) props.step = stepVal;
+      }
+    }
+    
+    if (config.inputType === 'text' && config.placeholder) {
+      props.placeholder = config.placeholder;
+    }
+
+    // Create updated cell definition
+    const updatedCell: InputCellDefinition = {
+      ...definition,
+      variableName: config.variableName.trim(),
+      inputType: config.inputType,
+      label: config.label || undefined, // Remove trim() to allow spaces in labels
       props: Object.keys(props).length > 0 ? props : undefined
     };
 
@@ -186,14 +249,12 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
   const renderEditMode = () => {
     return (
       <div className="input-cell-edit-mode space-y-4 p-4 bg-muted/50 rounded border">
-        <div className="text-sm font-medium text-foreground mb-3">Configure Input Cell</div>
-        
         {/* Variable Name */}
         <div className="space-y-2">
           <Label className="text-sm font-medium text-foreground">Variable Name *</Label>
           <Input
             value={editConfig.variableName}
-            onChange={(e) => setEditConfig(prev => ({ ...prev, variableName: e.target.value }))}
+            onChange={(e) => handleConfigChange({ variableName: e.target.value })}
             placeholder="Enter variable name"
             className="input-max-width"
           />
@@ -204,7 +265,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
           <Label className="text-sm font-medium text-foreground">Input Type</Label>
           <Select
             value={editConfig.inputType}
-            onValueChange={(value) => setEditConfig(prev => ({ ...prev, inputType: value as InputType }))}
+            onValueChange={(value) => handleConfigChange({ inputType: value as InputType })}
           >
             <SelectTrigger className="input-max-width">
               <SelectValue />
@@ -226,7 +287,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
           </Label>
           <Input
             value={editConfig.label}
-            onChange={(e) => setEditConfig(prev => ({ ...prev, label: e.target.value }))}
+            onChange={(e) => handleConfigChange({ label: e.target.value })}
             placeholder={`Defaults to: ${editConfig.variableName}`}
             className="input-max-width"
           />
@@ -243,7 +304,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
                 <Input
                   type="number"
                   value={editConfig.min}
-                  onChange={(e) => setEditConfig(prev => ({ ...prev, min: e.target.value }))}
+                  onChange={(e) => handleConfigChange({ min: e.target.value })}
                   placeholder="No limit"
                   className="text-xs"
                 />
@@ -254,7 +315,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
                 <Input
                   type="number"
                   value={editConfig.max}
-                  onChange={(e) => setEditConfig(prev => ({ ...prev, max: e.target.value }))}
+                  onChange={(e) => handleConfigChange({ max: e.target.value })}
                   placeholder="No limit"
                   className="text-xs"
                 />
@@ -265,7 +326,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
                 <Input
                   type="number"
                   value={editConfig.step}
-                  onChange={(e) => setEditConfig(prev => ({ ...prev, step: e.target.value }))}
+                  onChange={(e) => handleConfigChange({ step: e.target.value })}
                   placeholder="1"
                   className="text-xs"
                 />
@@ -282,19 +343,12 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
             </Label>
             <Input
               value={editConfig.placeholder}
-              onChange={(e) => setEditConfig(prev => ({ ...prev, placeholder: e.target.value }))}
+              onChange={(e) => handleConfigChange({ placeholder: e.target.value })}
               placeholder="Enter placeholder text"
               className="input-max-width"
             />
           </div>
         )}
-
-        {/* Apply button */}
-        <div className="flex justify-end pt-2">
-          <Button onClick={updateCellDefinition} size="sm">
-            Apply Changes
-          </Button>
-        </div>
       </div>
     );
   };
@@ -305,7 +359,6 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
         <div className="edit-mode-container space-y-4">
           {/* Live Input Preview */}
           <div className="live-input-preview">
-            <div className="text-sm font-medium text-foreground mb-2">Live Preview:</div>
             <div className="p-3 bg-background border border-border rounded">
               {/* Only show label for non-checkbox inputs (checkbox renders its own label) */}
               {definition.inputType !== 'checkbox' && (
@@ -342,23 +395,6 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
             {renderInput()}
           </div>
         </>
-      )}
-      
-      {/* Debug info in edit mode */}
-      {isEditMode && (
-        <div className="text-xs text-secondary-foreground mt-4 p-2 bg-background rounded border">
-          <div className="font-medium mb-2">Current State:</div>
-          <div><strong>Variable:</strong> {definition.variableName}</div>
-          <div><strong>Type:</strong> {definition.inputType}</div>
-          <div><strong>Current Value:</strong> {JSON.stringify(value)}</div>
-          <div><strong>Default Value:</strong> {JSON.stringify(definition.defaultValue)}</div>
-          {definition.label && (
-            <div><strong>Custom Label:</strong> {definition.label}</div>
-          )}
-          {definition.props && (
-            <div><strong>Props:</strong> {JSON.stringify(definition.props, null, 2)}</div>
-          )}
-        </div>
       )}
     </div>
   );
