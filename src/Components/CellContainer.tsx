@@ -61,7 +61,11 @@ export function CellContainer({
     };
 
     return (
-        <div className="cell-container-wrapper relative">
+        <div 
+            className="cell-container-wrapper relative"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
             {/* Floating Action Buttons - appear above the cell when focused/hovered */}
             {(isSelected || isHovered) && (
                 <div className="absolute -top-2 right-0 z-10 flex items-center gap-1 bg-background border border-border rounded-lg px-2 py-1 shadow-lg">
@@ -125,10 +129,10 @@ export function CellContainer({
                 className={`cell-container relative flex border rounded-lg transition-all duration-200 ${
                     isSelected 
                         ? 'border-accent shadow-lg bg-accent/10' 
-                        : 'border-border hover:border-accent/50'
-                } ${isHovered ? 'shadow-md' : ''}`}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
+                        : isHovered 
+                            ? 'border-accent/50 shadow-md' 
+                            : 'border-border'
+                }`}
                 onClick={onSelect}
             >
                 {/* Left Cell Type Indicator */}
@@ -164,6 +168,14 @@ export function CellContainer({
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent rounded-l-lg" />
                 )}
             </div>
+
+            {/* Invisible hover extension area to cover the floating toolbar */}
+            {(isSelected || isHovered) && (
+                <div 
+                    className="absolute -top-4 right-0 w-64 h-8 z-0" 
+                    style={{ pointerEvents: 'none' }}
+                />
+            )}
         </div>
     );
 }
