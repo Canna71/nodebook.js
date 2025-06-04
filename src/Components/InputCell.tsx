@@ -188,48 +188,19 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
     setDirty(true);
   };
 
-  // Helper function for numeric constraint changes (without immediate reactive updates)
+  // Helper function for numeric constraint changes
   const handleConstraintChange = (field: 'min' | 'max' | 'step', inputValue: string) => {
-    // Update local display state immediately
+    // Update local display state immediately for responsive typing
     setConstraintInputValues(prev => ({
       ...prev,
       [field]: inputValue
     }));
 
-    // Update edit config without triggering reactive updates
-    setEditConfig(prev => ({
-      ...prev,
-      [field]: inputValue
-    }));
-    
-    // Don't call updateCellDefinitionWithConfig here - wait for blur
-  };
-
-  // Helper function for constraint blur (cleanup and update)
-  const handleConstraintBlur = (field: 'min' | 'max' | 'step', inputValue: string) => {
-    let cleanedValue = inputValue;
-    
-    // Validate and clean up the value
-    if (inputValue !== '') {
-      const numValue = parseFloat(inputValue);
-      if (!isNaN(numValue)) {
-        cleanedValue = String(numValue);
-      } else {
-        cleanedValue = ''; // Reset to empty if invalid
-      }
-    }
-    
-    // Update display state with cleaned value
-    setConstraintInputValues(prev => ({
-      ...prev,
-      [field]: cleanedValue
-    }));
-
-    // Update edit config with cleaned value
-    const newConfig = { ...editConfig, [field]: cleanedValue };
+    // Update edit config
+    const newConfig = { ...editConfig, [field]: inputValue };
     setEditConfig(newConfig);
     
-    // Only now update the cell definition
+    // Update the cell definition with the new value
     updateCellDefinitionWithConfig(newConfig);
   };
 
@@ -253,18 +224,6 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
                 if (!isNaN(numValue)) {
                   setValue(numValue);
                 }
-              }
-            }}
-            onBlur={() => {
-              // On blur, ensure we have a valid number
-              const numValue = Number(numberInputValue);
-              if (isNaN(numValue) || numberInputValue === '') {
-                const fallbackValue = definition.defaultValue;
-                setValue(fallbackValue);
-                setNumberInputValue(String(fallbackValue));
-              } else {
-                // Clean up the display value
-                setNumberInputValue(String(numValue));
               }
             }}
             min={definition.props?.min}
@@ -418,7 +377,6 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
                   type="number"
                   value={constraintInputValues.min}
                   onChange={(e) => handleConstraintChange('min', e.target.value)}
-                  onBlur={(e) => handleConstraintBlur('min', e.target.value)}
                   placeholder="No limit"
                   className="text-xs w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                 />
@@ -430,7 +388,6 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
                   type="number"
                   value={constraintInputValues.max}
                   onChange={(e) => handleConstraintChange('max', e.target.value)}
-                  onBlur={(e) => handleConstraintBlur('max', e.target.value)}
                   placeholder="No limit"
                   className="text-xs w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                 />
@@ -442,7 +399,6 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
                   type="number"
                   value={constraintInputValues.step}
                   onChange={(e) => handleConstraintChange('step', e.target.value)}
-                  onBlur={(e) => handleConstraintBlur('step', e.target.value)}
                   placeholder="1"
                   className="text-xs w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                 />
