@@ -15,7 +15,15 @@ interface InputCellProps {
 }
 
 export function InputCell({ definition, isEditMode = false }: InputCellProps) {
-  const [value, setValue] = useReactiveValue(definition.variableName, definition.defaultValue);
+  // Helper function to generate auto variable name from cell type and ID
+  const generateAutoVariableName = (cellId: string): string => {
+    return `input-${cellId}`;
+  };
+
+  // Determine the effective variable name - use automatic naming if empty
+  const effectiveVariableName = definition.variableName.trim() || generateAutoVariableName(definition.id);
+  
+  const [value, setValue] = useReactiveValue(effectiveVariableName, definition.defaultValue);
   const { currentModel, setModel, setDirty } = useApplication();
 
   // Edit mode state
@@ -42,8 +50,9 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
     });
   }, [definition]);
 
-  // Use label if provided, otherwise fallback to variableName
-  const displayLabel = definition.label || definition.variableName;
+  // Use label if provided, otherwise fallback to variableName (or auto name if empty)
+  const displayLabel = definition.label || 
+    (definition.variableName.trim() || `Input ${definition.id.slice(-4)}`);
 
   const updateCellDefinition = () => {
     if (!currentModel) return;
@@ -101,22 +110,16 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
     const newConfig = { ...editConfig, ...updates };
     setEditConfig(newConfig);
     
-    // Auto-update the definition if variable name is valid
-    if (newConfig.variableName.trim()) {
-      // Update immediately instead of using timeout
-      updateCellDefinitionWithConfig(newConfig);
-    }
+    // Always update the definition, regardless of variable name validity
+    updateCellDefinitionWithConfig(newConfig);
   };
 
   // New function to update with specific config
   const updateCellDefinitionWithConfig = (config: typeof editConfig) => {
     if (!currentModel) return;
 
-    // Validate variable name
-    if (!config.variableName.trim()) {
-      return; // Skip update if invalid
-    }
-
+    // Allow empty variable names - they will get auto-generated names for reactivity
+    
     // Build props object
     const props: InputCellDefinition['props'] = {};
     
@@ -139,12 +142,12 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
       props.placeholder = config.placeholder;
     }
 
-    // Create updated cell definition
+    // Create updated cell definition - store the raw variable name (even if empty)
     const updatedCell: InputCellDefinition = {
       ...definition,
-      variableName: config.variableName.trim(),
+      variableName: config.variableName, // Store exactly what user typed (including empty)
       inputType: config.inputType,
-      label: config.label || undefined, // Remove trim() to allow spaces in labels
+      label: config.label || undefined,
       props: Object.keys(props).length > 0 ? props : undefined
     };
 
@@ -247,17 +250,29 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
   };
 
   const renderEditMode = () => {
+    const autoVariableName = generateAutoVariableName(definition.id);
+    
     return (
       <div className="input-cell-edit-mode space-y-4 p-4 bg-muted/50 rounded border">
         {/* Variable Name */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-foreground">Variable Name *</Label>
+          <Label className="text-sm font-medium text-foreground">
+            Variable Name 
+            <span className="text-xs text-secondary-foreground ml-1">
+              (optional, auto-generated if empty)
+            </span>
+          </Label>
           <Input
             value={editConfig.variableName}
             onChange={(e) => handleConfigChange({ variableName: e.target.value })}
-            placeholder="Enter variable name"
+            placeholder={`Auto: ${autoVariableName}`}
             className="input-max-width"
           />
+          {!editConfig.variableName.trim() && (
+            <div className="text-xs text-secondary-foreground">
+              Will use auto-generated name: <code>{autoVariableName}</code>
+            </div>
+          )}
         </div>
 
         {/* Input Type */}
@@ -283,12 +298,14 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
         {/* Label */}
         <div className="space-y-2">
           <Label className="text-sm font-medium text-foreground">
-            Label <span className="text-xs text-secondary-foreground">(optional, defaults to variable name)</span>
+            Label <span className="text-xs text-secondary-foreground">(optional)</span>
           </Label>
           <Input
             value={editConfig.label}
             onChange={(e) => handleConfigChange({ label: e.target.value })}
-            placeholder={`Defaults to: ${editConfig.variableName}`}
+            placeholder={editConfig.variableName.trim() 
+              ? `Defaults to: ${editConfig.variableName}` 
+              : `Defaults to: Input ${definition.id.slice(-4)}`}
             className="input-max-width"
           />
         </div>
@@ -349,6 +366,19 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
             />
           </div>
         )}
+
+        {/* Variable Status */}
+        <div className="text-xs text-secondary-foreground bg-background rounded p-2 border border-border">
+          <div><strong>Reactive Variable:</strong></div>
+          <div>
+            {definition.variableName.trim() ? (
+              <>Name: <code>{definition.variableName}</code></>
+            ) : (
+              <>Auto-generated: <code>{autoVariableName}</code></>
+            )}
+          </div>
+          <div>Current Value: <code>{JSON.stringify(value)}</code></div>
+        </div>
       </div>
     );
   };
