@@ -132,6 +132,12 @@
   }
 }
 
+@layer utilities {
+  .input-max-width {
+    @apply max-w-xs;
+  }
+}
+
 /* @utility border-err {
   @apply border-1 border-error;
 } */

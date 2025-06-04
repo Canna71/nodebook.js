@@ -26,13 +26,13 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
             min={definition.props?.min}
             max={definition.props?.max}
             step={definition.props?.step}
-            className="w-full"
+            className="input-max-width"
           />
         );
         
       case 'range':
         return (
-          <div className="space-y-2">
+          <div className="space-y-2 input-max-width">
             <Slider
               value={[value ?? definition.defaultValue]}
               onValueChange={(values) => setValue(values[0])}
@@ -74,7 +74,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
               setValue(option ? option.value : selectedValue);
             }}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="input-max-width">
               <SelectValue placeholder="Select an option..." />
             </SelectTrigger>
             <SelectContent>
@@ -95,7 +95,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
             value={value ?? definition.defaultValue}
             onChange={(e) => setValue(e.target.value)}
             placeholder={definition.props?.placeholder}
-            className="w-full"
+            className="input-max-width"
           />
         );
     }
