@@ -91,11 +91,6 @@ export function CellContainer({
                         <ChevronDownIcon className="w-4 h-4" />
                     </button>
 
-                    {/* Drag Handle */}
-                    <div className="drag-handle p-1 cursor-grab hover:bg-accent/20 rounded text-foreground" title="Drag to reorder">
-                        <GripVerticalIcon className="w-4 h-4" />
-                    </div>
-
                     {/* Edit/View Toggle */}
                     <button
                         onClick={(e) => {
@@ -137,15 +132,23 @@ export function CellContainer({
                 onClick={onSelect}
             >
                 {/* Left Cell Type Indicator */}
-                <div className="cell-type-indicator flex flex-col items-center justify-center px-2 py-2 bg-background-secondary border-r border-border rounded-l-lg">
+                <div className="cell-type-indicator flex flex-col items-center justify-start px-2 py-2 bg-background-secondary border-r border-border rounded-l-lg">
+                    {/* Cell Type Badge - justified to top */}
                     <div className={`cell-type-badge text-xs font-medium px-2 py-1 rounded ${getCellTypeColor(definition.type)}`}>
                         {getCellTypeLabel(definition.type)}
                     </div>
-                    <div className="cell-number text-xs text-secondary-foreground font-mono mt-1">
-                        {cellIndex + 1}
+                    
+                    {/* Drag Handle - moved to left sidebar */}
+                    <div 
+                        className="drag-handle p-1 cursor-grab hover:bg-accent/20 rounded text-foreground mt-2" 
+                        title="Drag to reorder"
+                    >
+                        <GripVerticalIcon className="w-4 h-4" />
                     </div>
+
+                    {/* Edit Mode Indicator */}
                     {isEditMode && (
-                        <div className="edit-indicator text-xs bg-accent text-accent-foreground px-1 py-0.5 rounded mt-1">
+                        <div className="edit-indicator text-xs bg-accent text-accent-foreground px-1 py-0.5 rounded mt-2">
                             ✏
                         </div>
                     )}
