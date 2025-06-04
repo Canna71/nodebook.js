@@ -37,6 +37,22 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
     placeholder: definition.props?.placeholder || ''
   });
 
+  // Add local state for number input to handle decimal typing
+  const [numberInputValue, setNumberInputValue] = useState<string>('');
+
+  // Add local state for numeric constraint inputs to handle decimal typing
+  const [constraintInputValues, setConstraintInputValues] = useState({
+    min: '',
+    max: '',
+    step: ''
+  });
+
+  // Update number input value when definition or reactive value changes
+  useEffect(() => {
+    const currentValue = value ?? definition.defaultValue;
+    setNumberInputValue(String(currentValue));
+  }, [value, definition.defaultValue]);
+
   // Update edit config when definition changes
   useEffect(() => {
     setEditConfig({
@@ -49,6 +65,15 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
       placeholder: definition.props?.placeholder || ''
     });
   }, [definition]);
+
+  // Update constraint input values when definition changes
+  useEffect(() => {
+    setConstraintInputValues({
+      min: definition.props?.min?.toString() || '',
+      max: definition.props?.max?.toString() || '',
+      step: definition.props?.step?.toString() || ''
+    });
+  }, [definition.props?.min, definition.props?.max, definition.props?.step]);
 
   // Use label if provided, otherwise fallback to variableName (or auto name if empty)
   const displayLabel = definition.label || 
@@ -163,14 +188,85 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
     setDirty(true);
   };
 
+  // Helper function for numeric constraint changes (without immediate reactive updates)
+  const handleConstraintChange = (field: 'min' | 'max' | 'step', inputValue: string) => {
+    // Update local display state immediately
+    setConstraintInputValues(prev => ({
+      ...prev,
+      [field]: inputValue
+    }));
+
+    // Update edit config without triggering reactive updates
+    setEditConfig(prev => ({
+      ...prev,
+      [field]: inputValue
+    }));
+    
+    // Don't call updateCellDefinitionWithConfig here - wait for blur
+  };
+
+  // Helper function for constraint blur (cleanup and update)
+  const handleConstraintBlur = (field: 'min' | 'max' | 'step', inputValue: string) => {
+    let cleanedValue = inputValue;
+    
+    // Validate and clean up the value
+    if (inputValue !== '') {
+      const numValue = parseFloat(inputValue);
+      if (!isNaN(numValue)) {
+        cleanedValue = String(numValue);
+      } else {
+        cleanedValue = ''; // Reset to empty if invalid
+      }
+    }
+    
+    // Update display state with cleaned value
+    setConstraintInputValues(prev => ({
+      ...prev,
+      [field]: cleanedValue
+    }));
+
+    // Update edit config with cleaned value
+    const newConfig = { ...editConfig, [field]: cleanedValue };
+    setEditConfig(newConfig);
+    
+    // Only now update the cell definition
+    updateCellDefinitionWithConfig(newConfig);
+  };
+
   const renderInput = () => {
     switch (definition.inputType) {
       case 'number':
         return (
           <Input
             type="number"
-            value={value ?? definition.defaultValue}
-            onChange={(e) => setValue(Number(e.target.value))}
+            value={numberInputValue}
+            onChange={(e) => {
+              const inputValue = e.target.value;
+              setNumberInputValue(inputValue);
+              
+              // Only update reactive value if it's a valid number or empty
+              if (inputValue === '' || inputValue === '-') {
+                // Allow empty and just minus sign for user experience
+                setValue(definition.defaultValue);
+              } else {
+                const numValue = Number(inputValue);
+                if (!isNaN(numValue)) {
+                  setValue(numValue);
+                }
+              }
+            }}
+            onBlur={() => {
+              // On blur, ensure we have a valid number
+              const numValue = Number(numberInputValue);
+              if (isNaN(numValue) || numberInputValue === '') {
+                const fallbackValue = definition.defaultValue;
+                setValue(fallbackValue);
+                setNumberInputValue(String(fallbackValue));
+              } else {
+                // Clean up the display value
+                setNumberInputValue(String(numValue));
+              }
+            }}
             min={definition.props?.min}
             max={definition.props?.max}
             step={definition.props?.step}
@@ -320,8 +416,9 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
                 <Label className="text-xs text-secondary-foreground">Min</Label>
                 <Input
                   type="number"
-                  value={editConfig.min}
-                  onChange={(e) => handleConfigChange({ min: e.target.value })}
+                  value={constraintInputValues.min}
+                  onChange={(e) => handleConstraintChange('min', e.target.value)}
+                  onBlur={(e) => handleConstraintBlur('min', e.target.value)}
                   placeholder="No limit"
                   className="text-xs w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                 />
@@ -331,8 +428,9 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
                 <Label className="text-xs text-secondary-foreground">Max</Label>
                 <Input
                   type="number"
-                  value={editConfig.max}
-                  onChange={(e) => handleConfigChange({ max: e.target.value })}
+                  value={constraintInputValues.max}
+                  onChange={(e) => handleConstraintChange('max', e.target.value)}
+                  onBlur={(e) => handleConstraintBlur('max', e.target.value)}
                   placeholder="No limit"
                   className="text-xs w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                 />
@@ -342,8 +440,9 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
                 <Label className="text-xs text-secondary-foreground">Step</Label>
                 <Input
                   type="number"
-                  value={editConfig.step}
-                  onChange={(e) => handleConfigChange({ step: e.target.value })}
+                  value={constraintInputValues.step}
+                  onChange={(e) => handleConstraintChange('step', e.target.value)}
+                  onBlur={(e) => handleConstraintBlur('step', e.target.value)}
                   placeholder="1"
                   className="text-xs w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                 />
