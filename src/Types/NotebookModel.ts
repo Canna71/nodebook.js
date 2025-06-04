@@ -21,7 +21,7 @@ export interface BaseCellDefinition {
 
 export interface InputCellDefinition extends BaseCellDefinition {
   type: 'input';
-  label: string;
+  label?: string; // Make label optional
   inputType: InputType;
   variableName: string;
   defaultValue: any;
@@ -84,7 +84,7 @@ export function isCodeCell(cell: CellDefinition): cell is CodeCellDefinition {
 export function getCellDisplayName(cell: CellDefinition): string {
   switch (cell.type) {
     case 'input':
-      return cell.label || `Input: ${cell.variableName}`;
+      return cell.label || cell.variableName; // Use variableName as fallback
     case 'markdown':
       // Extract first heading or first line
       const firstLine = cell.content.split('\n')[0];
@@ -110,7 +110,7 @@ export function validateCellDefinition(cell: any): cell is CellDefinition {
   
   switch (cell.type) {
     case 'input':
-      return !!(cell.label && cell.inputType && cell.variableName && cell.defaultValue !== undefined);
+      return !!(cell.inputType && cell.variableName && cell.defaultValue !== undefined); // Remove label requirement
     case 'markdown':
       return !!(cell.content);
     case 'formula':

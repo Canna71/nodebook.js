@@ -101,7 +101,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
         newCell = {
           type: 'input',
           id: newId,
-          label: 'New Input',
+          // Remove explicit label - will fallback to variableName
           inputType: 'number',
           variableName: `input_${Date.now()}`,
           defaultValue: 0

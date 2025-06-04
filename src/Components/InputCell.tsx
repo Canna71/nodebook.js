@@ -15,6 +15,9 @@ interface InputCellProps {
 export function InputCell({ definition, isEditMode = false }: InputCellProps) {
   const [value, setValue] = useReactiveValue(definition.variableName, definition.defaultValue);
 
+  // Use label if provided, otherwise fallback to variableName
+  const displayLabel = definition.label || definition.variableName;
+
   const renderInput = () => {
     switch (definition.inputType) {
       case 'number':
@@ -59,7 +62,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
               htmlFor={`checkbox-${definition.id}`}
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              {definition.label}
+              {displayLabel}
             </Label>
           </div>
         );
@@ -109,7 +112,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
           htmlFor={`input-${definition.id}`}
           className="text-sm font-medium text-foreground"
         >
-          {definition.label}
+          {displayLabel}
         </Label>
       )}
       
@@ -123,6 +126,9 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
           <div><strong>Variable:</strong> {definition.variableName}</div>
           <div><strong>Current Value:</strong> {JSON.stringify(value)}</div>
           <div><strong>Default Value:</strong> {JSON.stringify(definition.defaultValue)}</div>
+          {definition.label && (
+            <div><strong>Custom Label:</strong> {definition.label}</div>
+          )}
         </div>
       )}
     </div>
