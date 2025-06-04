@@ -124,6 +124,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
       {isEditMode && (
         <div className="text-xs text-secondary-foreground mt-2 p-2 bg-muted rounded">
           <div><strong>Variable:</strong> {definition.variableName}</div>
+          <div><strong>Type:</strong> {definition.inputType}</div>
           <div><strong>Current Value:</strong> {JSON.stringify(value)}</div>
           <div><strong>Default Value:</strong> {JSON.stringify(definition.defaultValue)}</div>
           {definition.label && (

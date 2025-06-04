@@ -116,7 +116,9 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
             <div className="code-header bg-background-secondary px-4 py-2 border-b border-border">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <span className="font-medium text-foreground">Code Cell: {definition.id}</span>
+                        <span className="font-medium text-foreground">
+                            {exports.length > 0 ? `Code: ${exports.join(', ')}` : 'Code'}
+                        </span>
                         <button
                             onClick={onExecute}
                             className="flex items-center justify-center w-6 h-6 rounded bg-background border-border border-1 hover:bg-accent/20 text-foreground transition-colors"
@@ -130,7 +132,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                     </div>
                     {dependencies.length > 0 && (
                         <span className="text-xs text-foreground">
-                            Dependencies: {dependencies.join(', ')}
+                            Uses: {dependencies.join(', ')}
                         </span>
                     )}
                 </div>

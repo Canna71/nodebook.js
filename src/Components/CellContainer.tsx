@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { CellDefinition } from '@/Types/NotebookModel';
-import { useApplication } from '@/Engine/ApplicationProvider';
 import { 
     PencilIcon, 
     EyeIcon, 
     TrashIcon, 
     ChevronUpIcon, 
-    ChevronDownIcon 
+    ChevronDownIcon, 
 } from '@heroicons/react/24/outline';
 import { GripVerticalIcon } from 'lucide-react';
 
@@ -62,50 +61,10 @@ export function CellContainer({
     };
 
     return (
-        <div
-            className={`cell-container relative border rounded-lg transition-all duration-200 ${
-                isSelected 
-                    ? 'border-accent shadow-lg bg-accent/10' 
-                    : 'border-transparent hover:border-accent'
-            } ${isHovered ? 'shadow-md' : ''}`}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            onClick={onSelect}
-        >
-            {/* Cell Header */}
-            <div className={`cell-header flex items-center justify-between px-3 py-2 border-b border-transparent bg-background-secondary rounded-t-lg ${
-                isSelected ? 'bg-accent/20' : ''
-            }`}>
-                <div className="flex items-center gap-3">
-                    {/* Cell Type Badge */}
-                    <span className={`cell-type-badge text-xs font-medium px-2 py-1 rounded ${getCellTypeColor(definition.type)}`}>
-                        {getCellTypeLabel(definition.type)}
-                    </span>
-                    
-                    {/* Cell Number */}
-                    <span className="cell-number text-sm text-secondary-foreground font-mono">
-                        [{cellIndex + 1}]
-                    </span>
-                    
-                    {/* Cell ID (if selected) */}
-                    {isSelected && (
-                        <span className="cell-id text-xs text-secondary-foreground font-mono bg-background px-2 py-1 rounded">
-                            {definition.id}
-                        </span>
-                    )}
-
-                    {/* Edit Mode Indicator */}
-                    {isEditMode && (
-                        <span className="edit-indicator text-xs bg-accent text-accent-foreground px-2 py-1 rounded">
-                            EDIT
-                        </span>
-                    )}
-                </div>
-
-                {/* Cell Actions */}
-                <div className={`cell-actions flex items-center gap-1 transition-opacity ${
-                    isSelected || isHovered ? 'opacity-100' : 'opacity-0'
-                }`}>
+        <div className="cell-container-wrapper relative">
+            {/* Floating Action Buttons - appear above the cell when focused/hovered */}
+            {(isSelected || isHovered) && (
+                <div className="absolute -top-2 right-0 z-10 flex items-center gap-1 bg-background border border-border rounded-lg px-2 py-1 shadow-lg">
                     {/* Move Up */}
                     <button
                         onClick={(e) => {
@@ -165,17 +124,43 @@ export function CellContainer({
                         <TrashIcon className="w-4 h-4" />
                     </button>
                 </div>
-            </div>
-
-            {/* Cell Content */}
-            <div className="cell-content">
-                {children}
-            </div>
-
-            {/* Selection Indicator */}
-            {isSelected && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent rounded-l-lg" />
             )}
+
+            <div
+                className={`cell-container relative flex border rounded-lg transition-all duration-200 ${
+                    isSelected 
+                        ? 'border-accent shadow-lg bg-accent/10' 
+                        : 'border-border hover:border-accent/50'
+                } ${isHovered ? 'shadow-md' : ''}`}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                onClick={onSelect}
+            >
+                {/* Left Cell Type Indicator */}
+                <div className="cell-type-indicator flex flex-col items-center justify-center px-2 py-2 bg-background-secondary border-r border-border rounded-l-lg">
+                    <div className={`cell-type-badge text-xs font-medium px-2 py-1 rounded ${getCellTypeColor(definition.type)}`}>
+                        {getCellTypeLabel(definition.type)}
+                    </div>
+                    <div className="cell-number text-xs text-secondary-foreground font-mono mt-1">
+                        {cellIndex + 1}
+                    </div>
+                    {isEditMode && (
+                        <div className="edit-indicator text-xs bg-accent text-accent-foreground px-1 py-0.5 rounded mt-1">
+                            ✏
+                        </div>
+                    )}
+                </div>
+
+                {/* Cell Content */}
+                <div className="cell-content flex-1">
+                    {children}
+                </div>
+
+                {/* Selection Indicator */}
+                {isSelected && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent rounded-l-lg" />
+                )}
+            </div>
         </div>
     );
 }
