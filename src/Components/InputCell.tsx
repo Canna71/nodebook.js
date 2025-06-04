@@ -298,7 +298,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
           <div className="space-y-3">
             <div className="text-sm font-medium text-foreground">Numeric Constraints</div>
             
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs text-secondary-foreground">Min</Label>
                 <Input
@@ -306,7 +306,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
                   value={editConfig.min}
                   onChange={(e) => handleConfigChange({ min: e.target.value })}
                   placeholder="No limit"
-                  className="text-xs"
+                  className="text-xs w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                 />
               </div>
               
@@ -317,18 +317,18 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
                   value={editConfig.max}
                   onChange={(e) => handleConfigChange({ max: e.target.value })}
                   placeholder="No limit"
-                  className="text-xs"
+                  className="text-xs w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                 />
               </div>
               
-              <div className="space-y-1">
+              <div className="space-y-1 sm:col-span-2 lg:col-span-1">
                 <Label className="text-xs text-secondary-foreground">Step</Label>
                 <Input
                   type="number"
                   value={editConfig.step}
                   onChange={(e) => handleConfigChange({ step: e.target.value })}
                   placeholder="1"
-                  className="text-xs"
+                  className="text-xs w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                 />
               </div>
             </div>
