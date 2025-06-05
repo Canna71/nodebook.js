@@ -75,6 +75,24 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
     });
   }, [definition.props?.min, definition.props?.max, definition.props?.step]);
 
+  // NEW: Save value back to definition whenever it changes
+  useEffect(() => {
+    if (!currentModel || value === undefined || value === definition.value) return;
+
+    // Update the definition with the current value
+    const updatedModel = {
+      ...currentModel,
+      cells: currentModel.cells.map(cell => 
+        cell.id === definition.id && cell.type === 'input'
+          ? { ...cell, value: value }
+          : cell
+      )
+    };
+
+    setModel(updatedModel);
+    setDirty(true);
+  }, [value, currentModel, setModel, setDirty, definition.id, definition.value]);
+
   // Use label if provided, otherwise fallback to variableName (or auto name if empty)
   const displayLabel = definition.label || 
     (definition.variableName.trim() || `Input ${definition.id.slice(-4)}`);
@@ -226,7 +244,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
                 } else {
                   const numValue = parseFloat(inputValue);
                   if (!isNaN(numValue) && isFinite(numValue)) {
-                    setValue(numValue);
+                    setValue(numValue); // This will trigger the useEffect above to save to definition
                   }
                   // If invalid, don't update reactive value - only display state changes
                 }
@@ -245,7 +263,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
           <div className="space-y-2 input-max-width">
             <Slider
               value={[value ?? definition.value]}
-              onValueChange={(values) => setValue(values[0])}
+              onValueChange={(values) => setValue(values[0])} // This will trigger the useEffect above
               min={definition.props?.min ?? 0}
               max={definition.props?.max ?? 100}
               step={definition.props?.step ?? 1}
@@ -262,7 +280,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
           <div className="flex items-center space-x-2">
             <Checkbox
               checked={value ?? definition.value}
-              onCheckedChange={(checked) => setValue(checked)}
+              onCheckedChange={(checked) => setValue(checked)} // This will trigger the useEffect above
               id={`checkbox-${definition.id}`}
             />
             <Label 
@@ -281,7 +299,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
             onValueChange={(selectedValue) => {
               // Convert back to appropriate type based on the option value type
               const option = definition.props?.options?.find(opt => String(opt.value) === selectedValue);
-              setValue(option ? option.value : selectedValue);
+              setValue(option ? option.value : selectedValue); // This will trigger the useEffect above
             }}
           >
             <SelectTrigger className="input-max-width">
@@ -303,7 +321,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
           <Input
             type="text"
             value={value ?? definition.value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => setValue(e.target.value)} // This will trigger the useEffect above
             placeholder={definition.props?.placeholder}
             className="input-max-width"
           />
