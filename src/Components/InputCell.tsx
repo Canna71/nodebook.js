@@ -465,46 +465,25 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
 
   return (
     <div className="cell input-cell p-4 space-y-3">
-      {isEditMode ? (
-        <div className="edit-mode-container space-y-4">
-          {/* Live Input Preview */}
-          <div className="live-input-preview">
-            <div className="p-3 bg-background border border-border rounded">
-              {/* Only show label for non-checkbox inputs (checkbox renders its own label) */}
-              {definition.inputType !== 'checkbox' && (
-                <Label 
-                  htmlFor={`input-preview-${definition.id}`}
-                  className="text-sm font-medium text-foreground"
-                >
-                  {displayLabel}
-                </Label>
-              )}
-              
-              <div id={`input-preview-${definition.id}`} className="mt-2">
-                {renderInput()}
-              </div>
-            </div>
-          </div>
+      {/* Always show the input - same in both modes */}
+      {definition.inputType !== 'checkbox' && (
+        <Label 
+          htmlFor={`input-${definition.id}`}
+          className="text-sm font-medium text-foreground"
+        >
+          {displayLabel}
+        </Label>
+      )}
+      
+      <div id={`input-${definition.id}`} className={definition.inputType !== 'checkbox' ? 'mt-2' : ''}>
+        {renderInput()}
+      </div>
 
-          {/* Configuration Interface */}
+      {/* Only show configuration interface in edit mode */}
+      {isEditMode && (
+        <div className="edit-mode-container mt-4">
           {renderEditMode()}
         </div>
-      ) : (
-        <>
-          {/* Only show label for non-checkbox inputs (checkbox renders its own label) */}
-          {definition.inputType !== 'checkbox' && (
-            <Label 
-              htmlFor={`input-${definition.id}`}
-              className="text-sm font-medium text-foreground"
-            >
-              {displayLabel}
-            </Label>
-          )}
-          
-          <div id={`input-${definition.id}`}>
-            {renderInput()}
-          </div>
-        </>
       )}
     </div>
   );
