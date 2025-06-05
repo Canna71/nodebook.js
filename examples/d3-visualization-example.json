@@ -1,0 +1,36 @@
+{
+  "title": "D3.js Visualization Example",
+  "description": "Demonstrates creating interactive charts with D3.js in NotebookJS",
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "intro-md",
+      "content": "# D3.js Visualization Example\n\nThis notebook demonstrates how to create interactive visualizations using D3.js within NotebookJS. D3 is a powerful JavaScript library for creating data-driven documents and interactive visualizations.\n\n## Basic Line Chart\n\nThe following code cell creates a simple time-series chart using D3.js:"
+    },
+    {
+      "type": "code",
+      "id": "d3-chart-basic",
+      "code": "const d3 = require(\"d3\")\n{\n  // Declare the chart dimensions and margins.\n  const width = 640;\n  const height = 400;\n  const marginTop = 20;\n  const marginRight = 20;\n  const marginBottom = 30;\n  const marginLeft = 40;\n\n  // Declare the x (horizontal position) scale.\n  const x = d3.scaleUtc()\n      .domain([new Date(\"2023-01-01\"), new Date(\"2024-01-01\")])\n      .range([marginLeft, width - marginRight]);\n\n  // Declare the y (vertical position) scale.\n  const y = d3.scaleLinear()\n      .domain([0, 100])\n      .range([height - marginBottom, marginTop]);\n\n  // Create the SVG container.\n  const svg = d3.create(\"svg\")\n      .attr(\"width\", width)\n      .attr(\"height\", height);\n\n  // Add the x-axis.\n  svg.append(\"g\")\n      .attr(\"transform\", `translate(0,${height - marginBottom})`)\n      .call(d3.axisBottom(x));\n\n  // Add the y-axis.\n  svg.append(\"g\")\n      .attr(\"transform\", `translate(${marginLeft},0)`)\n      .call(d3.axisLeft(y));\n\n  // Return the SVG element.\n  output(svg.node());\n\n}"
+    },
+    {
+      "type": "markdown",
+      "id": "explanation-md",
+      "content": "## How it Works\n\n1. **D3 Import**: We use `require(\"d3\")` to load the D3.js library\n2. **Dimensions**: Set up chart dimensions with margins for axes\n3. **Scales**: Create time and linear scales for x and y axes\n4. **SVG Creation**: Use `d3.create(\"svg\")` to create an SVG element\n5. **Axes**: Add formatted x and y axes with proper positioning\n6. **Output**: Use `output()` to display the SVG in the notebook\n\n## Interactive Features\n\nD3 charts can be made interactive with mouse events, animations, and data binding. The SVG element is fully interactive within the notebook environment."
+    },
+    {
+      "type": "code",
+      "id": "d3-interactive-chart",
+      "code": "// Interactive Bar Chart with Data\nconst d3 = require(\"d3\")\n{\n  // Sample data\n  const data = [\n    {name: 'A', value: 30},\n    {name: 'B', value: 80},\n    {name: 'C', value: 45},\n    {name: 'D', value: 60},\n    {name: 'E', value: 20},\n    {name: 'F', value: 90}\n  ];\n\n  // Chart dimensions\n  const width = 500;\n  const height = 300;\n  const margin = {top: 20, right: 20, bottom: 40, left: 40};\n\n  // Create scales\n  const x = d3.scaleBand()\n    .domain(data.map(d => d.name))\n    .range([margin.left, width - margin.right])\n    .padding(0.1);\n\n  const y = d3.scaleLinear()\n    .domain([0, d3.max(data, d => d.value)])\n    .range([height - margin.bottom, margin.top]);\n\n  // Create SVG\n  const svg = d3.create(\"svg\")\n    .attr(\"width\", width)\n    .attr(\"height\", height);\n\n  // Add bars with hover effects\n  svg.selectAll(\"rect\")\n    .data(data)\n    .join(\"rect\")\n    .attr(\"x\", d => x(d.name))\n    .attr(\"y\", d => y(d.value))\n    .attr(\"width\", x.bandwidth())\n    .attr(\"height\", d => y(0) - y(d.value))\n    .attr(\"fill\", \"steelblue\")\n    .on(\"mouseover\", function(event, d) {\n      d3.select(this).attr(\"fill\", \"orange\");\n    })\n    .on(\"mouseout\", function(event, d) {\n      d3.select(this).attr(\"fill\", \"steelblue\");\n    });\n\n  // Add axes\n  svg.append(\"g\")\n    .attr(\"transform\", `translate(0,${height - margin.bottom})`)\n    .call(d3.axisBottom(x));\n\n  svg.append(\"g\")\n    .attr(\"transform\", `translate(${margin.left},0)`)\n    .call(d3.axisLeft(y));\n\n  // Add title\n  svg.append(\"text\")\n    .attr(\"x\", width / 2)\n    .attr(\"y\", margin.top / 2)\n    .attr(\"text-anchor\", \"middle\")\n    .attr(\"font-size\", \"16px\")\n    .attr(\"font-weight\", \"bold\")\n    .text(\"Interactive Bar Chart\");\n\n  output(svg.node());\n}"
+    },
+    {
+      "type": "markdown",
+      "id": "features-md",
+      "content": "## Key Features Demonstrated\n\n- **Data Binding**: Chart data is bound to visual elements\n- **Interactive Hover**: Bars change color when hovered\n- **Responsive Scaling**: Automatic scaling based on data\n- **Professional Styling**: Proper margins, axes, and titles\n\n## Next Steps\n\nYou can extend these examples by:\n- Adding more complex data\n- Creating line charts, scatter plots, or other chart types\n- Adding animations and transitions\n- Implementing zoom and pan functionality\n- Loading external data from CSV or JSON files"
+    }
+  ],
+  "metadata": {
+    "tags": ["d3", "visualization", "charts", "interactive"],
+    "version": "1.0",
+    "createdAt": "2024-01-20T10:00:00.000Z"
+  }
+}

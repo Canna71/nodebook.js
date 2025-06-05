@@ -1,4 +1,5 @@
 import { ObjectDisplay } from "./ObjectDisplay";
+import { DomElementDisplay } from './DomElementDisplay';
 
 export interface ConsoleOutputProps {
     output: any[];
@@ -22,12 +23,20 @@ const ConsoleOutput = (output: any, index: number) => {
                             {output.data.map((arg: any, argIndex: number) => (
                                 <div key={argIndex}>
                                     {arg.type === 'object' ? (
-                                        <ObjectDisplay
-                                            data={arg.data}
-                                            name={false}
-                                            collapsed={false}
-                                            displayDataTypes={false}
-                                            displayObjectSize={false} />
+                                        // NEW: Check if the object is a DOM element
+                                        arg.data instanceof HTMLElement || arg.data instanceof SVGElement ? (
+                                            <DomElementDisplay
+                                                element={arg.data}
+                                                name={false}
+                                            />
+                                        ) : (
+                                            <ObjectDisplay
+                                                data={arg.data}
+                                                name={false}
+                                                collapsed={true}
+                                                displayDataTypes={false}
+                                                displayObjectSize={false} />
+                                        )
                                     ) : (
                                         <span className="text-foreground font-mono text-sm">{arg.message}</span>
                                     )}

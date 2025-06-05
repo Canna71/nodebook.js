@@ -8,6 +8,7 @@ import Editor from './Editor';
 import { oneDark } from '@codemirror/theme-one-dark';
 import ConsoleOutput from './ConsoleOutput';
 import { PlayIcon } from '@heroicons/react/24/solid';
+import { DomElementDisplay } from './DomElementDisplay';
 
 interface CodeCellProps {
   definition: CodeCellDefinition;
@@ -175,7 +176,13 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                                 {outputValues.length > 1 && (
                                     <div className="text-xs text-foreground mb-1">#{index + 1}:</div>
                                 )}
-                                {typeof value === 'object' && value !== null ? (
+                                {/* NEW: Check for DOM elements first */}
+                                {value instanceof HTMLElement || value instanceof SVGElement ? (
+                                    <DomElementDisplay
+                                        element={value}
+                                        name={false}
+                                    />
+                                ) : typeof value === 'object' && value !== null ? (
                                     <ObjectDisplay
                                         data={value}
                                         name={false}
