@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { GripVerticalIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { PlayIcon } from '@heroicons/react/24/solid';
 
 interface CellContainerProps {
     definition: CellDefinition;
@@ -23,8 +24,8 @@ interface CellContainerProps {
     onMoveDown: () => void;
     children: React.ReactNode;
     initialized: boolean;
-    // NEW: Add exports as prop
     exports?: string[];
+    onExecuteCode?: () => void;
 }
 
 export function CellContainer({
@@ -40,7 +41,8 @@ export function CellContainer({
     onMoveDown,
     children,
     initialized,
-    exports = [] // NEW: Default to empty array
+    exports = [],
+    onExecuteCode
 }: CellContainerProps) {
     const [isHovered, setIsHovered] = useState(false);
 
@@ -207,7 +209,21 @@ export function CellContainer({
                         </Tooltip>
                     </TooltipProvider>
                     
-                    {/* Drag Handle - moved to left sidebar */}
+                    {/* Execute Button for Code Cells - NEW: moved here */}
+                    {definition.type === 'code' && onExecuteCode && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onExecuteCode();
+                            }}
+                            className="execute-button p-1 mt-2 rounded bg-background border border-border hover:bg-accent/20 text-foreground transition-colors"
+                            title="Execute cell"
+                        >
+                            <PlayIcon className="w-3 h-3" />
+                        </button>
+                    )}
+                    
+                    {/* Drag Handle */}
                     <div 
                         className="drag-handle p-1 cursor-grab hover:bg-accent/20 rounded text-foreground mt-2" 
                         title="Drag to reorder"
@@ -237,7 +253,7 @@ export function CellContainer({
             {/* Invisible hover extension area to cover the floating toolbar */}
             {(isSelected || isHovered) && (
                 <div 
-                    className="absolute -top-4 right-0 w-64 h-8 z-0" 
+                    className="absolute -top-4 right-0 w-64 h-8 z-0"
                     style={{ pointerEvents: 'none' }}
                 />
             )}

@@ -192,6 +192,13 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     // Get exports for code cells
     const exports = cell.type === 'code' ? codeCellEngine.getCellExports(cell.id) : undefined;
 
+    // Create execute callback for code cells
+    const handleExecuteCode = cell.type === 'code' ? () => {
+      const currentCode = codeCellEngine.getCurrentCode(cell.id) || cell.code;
+      codeCellEngine.executeCodeCell(cell.id, currentCode);
+      log.debug(`Code cell ${cell.id} executed from header button`);
+    } : undefined;
+
     let cellComponent: React.ReactNode;
     switch (cell.type) {
       case 'input':
@@ -219,7 +226,8 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
         totalCells={model.cells.length}
         isSelected={isSelected}
         isEditMode={isEditMode}
-        exports={exports} // NEW: Pass exports for code cells
+        exports={exports}
+        onExecuteCode={handleExecuteCode} // NEW: Pass execute callback
         onSelect={() => selectCell(cell.id)}
         onToggleEditMode={() => toggleEditMode(cell.id)}
         onDelete={() => deleteCell(cell.id)}

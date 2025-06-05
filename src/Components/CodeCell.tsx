@@ -9,6 +9,7 @@ import { oneDark } from '@codemirror/theme-one-dark';
 import ConsoleOutput from './ConsoleOutput';
 import { PlayIcon } from '@heroicons/react/24/solid';
 import { DomElementDisplay } from './DomElementDisplay';
+import { CodeSummary } from './CodeSummary';
 
 interface CodeCellProps {
   definition: CodeCellDefinition;
@@ -114,48 +115,53 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
 
     return (
         <div className="cell code-cell border border-border rounded-lg mb-4 bg-background">
-            <div className="code-header bg-background-secondary px-4 py-2 border-b border-border">
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <span className="font-medium text-foreground">
-                            {exports.length > 0 ? `Code: ${exports.join(', ')}` : 'Code'}
-                        </span>
-                        <button
-                            onClick={onExecute}
-                            className="flex items-center justify-center w-6 h-6 rounded bg-background border-border border-1 hover:bg-accent/20 text-foreground transition-colors"
-                            title="Execute cell"
-                        >
-                            <PlayIcon className="w-3 h-3" />
-                        </button>
-                        {currentCode !== definition.code && (
-                            <span className="text-xs text-accent-foreground">• Modified</span>
+            {/* Simplified Header - only show in edit mode or when there are issues */}
+            {(isEditMode || error) && (
+                <div className="code-header bg-background-secondary px-4 py-2 border-b border-border">
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                            <span className="font-medium text-foreground">
+                                {exports.length > 0 ? `Code: ${exports.join(', ')}` : 'Code'}
+                            </span>
+                            {currentCode !== definition.code && (
+                                <span className="text-xs text-accent-foreground">• Modified</span>
+                            )}
+                        </div>
+                        {dependencies.length > 0 && (
+                            <span className="text-xs text-foreground">
+                                Uses: {dependencies.join(', ')}
+                            </span>
                         )}
                     </div>
-                    {dependencies.length > 0 && (
-                        <span className="text-xs text-foreground">
-                            Uses: {dependencies.join(', ')}
-                        </span>
+                    {exports.length > 0 && (
+                        <div className="mt-1 text-xs text-foreground">
+                            <strong>Exports:</strong> {exports.join(', ')}
+                        </div>
                     )}
                 </div>
-                {exports.length > 0 && (
-                    <div className="mt-1 text-xs text-foreground">
-                        <strong>Exports:</strong> {exports.join(', ')}
-                    </div>
-                )}
-            </div>
+            )}
 
-            <pre className="code-content bg-background-secondary px-4 py-3 overflow-x-auto">
-                <Editor
-                    value={currentCode}
-                    language="javascript"
-                    theme={oneDark} // NEW: Apply dark theme
-                    onChange={onCodeChange}
-                    dimensions={{
-                        autoHeight: true,
-                        minHeight: '100px',
-                    }}
+            {/* Code Summary (View Mode) or Editor (Edit Mode) */}
+            {isEditMode ? (
+                <div className="code-content bg-background-secondary px-4 py-3 overflow-x-auto">
+                    <Editor
+                        value={currentCode}
+                        language="javascript"
+                        theme={oneDark}
+                        onChange={onCodeChange}
+                        dimensions={{
+                            autoHeight: true,
+                            minHeight: '100px',
+                        }}
                     />
-            </pre>
+                </div>
+            ) : (
+                <CodeSummary 
+                    code={currentCode}
+                    exports={exports}
+                    dependencies={dependencies}
+                />
+            )}
 
             {/* DOM Output Container */}
             <div 
@@ -176,7 +182,6 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                                 {outputValues.length > 1 && (
                                     <div className="text-xs text-foreground mb-1">#{index + 1}:</div>
                                 )}
-                                {/* NEW: Check for DOM elements first */}
                                 {value instanceof HTMLElement || value instanceof SVGElement ? (
                                     <DomElementDisplay
                                         element={value}
