@@ -18,6 +18,7 @@ function AppContent() {
     const { currentModel, loadNotebook, isLoading, error, currentFilePath } = useApplication();
 
     useEffect(() => {
+        log.debug("AppContent mounted, currentModel:", currentModel);
         // Load default example on startup
         if (!currentModel) {
             const fs = getFileSystemHelpers();

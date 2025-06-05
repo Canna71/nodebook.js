@@ -103,10 +103,7 @@ export function CodeSummary({ code, exports = [], dependencies = [] }: CodeSumma
           </div>
         </div>
         
-        {/* Code type indicator */}
-        <div className="ml-4 text-xs text-muted-foreground">
-          {metadata.hasComments ? '📄' : '⚡'} JavaScript
-        </div>
+        {/* Removed: Code type indicator - redundant with cell type indicator */}
       </div>
     </div>
   );
