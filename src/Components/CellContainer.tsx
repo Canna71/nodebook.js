@@ -10,6 +10,7 @@ import {
 import { GripVerticalIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PlayIcon } from '@heroicons/react/24/solid';
+import { Button } from './ui/button';
 
 interface CellContainerProps {
     definition: CellDefinition;
@@ -211,16 +212,18 @@ export function CellContainer({
                     
                     {/* Execute Button for Code Cells - NEW: moved here */}
                     {definition.type === 'code' && onExecuteCode && (
-                        <button
+                        <Button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onExecuteCode();
                             }}
-                            className="execute-button p-1 mt-2 rounded bg-background border border-border hover:bg-accent/20 text-foreground transition-colors"
+                            variant="secondary" 
+                            size="icon" 
+                            className="size-8 execute-button p-1 mt-2 rounded bg-background border border-border hover:bg-accent/20 text-foreground transition-colors"
                             title="Execute cell"
                         >
                             <PlayIcon className="w-3 h-3" />
-                        </button>
+                        </Button>
                     )}
                     
                     {/* Drag Handle */}
