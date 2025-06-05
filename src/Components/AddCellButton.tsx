@@ -42,7 +42,6 @@ const CELL_TEMPLATES: CellTemplate[] = [
             label: 'New Input',
             inputType: 'number',
             variableName: 'newValue',
-            defaultValue: 0
         }
     }
 ];
