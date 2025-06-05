@@ -159,7 +159,7 @@ export function CellContainer({
                 </div>
 
                 {/* Cell Content */}
-                <div className="cell-content flex-1">
+                <div className="cell-content flex-1 min-w-0">
                     {children}
                 </div>
 

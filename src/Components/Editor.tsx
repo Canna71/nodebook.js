@@ -89,7 +89,9 @@ function getEditorStyle(language: string | undefined, dimensions?: EditorDimensi
     const style: React.CSSProperties = {
         border: '1px solid #ccc',
         fontFamily: 'monospace',
-        fontSize: `${defaultFontSize}px` // Ensure consistent font size
+        fontSize: `${defaultFontSize}px`, // Ensure consistent font size
+        width: '100%', // Always constrain to container width
+        boxSizing: 'border-box'
     };
 
     if (dimensions) {
@@ -158,6 +160,7 @@ function getAutoSizeExtensions(dimensions?: EditorDimensions): Extension[] {
                 '.cm-editor': {
                     ...(dimensions.autoHeight && { 
                         height: 'auto',
+                        width: '100%', // Ensure it doesn't exceed container width
                         '& .cm-scroller': { 
                             overflow: 'auto',
                             maxHeight: dimensions.maxHeight ? getDimensionValue(dimensions.maxHeight, fontContext) : 'none'
@@ -178,6 +181,11 @@ function getAutoSizeExtensions(dimensions?: EditorDimensions): Extension[] {
                     ...(dimensions.autoWidth && { 
                         minWidth: getDimensionValue(dimensions.minWidth, fontContext) || '200px' 
                     })
+                },
+                // Add width constraints to prevent overflow
+                '.cm-scroller': {
+                    width: '100%',
+                    boxSizing: 'border-box'
                 }
             })
         );
