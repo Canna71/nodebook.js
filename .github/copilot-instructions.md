@@ -24,6 +24,10 @@ NotebookJS is a reactive notebook application built with React, TypeScript, and 
 - Use proper prop typing with interfaces
 - Handle loading and error states appropriately
 
+#### UI Components
+- Do not modify files in `src/components/ui/` as these come from shadcn/ui
+- Use existing shadcn components as-is for consistency
+
 #### Styling
 - Use Tailwind CSS classes for styling
 - Try not to use explicit color, but use one from variables defined in `src/styles.css`

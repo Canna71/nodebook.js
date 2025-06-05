@@ -8,6 +8,7 @@ import {
     ChevronDownIcon, 
 } from '@heroicons/react/24/outline';
 import { GripVerticalIcon } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CellContainerProps {
     definition: CellDefinition;
@@ -22,6 +23,8 @@ interface CellContainerProps {
     onMoveDown: () => void;
     children: React.ReactNode;
     initialized: boolean;
+    // NEW: Add exports as prop
+    exports?: string[];
 }
 
 export function CellContainer({
@@ -36,7 +39,8 @@ export function CellContainer({
     onMoveUp,
     onMoveDown,
     children,
-    initialized
+    initialized,
+    exports = [] // NEW: Default to empty array
 }: CellContainerProps) {
     const [isHovered, setIsHovered] = useState(false);
 
@@ -60,6 +64,53 @@ export function CellContainer({
         }
     };
 
+    // Get cell type information including tooltip content
+    const getCellTypeInfo = () => {
+        switch (definition.type) {
+            case 'input':
+                const inputCell = definition;
+                const effectiveVariableName = inputCell.variableName.trim() || `input-${inputCell.id}`;
+                return {
+                    icon: '📝',
+                    label: 'Input',
+                    tooltip: `Variable: ${effectiveVariableName}`
+                };
+            
+            case 'code':
+                return {
+                    icon: '⚡',
+                    label: 'Code',
+                    tooltip: exports.length > 0 
+                        ? `Exports: ${exports.join(', ')}` 
+                        : 'No exports'
+                };
+            
+            case 'formula':
+                const formulaCell = definition;
+                return {
+                    icon: '🧮',
+                    label: 'Formula',
+                    tooltip: `Variable: ${formulaCell.variableName}\nFormula: ${formulaCell.formula}`
+                };
+            
+            case 'markdown':
+                return {
+                    icon: '📄',
+                    label: 'Markdown',
+                    tooltip: 'Markdown content'
+                };
+            
+            default:
+                return {
+                    icon: '❓',
+                    label: 'Unknown',
+                    tooltip: 'Unknown cell type'
+                };
+        }
+    };
+
+    const cellTypeInfo = getCellTypeInfo();
+    
     return (
         <div 
             className="cell-container-wrapper relative"
@@ -137,10 +188,24 @@ export function CellContainer({
             >
                 {/* Left Cell Type Indicator */}
                 <div className="cell-type-indicator flex flex-col items-center justify-start px-2 py-2 bg-background-secondary border-r border-border rounded-l-lg">
-                    {/* Cell Type Badge - justified to top */}
-                    <div className={`cell-type-badge text-xs font-medium px-2 py-1 rounded ${getCellTypeColor(definition.type)}`}>
-                        {getCellTypeLabel(definition.type)}
-                    </div>
+                    {/* Cell Type Badge with Tooltip */}
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className={`cell-type-badge text-xs font-medium px-2 py-1 rounded cursor-help ${getCellTypeColor(definition.type)}`}>
+                                    {getCellTypeLabel(definition.type)}
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="right" className="max-w-xs">
+                                <div className="text-sm">
+                                    <div className="font-medium">{cellTypeInfo.label} Cell</div>
+                                    <div className="text-xs text-muted-foreground mt-1 whitespace-pre-line">
+                                        {cellTypeInfo.tooltip}
+                                    </div>
+                                </div>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                     
                     {/* Drag Handle - moved to left sidebar */}
                     <div 

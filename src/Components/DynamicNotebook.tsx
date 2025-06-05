@@ -189,6 +189,9 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     const isSelected = editingState.selectedCellId === cell.id;
     const isEditMode = editingState.editModeCells.has(cell.id);
 
+    // Get exports for code cells
+    const exports = cell.type === 'code' ? codeCellEngine.getCellExports(cell.id) : undefined;
+
     let cellComponent: React.ReactNode;
     switch (cell.type) {
       case 'input':
@@ -216,6 +219,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
         totalCells={model.cells.length}
         isSelected={isSelected}
         isEditMode={isEditMode}
+        exports={exports} // NEW: Pass exports for code cells
         onSelect={() => selectCell(cell.id)}
         onToggleEditMode={() => toggleEditMode(cell.id)}
         onDelete={() => deleteCell(cell.id)}
