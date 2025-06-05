@@ -39,7 +39,8 @@ import fs from 'fs-extra';
     'ansi-styles',
     'lodash.clonedeep',
     'fast-deep-equal',
-    'lodash.truncate'
+    'lodash.truncate',
+    'd3'
 ];
 
 const config: ForgeConfig = {
