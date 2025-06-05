@@ -136,6 +136,50 @@
   .input-max-width {
     @apply max-w-xs;
   }
+  
+  /* Cell container visibility controls */
+  .cell-container {
+    @apply transition-all duration-200;
+  }
+  
+  /* Hide cell controls by default */
+  .cell-container .cell-controls,
+  .cell-container .cell-type-indicator,
+  .cell-container .cell-border {
+    @apply opacity-0 transition-opacity duration-200;
+  }
+  
+  /* Show cell controls on hover */
+  .cell-container:hover .cell-controls,
+  .cell-container:hover .cell-type-indicator,
+  .cell-container:hover .cell-border {
+    @apply opacity-100;
+  }
+  
+  /* Show cell controls when selected */
+  .cell-container.selected .cell-controls,
+  .cell-container.selected .cell-type-indicator,
+  .cell-container.selected .cell-border {
+    @apply opacity-100;
+  }
+  
+  /* Show cell controls when in edit mode */
+  .cell-container.edit-mode .cell-controls,
+  .cell-container.edit-mode .cell-type-indicator,
+  .cell-container.edit-mode .cell-border {
+    @apply opacity-100;
+  }
+  
+  /* Optional: Also hide borders by default */
+  .cell-container {
+    @apply border-transparent;
+  }
+  
+  .cell-container:hover,
+  .cell-container.selected,
+  .cell-container.edit-mode {
+    @apply border-border;
+  }
 }
 
 /* @utility border-err {
