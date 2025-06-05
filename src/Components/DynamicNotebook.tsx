@@ -36,8 +36,8 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
         if (cell.type === 'input') {
           const inputCell = cell as InputCellDefinition;
           if (!reactiveStore.get(inputCell.variableName)) {
-            reactiveStore.define(inputCell.variableName, inputCell.defaultValue);
-            log.debug(`Initialized reactive value from input cell: ${inputCell.variableName} = ${inputCell.defaultValue}`);
+            reactiveStore.define(inputCell.variableName, inputCell.value);
+            log.debug(`Initialized reactive value from input cell: ${inputCell.variableName} = ${inputCell.value}`);
           }
         }
       });
@@ -101,10 +101,9 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
         newCell = {
           type: 'input',
           id: newId,
-          // Remove explicit label - will fallback to variableName
           inputType: 'number',
           variableName: `input_${Date.now()}`,
-          defaultValue: 0
+          value: 0 // Renamed from defaultValue to value
         };
         break;
       default:

@@ -23,7 +23,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
   // Determine the effective variable name - use automatic naming if empty
   const effectiveVariableName = definition.variableName.trim() || generateAutoVariableName(definition.id);
   
-  const [value, setValue] = useReactiveValue(effectiveVariableName, definition.defaultValue);
+  const [value, setValue] = useReactiveValue(effectiveVariableName, definition.value);
   const { currentModel, setModel, setDirty } = useApplication();
 
   // Edit mode state
@@ -49,9 +49,9 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
 
   // Update number input value when definition or reactive value changes
   useEffect(() => {
-    const currentValue = value ?? definition.defaultValue;
+    const currentValue = value ?? definition.value;
     setNumberInputValue(String(currentValue));
-  }, [value, definition.defaultValue]);
+  }, [value, definition.value]);
 
   // Update edit config when definition changes
   useEffect(() => {
@@ -209,26 +209,33 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
       case 'number':
         return (
           <Input
-            type="number"
+            type="text"
+            pattern="^-?[0-9]*\.?[0-9]*$"
             value={numberInputValue}
             onChange={(e) => {
               const inputValue = e.target.value;
-              setNumberInputValue(inputValue);
               
-              // Only update reactive value if it's a valid number or empty
-              if (inputValue === '' || inputValue === '-') {
-                // Allow empty and just minus sign for user experience
-                setValue(definition.defaultValue);
-              } else {
-                const numValue = Number(inputValue);
-                if (!isNaN(numValue)) {
-                  setValue(numValue);
+              // Validate against the pattern before setting the display value
+              const pattern = /^-?[0-9]*\.?[0-9]*$/;
+              if (inputValue === '' || pattern.test(inputValue)) {
+                setNumberInputValue(inputValue);
+                
+                // Only update reactive value for valid numbers or empty
+                if (inputValue === '') {
+                  setValue(definition.value);
+                } else {
+                  const numValue = parseFloat(inputValue);
+                  if (!isNaN(numValue) && isFinite(numValue)) {
+                    setValue(numValue);
+                  }
+                  // If invalid, don't update reactive value - only display state changes
                 }
               }
+              // If pattern doesn't match, ignore the input completely
             }}
             min={definition.props?.min}
             max={definition.props?.max}
-            step={definition.props?.step}
+            step={definition.props?.step || undefined}
             className="input-max-width"
           />
         );
@@ -237,7 +244,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
         return (
           <div className="space-y-2 input-max-width">
             <Slider
-              value={[value ?? definition.defaultValue]}
+              value={[value ?? definition.value]}
               onValueChange={(values) => setValue(values[0])}
               min={definition.props?.min ?? 0}
               max={definition.props?.max ?? 100}
@@ -245,7 +252,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
               className="w-full"
             />
             <div className="text-sm text-secondary-foreground text-center">
-              {value ?? definition.defaultValue}
+              {value ?? definition.value}
             </div>
           </div>
         );
@@ -254,7 +261,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
         return (
           <div className="flex items-center space-x-2">
             <Checkbox
-              checked={value ?? definition.defaultValue}
+              checked={value ?? definition.value}
               onCheckedChange={(checked) => setValue(checked)}
               id={`checkbox-${definition.id}`}
             />
@@ -270,7 +277,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
       case 'select':
         return (
           <Select
-            value={String(value ?? definition.defaultValue)}
+            value={String(value ?? definition.value)}
             onValueChange={(selectedValue) => {
               // Convert back to appropriate type based on the option value type
               const option = definition.props?.options?.find(opt => String(opt.value) === selectedValue);
@@ -295,7 +302,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
         return (
           <Input
             type="text"
-            value={value ?? definition.defaultValue}
+            value={value ?? definition.value}
             onChange={(e) => setValue(e.target.value)}
             placeholder={definition.props?.placeholder}
             className="input-max-width"

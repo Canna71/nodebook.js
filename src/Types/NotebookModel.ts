@@ -24,7 +24,7 @@ export interface InputCellDefinition extends BaseCellDefinition {
   label?: string; // Make label optional
   inputType: InputType;
   variableName: string;
-  defaultValue: any;
+  value: any; // Renamed from defaultValue to value
   props?: {
     min?: number;
     max?: number;
@@ -110,7 +110,7 @@ export function validateCellDefinition(cell: any): cell is CellDefinition {
   
   switch (cell.type) {
     case 'input':
-      return !!(cell.inputType && cell.variableName && cell.defaultValue !== undefined); // Remove label requirement
+      return !!(cell.inputType && cell.variableName); // Remove value requirement, allow empty
     case 'markdown':
       return !!(cell.content);
     case 'formula':
