@@ -177,7 +177,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
   const selectCell = (cellId: string) => {
     setEditingState(prev => ({
       ...prev,
-      selectedCellId: cellId
+      selectedCellId: prev.selectedCellId === cellId ? null : cellId
     }));
   };
 
