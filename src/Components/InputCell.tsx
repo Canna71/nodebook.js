@@ -464,24 +464,28 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
   };
 
   return (
-    <div className="cell input-cell p-4 space-y-3">
-      {/* Always show the input - same in both modes */}
-      {definition.inputType !== 'checkbox' && (
-        <Label 
-          htmlFor={`input-${definition.id}`}
-          className="text-sm font-medium text-foreground"
-        >
-          {displayLabel}
-        </Label>
-      )}
-      
-      <div id={`input-${definition.id}`} className={definition.inputType !== 'checkbox' ? 'mt-2' : ''}>
-        {renderInput()}
+    <div className="cell input-cell p-2 space-y-2">
+      {/* Horizontal layout for label and input */}
+      <div className="flex items-center gap-2">
+        {/* Label - show for all input types except checkbox (which handles its own label) */}
+        {definition.inputType !== 'checkbox' && (
+          <Label 
+            htmlFor={`input-${definition.id}`}
+            className="text-sm font-medium text-foreground min-w-0 flex-shrink-0"
+          >
+            {displayLabel}:
+          </Label>
+        )}
+        
+        {/* Input container */}
+        <div id={`input-${definition.id}`} className="flex-1 min-w-0">
+          {renderInput()}
+        </div>
       </div>
 
       {/* Only show configuration interface in edit mode */}
       {isEditMode && (
-        <div className="edit-mode-container mt-4">
+        <div className="edit-mode-container mt-3">
           {renderEditMode()}
         </div>
       )}

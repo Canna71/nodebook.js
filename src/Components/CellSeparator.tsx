@@ -57,22 +57,17 @@ export function CellSeparator({ onAddCell, insertIndex, isFirst = false, isLast 
 
     return (
         <div 
-            className={`cell-separator relative ${isFirst ? 'pt-4' : 'py-4'} ${isLast ? 'pb-8' : ''}`}
+            className={`cell-separator relative ${isFirst ? 'pt-2' : 'py-2'} ${isLast ? 'pb-4' : ''}`}
             onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)} // Fix this back to false for production
+            onMouseLeave={() => setIsHovered(false)}
         >
-            {/* Invisible hover area to make it easier to trigger - MOVE THIS FIRST and add pointer-events-none */}
-            <div className="absolute inset-0 h-8 -mt-2 pointer-events-none" />
+            {/* Invisible hover area to make it easier to trigger */}
+            <div className="absolute inset-0 h-6 -mt-1 pointer-events-none" />
             
-            {/* Separator line */}
-            <div className={`w-full h-px bg-border transition-all duration-200 ${
-                isHovered ? 'bg-accent/50' : ''
-            }`} />
-            
-            {/* Add buttons - appear on hover - HIGHER Z-INDEX */}
+            {/* Add buttons - appear on hover */}
             {isHovered && (
                 <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <div className="flex items-center gap-1 bg-background border border-border rounded-lg px-2 py-1 shadow-lg">
+                    <div className="flex items-center gap-1 bg-background rounded-lg px-2 py-1 shadow-lg">
                         <PlusIcon className="w-4 h-4 text-muted-foreground mr-1" />
                         {cellTypes.map((cellType) => {
                             const IconComponent = cellType.icon;
