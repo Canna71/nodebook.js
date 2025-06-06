@@ -50,7 +50,7 @@ export function CellSeparator({ onAddCell, insertIndex, isFirst = false, isLast 
         <div 
             className={`cell-separator relative ${isFirst ? 'pt-4' : 'py-4'} ${isLast ? 'pb-8' : ''}`}
             onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            onMouseLeave={() => setIsHovered(true)}
         >
             {/* Separator line */}
             <div className={`w-full h-px bg-border transition-all duration-200 ${
@@ -70,7 +70,7 @@ export function CellSeparator({ onAddCell, insertIndex, isFirst = false, isLast 
                                     onClick={() => onAddCell(cellType.type, insertIndex)}
                                     variant="ghost" 
                                     size="sm"
-                                    className="h-auto px-2 py-1 text-xs font-medium hover:bg-accent hover:text-accent-foreground"
+                                    // className="h-auto px-2 py-1 text-xs font-medium hover:bg-accent hover:text-accent-foreground"
                                     title={cellType.description}
                                 >
                                     <IconComponent className="w-3 h-3 mr-1" />
