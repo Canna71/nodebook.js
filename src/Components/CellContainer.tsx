@@ -182,11 +182,11 @@ export function CellContainer({
             <div
                 className={`cell-container relative flex border rounded-lg transition-all duration-200 ${
                     isSelected 
-                        ? 'border-accent shadow-lg bg-accent/10' 
+                        ? 'border-accent shadow-lg bg-accent/10 selected' 
                         : isHovered 
                             ? 'border-accent/50 shadow-md' 
                             : 'border-border'
-                }`}
+                } ${isEditMode ? 'edit-mode' : ''}`}
                 onClick={(e) => {
                     // Only select cell if clicking on the container itself, not on interactive elements
                     const target = e.target as HTMLElement;
@@ -197,8 +197,10 @@ export function CellContainer({
                     }
                 }}
             >
-                {/* Left Cell Type Indicator */}
-                <div className="cell-type-indicator flex flex-col items-center justify-start px-1 py-2 bg-background-secondary border-r border-border rounded-l-lg">
+                {/* Left Cell Type Indicator - always takes up space, visibility controlled by opacity */}
+                <div className={`cell-type-indicator flex flex-col items-center justify-start px-1 py-2 bg-background-secondary border-r border-border rounded-l-lg transition-opacity duration-200 ${
+                    isSelected || isHovered ? 'opacity-100' : 'opacity-0'
+                }`}>
                     {/* Cell Type Badge with Tooltip */}
                     <TooltipProvider>
                         <Tooltip>
@@ -235,12 +237,12 @@ export function CellContainer({
                     )}
                 </div>
 
-                {/* Main cell content area - now full width with right padding for grip */}
-                <div className="cell-content w-full pr-8">
+                {/* Main cell content area - fixed padding, no dynamic changes */}
+                <div className="cell-content w-full pr-8 flex-1">
                     {children}
                 </div>
 
-                {/* Grip icon on the right side with drag cursor */}
+                {/* Grip icon on the right side - always takes up space, visibility controlled by opacity */}
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
                     <div className={`cell-controls transition-opacity duration-200 ${
                         isSelected || isHovered ? 'opacity-100' : 'opacity-0'
