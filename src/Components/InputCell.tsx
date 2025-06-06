@@ -333,7 +333,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
     const autoVariableName = generateAutoVariableName(definition.id);
     
     return (
-      <div className="input-cell-edit-mode space-y-4 p-4 bg-muted/50 rounded border">
+      <div className="input-cell-edit-mode space-y-4 p-2 bg-muted/50 rounded border">
         {/* Variable Name */}
         <div className="space-y-2">
           <Label className="text-sm font-medium text-foreground">

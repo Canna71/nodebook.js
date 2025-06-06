@@ -190,12 +190,12 @@ export function CellContainer({
                 onClick={onSelect}
             >
                 {/* Left Cell Type Indicator */}
-                <div className="cell-type-indicator flex flex-col items-center justify-start px-2 py-2 bg-background-secondary border-r border-border rounded-l-lg">
+                <div className="cell-type-indicator flex flex-col items-center justify-start px-1 py-2 bg-background-secondary border-r border-border rounded-l-lg">
                     {/* Cell Type Badge with Tooltip */}
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <div className={`cell-type-badge text-xs font-medium px-2 py-1 rounded cursor-help ${getCellTypeColor(definition.type)}`}>
+                                <div className={`cell-type-badge text-xs font-medium px-1.5 py-1 rounded cursor-help ${getCellTypeColor(definition.type)}`}>
                                     {getCellTypeLabel(definition.type)}
                                 </div>
                             </TooltipTrigger>
@@ -228,7 +228,7 @@ export function CellContainer({
                 </div>
 
                 {/* Main cell content area - now full width with right padding for grip */}
-                <div className="cell-content w-full pr-10">
+                <div className="cell-content w-full pr-8">
                     {children}
                 </div>
 

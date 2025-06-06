@@ -161,7 +161,7 @@
   
   /* Ensure cell content has proper spacing for the grip icon */
   .cell-container .cell-content {
-    @apply pr-10; /* Add right padding for grip icon space */
+    @apply pr-8; /* Reduced from pr-10 to pr-8 */
   }
   
   /* Optional: Also hide borders by default */

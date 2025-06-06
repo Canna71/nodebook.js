@@ -144,7 +144,7 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
 
   const renderEditMode = () => {
     return (
-      <div className="formula-cell-edit-mode space-y-4 p-4 bg-muted/50 rounded border">
+      <div className="formula-cell-edit-mode space-y-4 p-2 bg-muted/50 rounded border">
         {/* Variable Name */}
         <div className="space-y-2">
           <Label className="text-sm font-medium text-foreground">Variable Name</Label>
@@ -165,6 +165,7 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
               onChange={(value) => handleConfigChange({ formula: value })}
               language="javascript"
               theme={oneDark}
+              showLineNumbers={false}
               placeholder="$variable1 + $variable2"
               dimensions={{
                 autoHeight: true,
