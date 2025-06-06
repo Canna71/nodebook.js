@@ -120,9 +120,9 @@ export function CellContainer({
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            {/* Floating Action Buttons - appear above the cell when focused/hovered */}
+            {/* Floating Action Buttons - moved left to avoid overlap with grip */}
             {(isSelected || isHovered) && (
-                <div className="absolute -top-2 right-0 z-10 flex items-center gap-1 bg-background border border-border rounded-lg px-2 py-1 shadow-lg">
+                <div className="absolute -top-2 right-10 z-10 flex items-center gap-1 bg-background border border-border rounded-lg px-2 py-1 shadow-lg">
                     {/* Move Up */}
                     <button
                         onClick={(e) => {
@@ -232,7 +232,7 @@ export function CellContainer({
                     {children}
                 </div>
 
-                {/* Grip icon on the right side */}
+                {/* Grip icon on the right side with drag cursor */}
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
                     <div className={`cell-controls transition-opacity duration-200 ${
                         isSelected || isHovered ? 'opacity-100' : 'opacity-0'
@@ -240,7 +240,8 @@ export function CellContainer({
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
+                            title="Drag to reorder"
                         >
                             <GripVertical className="h-4 w-4" />
                         </Button>
@@ -248,10 +249,10 @@ export function CellContainer({
                 </div>
             </div>
 
-            {/* Invisible hover extension area to cover the floating toolbar */}
+            {/* Invisible hover extension area to cover the floating toolbar - adjusted position */}
             {(isSelected || isHovered) && (
                 <div 
-                    className="absolute -top-4 right-0 w-64 h-8 z-0"
+                    className="absolute -top-4 right-8 w-64 h-8 z-0"
                     style={{ pointerEvents: 'none' }}
                 />
             )}
