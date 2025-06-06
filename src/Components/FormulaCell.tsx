@@ -75,7 +75,7 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
     const newConfig = { ...editConfig, ...updates };
     setEditConfig(newConfig);
     
-    // Update the cell definition
+    // Update the cell definition immediately without validation
     updateCellDefinitionWithConfig(newConfig);
   };
 
@@ -83,16 +83,16 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
   const updateCellDefinitionWithConfig = (config: typeof editConfig) => {
     if (!currentModel) return;
 
-    // Validate required fields
-    if (!config.variableName.trim() || !config.formula.trim()) {
-      return; // Skip update if invalid
+    // Only require non-empty variable name - allow incomplete formulas
+    if (!config.variableName.trim()) {
+      return; // Skip update only if variable name is empty
     }
 
-    // Create updated cell definition
+    // Create updated cell definition - allow any formula content
     const updatedCell: FormulaCellDefinition = {
       ...definition,
       variableName: config.variableName.trim(),
-      formula: config.formula.trim(),
+      formula: config.formula, // Don't trim or validate - allow any content
       label: config.label.trim() || undefined,
       description: config.description.trim() || undefined,
       outputFormat: config.outputFormat as FormulaCellDefinition['outputFormat'],
