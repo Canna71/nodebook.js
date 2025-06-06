@@ -7,6 +7,7 @@ import {
     CalculatorIcon,
     PencilSquareIcon
 } from '@heroicons/react/24/outline';
+import { Button } from './ui/button';
 
 interface CellSeparatorProps {
     onAddCell: (cellType: CellDefinition['type'], insertIndex: number) => void;
@@ -64,15 +65,17 @@ export function CellSeparator({ onAddCell, insertIndex, isFirst = false, isLast 
                         {cellTypes.map((cellType) => {
                             const IconComponent = cellType.icon;
                             return (
-                                <button
+                                <Button
                                     key={cellType.type}
                                     onClick={() => onAddCell(cellType.type, insertIndex)}
-                                    className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-foreground hover:bg-accent/20 transition-colors"
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="h-auto px-2 py-1 text-xs font-medium hover:bg-accent hover:text-accent-foreground"
                                     title={cellType.description}
                                 >
-                                    <IconComponent className="w-3 h-3" />
+                                    <IconComponent className="w-3 h-3 mr-1" />
                                     {cellType.label}
-                                </button>
+                                </Button>
                             );
                         })}
                     </div>
