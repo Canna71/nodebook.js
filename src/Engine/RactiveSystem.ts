@@ -57,7 +57,14 @@ class ReactiveValue<T> implements IReactiveValue<T> {
      * Set value and notify subscribers
      */
     public setValue(newValue: T, shouldPropagate: boolean = true): void {
-        if (this.value !== newValue) {
+        // Handle NaN comparison correctly
+        const hasChanged = this.value !== newValue && !(
+            // Both values are NaN
+            (typeof this.value === 'number' && typeof newValue === 'number' && 
+             isNaN(this.value) && isNaN(newValue))
+        );
+
+        if (hasChanged) {
             this.value = newValue;
             if (shouldPropagate) {
                 this.notifySubscribers();
