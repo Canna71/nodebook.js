@@ -30,7 +30,8 @@ type EditorProps = {
     objectCompletions?: { object: string, methods: Completion[] }[]
     placeholder?: string
     theme?: Extension
-    dimensions?: EditorDimensions // NEW: flexible dimensions
+    dimensions?: EditorDimensions
+    showLineNumbers?: boolean // NEW: Option to hide line numbers
 }
 
 function getLanguageExtension(language: string | undefined): Extension {
@@ -203,7 +204,8 @@ export default function Editor({
     objectCompletions,
     placeholder,
     theme,
-    dimensions // NEW
+    dimensions,
+    showLineNumbers = true // NEW: Default to true for backward compatibility
 }: EditorProps) {
     const editorRef = useRef<HTMLDivElement | null>(null)
     const viewRef = useRef<EditorView | null>(null)
@@ -331,6 +333,11 @@ export default function Editor({
                 ? themeCompartment.of(theme)
                 : themeCompartment.of([])
 
+            // Line numbers extension - hide if showLineNumbers is false
+            const lineNumbersExt = showLineNumbers ? [] : EditorView.theme({
+                '.cm-lineNumbers': { display: 'none' }
+            });
+
             const startState = EditorState.create({
                 doc: value,
                 extensions: [
@@ -353,7 +360,8 @@ export default function Editor({
                             ? autocompletion({ override: [jsCustomCompletionSource, variableCompletionSource] })
                             : []
                     ),
-                    dimensionsCompartment.of(autoSizeExtensions), // NEW: dimensions
+                    dimensionsCompartment.of(autoSizeExtensions),
+                    lineNumbersExt, // NEW: Line numbers control
                     ...urlExtensions,
                     placeholderExt,
                     themeExt
@@ -370,7 +378,7 @@ export default function Editor({
                 viewRef.current = null
             }
         }
-    }, [])
+    }, [showLineNumbers]) // NEW: Add showLineNumbers to dependencies
 
     // Update document if value prop changes
     useEffect(() => {

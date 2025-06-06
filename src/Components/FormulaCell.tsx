@@ -6,6 +6,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import Editor from './Editor';
+import { oneDark } from '@codemirror/theme-one-dark';
 import { log } from './DynamicNotebook';
 
 interface FormulaCellProps {
@@ -163,6 +164,7 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
               value={editConfig.formula}
               onChange={(value) => handleConfigChange({ formula: value })}
               language="javascript"
+              theme={oneDark}
               placeholder="$variable1 + $variable2"
               dimensions={{
                 autoHeight: true,
