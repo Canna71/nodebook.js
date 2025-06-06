@@ -68,7 +68,12 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
   };
 
   const addCell = (cellType: CellDefinition['type'], insertIndex?: number) => {
-    if (!currentModel) return;
+    console.log(`DynamicNotebook.addCell called with:`, { cellType, insertIndex, hasCurrentModel: !!currentModel });
+    
+    if (!currentModel) {
+      console.error('No current model available');
+      return;
+    }
 
     const newId = generateCellId();
     let newCell: CellDefinition;
@@ -103,10 +108,11 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
           id: newId,
           inputType: 'number',
           variableName: `input_${Date.now()}`,
-          value: 0 // Renamed from defaultValue to value
+          value: 0
         };
         break;
       default:
+        console.error(`Unknown cell type: ${cellType}`);
         return;
     }
 
@@ -114,7 +120,10 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     const targetIndex = insertIndex ?? newCells.length;
     newCells.splice(targetIndex, 0, newCell);
 
-    setModel({ ...currentModel, cells: newCells });
+    console.log(`Adding cell at index ${targetIndex}:`, newCell);
+
+    const updatedModel = { ...currentModel, cells: newCells };
+    setModel(updatedModel);
     setDirty(true);
 
     // Select and edit the new cell
@@ -123,6 +132,8 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
       selectedCellId: newId,
       editModeCells: new Set([...prev.editModeCells, newId])
     }));
+
+    console.log(`Cell added successfully. New model has ${updatedModel.cells.length} cells`);
   };
 
   const deleteCell = (cellId: string) => {
