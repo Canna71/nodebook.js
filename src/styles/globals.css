@@ -139,7 +139,7 @@
 
 @layer utilities {
   .input-max-width {
-    @apply max-w-xs;
+    @apply max-w-48;
   }
   
   /* Cell container visibility controls */

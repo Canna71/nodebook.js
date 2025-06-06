@@ -260,16 +260,16 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
         
       case 'range':
         return (
-          <div className="space-y-2 input-max-width">
+          <div className="flex items-center gap-2 input-max-width">
             <Slider
               value={[value ?? definition.value]}
               onValueChange={(values) => setValue(values[0])} // This will trigger the useEffect above
               min={definition.props?.min ?? 0}
               max={definition.props?.max ?? 100}
               step={definition.props?.step ?? 1}
-              className="w-full"
+              className="flex-1"
             />
-            <div className="text-sm text-secondary-foreground text-center">
+            <div className="text-sm text-secondary-foreground min-w-0 flex-shrink-0 font-mono">
               {value ?? definition.value}
             </div>
           </div>
