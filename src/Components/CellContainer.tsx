@@ -7,7 +7,7 @@ import {
     ChevronUpIcon, 
     ChevronDownIcon, 
 } from '@heroicons/react/24/outline';
-import { GripVerticalIcon } from 'lucide-react';
+import { GripVertical } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PlayIcon } from '@heroicons/react/24/solid';
 import { Button } from './ui/button';
@@ -35,15 +35,15 @@ export function CellContainer({
     totalCells,
     isSelected,
     isEditMode,
+    exports,
+    onExecuteCode,
     onSelect,
     onToggleEditMode,
     onDelete,
     onMoveUp,
     onMoveDown,
-    children,
     initialized,
-    exports = [],
-    onExecuteCode
+    children
 }: CellContainerProps) {
     const [isHovered, setIsHovered] = useState(false);
 
@@ -83,7 +83,7 @@ export function CellContainer({
                 return {
                     icon: '⚡',
                     label: 'Code',
-                    tooltip: exports.length > 0 
+                    tooltip: exports && exports.length > 0 
                         ? `Exports: ${exports.join(', ')}` 
                         : 'No exports'
                 };
@@ -210,7 +210,7 @@ export function CellContainer({
                         </Tooltip>
                     </TooltipProvider>
                     
-                    {/* Execute Button for Code Cells - NEW: moved here */}
+                    {/* Execute Button for Code Cells */}
                     {definition.type === 'code' && onExecuteCode && (
                         <Button
                             onClick={(e) => {
@@ -225,32 +225,27 @@ export function CellContainer({
                             <PlayIcon className="w-3 h-3" />
                         </Button>
                     )}
-                    
-                    {/* Drag Handle */}
-                    <div 
-                        className="drag-handle p-1 cursor-grab hover:bg-accent/20 rounded text-foreground mt-2" 
-                        title="Drag to reorder"
-                    >
-                        <GripVerticalIcon className="w-4 h-4" />
-                    </div>
-
-                    {/* Edit Mode Indicator */}
-                    {isEditMode && (
-                        <div className="edit-indicator text-xs bg-accent text-accent-foreground px-1 py-0.5 rounded mt-2">
-                            ✏
-                        </div>
-                    )}
                 </div>
 
-                {/* Cell Content */}
-                <div className="cell-content flex-1 min-w-0">
+                {/* Main cell content area - now full width with right padding for grip */}
+                <div className="cell-content w-full pr-10">
                     {children}
                 </div>
 
-                {/* Selection Indicator */}
-                {isSelected && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent rounded-l-lg" />
-                )}
+                {/* Grip icon on the right side */}
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
+                    <div className={`cell-controls transition-opacity duration-200 ${
+                        isSelected || isHovered ? 'opacity-100' : 'opacity-0'
+                    }`}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                        >
+                            <GripVertical className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
             </div>
 
             {/* Invisible hover extension area to cover the floating toolbar */}

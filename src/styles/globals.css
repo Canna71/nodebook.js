@@ -144,35 +144,24 @@
   
   /* Cell container visibility controls */
   .cell-container {
-    @apply transition-all duration-200;
+    @apply transition-all duration-200 relative;
   }
   
   /* Hide cell controls by default */
-  .cell-container .cell-controls,
-  .cell-container .cell-type-indicator,
-  .cell-container .cell-border {
+  .cell-container .cell-controls {
     @apply opacity-0 transition-opacity duration-200;
   }
   
-  /* Show cell controls on hover */
+  /* Show cell controls on hover, selected, or edit mode */
   .cell-container:hover .cell-controls,
-  .cell-container:hover .cell-type-indicator,
-  .cell-container:hover .cell-border {
-    @apply opacity-100;
-  }
-  
-  /* Show cell controls when selected */
   .cell-container.selected .cell-controls,
-  .cell-container.selected .cell-type-indicator,
-  .cell-container.selected .cell-border {
+  .cell-container.edit-mode .cell-controls {
     @apply opacity-100;
   }
   
-  /* Show cell controls when in edit mode */
-  .cell-container.edit-mode .cell-controls,
-  .cell-container.edit-mode .cell-type-indicator,
-  .cell-container.edit-mode .cell-border {
-    @apply opacity-100;
+  /* Ensure cell content has proper spacing for the grip icon */
+  .cell-container .cell-content {
+    @apply pr-10; /* Add right padding for grip icon space */
   }
   
   /* Optional: Also hide borders by default */
@@ -198,6 +187,11 @@
   /* Ensure separator buttons appear above other content */
   .cell-separator .absolute {
     @apply z-20;
+  }
+  
+  /* Ensure overlay controls appear above cell content */
+  .cell-container .cell-controls {
+    @apply z-10;
   }
 }
 
