@@ -8,7 +8,7 @@ import { MarkdownCell } from './MarkdownCell';
 import { CodeCell } from './CodeCell';
 import { FormulaCell } from './FormulaCell';
 import { CellContainer } from './CellContainer';
-import { AddCellButton } from './AddCellButton';
+import { CellSeparator } from './CellSeparator';
 export const log = anylogger("DynamicNotebook");
 
 interface DynamicNotebookProps {
@@ -262,27 +262,35 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
             ))}
           </div>
         </details>
-
-        {/* Add Cell Button */}
-        <div className="mb-6">
-          <AddCellButton onAddCell={addCell} />
-        </div>
       </header>
 
-      <div className="notebook-cells space-y-4">
+      <div className="notebook-cells">
         {model.cells.length === 0 ? (
           <div className="empty-notebook text-center py-12 text-secondary-foreground">
             <div className="text-lg mb-4">Your notebook is empty</div>
-            <AddCellButton onAddCell={addCell} />
+            <div className="text-sm mb-6">Hover over the line below to add your first cell</div>
+            <CellSeparator onAddCell={addCell} insertIndex={0} isFirst isLast />
           </div>
         ) : (
-          model.cells.map(renderCell)
-        )}
-
-        {/* Add cell at the end */}
-        {model.cells.length > 0 && (
-          <div className="add-cell-bottom pt-4">
-            <AddCellButton onAddCell={addCell} />
+          <div className="cells-with-separators">
+            {/* Add cell separator at the beginning */}
+            <CellSeparator onAddCell={addCell} insertIndex={0} isFirst />
+            
+            {model.cells.map((cell, index) => (
+              <React.Fragment key={cell.id}>
+                {/* Render the cell */}
+                <div className="cell-wrapper">
+                  {renderCell(cell, index)}
+                </div>
+                
+                {/* Add separator after each cell (except the last one gets a special separator) */}
+                <CellSeparator 
+                  onAddCell={addCell} 
+                  insertIndex={index + 1}
+                  isLast={index === model.cells.length - 1}
+                />
+              </React.Fragment>
+            ))}
           </div>
         )}
       </div>

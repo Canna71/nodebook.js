@@ -24,8 +24,8 @@ function AppContent() {
             const fs = getFileSystemHelpers();
             // fs.loadNotebook("../../examples/danfojs-plotting-example.json")
             // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/danfojs-plotting-example.json");
-            loadNotebook("/Users/gcannata/Projects/notebookjs/examples/d3-visualization-example.json");
-            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/pricingModel.json");
+            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/d3-visualization-example.json");
+            loadNotebook("/Users/gcannata/Projects/notebookjs/examples/pricingModel.json");
             
         }
     }, [currentModel, loadNotebook]);
