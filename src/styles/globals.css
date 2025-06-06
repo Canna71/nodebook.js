@@ -193,6 +193,38 @@
   .cell-container .cell-controls {
     @apply z-10;
   }
+  
+  /* React JSON View specific styles */
+  .json-view-container {
+    @apply relative z-20;
+    pointer-events: all;
+  }
+  
+  /* Ensure react-json-view elements are clickable */
+  .json-view-container .react-json-view {
+    pointer-events: all !important;
+  }
+  
+  /* Style the expand/collapse icons specifically */
+  .json-view-container .icon-container {
+    pointer-events: all !important;
+    cursor: pointer !important;
+    z-index: 100 !important;
+    position: relative !important;
+  }
+  
+  /* Ensure the triangle icons are clickable */
+  .json-view-container .collapsed-icon,
+  .json-view-container .expanded-icon {
+    pointer-events: all !important;
+    cursor: pointer !important;
+  }
+  
+  /* Make sure object keys and brackets are clickable for collapse/expand */
+  .json-view-container .object-key-val,
+  .json-view-container .array-key-val {
+    pointer-events: all !important;
+  }
 }
 
 /* @utility border-err {

@@ -187,7 +187,15 @@ export function CellContainer({
                             ? 'border-accent/50 shadow-md' 
                             : 'border-border'
                 }`}
-                onClick={onSelect}
+                onClick={(e) => {
+                    // Only select cell if clicking on the container itself, not on interactive elements
+                    const target = e.target as HTMLElement;
+                    const isInteractiveElement = target.closest('.json-view-container, .cm-editor, input, button, select, textarea, [role="button"]');
+                    
+                    if (!isInteractiveElement) {
+                        onSelect();
+                    }
+                }}
             >
                 {/* Left Cell Type Indicator */}
                 <div className="cell-type-indicator flex flex-col items-center justify-start px-1 py-2 bg-background-secondary border-r border-border rounded-l-lg">
