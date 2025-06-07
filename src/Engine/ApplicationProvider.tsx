@@ -65,32 +65,30 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
             setError('No notebook to save');
             return;
         }
-
+        
         const targetPath = filePath || state.currentFilePath;
         if (!targetPath) {
             setError('No file path specified');
             return;
         }
+        
 
-        setLoading(true);
         setError(null);
 
         try {
             const fs = getFileSystemHelpers();
             await fs.saveNotebook(state.currentModel, targetPath);
             
-            setState((prev:ApplicationState) => ({
+            setState((prev: ApplicationState) => ({
                 ...prev,
                 currentFilePath: targetPath,
                 isDirty: false,
-                isLoading: false,
             }));
             
             log.info('Notebook saved successfully:', targetPath);
         } catch (error) {
             log.error('Error saving notebook:', error);
             setError(`Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
-            setLoading(false);
         }
     }, [state.currentModel, state.currentFilePath]);
 
@@ -111,10 +109,10 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
     }, []);
 
     const setModel = useCallback((model: NotebookModel) => {
-        setState((prev:ApplicationState) => ({
+        setState((prev: ApplicationState) => ({
             ...prev,
             currentModel: model,
-            isDirty: true,
+            isDirty: true, // Only mark dirty when model content changes
         }));
     }, []);
 
@@ -151,15 +149,27 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
                 }
             },
             'menu-save-notebook': async () => {
-                if (state.currentFilePath) {
-                    await saveNotebook(); // Call local function with existing path
-                } else {
-                    // No current path, show save dialog
-                    await showSaveAsDialog();
+                try {
+                    if (state.currentFilePath) {
+                        await saveNotebook(); // Call local function with existing path
+                    } else {
+                        // No current path, show save dialog
+                        await showSaveAsDialog();
+                    }
+                } catch (error) {
+                    console.error('Save failed:', error);
+                    await window.api.showErrorBox('Save Failed', 
+                        `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
                 }
             },
             'menu-save-notebook-as': async () => {
-                await showSaveAsDialog();
+                try {
+                    await showSaveAsDialog();
+                } catch (error) {
+                    console.error('Save As failed:', error);
+                    await window.api.showErrorBox('Save Failed', 
+                        `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                }
             },
             'menu-export-json': () => {
                 exportAsJson();
@@ -212,7 +222,7 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
                 window.api.removeMenuListener(event);
             });
         };
-    }, [state.currentFilePath, loadNotebook, saveNotebook, newNotebook, state.currentModel]); // Add proper dependencies
+    }, [loadNotebook, saveNotebook, newNotebook]); // Include stable callback functions
 
     // Helper function for Save As dialog
     const showSaveAsDialog = async () => {

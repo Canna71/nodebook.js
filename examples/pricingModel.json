@@ -13,7 +13,7 @@
       "label": "Price ($)",
       "inputType": "number",
       "variableName": "price",
-      "value": 11,
+      "value": 12,
       "props": {
         "step": 1
       }
