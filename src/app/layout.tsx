@@ -9,15 +9,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <SidebarInset
                 className="size-full lg:peer-data-[state=collapsed]:max-w-[calc(100vw-var(--sidebar-width-icon))] peer-data-[state=expanded]:max-w-[calc(100vw-var(--sidebar-width))]"
             >
-                {/* <main className="w-full overflow-auto"> */}
-                    <SidebarTrigger />
-                    {children}
-                {/* </main> */}
+                {/* Absolutely positioned SidebarTrigger */}
+                <div className="fixed top-2 left-2 z-50 transition-transform duration-200 ease-in-out lg:peer-data-[state=expanded]:translate-x-[calc(var(--sidebar-width)-0.5rem)] peer-data-[state=collapsed]:translate-x-0">
+                    <SidebarTrigger className="bg-background/80 backdrop-blur-sm border shadow-md hover:bg-background/90" />
+                </div>
+                
+                {/* Main content without trigger taking space */}
+                {children}
             </SidebarInset>
             <Toaster 
                 position="bottom-right"
                 expand={false}
-                // richColors
                 closeButton
             />
         </SidebarProvider>
