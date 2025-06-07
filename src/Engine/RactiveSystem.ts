@@ -351,8 +351,8 @@ export class ReactiveFormulaEngine {
         // Parse dependencies
         const dependencies = this.extractDependencies(formula);
 
-        // Create compute function
-        const computeFn = this.createComputeFunction<T>(formula);
+        // Create compute function that handles missing dependencies
+        const computeFn = this.createSafeComputeFunction<T>(formula, dependencies);
 
         // Define reactive value with initial computation
         const reactiveValue = this.reactiveStore.define<T>(
@@ -362,8 +362,12 @@ export class ReactiveFormulaEngine {
             dependencies
         );
 
-        // Trigger initial computation
-        reactiveValue.get();
+        // Only trigger initial computation if all dependencies exist
+        if (this.allDependenciesExist(dependencies)) {
+            reactiveValue.get();
+        } else {
+            log.debug(`Formula "${name}" dependencies not ready, deferring evaluation:`, dependencies);
+        }
 
         return {
             name,
@@ -492,6 +496,29 @@ export class ReactiveFormulaEngine {
     public evaluate<T>(formula: string): T {
         const computeFn = this.createComputeFunction<T>(formula);
         return computeFn();
+    }
+
+    /**
+     * Check if all dependencies exist in the reactive store
+     */
+    private allDependenciesExist(dependencies: string[]): boolean {
+        return dependencies.every(dep => this.reactiveStore.get(dep) !== undefined);
+    }
+
+    /**
+     * Create a safe compute function that handles missing dependencies gracefully
+     */
+    private createSafeComputeFunction<T>(formula: string, dependencies: string[]): ComputeFn<T> {
+        return () => {
+            // Check if all dependencies are available
+            if (!this.allDependenciesExist(dependencies)) {
+                log.debug(`Formula dependencies not yet available:`, dependencies.filter(dep => !this.reactiveStore.get(dep)));
+                return null as T; // Return null when dependencies are missing
+            }
+
+            // All dependencies exist, proceed with normal evaluation
+            return this.createComputeFunction<T>(formula)();
+        };
     }
 }
 

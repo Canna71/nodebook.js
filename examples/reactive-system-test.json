@@ -55,6 +55,38 @@
       "code": "// Create a visual representation\nconst breakdown = {\n  'Base Price': basePrice,\n  'Tax': taxAmount,\n  'Discount': -discount,\n  'Final Total': finalPrice\n};\n\nconsole.log('\\n📊 Price Breakdown:');\nObject.entries(breakdown).forEach(([label, amount]) => {\n  const sign = amount >= 0 ? '+' : '';\n  console.log(`${label}: ${sign}$${amount.toFixed(2)}`);\n});\n\n// Export the breakdown for potential use elsewhere\nexports.priceBreakdown = breakdown;"
     },
     {
+      "type": "formula",
+      "id": "formatted-final-price",
+      "label": "Final Price (Formatted)",
+      "variableName": "formattedFinalPrice",
+      "formula": "$finalPrice",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "formula",
+      "id": "tax-rate-percentage",
+      "label": "Tax Rate (Formatted)",
+      "variableName": "formattedTaxRate",
+      "formula": "$taxRate",
+      "outputFormat": "percentage",
+      "decimals": 1
+    },
+    {
+      "type": "formula",
+      "id": "savings-calculation",
+      "label": "Potential Savings",
+      "variableName": "potentialSavings",
+      "formula": "$discount > 0 ? $discount : 0",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "markdown",
+      "id": "formatting-test",
+      "content": "### Formatting System Test\n\nThe formula cells above demonstrate the unified formatting system:\n\n- **Currency Formatting**: Displays monetary values with proper currency symbols\n- **Percentage Formatting**: Shows tax rate as a proper percentage\n- **Conditional Logic**: Shows savings only when discount is applied\n\nThese should update reactively when you change the input values above."
+    },
+    {
       "type": "markdown",
       "id": "test-status",
       "content": "### Reactive Test Status\n\n✅ **Input Values:**\n- Base Price: ${{basePrice}}\n- Tax Rate: {{taxRate}}%\n\n✅ **Calculated Values:**\n- Tax Amount: ${{taxAmount?.toFixed(2) || 'Not calculated'}}\n- Final Price: ${{finalPrice?.toFixed(2) || 'Not calculated'}}\n\n{{priceBreakdown ? '✅ **Price Breakdown Available**' : '❌ **Price Breakdown Missing**'}}\n\n---\n\n**Instructions:** Try changing the input values above. The calculations and this summary should update automatically if the reactive system is working correctly.",

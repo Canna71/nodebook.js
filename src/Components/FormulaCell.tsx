@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import Editor from './Editor';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { log } from './DynamicNotebook';
+import { formatValue } from '@/lib/formatters';
 
 interface FormulaCellProps {
   definition: FormulaCellDefinition;
@@ -111,35 +112,10 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
     setDirty(true);
   };
 
-  const formatValue = (val: any): string => {
-    if (val === null || val === undefined) return 'Not calculated';
-    
-    switch (definition.outputFormat) {
-      case 'currency':
-        return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: definition.decimals ?? 2,
-          maximumFractionDigits: definition.decimals ?? 2
-        }).format(Number(val));
-      
-      case 'percentage':
-        return new Intl.NumberFormat('en-US', {
-          style: 'percent',
-          minimumFractionDigits: definition.decimals ?? 2,
-          maximumFractionDigits: definition.decimals ?? 2
-        }).format(Number(val) / 100);
-      
-      case 'number':
-        return new Intl.NumberFormat('en-US', {
-          minimumFractionDigits: definition.decimals ?? 2,
-          maximumFractionDigits: definition.decimals ?? 2
-        }).format(Number(val));
-      
-      case 'text':
-      default:
-        return String(val);
-    }
+  const formatCellValue = (val: any): string => {
+    return formatValue(val, definition.outputFormat || 'number', {
+      decimals: definition.decimals
+    });
   };
 
   const renderEditMode = () => {
@@ -274,7 +250,7 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
             <span className="text-destructive text-xs">Error: {error}</span>
           ) : (
             <span className="font-mono text-accent-foreground">
-              {formatValue(value)}
+              {formatCellValue(value)}
             </span>
           )}
         </div>
@@ -298,7 +274,7 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
           <span className="text-destructive text-xs">Error</span>
         ) : (
           <span className="font-mono text-accent-foreground">
-            {formatValue(value)}
+            {formatCellValue(value)}
           </span>
         )}
       </div>
