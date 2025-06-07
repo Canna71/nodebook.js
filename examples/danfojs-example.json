@@ -1,6 +1,6 @@
 {
   "id": "danfojs-minimal-example",
-  "name": "Danfo.js Minimal Example", 
+  "name": "Danfo.js Minimal Example",
   "title": "Danfo.js Minimal Example",
   "description": "A minimal notebook showing Danfo.js DataFrame creation and column operations using exports object.",
   "reactiveValues": [],
@@ -24,7 +24,7 @@
     {
       "type": "code",
       "id": "add-column",
-      "code": "// Add a new column C = A + B (immutable approach)\nexports.df2 = df.addColumn('C', df['A'].add(df['B']), { inplace: false });\nconsole.log('New DataFrame with column C:');\nexports.df2.print();\n\n// Output operation result\noutput({\n  operation: 'addColumn',\n  newColumn: 'C',\n  originalShape: exports.df.shape,\n  newShape: exports.df2.shape,\n  columnC_values: exports.df2['C'].values,\n  inplace: false\n});"
+      "code": "// Add a new column C = A + B (immutable approach)\nexports.df2 = df.addColumn('C', df['A'].add(df['B']), { inplace: false });\nconsole.log('New DataFrame with column C:');\nexports.df2.print();\n\n// Output operation result\noutput({\n  operation: 'addColumn',\n  newColumn: 'C',\n  originalShape: df.shape,\n  newShape: exports.df2.shape,\n  columnC_values: exports.df2['C'].values,\n  inplace: false\n});"
     },
     {
       "type": "code",
@@ -43,6 +43,10 @@
     }
   ],
   "metadata": {
-    "tags": ["danfojs", "minimal", "dataframe"]
+    "tags": [
+      "danfojs",
+      "minimal",
+      "dataframe"
+    ]
   }
 }
