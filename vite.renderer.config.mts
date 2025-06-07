@@ -9,4 +9,13 @@ export default defineConfig({
     resolve: {
         alias: [{ find: "@", replacement: path.resolve("./src") }],
     },
+    server: {
+        watch: {
+            ignored: [
+                '**/examples/**',
+                '**/node_modules/**',
+                '**/.git/**'
+            ]
+        }
+    }
 });
