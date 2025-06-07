@@ -8,15 +8,32 @@ export interface ConsoleOutputProps {
 
 // Render individual console output line
 const ConsoleOutput = (output: any, index: number) => {
-    const prefix = output.type === 'log' ? '' : `[${output.type.toUpperCase()}] `;
+    const timestamp = output.timestamp ? new Date(output.timestamp).toLocaleTimeString() : '';
+    
+    // Determine display style based on log level
+    const getLogLevelPrefix = (type: string) => {
+        switch (type) {
+            case 'error': return '✗';
+            case 'warn': return '⚠';
+            case 'info': return 'ℹ';
+            case 'log': default: return '';
+        }
+    };
+
+    const prefix = getLogLevelPrefix(output.type);
 
     if (output.isObject && output.data) {
         return (
-            <div key={index} className="console-line mb-3">
-                <div className="mb-1">
-                    <span className="text-xs text-foreground">{prefix}</span>
-                </div>
-                <div className="ml-0">
+            <div key={index} className="console-line mb-3 flex gap-2 text-xs" data-log-level={output.type}>
+                <span className="timestamp text-muted-foreground/60 shrink-0 font-mono">
+                    {timestamp}
+                </span>
+                {prefix && (
+                    <span className="log-prefix shrink-0">
+                        {prefix}
+                    </span>
+                )}
+                <span className="log-message font-mono break-all ml-0">
                     {Array.isArray(output.data) ? (
                         // Mixed arguments - render each one appropriately
                         <div className="space-y-2">
@@ -52,14 +69,24 @@ const ConsoleOutput = (output: any, index: number) => {
                             displayDataTypes={false}
                             displayObjectSize={false} />
                     )}
-                </div>
+                </span>
             </div>
         );
     }
 
     return (
-        <div key={index} className="console-line">
-            <span className="text-xs">{prefix}{output.message}</span>
+        <div key={index} className="console-line flex gap-2 text-xs" data-log-level={output.type}>
+            <span className="timestamp text-muted-foreground/60 shrink-0 font-mono">
+                {timestamp}
+            </span>
+            {prefix && (
+                <span className="log-prefix shrink-0">
+                    {prefix}
+                </span>
+            )}
+            <span className="log-message font-mono break-all">
+                {output.message}
+            </span>
         </div>
     );
 };

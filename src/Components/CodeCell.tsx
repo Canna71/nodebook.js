@@ -146,17 +146,14 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                 style={{ minHeight: '0px' }}
             />
 
-            {/* --- Enhanced Output Values Display --- */}
+            {/* Output Values Display - No explicit label */}
             {outputValues.length > 0 && (
                 <div className="output-values bg-background-secondary px-4 py-3 border-t border-border">
-                    <div className="text-xs font-medium text-foreground mb-2">
-                        Output Values {outputValues.length > 1 && `(${outputValues.length})`}:
-                    </div>
                     <div className="output-content space-y-2">
                         {outputValues.map((value, index) => (
                             <div key={index} className="output-item">
                                 {outputValues.length > 1 && (
-                                    <div className="text-xs text-foreground mb-1">#{index + 1}:</div>
+                                    <div className="text-xs text-secondary-foreground mb-1">#{index + 1}:</div>
                                 )}
                                 {value instanceof HTMLElement || value instanceof SVGElement ? (
                                     <DomElementDisplay
@@ -181,10 +178,9 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                 </div>
             )}
 
-            {/* Console Output Display */}
+            {/* Console Output Display - Styled like terminal/log */}
             {consoleOutput.length > 0 && (
-                <div className="console-output bg-background text-foreground px-4 py-3 border-t border-border">
-                    <div className="text-xs font-medium text-foreground mb-2">Console Output:</div>
+                <div className="console-output bg-muted/30 px-4 py-3 border-t border-border font-mono text-xs">
                     <div className="space-y-1">
                         {consoleOutput.map((output, index) => ConsoleOutput(output, index))}
                     </div>

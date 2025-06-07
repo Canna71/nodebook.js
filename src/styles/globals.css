@@ -145,7 +145,43 @@
     @apply z-10;
   }
   
-
+  /* Console output styling - terminal-like appearance */
+  .console-output {
+    position: relative;
+  }
+  
+  /* Add subtle terminal-like styling */
+  .console-output::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  }
+  
+  /* Console output text styling */
+  .console-output .space-y-1 > * {
+    @apply text-muted-foreground leading-tight;
+  }
+  
+  /* Console log level styling */
+  .console-output [data-log-level="error"] {
+    @apply text-red-400;
+  }
+  
+  .console-output [data-log-level="warn"] {
+    @apply text-yellow-400;
+  }
+  
+  .console-output [data-log-level="info"] {
+    @apply text-blue-400;
+  }
+  
+  .console-output [data-log-level="log"] {
+    @apply text-muted-foreground;
+  }
 }
 
 /* @utility border-err {
