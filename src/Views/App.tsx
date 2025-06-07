@@ -27,7 +27,7 @@ function AppContent() {
             // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/danfojs-example.json");
             // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/d3-visualization-example.json");
             // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/pricingModel.json");
-            loadNotebook("/Users/gcannata/Projects/notebookjs/examples/runtime-completions-test.json");
+            loadNotebook("/Users/gcannata/Projects/notebookjs/examples/reactive-system-test.json");
             
         }
     }, [currentModel, loadNotebook]);

@@ -1,0 +1,70 @@
+{
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "header",
+      "content": "<h2>Reactive System Test</h2><p>Test input cell → code cell → markdown cell reactivity</p>"
+    },
+    {
+      "type": "input",
+      "id": "base-price-input",
+      "label": "Base Price ($)",
+      "inputType": "number",
+      "variableName": "basePrice",
+      "value": 100,
+      "props": {
+        "min": 0,
+        "max": 1000,
+        "step": 1
+      }
+    },
+    {
+      "type": "input",
+      "id": "tax-rate-input",
+      "label": "Tax Rate (%)",
+      "inputType": "number",
+      "variableName": "taxRate",
+      "value": 8.5,
+      "props": {
+        "min": 0,
+        "max": 50,
+        "step": 0.1
+      }
+    },
+    {
+      "type": "code",
+      "id": "price-calculation",
+      "code": "// Calculate total price with tax\nconst taxAmount = basePrice * (taxRate / 100);\nconst totalPrice = basePrice + taxAmount;\nconst discount = basePrice > 500 ? basePrice * 0.1 : 0;\nconst finalPrice = totalPrice - discount;\n\n// Export variables for use in other cells\nexports.taxAmount = taxAmount;\nexports.totalPrice = totalPrice;\nexports.discount = discount;\nexports.finalPrice = finalPrice;\n\nconsole.log('Price Calculation:');\nconsole.log('Base Price:', basePrice);\nconsole.log('Tax Rate:', taxRate + '%');\nconsole.log('Tax Amount:', taxAmount.toFixed(2));\nconsole.log('Total Price:', totalPrice.toFixed(2));\nconsole.log('Discount:', discount.toFixed(2));\nconsole.log('Final Price:', finalPrice.toFixed(2));"
+    },
+    {
+      "type": "markdown",
+      "id": "price-summary",
+      "content": "## Price Summary\n\n**Base Price:** ${{basePrice}}\n\n**Tax Rate:** {{taxRate}}%\n\n**Tax Amount:** ${{taxAmount?.toFixed(2) || '0.00'}}\n\n**Subtotal:** ${{totalPrice?.toFixed(2) || '0.00'}}\n\n**Discount:** ${{discount?.toFixed(2) || '0.00'}}\n\n**Final Price:** ${{finalPrice?.toFixed(2) || '0.00'}}\n\n---\n\n{{discount > 0 ? '🎉 **You qualify for a bulk discount!**' : 'No discount applied.'}}\n\n{{finalPrice > 200 ? '⚠️ **High value purchase**' : '✅ **Standard purchase**'}}",
+      "variables": [
+        "basePrice",
+        "taxRate",
+        "taxAmount",
+        "totalPrice", 
+        "discount",
+        "finalPrice"
+      ]
+    },
+    {
+      "type": "code",
+      "id": "breakdown-calculation",
+      "code": "// Create a visual representation\nconst breakdown = {\n  'Base Price': basePrice,\n  'Tax': taxAmount,\n  'Discount': -discount,\n  'Final Total': finalPrice\n};\n\nconsole.log('\\n📊 Price Breakdown:');\nObject.entries(breakdown).forEach(([label, amount]) => {\n  const sign = amount >= 0 ? '+' : '';\n  console.log(`${label}: ${sign}$${amount.toFixed(2)}`);\n});\n\n// Export the breakdown for potential use elsewhere\nexports.priceBreakdown = breakdown;"
+    },
+    {
+      "type": "markdown",
+      "id": "test-status",
+      "content": "### Reactive Test Status\n\n✅ **Input Values:**\n- Base Price: ${{basePrice}}\n- Tax Rate: {{taxRate}}%\n\n✅ **Calculated Values:**\n- Tax Amount: ${{taxAmount?.toFixed(2) || 'Not calculated'}}\n- Final Price: ${{finalPrice?.toFixed(2) || 'Not calculated'}}\n\n{{priceBreakdown ? '✅ **Price Breakdown Available**' : '❌ **Price Breakdown Missing**'}}\n\n---\n\n**Instructions:** Try changing the input values above. The calculations and this summary should update automatically if the reactive system is working correctly.",
+      "variables": [
+        "basePrice",
+        "taxRate", 
+        "taxAmount",
+        "finalPrice",
+        "priceBreakdown"
+      ]
+    }
+  ]
+}
