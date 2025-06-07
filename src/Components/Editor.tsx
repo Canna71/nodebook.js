@@ -171,7 +171,9 @@ function getLanguageExtension(
                                 // Add runtime scope variables (reactive variables + runtime exports)
                                 if (runtimeCompletions && runtimeCompletions.getScopeVariables) {
                                     try {
+                                        console.log('Calling getScopeVariables...');
                                         const scopeVars = await runtimeCompletions.getScopeVariables()
+                                        console.log('getScopeVariables returned:', scopeVars);
                                         if (Array.isArray(scopeVars)) {
                                             const existingLabels = new Set(allOptions.map(opt => opt.label))
                                             const scopeList = scopeVars
@@ -182,6 +184,7 @@ function getLanguageExtension(
                                                     v.label.length > 0 &&
                                                     !existingLabels.has(v.label)
                                                 )
+                                            console.log('Filtered scope variables:', scopeList);
                                             allOptions.push(...scopeList)
                                         }
                                     } catch (error) {

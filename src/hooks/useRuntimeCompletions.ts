@@ -221,68 +221,71 @@ export function useRuntimeCompletions(cellId: string) {
 
             // Then introspect the runtime scope
             const scopeIntrospectionCode = `
-                (function() {
-                    const variables = [];
-                    
-                    // Get all variables from different scopes
-                    try {
-                        // Global variables from the cell context
-                        const globalVars = Object.getOwnPropertyNames(globalThis);
-                        globalVars.forEach(varName => {
-                            if (!varName.startsWith('_') && 
-                                !['console', 'Math', 'Object', 'Array', 'String', 'Number', 'Boolean', 'Function', 'Symbol', 'BigInt'].includes(varName)) {
-                                try {
-                                    const value = globalThis[varName];
-                                    variables.push({
-                                        label: varName,
-                                        type: typeof value === 'function' ? 'function' : 'variable',
-                                        info: varName + ': ' + typeof value,
-                                        detail: 'Runtime Scope',
-                                        apply: varName
-                                    });
-                                } catch (e) {}
-                            }
-                        });
-                        
-                        // Check for exported variables from other cells
-                        if (typeof exports !== 'undefined') {
-                            Object.getOwnPropertyNames(exports).forEach(varName => {
-                                try {
-                                    const value = exports[varName];
-                                    variables.push({
-                                        label: varName,
-                                        type: typeof value === 'function' ? 'function' : 'variable',
-                                        info: varName + ': ' + typeof value + ' (exported)',
-                                        detail: 'Cell Export',
-                                        apply: varName
-                                    });
-                                } catch (e) {}
-                            });
+                const variables = [];
+                
+                // Get all variables from different scopes
+                try {
+                    // Global variables from the cell context
+                    const globalVars = Object.getOwnPropertyNames(globalThis);
+                    globalVars.forEach(varName => {
+                        if (!varName.startsWith('_') && 
+                            !['console', 'Math', 'Object', 'Array', 'String', 'Number', 'Boolean', 'Function', 'Symbol', 'BigInt'].includes(varName)) {
+                            try {
+                                const value = globalThis[varName];
+                                variables.push({
+                                    label: varName,
+                                    type: typeof value === 'function' ? 'function' : 'variable',
+                                    info: varName + ': ' + typeof value,
+                                    detail: 'Runtime Scope',
+                                    apply: varName
+                                });
+                            } catch (e) {}
                         }
-                        
-                        console.log('Runtime scope variables found:', variables);
-                        return variables;
-                    } catch (error) {
-                        return [];
+                    });
+                    
+                    // Check for exported variables from other cells
+                    if (typeof exports !== 'undefined') {
+                        Object.getOwnPropertyNames(exports).forEach(varName => {
+                            try {
+                                const value = exports[varName];
+                                variables.push({
+                                    label: varName,
+                                    type: typeof value === 'function' ? 'function' : 'variable',
+                                    info: varName + ': ' + typeof value + ' (exported)',
+                                    detail: 'Cell Export',
+                                    apply: varName
+                                });
+                            } catch (e) {}
+                        });
                     }
-                })()
+                    
+                    console.log('Runtime scope variables found:', variables);
+                    return variables; // Return the variables array
+                } catch (error) {
+                    console.error('Error in scope introspection:', error);
+                    return [];
+                }
             `;
 
             const result = await codeCellEngine.evaluateInCellContext(cellId, scopeIntrospectionCode);
             const runtimeVariables = Array.isArray(result) ? result : [];
+            console.log('Runtime variables after evaluation:', runtimeVariables.length, 'items');
             
             // Combine both sources, avoiding duplicates
             const allVariables = [...reactiveVariables];
             const reactiveLabels = new Set(reactiveVariables.map(v => v.label));
             
+            let addedCount = 0;
             runtimeVariables.forEach(variable => {
                 if (variable && typeof variable === 'object' && 
                     typeof variable.label === 'string' && 
                     !reactiveLabels.has(variable.label)) {
                     allVariables.push(variable);
+                    addedCount++;
                 }
             });
             
+            console.log('Added', addedCount, 'runtime variables to completions. Total:', allVariables.length);
             return allVariables;
         } catch (error) {
             console.warn('Error getting scope variables:', error);
