@@ -13,10 +13,9 @@
       "label": "Price ($)",
       "inputType": "number",
       "variableName": "price",
-      "value": 100,
+      "value": 11,
       "props": {
-        "min": 0,
-        "step": 0.01
+        "step": 1
       }
     },
     {
@@ -80,19 +79,25 @@
       "type": "markdown",
       "id": "subtotal-display",
       "content": "**Subtotal:** ${{subtotal | round,2}}",
-      "variables": ["subtotal"]
+      "variables": [
+        "subtotal"
+      ]
     },
     {
       "type": "markdown",
       "id": "discount-display",
       "content": "**Discount:** ${{discount | round,2}}",
-      "variables": ["discount"]
+      "variables": [
+        "discount"
+      ]
     },
     {
       "type": "markdown",
       "id": "total-display",
       "content": "<h3>**Total:** {{total | currency}}</h3>",
-      "variables": ["total"]
+      "variables": [
+        "total"
+      ]
     },
     {
       "type": "code",
@@ -103,7 +108,11 @@
       "type": "markdown",
       "id": "tax-display",
       "content": "**Tax ({{taxRate | percent}}):** {{finalTaxAmount | currency}}<br>**Final Total:** {{finalTotal | currency}}",
-      "variables": ["taxRate", "finalTaxAmount", "finalTotal"]
+      "variables": [
+        "taxRate",
+        "finalTaxAmount",
+        "finalTotal"
+      ]
     }
   ]
 }

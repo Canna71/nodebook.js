@@ -227,14 +227,17 @@ export class FileSystemHelpers {
     /**
      * Save a user notebook
      */
-    public async saveNotebook(notebook: NotebookModel, filename?: string): Promise<FileSystemResult<string>> {
+    public async saveNotebook(notebook: NotebookModel, filePath: string): Promise<FileSystemResult<string>> {
         try {
-            // Use provided filename or generate one from available properties, falling back to a default
-            const fileName = filename ||
-                `${(notebook as any).id || (notebook as any).title || 'notebook'}.json`;
-            const filePath = path.join(this.userNotebooksPath, fileName);
-
+            // Use the provided full file path directly
             const jsonContent = JSON.stringify(notebook, null, 2);
+
+            // Ensure directory exists
+            const directory = path.dirname(filePath);
+            if (!fs.existsSync(directory)) {
+                fs.mkdirSync(directory, { recursive: true });
+                log.debug(`Created directory: ${directory}`);
+            }
 
             await fs.promises.writeFile(filePath, jsonContent, 'utf8');
 
@@ -254,18 +257,17 @@ export class FileSystemHelpers {
     }
 
     /**
-     * Load a user notebook from the notebooks folder
+     * Load a user notebook from the provided file path
      */
     public async loadNotebook(filePath: string): Promise<FileSystemResult<NotebookModel>> {
         try {
-            // const filePath = path.join(this.userNotebooksPath, filename);
-            // fs.exists
-            // if (!fs.existsSync(filePath)) {
-            //     return {
-            //         success: false,
-            //         error: `Notebook file not found: ${filePath}`
-            //     };
-            // }
+            // Use the provided full file path directly
+            if (!fs.existsSync(filePath)) {
+                return {
+                    success: false,
+                    error: `Notebook file not found: ${filePath}`
+                };
+            }
 
             const content = await fs.promises.readFile(filePath, 'utf8');
             const notebook: NotebookModel = JSON.parse(content);
@@ -278,7 +280,7 @@ export class FileSystemHelpers {
         } catch (error) {
             const errorMsg = `Failed to load notebook ${filePath}: ${error instanceof Error ? error.message : String(error)}`;
             log.error(errorMsg, error);
-            window.api.showErrorBox('Load Notebook Error', errorMsg);
+            await window.api.showErrorBox('Load Notebook Error', errorMsg);
             return {
                 success: false,
                 error: errorMsg
