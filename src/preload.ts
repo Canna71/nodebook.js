@@ -7,13 +7,6 @@ import { ElectronApi } from "./lib/electronHelpers";
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 // const { ipcRenderer } = require('electron');
 import {  ipcRenderer } from 'electron';
-// contextBridge.exposeInMainWorld('api', {
-// //   node: () => process.versions.node,
-// //   chrome: () => process.versions.chrome,
-// //   electron: () => process.versions.electron,
-//   getUserDataPath: () => ipcRenderer.invoke('get-user-data-path'),
-//   // we can also expose variables, not just functions
-// })
 
 const api : ElectronApi = {
     getUserDataPath: () => ipcRenderer.invoke('get-user-data-path'),
@@ -25,7 +18,16 @@ const api : ElectronApi = {
     getAppVersion: () => ipcRenderer.invoke('get-app-version'),
     getAppPath: () => ipcRenderer.invoke('get-app-path'),
     getAppName: () => ipcRenderer.invoke('get-app-name'),
-    getAppLocale: () => ipcRenderer.invoke('get-app-locale')  
+    getAppLocale: () => ipcRenderer.invoke('get-app-locale'),
+    
+    // Menu event handling
+    onMenuAction: (event: string, callback: (...args: any[]) => void) => {
+        ipcRenderer.on(event, (_, ...args) => callback(...args));
+    },
+    
+    removeMenuListener: (event: string) => {
+        ipcRenderer.removeAllListeners(event);
+    }
 };
 
 window.api = api;

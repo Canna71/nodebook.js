@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { NotebookModel } from '@/Types/NotebookModel';
 import { ApplicationState, ApplicationContextType, ApplicationProviderProps } from '@/Types/ApplicationTypes';
 import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
@@ -121,6 +121,252 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
     const setDirty = useCallback((dirty: boolean) => {
         setState((prev:ApplicationState) => ({ ...prev, isDirty: dirty }));
     }, []);
+
+    // Add menu event handlers
+    useEffect(() => {
+        if (!window.api) return;
+
+        const handleMenuEvent = {
+            'menu-new-notebook': () => {
+                newNotebook(); // Call the local function
+            },
+            'menu-open-notebook': async () => {
+                // Use window.api to show file dialog, then call local loadNotebook
+                try {
+                    const result = await window.api.openFileDialog({
+                        title: 'Open Notebook',
+                        filters: [
+                            { name: 'Notebook Files', extensions: ['notebook', 'json'] },
+                            { name: 'All Files', extensions: ['*'] }
+                        ]
+                    });
+
+                    if (!result.canceled && result.filePaths.length > 0) {
+                        await loadNotebook(result.filePaths[0]);
+                    }
+                } catch (error) {
+                    console.error('Error opening notebook:', error);
+                    await window.api.showErrorBox('Open Failed', 
+                        `Failed to open notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                }
+            },
+            'menu-save-notebook': async () => {
+                if (state.currentFilePath) {
+                    await saveNotebook(); // Call local function with existing path
+                } else {
+                    // No current path, show save dialog
+                    await showSaveAsDialog();
+                }
+            },
+            'menu-save-notebook-as': async () => {
+                await showSaveAsDialog();
+            },
+            'menu-export-json': () => {
+                exportAsJson();
+            },
+            'menu-about': () => {
+                showAboutDialog();
+            },
+            'menu-welcome': () => {
+                showWelcomeDialog();
+            },
+            'menu-shortcuts': () => {
+                showShortcutsDialog();
+            },
+            'menu-documentation': () => {
+                showDocumentationDialog();
+            },
+            'menu-insert-cell': (cellType: string) => {
+                // This will be handled by DynamicNotebook
+                window.dispatchEvent(new CustomEvent('insert-cell', { detail: { cellType } }));
+            },
+            'menu-run-cell': () => {
+                window.dispatchEvent(new CustomEvent('run-cell'));
+            },
+            'menu-run-all-cells': () => {
+                window.dispatchEvent(new CustomEvent('run-all-cells'));
+            },
+            'menu-clear-cell-output': () => {
+                window.dispatchEvent(new CustomEvent('clear-cell-output'));
+            },
+            'menu-clear-all-outputs': () => {
+                window.dispatchEvent(new CustomEvent('clear-all-outputs'));
+            },
+            'menu-delete-cell': () => {
+                window.dispatchEvent(new CustomEvent('delete-cell'));
+            },
+            'menu-find': () => {
+                // Implement find functionality
+                window.dispatchEvent(new CustomEvent('find-in-notebook'));
+            }
+        };
+
+        // Register all menu event listeners
+        Object.entries(handleMenuEvent).forEach(([event, handler]) => {
+            window.api.onMenuAction(event, handler);
+        });
+
+        // Cleanup function
+        return () => {
+            Object.keys(handleMenuEvent).forEach(event => {
+                window.api.removeMenuListener(event);
+            });
+        };
+    }, [state.currentFilePath, loadNotebook, saveNotebook, newNotebook, state.currentModel]); // Add proper dependencies
+
+    // Helper function for Save As dialog
+    const showSaveAsDialog = async () => {
+        if (!state.currentModel) return;
+        
+        try {
+            const result = await window.api.saveFileDialog({
+                title: 'Save Notebook As',
+                defaultPath: `${state.currentModel.title || 'notebook'}.notebook`,
+                filters: [
+                    { name: 'Notebook Files', extensions: ['notebook'] },
+                    { name: 'JSON Files', extensions: ['json'] },
+                    { name: 'All Files', extensions: ['*'] }
+                ]
+            });
+
+            if (!result.canceled && result.filePath) {
+                await saveNotebook(result.filePath);
+            }
+        } catch (error) {
+            console.error('Save As failed:', error);
+            await window.api.showErrorBox('Save Failed', 
+                `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    };
+
+    // Menu dialog functions
+    const showAboutDialog = async () => {
+        const version = await window.api.getAppVersion();
+        await window.api.showMessageBox({
+            type: 'info',
+            title: 'About NotebookJS',
+            message: 'NotebookJS',
+            detail: `Version: ${version}\n\nA reactive notebook application for interactive computing and data analysis.`
+        });
+    };
+
+    const showWelcomeDialog = () => {
+        // Helper function to generate ID
+        const generateId = () => `cell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Create a welcome tutorial notebook
+        const welcomeNotebook: NotebookModel = {
+            title: 'Welcome to NotebookJS',
+            description: 'Learn the basics of reactive notebooks',
+            cells: [
+                {
+                    type: 'markdown',
+                    id: generateId(),
+                    content: '# Welcome to NotebookJS!\n\nThis is a reactive notebook that lets you create interactive documents with code, formulas, and rich content.'
+                },
+                {
+                    type: 'input',
+                    id: generateId(),
+                    inputType: 'number',
+                    variableName: 'x',
+                    value: 10,
+                    label: 'Input Value'
+                },
+                {
+                    type: 'formula',
+                    id: generateId(),
+                    variableName: 'doubled',
+                    formula: '$x * 2',
+                    label: 'Double the input'
+                },
+                {
+                    type: 'markdown',
+                    id: generateId(),
+                    content: 'The result is: **{{doubled}}**\n\nTry changing the input value above and watch the result update automatically!'
+                }
+            ]
+        };
+        
+        setModel(welcomeNotebook);
+        setState(prev => ({ ...prev, currentFilePath: null, isDirty: false }));
+    };
+
+    const showShortcutsDialog = async () => {
+        await window.api.showMessageBox({
+            type: 'info',
+            title: 'Keyboard Shortcuts',
+            message: 'NotebookJS Shortcuts',
+            detail: `File Operations:
+• Ctrl/Cmd+N - New Notebook
+• Ctrl/Cmd+O - Open Notebook
+• Ctrl/Cmd+S - Save
+• Ctrl/Cmd+Shift+S - Save As
+
+Cell Operations:
+• Ctrl/Cmd+Shift+C - Insert Code Cell
+• Ctrl/Cmd+Shift+M - Insert Markdown Cell
+• Ctrl/Cmd+Shift+F - Insert Formula Cell
+• Ctrl/Cmd+Shift+I - Insert Input Cell
+• Shift+Enter - Run Cell
+• Ctrl/Cmd+Shift+Enter - Run All Cells
+• Ctrl/Cmd+Shift+D - Delete Cell
+
+View:
+• Ctrl/Cmd+R - Reload
+• F11/Ctrl+Cmd+F - Toggle Fullscreen
+• Ctrl/Cmd+0 - Reset Zoom`
+        });
+    };
+
+    const showDocumentationDialog = async () => {
+        await window.api.showMessageBox({
+            type: 'info',
+            title: 'Documentation',
+            message: 'NotebookJS Documentation',
+            detail: `Cell Types:
+• Code Cells: Write JavaScript code with reactive variables
+• Formula Cells: Create calculated values using $variable syntax
+• Input Cells: Interactive controls (sliders, inputs, checkboxes)
+• Markdown Cells: Rich text with {{variable}} interpolation
+
+Reactive System:
+Variables automatically update when their dependencies change, creating a live, interactive document.`
+        });
+    };
+
+    const exportAsJson = async () => {
+        if (!state.currentModel) return;
+        
+        try {
+            const result = await window.api.saveFileDialog({
+                title: 'Export as JSON',
+                defaultPath: `${state.currentModel.title || 'notebook'}.json`,
+                filters: [
+                    { name: 'JSON Files', extensions: ['json'] },
+                    { name: 'All Files', extensions: ['*'] }
+                ]
+            });
+
+            if (!result.canceled && result.filePath) {
+                const jsonData = JSON.stringify(state.currentModel, null, 2);
+                
+                // Use Node.js fs module directly since we're in Electron
+                const fs = require('fs');
+                await fs.promises.writeFile(result.filePath, jsonData, 'utf8');
+                
+                await window.api.showMessageBox({
+                    type: 'info',
+                    title: 'Export Successful',
+                    message: 'Notebook exported successfully!',
+                    detail: `Saved to: ${result.filePath}`
+                });
+            }
+        } catch (error) {
+            console.error('Export failed:', error);
+            await window.api.showErrorBox('Export Failed', 
+                `Failed to export notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    };
 
     const contextValue: ApplicationContextType = {
         ...state,

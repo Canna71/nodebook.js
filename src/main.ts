@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, session, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, session, dialog, Menu } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import "anylogger-loglevel";
@@ -41,6 +41,339 @@ const extensions = {
 
 
 
+function createMenu(mainWindow: BrowserWindow) {
+    const template: Electron.MenuItemConstructorOptions[] = [
+        {
+            label: 'File',
+            submenu: [
+                {
+                    label: 'New Notebook',
+                    accelerator: 'CmdOrCtrl+N',
+                    click: () => {
+                        mainWindow.webContents.send('menu-new-notebook');
+                    }
+                },
+                {
+                    label: 'Open Notebook...',
+                    accelerator: 'CmdOrCtrl+O',
+                    click: () => {
+                        mainWindow.webContents.send('menu-open-notebook');
+                    }
+                },
+                { type: 'separator' },
+                {
+                    label: 'Save',
+                    accelerator: 'CmdOrCtrl+S',
+                    click: () => {
+                        mainWindow.webContents.send('menu-save-notebook');
+                    }
+                },
+                {
+                    label: 'Save As...',
+                    accelerator: 'CmdOrCtrl+Shift+S',
+                    click: () => {
+                        mainWindow.webContents.send('menu-save-notebook-as');
+                    }
+                },
+                { type: 'separator' },
+                {
+                    label: 'Export as JSON...',
+                    click: () => {
+                        mainWindow.webContents.send('menu-export-json');
+                    }
+                },
+                { type: 'separator' },
+                {
+                    label: 'Quit',
+                    accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
+                    click: () => {
+                        app.quit();
+                    }
+                }
+            ]
+        },
+        {
+            label: 'Edit',
+            submenu: [
+                {
+                    label: 'Undo',
+                    accelerator: 'CmdOrCtrl+Z',
+                    role: 'undo'
+                },
+                {
+                    label: 'Redo',
+                    accelerator: 'CmdOrCtrl+Shift+Z',
+                    role: 'redo'
+                },
+                { type: 'separator' },
+                {
+                    label: 'Cut',
+                    accelerator: 'CmdOrCtrl+X',
+                    role: 'cut'
+                },
+                {
+                    label: 'Copy',
+                    accelerator: 'CmdOrCtrl+C',
+                    role: 'copy'
+                },
+                {
+                    label: 'Paste',
+                    accelerator: 'CmdOrCtrl+V',
+                    role: 'paste'
+                },
+                {
+                    label: 'Select All',
+                    accelerator: 'CmdOrCtrl+A',
+                    role: 'selectAll'
+                },
+                { type: 'separator' },
+                {
+                    label: 'Find',
+                    accelerator: 'CmdOrCtrl+F',
+                    click: () => {
+                        mainWindow.webContents.send('menu-find');
+                    }
+                }
+            ]
+        },
+        {
+            label: 'Insert',
+            submenu: [
+                {
+                    label: 'Code Cell',
+                    accelerator: 'CmdOrCtrl+Shift+C',
+                    click: () => {
+                        mainWindow.webContents.send('menu-insert-cell', 'code');
+                    }
+                },
+                {
+                    label: 'Markdown Cell',
+                    accelerator: 'CmdOrCtrl+Shift+M',
+                    click: () => {
+                        mainWindow.webContents.send('menu-insert-cell', 'markdown');
+                    }
+                },
+                {
+                    label: 'Formula Cell',
+                    accelerator: 'CmdOrCtrl+Shift+F',
+                    click: () => {
+                        mainWindow.webContents.send('menu-insert-cell', 'formula');
+                    }
+                },
+                {
+                    label: 'Input Cell',
+                    accelerator: 'CmdOrCtrl+Shift+I',
+                    click: () => {
+                        mainWindow.webContents.send('menu-insert-cell', 'input');
+                    }
+                }
+            ]
+        },
+        {
+            label: 'Cell',
+            submenu: [
+                {
+                    label: 'Run Cell',
+                    accelerator: 'Shift+Enter',
+                    click: () => {
+                        mainWindow.webContents.send('menu-run-cell');
+                    }
+                },
+                {
+                    label: 'Run All Cells',
+                    accelerator: 'CmdOrCtrl+Shift+Enter',
+                    click: () => {
+                        mainWindow.webContents.send('menu-run-all-cells');
+                    }
+                },
+                { type: 'separator' },
+                {
+                    label: 'Clear Cell Output',
+                    click: () => {
+                        mainWindow.webContents.send('menu-clear-cell-output');
+                    }
+                },
+                {
+                    label: 'Clear All Outputs',
+                    click: () => {
+                        mainWindow.webContents.send('menu-clear-all-outputs');
+                    }
+                },
+                { type: 'separator' },
+                {
+                    label: 'Delete Cell',
+                    accelerator: 'CmdOrCtrl+Shift+D',
+                    click: () => {
+                        mainWindow.webContents.send('menu-delete-cell');
+                    }
+                }
+            ]
+        },
+        {
+            label: 'View',
+            submenu: [
+                {
+                    label: 'Reload',
+                    accelerator: 'CmdOrCtrl+R',
+                    click: () => {
+                        mainWindow.reload();
+                    }
+                },
+                {
+                    label: 'Force Reload',
+                    accelerator: 'CmdOrCtrl+Shift+R',
+                    click: () => {
+                        mainWindow.webContents.reloadIgnoringCache();
+                    }
+                },
+                {
+                    label: 'Toggle Developer Tools',
+                    accelerator: process.platform === 'darwin' ? 'Alt+Cmd+I' : 'Ctrl+Shift+I',
+                    click: () => {
+                        mainWindow.webContents.toggleDevTools();
+                    }
+                },
+                { type: 'separator' },
+                {
+                    label: 'Actual Size',
+                    accelerator: 'CmdOrCtrl+0',
+                    role: 'resetZoom'
+                },
+                {
+                    label: 'Zoom In',
+                    accelerator: 'CmdOrCtrl+Plus',
+                    role: 'zoomIn'
+                },
+                {
+                    label: 'Zoom Out',
+                    accelerator: 'CmdOrCtrl+-',
+                    role: 'zoomOut'
+                },
+                { type: 'separator' },
+                {
+                    label: 'Toggle Fullscreen',
+                    accelerator: process.platform === 'darwin' ? 'Ctrl+Cmd+F' : 'F11',
+                    role: 'togglefullscreen'
+                }
+            ]
+        },
+        {
+            label: 'Window',
+            submenu: [
+                {
+                    label: 'Minimize',
+                    accelerator: 'CmdOrCtrl+M',
+                    role: 'minimize'
+                },
+                {
+                    label: 'Close',
+                    accelerator: 'CmdOrCtrl+W',
+                    role: 'close'
+                }
+            ]
+        },
+        {
+            label: 'Help',
+            submenu: [
+                {
+                    label: 'About NotebookJS',
+                    click: () => {
+                        mainWindow.webContents.send('menu-about');
+                    }
+                },
+                {
+                    label: 'Welcome Tutorial',
+                    click: () => {
+                        mainWindow.webContents.send('menu-welcome');
+                    }
+                },
+                { type: 'separator' },
+                {
+                    label: 'Keyboard Shortcuts',
+                    accelerator: 'CmdOrCtrl+/',
+                    click: () => {
+                        mainWindow.webContents.send('menu-shortcuts');
+                    }
+                },
+                {
+                    label: 'Documentation',
+                    click: () => {
+                        mainWindow.webContents.send('menu-documentation');
+                    }
+                }
+            ]
+        }
+    ];
+
+    // macOS specific menu adjustments
+    if (process.platform === 'darwin') {
+        // App menu for macOS
+        template.unshift({
+            label: app.getName(),
+            submenu: [
+                {
+                    label: 'About ' + app.getName(),
+                    click: () => {
+                        mainWindow.webContents.send('menu-about');
+                    }
+                },
+                { type: 'separator' },
+                {
+                    label: 'Services',
+                    role: 'services',
+                    submenu: []
+                },
+                { type: 'separator' },
+                {
+                    label: 'Hide ' + app.getName(),
+                    accelerator: 'Command+H',
+                    role: 'hide'
+                },
+                {
+                    label: 'Hide Others',
+                    accelerator: 'Command+Shift+H',
+                    role: 'hideOthers'
+                },
+                {
+                    label: 'Show All',
+                    role: 'unhide'
+                },
+                { type: 'separator' },
+                {
+                    label: 'Quit',
+                    accelerator: 'Command+Q',
+                    click: () => {
+                        app.quit();
+                    }
+                }
+            ]
+        });
+
+        // Remove Quit from File menu on macOS (it's in the app menu)
+        const fileMenu = template.find(item => item.label === 'File');
+        if (fileMenu && Array.isArray(fileMenu.submenu)) {
+            fileMenu.submenu = fileMenu.submenu.filter(item => 
+                typeof item === 'object' && item.label !== 'Quit'
+            );
+        }
+
+        // Window menu adjustments for macOS
+        const windowMenu = template.find(item => item.label === 'Window');
+        if (windowMenu && Array.isArray(windowMenu.submenu)) {
+            windowMenu.submenu.push(
+                { type: 'separator' },
+                {
+                    label: 'Bring All to Front',
+                    role: 'front'
+                }
+            );
+        }
+    }
+
+    const menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
+}
+
 const createWindow = async () => {
     // Get window state
     const mainWindowStateKeeper = await windowStateKeeper('main');
@@ -65,6 +398,9 @@ const createWindow = async () => {
 
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
+
+    // Create menu after window is created
+    createMenu(mainWindow);
 };
 
 // This method will be called when Electron has finished
