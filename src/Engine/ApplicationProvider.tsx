@@ -360,16 +360,27 @@ Variables automatically update when their dependencies change, creating a live, 
             if (!result.canceled && result.filePath) {
                 const jsonData = JSON.stringify(state.currentModel, null, 2);
                 
-                // Use Node.js fs module directly since we're in Electron
-                const fs = require('fs');
-                await fs.promises.writeFile(result.filePath, jsonData, 'utf8');
-                
-                await window.api.showMessageBox({
-                    type: 'info',
-                    title: 'Export Successful',
-                    message: 'Notebook exported successfully!',
-                    detail: `Saved to: ${result.filePath}`
-                });
+                // Use the proper file system helpers instead of direct fs access
+                try {
+                    const fs = getFileSystemHelpers();
+                    const saveResult = await fs.saveNotebook(state.currentModel, result.filePath);
+                    
+                    if (saveResult.success) {
+                        await window.api.showMessageBox({
+                            type: 'info',
+                            title: 'Export Successful',
+                            message: 'Notebook exported successfully!',
+                            detail: `Saved to: ${result.filePath}`
+                        });
+                    } else {
+                        await window.api.showErrorBox('Export Failed', 
+                            `Failed to export notebook: ${saveResult.error}`);
+                    }
+                } catch (writeError) {
+                    console.error('Export failed:', writeError);
+                    await window.api.showErrorBox('Export Failed', 
+                        `Failed to export notebook: ${writeError instanceof Error ? writeError.message : 'Unknown error'}`);
+                }
             }
         } catch (error) {
             console.error('Export failed:', error);
