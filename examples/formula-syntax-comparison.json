@@ -1,0 +1,210 @@
+{
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "header",
+      "content": "# Formula Syntax Comparison\n\nThis notebook demonstrates both legacy `$variable` syntax and enhanced natural JavaScript syntax for formulas. Both approaches work identically under the hood."
+    },
+    {
+      "type": "input",
+      "id": "price-input",
+      "label": "Product Price ($)",
+      "inputType": "number",
+      "variableName": "productPrice",
+      "value": 250,
+      "props": {
+        "min": 0,
+        "max": 2000,
+        "step": 10
+      }
+    },
+    {
+      "type": "input",
+      "id": "quantity-input",
+      "label": "Quantity",
+      "inputType": "number",
+      "variableName": "quantity",
+      "value": 3,
+      "props": {
+        "min": 1,
+        "max": 100,
+        "step": 1
+      }
+    },
+    {
+      "type": "input",
+      "id": "tax-input",
+      "label": "Tax Rate (%)",
+      "inputType": "number",
+      "variableName": "taxPercentage",
+      "value": 8.25,
+      "props": {
+        "min": 0,
+        "max": 25,
+        "step": 0.25
+      }
+    },
+    {
+      "type": "markdown",
+      "id": "simple-formulas",
+      "content": "## Simple Formulas\n\n### Legacy `$variable` Syntax"
+    },
+    {
+      "type": "formula",
+      "id": "subtotal-legacy",
+      "label": "Subtotal (Legacy)",
+      "variableName": "subtotalLegacy",
+      "formula": "$productPrice * $quantity",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "formula",
+      "id": "tax-amount-legacy",
+      "label": "Tax Amount (Legacy)",
+      "variableName": "taxAmountLegacy",
+      "formula": "$subtotalLegacy * ($taxPercentage / 100)",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "markdown",
+      "id": "enhanced-formulas",
+      "content": "### Enhanced Natural Syntax"
+    },
+    {
+      "type": "formula",
+      "id": "subtotal-enhanced",
+      "label": "Subtotal (Enhanced)",
+      "variableName": "subtotalEnhanced",
+      "formula": "productPrice * quantity",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "formula",
+      "id": "tax-amount-enhanced",
+      "label": "Tax Amount (Enhanced)",
+      "variableName": "taxAmountEnhanced",
+      "formula": "subtotalEnhanced * (taxPercentage / 100)",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "markdown",
+      "id": "comparison-1",
+      "content": "### Comparison - Simple Formulas\n\n| Calculation | Legacy Result | Enhanced Result | Match? |\n|-------------|---------------|-----------------|--------|\n| Subtotal | ${{subtotalLegacy?.toFixed(2)}} | ${{subtotalEnhanced?.toFixed(2)}} | {{Math.abs((subtotalLegacy || 0) - (subtotalEnhanced || 0)) < 0.01 ? '✅' : '❌'}} |\n| Tax Amount | ${{taxAmountLegacy?.toFixed(2)}} | ${{taxAmountEnhanced?.toFixed(2)}} | {{Math.abs((taxAmountLegacy || 0) - (taxAmountEnhanced || 0)) < 0.01 ? '✅' : '❌'}} |"
+    },
+    {
+      "type": "markdown",
+      "id": "complex-formulas",
+      "content": "## Complex Formulas with Math Functions\n\n### Legacy Syntax Limitations\nThe legacy syntax becomes cumbersome with complex math:"
+    },
+    {
+      "type": "formula",
+      "id": "shipping-legacy",
+      "label": "Shipping Cost (Legacy - Limited)",
+      "variableName": "shippingLegacy",
+      "formula": "$subtotalLegacy > 500 ? 0 : $quantity * 5",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "markdown",
+      "id": "enhanced-complex",
+      "content": "### Enhanced Syntax Excels at Complex Math"
+    },
+    {
+      "type": "formula",
+      "id": "shipping-enhanced",
+      "label": "Shipping Cost (Enhanced - Advanced)",
+      "variableName": "shippingEnhanced",
+      "formula": "subtotalEnhanced > 500 ? 0 : Math.max(15, Math.round(quantity * 4.99))",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "formula",
+      "id": "discount-complex",
+      "label": "Volume Discount (Complex Math)",
+      "variableName": "volumeDiscount",
+      "formula": "Math.min(subtotalEnhanced * 0.2, Math.pow(Math.max(0, quantity - 2), 1.5) * 25)",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "formula",
+      "id": "total-enhanced",
+      "label": "Final Total (Enhanced)",
+      "variableName": "finalTotal",
+      "formula": "Math.round((subtotalEnhanced + taxAmountEnhanced + shippingEnhanced - volumeDiscount) * 100) / 100",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "markdown",
+      "id": "statistical-examples",
+      "content": "## Statistical & Mathematical Examples\n\n### Only possible with Enhanced Syntax"
+    },
+    {
+      "type": "formula",
+      "id": "avg-item-price",
+      "label": "Average Item Price",
+      "variableName": "avgItemPrice",
+      "formula": "Math.round((productPrice + (volumeDiscount / quantity)) * 100) / 100",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "formula",
+      "id": "effective-rate",
+      "label": "Effective Tax Rate",
+      "variableName": "effectiveTaxRate",
+      "formula": "Math.round((taxAmountEnhanced / subtotalEnhanced) * 10000) / 100",
+      "outputFormat": "percentage",
+      "decimals": 2
+    },
+    {
+      "type": "formula",
+      "id": "savings-percentage",
+      "label": "Savings Percentage",
+      "variableName": "savingsPercentage",
+      "formula": "volumeDiscount > 0 ? Math.round((volumeDiscount / subtotalEnhanced) * 10000) / 100 : 0",
+      "outputFormat": "percentage",
+      "decimals": 1
+    },
+    {
+      "type": "markdown",
+      "id": "conditional-examples",
+      "content": "## Complex Conditional Logic\n\n### Tiered Pricing (Enhanced Only)"
+    },
+    {
+      "type": "formula",
+      "id": "tier-discount",
+      "label": "Tiered Discount Rate",
+      "variableName": "tierDiscountRate",
+      "formula": "subtotalEnhanced > 1000 ? 0.15 : subtotalEnhanced > 500 ? 0.10 : subtotalEnhanced > 200 ? 0.05 : 0",
+      "outputFormat": "percentage",
+      "decimals": 1
+    },
+    {
+      "type": "formula",
+      "id": "loyalty-bonus",
+      "label": "Loyalty Bonus",
+      "variableName": "loyaltyBonus",
+      "formula": "quantity >= 5 && productPrice > 100 ? Math.min(50, Math.floor(productPrice * 0.1)) : 0",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "markdown",
+      "id": "results-summary",
+      "content": "## Final Calculation Summary\n\n| Item | Value |\n|------|-------|\n| **Product Price** | ${{productPrice}} |\n| **Quantity** | {{quantity}} |\n| **Subtotal** | ${{subtotalEnhanced?.toFixed(2)}} |\n| **Tax ({{taxPercentage}}%)** | ${{taxAmountEnhanced?.toFixed(2)}} |\n| **Shipping** | ${{shippingEnhanced?.toFixed(2)}} |\n| **Volume Discount** | -${{volumeDiscount?.toFixed(2)}} |\n| **Tier Discount Rate** | {{tierDiscountRate?.toFixed(1)}}% |\n| **Loyalty Bonus** | -${{loyaltyBonus?.toFixed(2)}} |\n| **Final Total** | **${{finalTotal?.toFixed(2)}}** |\n\n---\n\n### Key Insights\n- **Effective Tax Rate**: {{effectiveTaxRate?.toFixed(2)}}%\n- **Total Savings**: {{savingsPercentage?.toFixed(1)}}%\n- **Average per Item**: ${{avgItemPrice?.toFixed(2)}}"
+    },
+    {
+      "type": "markdown",
+      "id": "syntax-comparison",
+      "content": "## Syntax Comparison Summary\n\n### ✅ Legacy `$variable` Syntax\n**Best for:**\n- Simple variable references\n- When reactive nature should be visually obvious\n- Template-like formulas\n- Basic arithmetic\n\n**Examples:**\n```\n$productPrice * $quantity\n$taxPercentage / 100\n$subtotal > 500 ? 0 : 25\n```\n\n### ✅ Enhanced Natural JavaScript Syntax\n**Best for:**\n- Complex mathematical operations\n- Statistical calculations\n- Multi-condition logic\n- When you want IDE support\n\n**Examples:**\n```\nMath.round((subtotal * taxRate) * 100) / 100\nMath.max(15, Math.min(50, quantity * 5))\nsubtotal > 1000 ? 0.15 : subtotal > 500 ? 0.10 : 0\nMath.pow(Math.max(0, quantity - 2), 1.5) * 25\n```\n\n### 🎯 Recommendation\n**Use the syntax that fits your formula complexity:**\n- Simple references and basic math → Legacy `$variable`\n- Complex calculations and logic → Enhanced natural syntax\n- Both work identically and can be mixed if needed\n\n**Try changing the input values above to see both syntaxes update reactively!**"
+    }
+  ]
+}
