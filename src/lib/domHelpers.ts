@@ -92,7 +92,7 @@ export function createContainer(options: Parameters<typeof createElement>[1] = {
  * Create a title element
  */
 export function createTitle(text: string, level: 1 | 2 | 3 | 4 | 5 | 6 = 3, options: Parameters<typeof createElement>[1] = {}): HTMLHeadingElement {
-    const defaultStyle = 'margin: 0 0 15px 0; color: var(--color-accent); font-weight: 600;';
+    const defaultStyle = 'margin: 0 0 15px 0; color: var(--color-primary); font-weight: 600;';
     return createElement(`h${level}`, {
         textContent: text,
         ...options,
@@ -174,7 +174,7 @@ export function createButton(
     onClick?: () => void,
     options: Parameters<typeof createElement>[1] = {}
 ): HTMLButtonElement {
-    const defaultStyle = 'background: var(--color-accent); color: var(--color-background); border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease;';
+    const defaultStyle = 'background: var(--color-primary); color: var(--color-background); border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s ease;';
     const button = createElement('button', {
         textContent: text,
         ...options,
@@ -236,7 +236,7 @@ export function createKeyValueGrid(
         
         const label = createDiv({
             textContent: key,
-            style: 'font-size: 12px; color: var(--color-muted); margin-bottom: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;'
+            style: 'font-size: 12px; color: var(--color-primary); margin-bottom: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;'
         });
         
         const valueEl = createDiv({
@@ -266,7 +266,7 @@ export function createGradientContainer(
     });
     
     const titleEl = createTitle(title, 3, {
-        style: 'margin: 0 0 16px 0; color: var(--color-accent); font-size: 20px;'
+        style: 'margin: 0 0 16px 0; color: var(--color-primary); font-size: 20px;'
     });
     
     container.appendChild(titleEl);
@@ -305,7 +305,7 @@ export function createOutElGradientContainer(
     });
     
     const titleEl = createTitle(title, 3, {
-        style: 'margin: 0 0 16px 0; color: var(--color-accent); font-size: 20px;'
+        style: 'margin: 0 0 16px 0; color: var(--color-primary); font-size: 20px;'
     });
     
     container.appendChild(titleEl);
@@ -420,7 +420,7 @@ export function createBoundDomHelpers(outputFn: (value: any) => any) {
         });
         
         const titleEl = createTitle(title, 3, {
-            style: 'margin: 0 0 16px 0; color: var(--color-accent); font-size: 20px;'
+            style: 'margin: 0 0 16px 0; color: var(--color-primary); font-size: 20px;'
         });
         
         container.appendChild(titleEl);

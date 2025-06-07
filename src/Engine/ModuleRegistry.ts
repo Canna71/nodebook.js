@@ -1,3 +1,4 @@
+import { initializeFileSystemHelpers } from '@/lib/fileSystemHelpers';
 import anylogger from 'anylogger';
 // import { ipcRenderer } from 'electron';
 // const { app, remote } = require('electron');
@@ -39,7 +40,12 @@ export class ModuleRegistry {
 
   public async initialize(): Promise<boolean> {
 
-    const userDataPath = await (window as any).getUserDataPath();
+    const fs = await initializeFileSystemHelpers();
+    if (!fs) {
+      log.error('Failed to initialize file system helpers');
+      return false;
+    }
+    const userDataPath = fs.getUserDataPath();
     log.debug(`Adding custom module directory to require paths: ${userDataPath}`);
 
     // Use the user data path to create a custom module director+}

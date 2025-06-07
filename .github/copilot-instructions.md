@@ -7,7 +7,7 @@ NotebookJS is a reactive notebook application built with React, TypeScript, and 
 
 ### Core Systems
 - **Reactive System**: Located in `/src/Engine/RactiveSystem.ts` - handles reactive values, formulas, and code execution
-- **Components**: Located in `/src/Components/` - React components for UI
+- **Components**: Located in `/src/components/` - React components for UI
 - **Types**: Located in `/src/Types/` - TypeScript type definitions
 
 ### Coding Standards
@@ -24,13 +24,17 @@ NotebookJS is a reactive notebook application built with React, TypeScript, and 
 - Use proper prop typing with interfaces
 - Handle loading and error states appropriately
 
+#### UI Components
+- Do not modify files in `src/components/ui/` as these come from shadcn/ui
+- Use existing shadcn components as-is for consistency
+
 #### Styling
 - Use Tailwind CSS classes for styling
 - Try not to use explicit color, but use one from variables defined in `src/styles.css`
 - Follow consistent color scheme:
-  - `text-primary` for main text
-  - `text-secondary` for secondary text
-  - `text-accent` for highlighted text
+  - `text-foreground` for main text
+  - `text-secondary-foreground` for secondary text
+  - `text-accent-foreground` for highlighted text
   - `bg-background` for main backgrounds
   - `bg-background-secondary` for secondary backgrounds
   - `border-border` for borders

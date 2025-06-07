@@ -1,6 +1,6 @@
 import anylogger from "anylogger";
 import { moduleRegistry } from './ModuleRegistry';
-import { domHelpers, createBoundDomHelpers } from '@/Utils/domHelpers';
+import { domHelpers, createBoundDomHelpers } from '@/lib/domHelpers';
 
 const log = anylogger("ReactiveSystem");
 /**
@@ -26,23 +26,26 @@ class ReactiveValue<T> implements IReactiveValue<T> {
     private dependencies: Set<IReactiveValue<any>>;
     private subscribers: Set<(value: T) => void>;
     private isComputing: boolean = false;
+    private hasBeenComputed: boolean = false;
 
     constructor(initialValue: T, computeFn: ComputeFn<T> | null = null, dependencies: IReactiveValue<any>[] = []) {
         this.value = initialValue;
         this.computeFn = computeFn;
         this.dependencies = new Set(dependencies);
         this.subscribers = new Set();
+        this.hasBeenComputed = computeFn === null; // If no compute function, consider it computed
     }
 
     /**
      * Get current value, compute if needed
      */
     public get(): T {
-        if (this.computeFn && !this.isComputing) {
+        if (this.computeFn && (!this.hasBeenComputed || !this.isComputing)) {
             this.isComputing = true;
             try {
                 const newValue = this.computeFn();
-                this.setValue(newValue, false); // Don't trigger recompute during initial get
+                this.setValue(newValue, !this.hasBeenComputed); // Propagate only after first computation
+                this.hasBeenComputed = true;
             } finally {
                 this.isComputing = false;
             }
@@ -54,7 +57,14 @@ class ReactiveValue<T> implements IReactiveValue<T> {
      * Set value and notify subscribers
      */
     public setValue(newValue: T, shouldPropagate: boolean = true): void {
-        if (this.value !== newValue) {
+        // Handle NaN comparison correctly
+        const hasChanged = this.value !== newValue && !(
+            // Both values are NaN
+            (typeof this.value === 'number' && typeof newValue === 'number' && 
+             isNaN(this.value) && isNaN(newValue))
+        );
+
+        if (hasChanged) {
             this.value = newValue;
             if (shouldPropagate) {
                 this.notifySubscribers();
@@ -113,6 +123,11 @@ class ReactiveValue<T> implements IReactiveValue<T> {
      */
     public setComputeFn(computeFn: ComputeFn<T> | null): void {
         this.computeFn = computeFn;
+        this.hasBeenComputed = false; // Reset computation state when function changes
+        if (computeFn) {
+            // Trigger initial computation
+            this.get();
+        }
     }
 }
 
@@ -339,13 +354,16 @@ export class ReactiveFormulaEngine {
         // Create compute function
         const computeFn = this.createComputeFunction<T>(formula);
 
-        // Define reactive value
-        this.reactiveStore.define<T>(
+        // Define reactive value with initial computation
+        const reactiveValue = this.reactiveStore.define<T>(
             name,
             null,
             computeFn,
             dependencies
         );
+
+        // Trigger initial computation
+        reactiveValue.get();
 
         return {
             name,
@@ -548,20 +566,35 @@ export class CodeCellEngine {
         log.debug(`Registered module in code cell engine: ${name}`);
     }
 
+    /**
+     * Update the stored code for a cell (internal tracking only)
+     * Note: This does not update the notebook model - use ApplicationProvider for that
+     */
     updateCodeCell(id: string, newCode: string) {
         const cellInfo = this.executedCells.get(id);
         if (cellInfo) {
-            log.debug(`Updating code cell ${id} with new code`);
+            log.debug(`Updating code cell ${id} internal code`);
             cellInfo.code = newCode;
-            // Reset exports and dependencies
-            cellInfo.exports = [];
-            cellInfo.dependencies = [];
-            cellInfo.lastExportValues.clear();
-            cellInfo.lastOutput = [];
-            cellInfo.outputValues = [];
         } else {
-            log.warn(`Code cell ${id} not found for update`);
+            // Create new cell info if it doesn't exist
+            log.debug(`Creating new code cell info for ${id}`);
+            this.executedCells.set(id, {
+                code: newCode,
+                exports: [],
+                dependencies: [],
+                lastExportValues: new Map(),
+                lastOutput: [],
+                outputValues: [],
+                executionCount: 0
+            });
         }
+    }
+
+    /**
+     * Get the current code for a cell (as stored in the engine)
+     */
+    getCurrentCode(cellId: string): string | undefined {
+        return this.executedCells.get(cellId)?.code;
     }
 
     /**

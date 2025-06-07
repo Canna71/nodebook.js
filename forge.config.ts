@@ -39,17 +39,19 @@ import fs from 'fs-extra';
     'ansi-styles',
     'lodash.clonedeep',
     'fast-deep-equal',
-    'lodash.truncate'
+    'lodash.truncate',
+    'd3'
 ];
 
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
-    // extraResource: [
+    extraResource: [
     //   "./node_modules/danfojs/",
     //   "./node_modules/danfojs-node/",
     //   "./node_modules/@tensorflow/",
-    // ]
+    "./examples/"
+    ]
   },
   rebuildConfig: {},
   makers: [

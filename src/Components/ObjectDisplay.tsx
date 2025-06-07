@@ -6,11 +6,12 @@ import DataFrameRenderer from './DataFrameRenderer';
 
 interface ObjectDisplayProps {
   data: any;
-  name?: string | false;
+  name?: string | false; // Keep the original type
   theme?: ThemeKeys | ThemeObject;
   collapsed?: boolean;
   displayDataTypes?: boolean;
   displayObjectSize?: boolean;
+  enableClipboard?: boolean;
 }
 
 // Type detection functions
@@ -35,17 +36,18 @@ const isDanfoSeries = (obj: any): boolean => {
 
 
 // Main ObjectDisplay component
-export const ObjectDisplay: React.FC<ObjectDisplayProps> = ({
-  data,
-  name = false as string | false,
-  theme = 'monokai',
-  collapsed = false,
-  displayDataTypes = true,
-  displayObjectSize = true
-}) => {
+export function ObjectDisplay({ 
+  data, 
+  name = false, // Change default to false instead of true
+  collapsed = false, 
+  displayDataTypes = true, 
+  displayObjectSize = true,
+  enableClipboard = true,
+  theme = 'tomorrow'
+}: ObjectDisplayProps) {
   // Handle different data types
   if (data === null || data === undefined) {
-    return <span className="text-secondary italic">null</span>;
+    return <span className="text-foreground italic">null</span>;
   }
 
   if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
@@ -54,41 +56,65 @@ export const ObjectDisplay: React.FC<ObjectDisplayProps> = ({
 
   // Check for specific object types and use specialized renderers
   if (isDanfoDataFrame(data)) {
-    return <DataFrameRenderer data={data} name={name} />;
+    return <DataFrameRenderer data={data} name={typeof name === 'string' ? name : undefined} />;
   }
 
   if (isDanfoSeries(data)) {
-    return <SeriesRenderer data={data} name={name} />;
+    return <SeriesRenderer data={data} name={typeof name === 'string' ? name : undefined} />;
   }
 
   // TODO: Add more specific renderers here for other object types
   // if (isTensorFlowTensor(data)) {
-  //   return <TensorRenderer data={data} name={name} />;
+  //   return <TensorRenderer data={data} name={typeof name === 'string' ? name : undefined} />;
   // }
 
   // Default fallback to ReactJson for generic objects and arrays
   return (
-    <div className="object-display border border-border rounded p-2 bg-background-secondary">
-      <ReactJson
-        src={data}
-        name={name}
-        theme={theme}
-        collapsed={collapsed}
-        displayDataTypes={displayDataTypes}
-        displayObjectSize={displayObjectSize}
-        enableClipboard={true}
-        indentWidth={2}
-        iconStyle="triangle"
-        style={{
-          fontSize: '12px',
-          fontFamily: 'Monaco, Menlo, "Ubuntu Mono", Consolas, monospace'
+    <div className="object-display">
+      <div 
+        className="json-view-container relative z-20" 
+        onClick={(e) => {
+          // Stop propagation to prevent cell selection when clicking inside JSON view
+          e.stopPropagation();
         }}
-      />
+        onMouseDown={(e) => {
+          // Also stop mouse down to prevent any drag operations
+          e.stopPropagation();
+        }}
+      >
+        <ReactJson
+          src={data}
+          name={name} // Pass through as-is since it's already string | false
+          collapsed={collapsed}
+          displayDataTypes={displayDataTypes}
+          displayObjectSize={displayObjectSize}
+          enableClipboard={enableClipboard}
+          theme={theme}
+          style={{
+            backgroundColor: 'transparent',
+            fontSize: '13px',
+            fontFamily: 'monospace',
+            // Ensure proper pointer events
+            pointerEvents: 'all',
+            // Add relative positioning to establish stacking context
+            position: 'relative',
+            zIndex: 1
+          }}
+          // Additional props to ensure interactivity
+          iconStyle="triangle"
+          indentWidth={2}
+          collapseStringsAfterLength={100}
+          shouldCollapse={(field) => {
+            // Custom collapse logic if needed
+            return false;
+          }}
+        />
+      </div>
     </div>
   );
 };
 
 // Utility function to render object inline
 export const renderObjectInline = (data: any): JSX.Element => {
-  return <ObjectDisplay data={data} collapsed={true} displayDataTypes={false} />;
+  return <ObjectDisplay data={data} collapsed={true} displayDataTypes={false} name={false} />;
 };

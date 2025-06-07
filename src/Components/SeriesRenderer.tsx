@@ -146,7 +146,7 @@ const SeriesRenderer: React.FC<{ data: any; name?: string | false }> = ({ data, 
         </table>
         
         {tableData.length > 50 && (
-          <div className="bg-background border-t border-border px-3 py-2 text-center text-xs text-secondary">
+          <div className="bg-background border-t border-border px-3 py-2 text-center text-xs text-foreground">
             Showing first 50 of {tableData.length} rows
           </div>
         )}

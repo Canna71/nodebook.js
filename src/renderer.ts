@@ -26,7 +26,7 @@
  * ```
  */
 
-import './styles.css';
+import './styles/globals.css';
 // import "ulog";
 import 'anylogger-loglevel';
 import anylogger from 'anylogger';

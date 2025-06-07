@@ -1,21 +1,74 @@
 import React, { useEffect } from 'react'
 
 import { ReactiveProvider } from '../Engine/ReactiveProvider';
-import { PlotlyStyleProvider } from '../Utils/plotlyDark';
+import { ApplicationProvider, useApplication } from '@/Engine/ApplicationProvider';
 import anylogger from "anylogger";
 import { moduleRegistry } from '../Engine/ModuleRegistry';
 
 const log = anylogger("App");
 log.debug("Initializing App");
 
-import pricingModel from "../../examples/pricingModel.json";
-import filesystemExample from "../../examples/filesystem-example.json";
-import danfojsExample from "../../examples/danfojs-example.json";
 import danfojsPlottingExample from "../../examples/danfojs-plotting-example.json";
-import tensorFlowExample from "../../examples/tensorflow-example.json";
-import simpleExample from "../../examples/simple-inputs-example.json";
 import { NotebookViewer } from './NotebookViewer';
 import { NotebookModel } from 'src/Types/NotebookModel';
+import Layout from '@/app/layout';
+import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
+
+function AppContent() {
+    const { currentModel, loadNotebook, isLoading, error, currentFilePath } = useApplication();
+
+    useEffect(() => {
+        log.debug("AppContent mounted, currentModel:", currentModel);
+        // Load default example on startup
+        if (!currentModel) {
+            const fs = getFileSystemHelpers();
+            // fs.loadNotebook("../../examples/danfojs-plotting-example.json")
+            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/danfojs-plotting-example.json");
+            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/d3-visualization-example.json");
+            loadNotebook("/Users/gcannata/Projects/notebookjs/examples/pricingModel.json");
+            
+        }
+    }, [currentModel, loadNotebook]);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <div>Loading notebook...</div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center text-red-500">
+                    <div className="text-xl mb-4">Error</div>
+                    <div>{error}</div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!currentModel) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div>No notebook loaded</div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <ReactiveProvider>
+            File Path: {currentFilePath || 'No file loaded'}
+            <NotebookViewer model={currentModel} />
+        </ReactiveProvider>
+    );
+}
 
 export default function App() {
     const [appReady, setAppReady] = React.useState(false);
@@ -23,20 +76,11 @@ export default function App() {
     React.useEffect(() => {
         const initializeApp = async () => {
             try {
-                // // Log available modules
-                // const availableModules = moduleRegistry.getAvailableModules();
-                // log.info('Available modules:', availableModules);
-
-                // // Check for specific modules we care about
-                // const importantModules = ['os', 'path', 'fs', 'danfojs'];
-                // importantModules.forEach(moduleName => {
-                //     if (moduleRegistry.hasModule(moduleName)) {
-                //         log.info(`✓ ${moduleName} is available`);
-                //     } else {
-                //         log.warn(`✗ ${moduleName} is not available`);
-                //     }
-                // });
                 const initialize = await moduleRegistry.initialize();
+                const fs = getFileSystemHelpers();
+
+               
+
                 setAppReady(true);
             } catch (error) {
                 log.error('Error initializing app:', error);
@@ -59,14 +103,13 @@ export default function App() {
     }
 
     return (
-        <div>
-            <h2>NotebookJS</h2>
-
-            <PlotlyStyleProvider>
-                <ReactiveProvider>
-                    <NotebookViewer model={danfojsPlottingExample as NotebookModel} />
-                </ReactiveProvider>
-            </PlotlyStyleProvider>
-        </div>
-    )
+        <Layout>
+            <div>
+                <h2>NotebookJS</h2>
+                <ApplicationProvider>
+                    <AppContent />
+                </ApplicationProvider>
+            </div>
+        </Layout>
+    );
 }

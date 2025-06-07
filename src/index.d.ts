@@ -3,3 +3,9 @@ declare module '@tailwindcss/vite' {
 
   export default function tailwindcssVite(): Plugin;
 }
+
+declare global {
+    interface Window {
+        api: ElectronApi;
+    }
+}
