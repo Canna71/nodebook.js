@@ -237,25 +237,23 @@ export function CellContainer({
                     )}
                 </div>
 
-                {/* Main cell content area - fixed padding, no dynamic changes */}
-                <div className="cell-content w-full pr-8 flex-1">
+                {/* Main cell content area - flex-1 to take remaining space */}
+                <div className="cell-content flex-1">
                     {children}
                 </div>
 
-                {/* Grip icon on the right side - always takes up space, visibility controlled by opacity */}
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center">
-                    <div className={`cell-controls transition-opacity duration-200 ${
-                        isSelected || isHovered ? 'opacity-100' : 'opacity-0'
-                    }`}>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
-                            title="Drag to reorder"
-                        >
-                            <GripVertical className="h-4 w-4" />
-                        </Button>
-                    </div>
+                {/* Right grip container - always takes up space, visibility controlled by opacity */}
+                <div className={`cell-grip-indicator flex items-center justify-center px-1 py-2 bg-background-secondary border-l border-border rounded-r-lg transition-opacity duration-200 ${
+                    isSelected || isHovered ? 'opacity-100' : 'opacity-0'
+                }`}>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
+                        title="Drag to reorder"
+                    >
+                        <GripVertical className="h-4 w-4" />
+                    </Button>
                 </div>
             </div>
 

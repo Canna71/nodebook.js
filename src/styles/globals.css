@@ -53,9 +53,9 @@
 }
 
 .dark {
-  --background: oklch(0.18 0.02 271.27);
+  --background: oklch(0.25 0.02 271.87);
   --foreground: oklch(0.90 0.01 238.47);
-  --card: oklch(0.22 0.02 271.67);
+  --card: oklch(0.30 0.02 273.15);
   --card-foreground: oklch(0.90 0.01 238.47);
   --popover: oklch(0.22 0.02 271.67);
   --popover-foreground: oklch(0.90 0.01 238.47);
@@ -146,6 +146,7 @@
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
 }
+
 /* Tailwind base layer for dark mode */
 @layer base {
     html {
@@ -206,9 +207,21 @@
     @apply opacity-100;
   }
   
-  /* Ensure cell content has proper spacing - fixed padding, no dynamic changes */
+  /* Hide cell grip indicator by default - opacity only, no layout changes */
+  .cell-container .cell-grip-indicator {
+    @apply opacity-0 transition-opacity duration-200;
+  }
+  
+  /* Show cell grip indicator on hover, selected, or edit mode */
+  .cell-container:hover .cell-grip-indicator,
+  .cell-container.selected .cell-grip-indicator,
+  .cell-container.edit-mode .cell-grip-indicator {
+    @apply opacity-100;
+  }
+  
+  /* Ensure cell content takes remaining space */
   .cell-container .cell-content {
-    @apply pr-8;
+    @apply flex-1;
   }
   
   /* Cell container state styling */
