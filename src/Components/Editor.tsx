@@ -10,6 +10,7 @@ import { markdown } from "@codemirror/lang-markdown" // NEW: Add markdown suppor
 import { indentWithTab } from '@codemirror/commands'
 import { autocompletion, Completion, CompletionSource } from '@codemirror/autocomplete'
 import { placeholder as cmPlaceholder } from '@codemirror/view'
+import { syntaxTree } from "@codemirror/language"
 
 interface EditorDimensions {
     width?: string | number;
@@ -35,7 +36,7 @@ type EditorProps = {
     showLineNumbers?: boolean // NEW: Option to hide line numbers
 }
 
-function getLanguageExtension(language: string | undefined): Extension {
+function getLanguageExtension(language: string | undefined, customCompletions?: Completion[], objectCompletions?: { object: string, methods: Completion[] }[]): Extension {
     switch (language) {
         case 'json':
             return json()
@@ -49,7 +50,62 @@ function getLanguageExtension(language: string | undefined): Extension {
             return [] // plain text, no language extension
         case 'javascript':
         default:
-            return javascript({ typescript: true })
+            const jsLang = javascript({ typescript: true })
+            
+            // If we have custom completions, add them to the language data
+            if (customCompletions || objectCompletions) {
+                return [
+                    jsLang,
+                    jsLang.language.data.of({
+                        autocomplete: (context: any) => {
+                            // Check for object member completion (e.g., Math.)
+                            if (objectCompletions && objectCompletions.length > 0) {
+                                for (const obj of objectCompletions) {
+                                    const regex = new RegExp(`${obj.object.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.\\w*$`)
+                                    const afterDot = context.matchBefore(regex)
+                                    if (afterDot) {
+                                        return {
+                                            from: afterDot.from + obj.object.length + 1, // after "object."
+                                            options: obj.methods
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // Top-level identifier completions
+                            const before = context.matchBefore(/[a-zA-Z_$][\w$]*$/)
+                            if (before) {
+                                // Only show our custom completions for explicit requests or longer matches
+                                // This allows built-in JS completions to show for short inputs
+                                if (context.explicit || before.to - before.from >= 2) {
+                                    // Collect all object names as completions
+                                    const objectLabels = (objectCompletions ?? []).map(o => o.object)
+                                    const objectCompletionsList = (objectCompletions ?? []).map(o => ({
+                                        label: o.object,
+                                        type: "variable",
+                                        info: `Global ${o.object} object`,
+                                        apply: o.object
+                                    }))
+                                    // Merge with customCompletions (excluding duplicates)
+                                    const customList = (customCompletions ?? []).filter(
+                                        c => !objectLabels.includes(c.label)
+                                    )
+                                    
+                                    if (objectCompletionsList.length > 0 || customList.length > 0) {
+                                        return {
+                                            from: before.from,
+                                            options: [...objectCompletionsList, ...customList]
+                                        }
+                                    }
+                                }
+                            }
+                            return null
+                        }
+                    })
+                ]
+            }
+            
+            return jsLang
     }
 }
 
@@ -261,7 +317,7 @@ export default function Editor({
 
     // Custom completions for JavaScript: context-aware (top-level and after object.)
     const jsCustomCompletionSource: CompletionSource = (context) => {
-        // Check for object member completion (e.g., volt.)
+        // Check for object member completion (e.g., Math.)
         if (objectCompletions && objectCompletions.length > 0) {
             for (const obj of objectCompletions) {
                 const regex = new RegExp(`${obj.object.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.\\w*$`)
@@ -274,25 +330,32 @@ export default function Editor({
                 }
             }
         }
-        // Top-level identifier completions: suggest all object names from objectCompletions
+        
+        // Top-level identifier completions
         const before = context.matchBefore(/[a-zA-Z_$][\w$]*$/)
-        if (before && (!context.explicit && before.from === before.to)) return null
         if (before) {
-            // Collect all object names as completions
-            const objectLabels = (objectCompletions ?? []).map(o => o.object)
-            const objectCompletionsList = (objectCompletions ?? []).map(o => ({
-                label: o.object,
-                type: "variable",
-                info: `Global ${o.object} object`,
-                apply: o.object
-            }))
-            // Optionally merge with customCompletions (excluding duplicates)
-            const customList = (customCompletions ?? []).filter(
-                c => !objectLabels.includes(c.label)
-            )
-            return {
-                from: before.from,
-                options: [...objectCompletionsList, ...customList]
+            // Only show our custom completions for explicit requests or longer matches
+            // This allows built-in JS completions to show for short inputs
+            if (context.explicit || before.to - before.from >= 2) {
+                // Collect all object names as completions
+                const objectLabels = (objectCompletions ?? []).map(o => o.object)
+                const objectCompletionsList = (objectCompletions ?? []).map(o => ({
+                    label: o.object,
+                    type: "variable",
+                    info: `Global ${o.object} object`,
+                    apply: o.object
+                }))
+                // Merge with customCompletions (excluding duplicates)
+                const customList = (customCompletions ?? []).filter(
+                    c => !objectLabels.includes(c.label)
+                )
+                
+                if (objectCompletionsList.length > 0 || customList.length > 0) {
+                    return {
+                        from: before.from,
+                        options: [...objectCompletionsList, ...customList]
+                    }
+                }
             }
         }
         return null
@@ -374,14 +437,20 @@ export default function Editor({
                             : [
                                 basicSetup,
                                 keymap.of([indentWithTab]),
-                                autocompletion()
+                                autocompletion({
+                                    activateOnTyping: true,
+                                    closeOnBlur: false,
+                                    icons: true,
+                                    defaultKeymap: true
+                                })
                             ]
                     ),
-                    languageCompartment.of(getLanguageExtension(language)),
+                    languageCompartment.of(getLanguageExtension(language, customCompletions, objectCompletions)),
                     listenerCompartment.of(listener),
+                    // Setup completion compartment for JSON variable completions only
                     completionCompartment.of(
-                        customCompletions || customVariableCompletions
-                            ? autocompletion({ override: [jsCustomCompletionSource, variableCompletionSource] })
+                        language === 'json' && customVariableCompletions
+                            ? autocompletion({ override: [variableCompletionSource] })
                             : []
                     ),
                     dimensionsCompartment.of(autoSizeExtensions),
@@ -424,10 +493,10 @@ export default function Editor({
     useEffect(() => {
         if (viewRef.current) {
             viewRef.current.dispatch({
-                effects: languageCompartment.reconfigure(getLanguageExtension(language))
+                effects: languageCompartment.reconfigure(getLanguageExtension(language, customCompletions, objectCompletions))
             })
         }
-    }, [language])
+    }, [language, customCompletions, objectCompletions])
 
     // Update listener if onChange changes
     useEffect(() => {
@@ -447,22 +516,21 @@ export default function Editor({
     // Update custom completions if prop changes
     useEffect(() => {
         if (viewRef.current) {
-            let sources: CompletionSource[] = []
             if (language === "json" && customVariableCompletions) {
-                sources.push(variableCompletionSource)
+                // For JSON, override the default completions with variable completions
+                viewRef.current.dispatch({
+                    effects: completionCompartment.reconfigure(
+                        autocompletion({ override: [variableCompletionSource] })
+                    )
+                })
+            } else {
+                // For other languages, completions are handled in language extension
+                viewRef.current.dispatch({
+                    effects: completionCompartment.reconfigure([])
+                })
             }
-            if (language === "javascript" && (customCompletions || objectCompletions)) {
-                sources.push(jsCustomCompletionSource)
-            }
-            viewRef.current.dispatch({
-                effects: completionCompartment.reconfigure(
-                    sources.length
-                        ? autocompletion({ override: sources })
-                        : []
-                )
-            })
         }
-    }, [customCompletions, customVariableCompletions, objectCompletions, language])
+    }, [customVariableCompletions, language])
 
     // Update placeholder if prop changes
     useEffect(() => {
