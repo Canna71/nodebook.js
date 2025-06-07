@@ -150,8 +150,10 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                         theme={oneDark}
                         onChange={onCodeChange}
                         dimensions={{
-                            autoHeight: true,
+                            width: '100%', // Explicitly constrain to container width
                             minHeight: '100px',
+                            autoHeight: true,
+                            maxHeight: '600px' // Add reasonable max height to prevent excessive growth
                         }}
                     />
                 </div>

@@ -168,9 +168,10 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
               showLineNumbers={false}
               placeholder="$variable1 + $variable2"
               dimensions={{
-                autoHeight: true,
+                width: '100%', // Explicitly constrain to container width
                 minHeight: '60px',
-                maxHeight: '200px'
+                autoHeight: true,
+                maxHeight: '200px' // Keep existing max height for formula editor
               }}
             />
           </div>

@@ -113,15 +113,16 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
         <div className="markdown-editor">
           <Editor
             value={currentContent}
-            language="markdown" // Use markdown language instead of text
+            language="markdown"
             theme={oneDark}
             onChange={onContentChange}
             showLineNumbers={false}
             placeholder="# Write your markdown here...\n\nYou can use {{variableName}} to embed reactive values."
             dimensions={{
-              autoHeight: true,
+              width: '100%', // Explicitly constrain to container width
               minHeight: '120px',
-              maxHeight: '400px'
+              autoHeight: true,
+              maxHeight: '500px' // Add reasonable max height to prevent excessive growth
             }}
           />
         </div>

@@ -89,12 +89,14 @@ function getEditorStyle(language: string | undefined, dimensions?: EditorDimensi
     const defaultFontSize = 14; // Common monospace font size in editors
     const fontContext = { fontSize: defaultFontSize };
     
-    // Build style object
+    // Build style object - FORCE width constraint
     const style: React.CSSProperties = {
         border: '1px solid #ccc',
         fontFamily: 'monospace',
-        fontSize: `${defaultFontSize}px`, // Ensure consistent font size
+        fontSize: `${defaultFontSize}px`,
         width: '100%', // Always constrain to container width
+        maxWidth: '100%', // Prevent overflow
+        overflow: 'hidden', // Hide any overflow
         boxSizing: 'border-box'
     };
 
@@ -102,6 +104,7 @@ function getEditorStyle(language: string | undefined, dimensions?: EditorDimensi
         // Apply custom dimensions with font context
         if (dimensions.width !== undefined) {
             style.width = getDimensionValue(dimensions.width, fontContext);
+            style.maxWidth = style.width; // Ensure max-width matches
         }
         
         if (dimensions.height !== undefined) {
@@ -122,28 +125,32 @@ function getEditorStyle(language: string | undefined, dimensions?: EditorDimensi
         
         if (dimensions.maxWidth !== undefined) {
             style.maxWidth = getDimensionValue(dimensions.maxWidth, fontContext);
+        } else {
+            style.maxWidth = '100%'; // Always set a max-width
         }
         
         if (dimensions.maxHeight !== undefined) {
             style.maxHeight = getDimensionValue(dimensions.maxHeight, fontContext);
         }
         
-        // Auto sizing
+        // Auto sizing - disabled to prevent expansion
         if (dimensions.autoHeight) {
             style.height = 'auto';
-            // Convert minHeight to pixels for reliability
             const computedMinHeight = getDimensionValue(dimensions.minHeight, fontContext) || '60px';
             style.minHeight = computedMinHeight;
+            // Don't allow auto-height to expand indefinitely
+            style.maxHeight = getDimensionValue(dimensions.maxHeight, fontContext) || '400px';
         }
         
         if (dimensions.autoWidth) {
-            style.width = 'auto';
-            const computedMinWidth = getDimensionValue(dimensions.minWidth, fontContext) || '200px';
-            style.minWidth = computedMinWidth;
+            // Completely disable auto-width - it causes the expansion issue
+            style.width = '100%';
+            style.maxWidth = '100%';
         }
     } else {
         // Default behavior when no dimensions specified
         style.height = isUrl ? 'auto' : '400px';
+        style.maxWidth = '100%';
         if (isUrl) {
             style.minHeight = '32px';
         }
@@ -155,41 +162,40 @@ function getEditorStyle(language: string | undefined, dimensions?: EditorDimensi
 function getAutoSizeExtensions(dimensions?: EditorDimensions): Extension[] {
     const extensions: Extension[] = [];
     
-    if (dimensions?.autoHeight || dimensions?.autoWidth) {
+    // Always add width constraints to prevent horizontal overflow
+    extensions.push(
+        EditorView.theme({
+            '.cm-editor': {
+                width: '100%',
+                maxWidth: '100%',
+                boxSizing: 'border-box'
+            },
+            '.cm-scroller': {
+                width: '100%',
+                maxWidth: '100%',
+                boxSizing: 'border-box',
+                overflow: 'auto' // Enable scrolling instead of expansion
+            },
+            '.cm-content': {
+                width: '100%',
+                maxWidth: '100%',
+                boxSizing: 'border-box'
+            }
+        })
+    );
+    
+    if (dimensions?.autoHeight) {
         // Convert relative units to pixels for CodeMirror theme
         const fontContext = { fontSize: 14 };
         
         extensions.push(
             EditorView.theme({
                 '.cm-editor': {
-                    ...(dimensions.autoHeight && { 
-                        height: 'auto',
-                        width: '100%', // Ensure it doesn't exceed container width
-                        '& .cm-scroller': { 
-                            overflow: 'auto',
-                            maxHeight: dimensions.maxHeight ? getDimensionValue(dimensions.maxHeight, fontContext) : 'none'
-                        }
-                    }),
-                    ...(dimensions.autoWidth && { 
-                        width: 'auto',
-                        '& .cm-scroller': { 
-                            overflowX: 'auto',
-                            maxWidth: dimensions.maxWidth ? getDimensionValue(dimensions.maxWidth, fontContext) : 'none'
-                        }
-                    })
+                    height: 'auto',
+                    maxHeight: dimensions.maxHeight ? getDimensionValue(dimensions.maxHeight, fontContext) : '400px'
                 },
                 '.cm-content': {
-                    ...(dimensions.autoHeight && { 
-                        minHeight: getDimensionValue(dimensions.minHeight, fontContext) || '56px' // 4em ≈ 56px at 14px font
-                    }),
-                    ...(dimensions.autoWidth && { 
-                        minWidth: getDimensionValue(dimensions.minWidth, fontContext) || '200px' 
-                    })
-                },
-                // Add width constraints to prevent overflow
-                '.cm-scroller': {
-                    width: '100%',
-                    boxSizing: 'border-box'
+                    minHeight: getDimensionValue(dimensions.minHeight, fontContext) || '56px'
                 }
             })
         );

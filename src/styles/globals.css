@@ -76,9 +76,29 @@
     @apply opacity-100;
   }
   
-  /* Ensure cell content takes remaining space */
+  /* Ensure cell content takes remaining space but doesn't overflow */
   .cell-container .cell-content {
-    @apply flex-1;
+    @apply flex-1 min-w-0 overflow-hidden;
+  }
+  
+  /* Force all editors to respect container width */
+  .cell-container .cell-content .cm-editor {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  .cell-container .cell-content .cm-scroller {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: auto !important;
+  }
+  
+  .cell-container .cell-content .cm-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
   
   /* Cell container state styling */
