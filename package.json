@@ -84,6 +84,7 @@
     "handsontable": "^15.3.0",
     "loglevel": "^1.9.2",
     "lucide-react": "^0.511.0",
+    "markdown-it": "^14.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-json-view": "^1.21.3",
