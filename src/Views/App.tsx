@@ -25,7 +25,7 @@ function AppContent() {
             // fs.loadNotebook("../../examples/danfojs-plotting-example.json")
             // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/danfojs-plotting-example.json");
             // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/d3-visualization-example.json");
-            loadNotebook("/Users/gcannata/Projects/notebookjs/examples/pricingModel.json");
+            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/pricingModel.json");
             
         }
     }, [currentModel, loadNotebook]);
@@ -64,7 +64,7 @@ function AppContent() {
 
     return (
         <ReactiveProvider>
-            File Path: {currentFilePath || 'No file loaded'}
+            
             <NotebookViewer model={currentModel} />
         </ReactiveProvider>
     );
@@ -105,7 +105,6 @@ export default function App() {
     return (
         <Layout>
             <div>
-                <h2>NotebookJS</h2>
                 <ApplicationProvider>
                     <AppContent />
                 </ApplicationProvider>
