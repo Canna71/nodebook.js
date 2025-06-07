@@ -16,7 +16,7 @@ interface DynamicNotebookProps {
 }
 
 export function DynamicNotebook({ model }: DynamicNotebookProps) {
-  const { reactiveStore, formulaEngine, codeCellEngine } = useReactiveSystem();
+  const { reactiveStore, formulaEngine, enhancedFormulaEngine, codeCellEngine } = useReactiveSystem();
   const { currentModel, setModel, setDirty } = useApplication();
   const { getAvailableModules } = useCodeCellModules();
   const [initialized, setInitialized] = React.useState(false);
@@ -50,8 +50,10 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
           }
         } else if (cell.type === 'formula') {
           const formulaCell = cell as FormulaCellDefinition;
-          formulaEngine.createFormula(formulaCell.variableName, formulaCell.formula);
-          log.debug(`Initialized formula from formula cell: ${formulaCell.variableName} = ${formulaCell.formula}`);
+          // Use enhanced formula engine that supports natural JavaScript expressions
+          // without requiring $ syntax
+          enhancedFormulaEngine.createFormula(formulaCell.variableName, formulaCell.formula);
+          log.debug(`Initialized enhanced formula from formula cell: ${formulaCell.variableName} = ${formulaCell.formula}`);
         }
         // Note: Markdown cells don't need initialization
       }
@@ -65,7 +67,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     };
 
     initializeNotebook();
-  }, [model, reactiveStore, formulaEngine, codeCellEngine]);
+  }, [model, reactiveStore, formulaEngine, enhancedFormulaEngine, codeCellEngine]);
 
   // Cell management functions
   const generateCellId = (): string => {

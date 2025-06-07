@@ -1272,6 +1272,246 @@ export class CodeCellEngine {
     public hasModule(name: string): boolean {
         return moduleRegistry.hasModule(name);
     }
+
+    /**
+     * Get the reactive store (for internal use by other engines)
+     */
+    public getReactiveStore(): ReactiveStore {
+        return this.reactiveStore;
+    }
+}
+
+/**
+ * Enhanced Formula Engine that reuses CodeCellEngine for robust execution
+ * This provides better dependency tracking and supports full JavaScript expressions
+ */
+export class FormulaEngine {
+    private codeCellEngine: CodeCellEngine;
+    private formulaMap: Map<string, string>;
+    private formulaCellIds: Map<string, string>; // variableName -> cellId mapping
+
+    constructor(codeCellEngine: CodeCellEngine) {
+        this.codeCellEngine = codeCellEngine;
+        this.formulaMap = new Map();
+        this.formulaCellIds = new Map();
+    }
+
+    /**
+     * Convert legacy $variable syntax to natural JavaScript syntax
+     */
+    private convertLegacySyntax(formula: string): string {
+        // Replace $variableName with direct variable references
+        return formula.replace(/\$([a-zA-Z_][a-zA-Z0-9_]*)/g, '$1');
+    }
+
+    /**
+     * Check if all dependencies exist for the formula
+     */
+    private checkDependencies(formula: string): { missing: string[]; available: boolean } {
+        // Extract variable names from the converted formula
+        const convertedFormula = this.convertLegacySyntax(formula);
+        const variablePattern = /\b([a-zA-Z_][a-zA-Z0-9_]*)\b/g;
+        const dependencies = new Set<string>();
+        let match;
+
+        while ((match = variablePattern.exec(convertedFormula)) !== null) {
+            const varName = match[1];
+            // Skip JavaScript built-ins and common functions
+            if (!this.isBuiltInOrFunction(varName)) {
+                dependencies.add(varName);
+            }
+        }
+
+        // Check which dependencies are missing using the public getter
+        const reactiveStore = this.codeCellEngine.getReactiveStore();
+        const missing: string[] = [];
+        for (const dep of dependencies) {
+            if (reactiveStore.getValue(dep) === undefined) {
+                missing.push(dep);
+            }
+        }
+
+        return {
+            missing,
+            available: missing.length === 0
+        };
+    }
+
+    /**
+     * Check if a variable name is a JavaScript built-in or function
+     */
+    private isBuiltInOrFunction(name: string): boolean {
+        const builtIns = new Set([
+            'Math', 'Number', 'String', 'Boolean', 'Array', 'Object', 'Date',
+            'console', 'parseInt', 'parseFloat', 'isNaN', 'isFinite',
+            'undefined', 'null', 'true', 'false', 'return', 'const', 'let', 'var',
+            'if', 'else', 'for', 'while', 'do', 'switch', 'case', 'break', 'continue',
+            'function', 'class', 'new', 'this', 'super', 'static', 'extends', 'implements'
+        ]);
+        return builtIns.has(name);
+    }
+
+    /**
+     * Create or update a formula that executes as a code cell
+     */
+    public createFormula(variableName: string, formula: string): FormulaInfo {
+        // Store the original formula
+        this.formulaMap.set(variableName, formula);
+
+        // Generate a unique cell ID for this formula
+        const cellId = `__formula_${variableName}`;
+        this.formulaCellIds.set(variableName, cellId);
+
+        // Convert legacy $variable syntax to natural JavaScript
+        const convertedFormula = this.convertLegacySyntax(formula);
+
+        // Check dependencies before executing
+        const depCheck = this.checkDependencies(formula);
+        if (!depCheck.available) {
+            log.debug(`Formula "${variableName}" has missing dependencies:`, depCheck.missing);
+            
+            // Store the formula info but don't execute yet
+            return {
+                name: variableName,
+                formula,
+                dependencies: Array.from(new Set([...depCheck.missing, ...this.extractExistingDependencies(convertedFormula)]))
+            };
+        }
+
+        // Wrap the formula in an IIFE that automatically exports the result
+        // This allows natural JavaScript expressions without manual return statements
+        const wrappedCode = `
+// Formula: ${formula}
+// Converted: ${convertedFormula}
+const __result = (() => {
+    try {
+        return ${convertedFormula};
+    } catch (error) {
+        console.warn('Formula execution error:', error.message);
+        return null; // Return null on error instead of throwing
+    }
+})();
+
+// Export the result as the variable name
+exports.${variableName} = __result;
+`;
+
+        // Execute using the code cell engine
+        try {
+            const exports = this.codeCellEngine.executeCodeCell(cellId, wrappedCode);
+            log.debug(`Formula "${variableName}" executed successfully:`, exports);
+            
+            // Extract dependencies from the executed cell
+            const dependencies = this.codeCellEngine.getCellDependencies(cellId);
+            
+            return {
+                name: variableName,
+                formula,
+                dependencies
+            };
+        } catch (error) {
+            log.warn(`Error executing formula "${variableName}":`, error);
+            
+            // Don't throw - return info with error indication
+            return {
+                name: variableName,
+                formula,
+                dependencies: depCheck.missing.length > 0 ? depCheck.missing : []
+            };
+        }
+    }
+
+    /**
+     * Extract dependencies from a converted formula for fallback
+     */
+    private extractExistingDependencies(convertedFormula: string): string[] {
+        const dependencies = new Set<string>();
+        const variablePattern = /\b([a-zA-Z_][a-zA-Z0-9_]*)\b/g;
+        let match;
+
+        while ((match = variablePattern.exec(convertedFormula)) !== null) {
+            const varName = match[1];
+            const reactiveStore = this.codeCellEngine.getReactiveStore();
+            if (!this.isBuiltInOrFunction(varName) && reactiveStore.getValue(varName) !== undefined) {
+                dependencies.add(varName);
+            }
+        }
+
+        return Array.from(dependencies);
+    }
+
+    /**
+     * Update an existing formula
+     */
+    public updateFormula(variableName: string, formula: string): FormulaInfo {
+        return this.createFormula(variableName, formula);
+    }
+
+    /**
+     * Get the original formula string
+     */
+    public getFormula(variableName: string): string | undefined {
+        return this.formulaMap.get(variableName);
+    }
+
+    /**
+     * Get all formulas
+     */
+    public getAllFormulas(): { [key: string]: string } {
+        return Object.fromEntries(this.formulaMap);
+    }
+
+    /**
+     * Get formula dependencies (automatically tracked by code cell engine)
+     */
+    public getFormulaDependencies(variableName: string): string[] {
+        const cellId = this.formulaCellIds.get(variableName);
+        return cellId ? this.codeCellEngine.getCellDependencies(cellId) : [];
+    }
+
+    /**
+     * Get formula exports (should always be the variable name)
+     */
+    public getFormulaExports(variableName: string): string[] {
+        const cellId = this.formulaCellIds.get(variableName);
+        return cellId ? this.codeCellEngine.getCellExports(cellId) : [];
+    }
+
+    /**
+     * Get formula execution count
+     */
+    public getFormulaExecutionCount(variableName: string): number {
+        const cellId = this.formulaCellIds.get(variableName);
+        return cellId ? this.codeCellEngine.getCellExecutionCount(cellId) : 0;
+    }
+
+    /**
+     * Clear a formula
+     */
+    public clearFormula(variableName: string): void {
+        const cellId = this.formulaCellIds.get(variableName);
+        if (cellId) {
+            this.codeCellEngine.clearCellExports(cellId);
+        }
+        this.formulaMap.delete(variableName);
+        this.formulaCellIds.delete(variableName);
+    }
+
+    /**
+     * Check if formula is valid (can be parsed and executed)
+     */
+    public validateFormula(formula: string): { valid: boolean; error?: string } {
+        try {
+            // Try to parse the formula by wrapping it in an IIFE
+            new Function(`return (() => { ${formula} })`);
+            return { valid: true };
+        } catch (error) {
+            return { 
+                valid: false, 
+                error: error instanceof Error ? error.message : String(error)
+            };
+        }
+    }
 }
 
 // Example usage
@@ -1279,15 +1519,19 @@ export function createReactiveSystem(options: ReactiveFormulaEngineOptions = {})
     // Create reactive store
     const reactiveStore = new ReactiveStore();
 
-    // Create formula engine
-    const formulaEngine = new ReactiveFormulaEngine(reactiveStore, options);
+    // Create legacy formula engine (for backwards compatibility)
+    const legacyFormulaEngine = new ReactiveFormulaEngine(reactiveStore, options);
 
     // Create code cell engine with module support
     const codeCellEngine = new CodeCellEngine(reactiveStore);
 
+    // Create new formula engine that uses code cell engine
+    const formulaEngine = new FormulaEngine(codeCellEngine);
+
     return {
         reactiveStore,
-        formulaEngine,
+        formulaEngine: legacyFormulaEngine, // Keep legacy for now
+        enhancedFormulaEngine: formulaEngine, // New enhanced version
         codeCellEngine
     };
 }

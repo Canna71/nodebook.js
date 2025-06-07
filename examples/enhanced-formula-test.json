@@ -1,0 +1,105 @@
+{
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "header",
+      "content": "<h2>Enhanced Formula System Test</h2><p>Demonstrating the new formula engine that supports natural JavaScript expressions without $ syntax</p>"
+    },
+    {
+      "type": "input",
+      "id": "quantity-input",
+      "label": "Quantity",
+      "inputType": "number",
+      "variableName": "quantity",
+      "value": 5,
+      "props": {
+        "min": 1,
+        "max": 100,
+        "step": 1
+      }
+    },
+    {
+      "type": "input",
+      "id": "unit-price-input",
+      "label": "Unit Price ($)",
+      "inputType": "number",
+      "variableName": "unitPrice",
+      "value": 29.99,
+      "props": {
+        "min": 0,
+        "max": 1000,
+        "step": 0.01
+      }
+    },
+    {
+      "type": "code",
+      "id": "calculations",
+      "code": "// Calculate subtotal and tax\nconst subtotal = quantity * unitPrice;\nconst taxRate = 0.08; // 8% tax\nconst taxAmount = subtotal * taxRate;\nconst grandTotal = subtotal + taxAmount;\n\n// Export all calculated values\nexports.subtotal = subtotal;\nexports.taxRate = taxRate;\nexports.taxAmount = taxAmount;\nexports.grandTotal = grandTotal;\n\nconsole.log('Calculations:', {\n  quantity,\n  unitPrice,\n  subtotal: subtotal.toFixed(2),\n  taxAmount: taxAmount.toFixed(2),\n  grandTotal: grandTotal.toFixed(2)\n});"
+    },
+    {
+      "type": "formula",
+      "id": "enhanced-subtotal",
+      "label": "Subtotal (Enhanced)",
+      "variableName": "enhancedSubtotal",
+      "formula": "quantity * unitPrice",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "formula",
+      "id": "enhanced-discount",
+      "label": "Bulk Discount",
+      "variableName": "bulkDiscount",
+      "formula": "quantity >= 10 ? subtotal * 0.1 : 0",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "formula",
+      "id": "enhanced-final-price",
+      "label": "Final Price",
+      "variableName": "finalPrice",
+      "formula": "grandTotal - bulkDiscount",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "formula",
+      "id": "enhanced-complex",
+      "label": "Complex Calculation",
+      "variableName": "complexResult",
+      "formula": "Math.round((quantity * unitPrice * (1 + taxRate) - bulkDiscount) * 100) / 100",
+      "outputFormat": "currency",
+      "decimals": 2
+    },
+    {
+      "type": "formula",
+      "id": "enhanced-percentage",
+      "label": "Savings Percentage",
+      "variableName": "savingsPercentage",
+      "formula": "bulkDiscount > 0 ? (bulkDiscount / grandTotal) * 100 : 0",
+      "outputFormat": "percentage",
+      "decimals": 1
+    },
+    {
+      "type": "markdown",
+      "id": "results-summary",
+      "content": "## Enhanced Formula Results\n\n**Order Details:**\n- Quantity: {{quantity}} units\n- Unit Price: ${{unitPrice}}\n- Subtotal: ${{enhancedSubtotal?.toFixed(2) || '0.00'}}\n\n**Discounts & Final Pricing:**\n- Bulk Discount: ${{bulkDiscount?.toFixed(2) || '0.00'}}\n- Final Price: ${{finalPrice?.toFixed(2) || '0.00'}}\n- Savings: {{savingsPercentage?.toFixed(1) || '0.0'}}%\n\n**Technical Details:**\n- Complex Result: ${{complexResult?.toFixed(2) || '0.00'}}\n- Tax Amount: ${{taxAmount?.toFixed(2) || '0.00'}}\n\n---\n\n{{bulkDiscount > 0 ? '🎉 **Bulk discount applied!**' : 'Add 5+ more items for bulk discount'}}",
+      "variables": [
+        "quantity",
+        "unitPrice", 
+        "enhancedSubtotal",
+        "bulkDiscount",
+        "finalPrice",
+        "savingsPercentage",
+        "complexResult",
+        "taxAmount"
+      ]
+    },
+    {
+      "type": "markdown",
+      "id": "feature-explanation",
+      "content": "### New Formula Features\n\nThe enhanced formula system supports:\n\n✅ **Natural JavaScript Syntax**: No need for `$variable` - just use `variable`\n\n✅ **Complex Expressions**: Conditional logic, Math functions, nested calculations\n\n✅ **Automatic Dependency Tracking**: Dependencies are detected automatically\n\n✅ **Full JavaScript Support**: Any valid JavaScript expression works\n\n✅ **Error Handling**: Robust error reporting and graceful failure\n\n---\n\n**Try it:** Change the quantity to 10 or more to see the bulk discount formula activate!"
+    }
+  ]
+}
