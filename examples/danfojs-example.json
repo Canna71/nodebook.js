@@ -19,12 +19,12 @@
     {
       "type": "code",
       "id": "create-df",
-      "code": "// Create DataFrame from data\nexports.df = new dfd.DataFrame(data);\nconsole.log('DataFrame created:');\nexports.df.print();\n\n// Output DataFrame info\noutput({\n  shape: exports.df.shape,\n  columns: exports.df.columns,\n  dtypes: exports.df.dtypes\n});\noutput(df);"
+      "code": "// Create DataFrame from data\nexports.df = new dfd.DataFrame(data);\nconsole.log('DataFrame created:');\nexports.df.print();\n\n// Output DataFrame info\noutput({\n  shape: exports.df.shape,\n  columns: exports.df.columns,\n  dtypes: exports.df.dtypes\n});\noutput(exports.df);"
     },
     {
       "type": "code",
       "id": "add-column",
-      "code": "// Add a new column C = A + B (immutable approach)\nexports.df2 = df.addColumn('C', df['A'].add(df['B']), { inplace: false });\nconsole.log('New DataFrame with column C:', df2);\nexports.df2.print();\n\n// Output operation result\noutput({\n  operation: 'addColumn',\n  newColumn: 'C',\n  originalShape: df.shape,\n  newShape: exports.df2.shape,\n  columnC_values: exports.df2['C'].values,\n  inplace: false\n});"
+      "code": "// Add a new column C = A + B (immutable approach)\nexports.df2 = df.addColumn('C', df['A'].add(df['B']), { inplace: false });\nconsole.log('New DataFrame with column C:', exports.df2);\nexports.df2.print();\n\n// Output operation result\noutput({\n  operation: 'addColumn',\n  newColumn: 'C',\n  originalShape: df.shape,\n  newShape: exports.df2.shape,\n  columnC_values: exports.df2['C'].values,\n  inplace: false\n});"
     },
     {
       "type": "code",
