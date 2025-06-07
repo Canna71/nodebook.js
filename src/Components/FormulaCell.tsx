@@ -9,6 +9,9 @@ import Editor from './Editor';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { log } from './DynamicNotebook';
 import { formatValue } from '@/lib/formatters';
+import { useFormulaCompletions } from '@/hooks/useFormulaCompletions';
+import { useCodeCompletions, useModuleCompletions } from '@/hooks/useCodeCompletions';
+import { useFormulaRuntimeCompletions } from '@/hooks/useFormulaRuntimeCompletions';
 
 interface FormulaCellProps {
   definition: FormulaCellDefinition;
@@ -21,6 +24,12 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
   const { currentModel, setModel, setDirty } = useApplication();
   const [value, setValue] = useReactiveValue(definition.variableName, null);
   const [error, setError] = useState<string | null>(null);
+
+  // Get completions for formula editor (same as code cells)
+  const formulaCompletions = useFormulaCompletions();
+  const codeCompletions = useCodeCompletions();
+  const moduleCompletions = useModuleCompletions();
+  const runtimeCompletions = useFormulaRuntimeCompletions();
 
   // Edit mode state
   const [editConfig, setEditConfig] = useState({
@@ -142,7 +151,10 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
               language="javascript"
               theme={oneDark}
               showLineNumbers={false}
-              placeholder="$variable1 + $variable2"
+              placeholder="Examples: finalPrice, $basePrice * 1.08, Math.round(price * quantity)"
+              customCompletions={formulaCompletions}
+              objectCompletions={moduleCompletions}
+              runtimeCompletions={runtimeCompletions}
               dimensions={{
                 width: '100%', // Explicitly constrain to container width
                 minHeight: '60px',
