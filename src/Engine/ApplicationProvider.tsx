@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import { NotebookModel } from '@/Types/NotebookModel';
 import { ApplicationState, ApplicationContextType, ApplicationProviderProps } from '@/Types/ApplicationTypes';
 import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
+import { toast } from 'sonner';
 import anylogger from 'anylogger';
 
 const log = anylogger('ApplicationProvider');
@@ -63,15 +64,16 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
     const saveNotebook = useCallback(async (filePath?: string) => {
         if (!state.currentModel) {
             setError('No notebook to save');
+            toast.error('No notebook to save');
             return;
         }
         
         const targetPath = filePath || state.currentFilePath;
         if (!targetPath) {
             setError('No file path specified');
+            toast.error('No file path specified');
             return;
         }
-        
 
         setError(null);
 
@@ -86,9 +88,22 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
             }));
             
             log.info('Notebook saved successfully:', targetPath);
+            
+            // Show success toast with file name
+            const fileName = targetPath.split('/').pop() || 'notebook';
+            toast.success(`Notebook saved: ${fileName}`, {
+                description: targetPath,
+                duration: 3000,
+            });
+            
         } catch (error) {
             log.error('Error saving notebook:', error);
-            setError(`Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            const errorMessage = `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            setError(errorMessage);
+            toast.error('Failed to save notebook', {
+                description: error instanceof Error ? error.message : 'Unknown error',
+                duration: 5000,
+            });
         }
     }, [state.currentModel, state.currentFilePath]);
 
@@ -366,6 +381,12 @@ Variables automatically update when their dependencies change, creating a live, 
                     const saveResult = await fs.saveNotebook(state.currentModel, result.filePath);
                     
                     if (saveResult.success) {
+                        const fileName = result.filePath.split('/').pop() || 'export.json';
+                        toast.success(`Notebook exported: ${fileName}`, {
+                            description: result.filePath,
+                            duration: 3000,
+                        });
+                        
                         await window.api.showMessageBox({
                             type: 'info',
                             title: 'Export Successful',
@@ -373,19 +394,33 @@ Variables automatically update when their dependencies change, creating a live, 
                             detail: `Saved to: ${result.filePath}`
                         });
                     } else {
+                        toast.error('Export failed', {
+                            description: saveResult.error,
+                            duration: 5000,
+                        });
                         await window.api.showErrorBox('Export Failed', 
                             `Failed to export notebook: ${saveResult.error}`);
                     }
                 } catch (writeError) {
                     console.error('Export failed:', writeError);
+                    const errorMessage = writeError instanceof Error ? writeError.message : 'Unknown error';
+                    toast.error('Export failed', {
+                        description: errorMessage,
+                        duration: 5000,
+                    });
                     await window.api.showErrorBox('Export Failed', 
-                        `Failed to export notebook: ${writeError instanceof Error ? writeError.message : 'Unknown error'}`);
+                        `Failed to export notebook: ${errorMessage}`);
                 }
             }
         } catch (error) {
             console.error('Export failed:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            toast.error('Export failed', {
+                description: errorMessage,
+                duration: 5000,
+            });
             await window.api.showErrorBox('Export Failed', 
-                `Failed to export notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                `Failed to export notebook: ${errorMessage}`);
         }
     };
 
