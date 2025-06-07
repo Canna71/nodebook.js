@@ -33,15 +33,63 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
     setCurrentContent(definition.content);
   }, [definition.content]);
 
-  // Utility to extract variable names from {{var}} in markdown content
+  // Utility to extract variable names from {{expressions}} in markdown content
   function extractVariablesFromContent(content: string): string[] {
-    const regex = /\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(\|[^}]*)?\}\}/g;
+    const regex = /\{\{\s*([^}]+)\s*\}\}/g;
     const vars = new Set<string>();
     let match;
+    
     while ((match = regex.exec(content)) !== null) {
-      vars.add(match[1]);
+      const expression = match[1].trim();
+      
+      // Extract variable names from the expression
+      const variableNames = extractVariableNamesFromExpression(expression);
+      variableNames.forEach(varName => vars.add(varName));
     }
+    
     return Array.from(vars);
+  }
+
+  // Extract variable names from a JavaScript expression
+  function extractVariableNamesFromExpression(expression: string): string[] {
+    // Handle filter expressions (e.g., "variable | filter")
+    if (expression.includes('|')) {
+      const [varExpression] = expression.split('|').map(s => s.trim());
+      return extractVariableNamesFromExpression(varExpression);
+    }
+    
+    // Extract JavaScript identifiers that could be variables
+    // This regex matches valid JavaScript identifiers
+    const identifierRegex = /\b([a-zA-Z_$][a-zA-Z0-9_$]*)\b/g;
+    const identifiers = new Set<string>();
+    let match;
+    
+    while ((match = identifierRegex.exec(expression)) !== null) {
+      const identifier = match[1];
+      
+      // Filter out JavaScript keywords, built-ins, and common globals
+      if (!isBuiltInOrKeyword(identifier)) {
+        identifiers.add(identifier);
+      }
+    }
+    
+    return Array.from(identifiers);
+  }
+
+  // Check if an identifier is a built-in or keyword that shouldn't be treated as a variable
+  function isBuiltInOrKeyword(identifier: string): boolean {
+    const builtIns = new Set([
+      // JavaScript keywords
+      'const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'do', 'switch', 'case', 'break', 'continue', 'try', 'catch', 'finally', 'throw', 'new', 'this', 'super', 'class', 'extends', 'import', 'export', 'default',
+      // Built-in objects and functions
+      'Math', 'Number', 'String', 'Boolean', 'Array', 'Object', 'Date', 'JSON', 'console', 'window', 'document', 'global', 'globalThis',
+      // Common methods
+      'toFixed', 'toString', 'valueOf', 'length', 'push', 'pop', 'shift', 'unshift', 'slice', 'splice', 'indexOf', 'includes',
+      // Literals
+      'true', 'false', 'null', 'undefined', 'NaN', 'Infinity'
+    ]);
+    
+    return builtIns.has(identifier);
   }
 
   useEffect(() => {
