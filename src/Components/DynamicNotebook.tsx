@@ -252,7 +252,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
   };
 
   return (
-    <div className="dynamic-notebook max-w-4xl mx-auto p-2">
+    <div className="dynamic-notebook max-w-4xl mx-auto p-2 pt-6">
       <div className="notebook-cells">
         {model.cells.length === 0 ? (
           <div className="empty-notebook text-center py-12 text-secondary-foreground">
