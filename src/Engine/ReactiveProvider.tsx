@@ -8,7 +8,9 @@ log.debug("Initializing ReactiveProvider");
 
 // Create context for reactive system
 interface ReactiveContextType {
-    reactiveStore: ReactiveStore;
+    reactiveStore: ReactiveStore & {
+        getAllVariableNames(): string[];
+    };
     formulaEngine: ReactiveFormulaEngine;
     codeCellEngine: CodeCellEngine;
 }
@@ -19,10 +21,33 @@ const ReactiveContext = createContext<ReactiveContextType | null>(null);
 export const ReactiveProvider: React.FC<{ 
   children: React.ReactNode;
 }> = ({ children }) => {
-    const [system] = useState(() => createReactiveSystem());
+    const { codeCellEngine, formulaEngine, reactiveStore } = createReactiveSystem();
+
+    // Enhanced reactive store wrapper for React - properly extend the original
+    const reactiveStoreWrapper = Object.assign(
+        Object.create(Object.getPrototypeOf(reactiveStore)), 
+        reactiveStore,
+        {
+            // Add method to get all variable names for intellisense
+            getAllVariableNames: (): string[] => {
+                try {
+                    return reactiveStore.getAllVariableNames();
+                } catch (error) {
+                    log.error('Error getting all variable names:', error);
+                    return [];
+                }
+            }
+        }
+    );
+
+    const contextValue: ReactiveContextType = {
+        codeCellEngine,
+        formulaEngine,
+        reactiveStore: reactiveStoreWrapper
+    };
 
     return (
-        <ReactiveContext.Provider value={system}>
+        <ReactiveContext.Provider value={contextValue}>
             {children}
         </ReactiveContext.Provider>
     );

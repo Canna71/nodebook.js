@@ -245,7 +245,7 @@ export class ReactiveStore {
     }
 
     /**
-     * Get all variable names
+     * Get all variable names for intellisense
      */
     public getAllVariableNames(): string[] {
         return Array.from(this.values.keys());

@@ -19,7 +19,7 @@ interface CodeCellProps {
 
 // Add CodeCell component for display purposes
 export function CodeCell({ definition, initialized, isEditMode = false }: CodeCellProps) {
-    const { codeCellEngine } = useReactiveSystem();
+    const { codeCellEngine, reactiveStore } = useReactiveSystem();
     const { currentModel, setModel, setDirty } = useApplication();
 
     // Subscribe to execution count to know when cell re-executes
@@ -78,6 +78,50 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         }
     }, [initialized, definition.id, codeCellEngine, executionCount, currentCode]);
 
+    // Get available reactive variables for intellisense
+    const [reactiveVariables, setReactiveVariables] = React.useState<string[]>([]);
+    const [availableModules, setAvailableModules] = React.useState<string[]>([]);
+
+    // Update reactive variables list when reactive store changes
+    useEffect(() => {
+        try {
+            const variables = reactiveStore.getAllVariableNames();
+            // Filter out internal variables
+            const userVariables = variables.filter(name => 
+                !name.startsWith('__cell_') && 
+                !name.startsWith('__internal_')
+            );
+            setReactiveVariables(userVariables);
+        } catch (error) {
+            log.warn('Failed to get reactive variables for intellisense:', error);
+        }
+    }, [reactiveStore, executionCount]);
+
+    // Get available modules
+    useEffect(() => {
+        try {
+            const modules = codeCellEngine.getAvailableModules();
+            setAvailableModules(modules);
+        } catch (error) {
+            log.warn('Failed to get available modules for intellisense:', error);
+        }
+    }, [codeCellEngine]);
+
+    // Define object completions for common APIs
+    const objectCompletions = React.useMemo(() => [
+        {
+            object: 'dfd',
+            methods: [
+                { label: 'DataFrame', type: 'class', info: 'Create a new DataFrame' },
+                { label: 'Series', type: 'class', info: 'Create a new Series' },
+                { label: 'read_csv', type: 'function', info: 'Read CSV file into DataFrame' },
+                { label: 'read_json', type: 'function', info: 'Read JSON file into DataFrame' },
+                { label: 'concat', type: 'function', info: 'Concatenate DataFrames' },
+                { label: 'merge', type: 'function', info: 'Merge DataFrames' }
+            ]
+        }
+    ], []);
+
     const onCodeChange = (newCode: string) => {
         // Update local state immediately for responsive editing
         setCurrentCode(newCode);
@@ -130,6 +174,9 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                         language="javascript"
                         theme={oneDark}
                         onChange={onCodeChange}
+                        reactiveVariables={reactiveVariables} // NEW
+                        availableModules={availableModules} // NEW
+                        objectCompletions={objectCompletions} // NEW
                         dimensions={{
                             width: '100%',
                             minHeight: '100px',

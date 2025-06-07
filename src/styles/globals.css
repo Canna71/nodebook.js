@@ -213,6 +213,85 @@
     width: 2px;
     background: linear-gradient(to bottom, rgba(59, 130, 246, 0.3), rgba(34, 197, 94, 0.3));
   }
+  
+  /* CodeMirror autocompletion styling */
+  .cm-tooltip-autocomplete {
+    @apply bg-background border border-border rounded-md shadow-lg max-h-64 overflow-hidden;
+  }
+  
+  .cm-completionLabel {
+    @apply text-foreground;
+  }
+  
+  .cm-completionLabel-function {
+    @apply text-blue-400;
+  }
+  
+  .cm-completionLabel-variable {
+    @apply text-green-400;
+  }
+  
+  .cm-completionLabel-module {
+    @apply text-purple-400;
+  }
+  
+  .cm-completionLabel-class {
+    @apply text-yellow-400;
+  }
+  
+  .cm-completionLabel-namespace {
+    @apply text-cyan-400;
+  }
+  
+  .cm-completionLabel-constant {
+    @apply text-orange-400;
+  }
+  
+  .cm-completionLabel-property {
+    @apply text-pink-400;
+  }
+  
+  .cm-completionInfo {
+    @apply bg-background-secondary border-l border-border text-secondary-foreground p-2 text-xs;
+  }
+  
+  .cm-completionIcon {
+    @apply mr-2;
+  }
+  
+  .cm-completionIcon-function::before {
+    content: '𝑓';
+    @apply text-blue-400;
+  }
+  
+  .cm-completionIcon-variable::before {
+    content: '𝑥';
+    @apply text-green-400;
+  }
+  
+  .cm-completionIcon-module::before {
+    content: '📦';
+  }
+  
+  .cm-completionIcon-class::before {
+    content: '🏗';
+    @apply text-yellow-400;
+  }
+  
+  .cm-completionIcon-namespace::before {
+    content: '📁';
+    @apply text-cyan-400;
+  }
+  
+  .cm-completionIcon-constant::before {
+    content: '◦';
+    @apply text-orange-400;
+  }
+  
+  .cm-completionIcon-property::before {
+    content: '∘';
+    @apply text-pink-400;
+  }
 }
 
 /* @utility border-err {

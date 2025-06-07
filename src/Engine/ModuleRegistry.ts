@@ -186,6 +186,32 @@ export class ModuleRegistry {
   }
 
   /**
+   * Get available modules with their descriptions for intellisense
+   */
+  public getModulesWithInfo(): Array<{ name: string, description: string }> {
+    const moduleInfo = [
+      { name: 'danfojs', description: 'DataFrame library for data manipulation' },
+      { name: 'lodash', description: 'Utility library for JavaScript' },
+      { name: 'moment', description: 'Date manipulation library' },
+      { name: 'axios', description: 'HTTP client library' },
+      { name: 'mathjs', description: 'Math library with expression parser' },
+      { name: 'fs', description: 'File system operations' },
+      { name: 'path', description: 'File path utilities' },
+      { name: 'os', description: 'Operating system utilities' },
+      { name: 'crypto', description: 'Cryptographic functionality' },
+      { name: 'util', description: 'Node.js utility functions' },
+      { name: 'events', description: 'Event emitter functionality' },
+      { name: 'stream', description: 'Streaming data' },
+      { name: 'buffer', description: 'Binary data handling' },
+      { name: 'url', description: 'URL parsing utilities' },
+      { name: 'querystring', description: 'Query string utilities' }
+    ];
+
+    // Return only modules that are actually available
+    return moduleInfo.filter(info => this.hasModule(info.name));
+  }
+
+  /**
    * Synchronous require function
    */
   public requireSync(name: string): any {
