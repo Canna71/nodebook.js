@@ -1,3 +1,4 @@
+import { CodeIcon } from 'lucide-react';
 import React from 'react';
 
 interface CodeSummaryProps {
@@ -73,38 +74,52 @@ export function CodeSummary({ code, exports = [], dependencies = [] }: CodeSumma
   const displayText = metadata.title || metadata.purpose || metadata.firstLine;
   
   return (
-    <div className="code-summary p-4 bg-background-secondary border-b border-border">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          {/* Main summary text */}
-          <div className="text-sm text-foreground mb-2">
-            {displayText.length > 100 ? `${displayText.substring(0, 100)}...` : displayText}
-          </div>
-          
-          {/* Additional metadata if available */}
-          {metadata.description && metadata.description !== metadata.title && (
-            <div className="text-xs text-secondary-foreground mb-2">
-              {metadata.description}
+    <div className="code-summary bg-muted/20 px-4 py-2 border-b border-border font-mono text-sm">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        {/* Language indicator with code icon */}
+        <CodeIcon className="w-3 h-3" />
+        
+        {/* Code preview with comment styling */}
+        {displayText && (
+          <>
+            <span className="text-muted-foreground/60">{'•'}</span>
+            <span className="text-xs text-muted-foreground/80 italic">
+              {displayText}
+            </span>
+          </>
+        )}
+      </div>
+      
+      {/* Dependencies and exports with comment-style indicators */}
+      {(dependencies.length > 0 || exports.length > 0) && (
+        <div className="flex items-center gap-4 mt-1 text-xs">
+          {dependencies.length > 0 && (
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground/60">depends:</span>
+              <div className="flex gap-1">
+                {dependencies.map((dep, index) => (
+                  <span key={dep} className="text-blue-400 font-medium">
+                    {dep}{index < dependencies.length - 1 && ','}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
           
-          {/* Exports and dependencies summary */}
-          {/* <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            {exports.length > 0 && (
-              <span>
-                <strong>Exports:</strong> {exports.join(', ')}
-              </span>
-            )}
-            {dependencies.length > 0 && (
-              <span>
-                <strong>Uses:</strong> {dependencies.join(', ')}
-              </span>
-            )}
-          </div> */}
+          {exports.length > 0 && (
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground/60">exports:</span>
+              <div className="flex gap-1">
+                {exports.map((exp, index) => (
+                  <span key={exp} className="text-green-400 font-medium">
+                    {exp}{index < exports.length - 1 && ','}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-        
-        {/* Removed: Code type indicator - redundant with cell type indicator */}
-      </div>
+      )}
     </div>
   );
 }

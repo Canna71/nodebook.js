@@ -114,14 +114,15 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     };
 
     return (
-        <div className="cell code-cell border border-border rounded-lg mb-4 bg-background">
+        <div className="cell code-cell border border-border rounded-lg mb-4 bg-background overflow-hidden">
+            {/* Code Summary - styled like code comments */}
             <CodeSummary 
-                    code={currentCode}
-                    exports={exports}
-                    dependencies={dependencies}
-                />
+                code={currentCode}
+                exports={exports}
+                dependencies={dependencies}
+            />
 
-            {/* Code Summary (View Mode) or Editor (Edit Mode) */}
+            {/* Code Editor (Edit Mode) */}
             {isEditMode && (
                 <div className="code-content bg-background-secondary px-4 py-3 overflow-x-auto">
                     <Editor
@@ -130,14 +131,14 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                         theme={oneDark}
                         onChange={onCodeChange}
                         dimensions={{
-                            width: '100%', // Explicitly constrain to container width
+                            width: '100%',
                             minHeight: '100px',
                             autoHeight: true,
-                            maxHeight: '600px' // Add reasonable max height to prevent excessive growth
+                            maxHeight: '600px'
                         }}
                     />
                 </div>
-            ) }
+            )}
 
             {/* DOM Output Container */}
             <div 
