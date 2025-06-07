@@ -187,15 +187,30 @@ function getAutoSizeExtensions(dimensions?: EditorDimensions): Extension[] {
     if (dimensions?.autoHeight) {
         // Convert relative units to pixels for CodeMirror theme
         const fontContext = { fontSize: 14 };
+        const maxHeight = dimensions.maxHeight ? getDimensionValue(dimensions.maxHeight, fontContext) : '400px';
         
         extensions.push(
             EditorView.theme({
                 '.cm-editor': {
                     height: 'auto',
-                    maxHeight: dimensions.maxHeight ? getDimensionValue(dimensions.maxHeight, fontContext) : '400px'
+                    maxHeight: maxHeight
+                },
+                '.cm-scroller': {
+                    // Key fix: ensure scroller handles overflow properly
+                    maxHeight: maxHeight,
+                    overflowY: 'auto',
+                    overflowX: 'auto'
                 },
                 '.cm-content': {
                     minHeight: getDimensionValue(dimensions.minHeight, fontContext) || '56px'
+                }
+            }),
+            // Add scroll handling extension
+            EditorView.domEventHandlers({
+                scroll(event, view) {
+                    // Let CodeMirror handle its own scrolling
+                    event.stopPropagation();
+                    return false;
                 }
             })
         );

@@ -93,12 +93,20 @@
     max-width: 100% !important;
     box-sizing: border-box !important;
     overflow: auto !important;
+    /* Ensure scroll events are captured by the editor */
+    overscroll-behavior: contain;
   }
   
   .cell-container .cell-content .cm-content {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
+  }
+  
+  /* Specific handling for auto-height editors with scroll */
+  .cell-container .cell-content .cm-editor[style*="auto"] .cm-scroller {
+    overflowY: auto !important;
+    overscroll-behavior-y: contain !important;
   }
   
   /* Cell container state styling */
