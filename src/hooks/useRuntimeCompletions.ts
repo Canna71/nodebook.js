@@ -202,7 +202,6 @@ export function useRuntimeCompletions(cellId: string) {
             const reactiveVariables: Completion[] = [];
             try {
                 const variableNames = reactiveStore.getAllVariableNames();
-                console.log('Reactive variables from store:', variableNames);
                 
                 variableNames.forEach(varName => {
                     // Skip internal variables but include user-defined ones
@@ -264,7 +263,6 @@ export function useRuntimeCompletions(cellId: string) {
                         console.log('Runtime scope variables found:', variables);
                         return variables;
                     } catch (error) {
-                        console.log('Error in scope introspection:', error);
                         return [];
                     }
                 })()
@@ -272,11 +270,6 @@ export function useRuntimeCompletions(cellId: string) {
 
             const result = await codeCellEngine.evaluateInCellContext(cellId, scopeIntrospectionCode);
             const runtimeVariables = Array.isArray(result) ? result : [];
-            
-            console.log('Total scope variables:', {
-                reactive: reactiveVariables.length,
-                runtime: runtimeVariables.length
-            });
             
             // Combine both sources, avoiding duplicates
             const allVariables = [...reactiveVariables];

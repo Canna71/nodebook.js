@@ -172,7 +172,6 @@ function getLanguageExtension(
                                 if (runtimeCompletions && runtimeCompletions.getScopeVariables) {
                                     try {
                                         const scopeVars = await runtimeCompletions.getScopeVariables()
-                                        console.log('Runtime scope variables:', scopeVars)
                                         if (Array.isArray(scopeVars)) {
                                             const existingLabels = new Set(allOptions.map(opt => opt.label))
                                             const scopeList = scopeVars
@@ -190,7 +189,6 @@ function getLanguageExtension(
                                     }
                                 }
                                 
-                                console.log('Total completion options:', allOptions.length)
                                 if (allOptions.length > 0) {
                                     return {
                                         from: before.from,

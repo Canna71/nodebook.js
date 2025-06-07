@@ -266,10 +266,7 @@ export function useCodeCompletions() {
         // 4. Reactive variables (get all variable names from the reactive store)
         try {
             const variableNames = reactiveStore.getAllVariableNames();
-            console.log('All reactive variable names:', variableNames);
-            
             const filteredVariables = variableNames.filter(varName => !varName.startsWith('__cell_'));
-            console.log('Filtered reactive variables (excluding internal):', filteredVariables);
             
             filteredVariables.forEach(varName => {
                 suggestions.push({
@@ -280,8 +277,6 @@ export function useCodeCompletions() {
                     apply: varName
                 });
             });
-            
-            console.log('Added reactive variables to completions:', filteredVariables.length);
         } catch (error) {
             console.warn('Failed to get reactive variable names:', error);
         }
