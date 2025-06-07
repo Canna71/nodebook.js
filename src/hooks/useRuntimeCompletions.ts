@@ -198,6 +198,29 @@ export function useRuntimeCompletions(cellId: string) {
      */
     const getScopeVariables = useCallback(async (): Promise<Completion[]> => {
         try {
+            // First get reactive variables from the reactive store
+            const reactiveVariables: Completion[] = [];
+            try {
+                const variableNames = reactiveStore.getAllVariableNames();
+                console.log('Reactive variables from store:', variableNames);
+                
+                variableNames.forEach(varName => {
+                    // Skip internal variables but include user-defined ones
+                    if (!varName.startsWith('__cell_') && !varName.startsWith('__')) {
+                        reactiveVariables.push({
+                            label: varName,
+                            type: 'variable',
+                            info: `Reactive variable: ${varName}`,
+                            detail: 'Reactive Store',
+                            apply: varName
+                        });
+                    }
+                });
+            } catch (error) {
+                console.warn('Error getting reactive variables:', error);
+            }
+
+            // Then introspect the runtime scope
             const scopeIntrospectionCode = `
                 (function() {
                     const variables = [];
@@ -215,29 +238,64 @@ export function useRuntimeCompletions(cellId: string) {
                                         label: varName,
                                         type: typeof value === 'function' ? 'function' : 'variable',
                                         info: varName + ': ' + typeof value,
-                                        detail: 'Scope'
+                                        detail: 'Runtime Scope',
+                                        apply: varName
                                     });
                                 } catch (e) {}
                             }
                         });
                         
-                        // Local variables from current execution context
-                        // This would need to be enhanced based on your execution model
+                        // Check for exported variables from other cells
+                        if (typeof exports !== 'undefined') {
+                            Object.getOwnPropertyNames(exports).forEach(varName => {
+                                try {
+                                    const value = exports[varName];
+                                    variables.push({
+                                        label: varName,
+                                        type: typeof value === 'function' ? 'function' : 'variable',
+                                        info: varName + ': ' + typeof value + ' (exported)',
+                                        detail: 'Cell Export',
+                                        apply: varName
+                                    });
+                                } catch (e) {}
+                            });
+                        }
                         
+                        console.log('Runtime scope variables found:', variables);
                         return variables;
                     } catch (error) {
+                        console.log('Error in scope introspection:', error);
                         return [];
                     }
                 })()
             `;
 
             const result = await codeCellEngine.evaluateInCellContext(cellId, scopeIntrospectionCode);
-            return Array.isArray(result) ? result : [];
+            const runtimeVariables = Array.isArray(result) ? result : [];
+            
+            console.log('Total scope variables:', {
+                reactive: reactiveVariables.length,
+                runtime: runtimeVariables.length
+            });
+            
+            // Combine both sources, avoiding duplicates
+            const allVariables = [...reactiveVariables];
+            const reactiveLabels = new Set(reactiveVariables.map(v => v.label));
+            
+            runtimeVariables.forEach(variable => {
+                if (variable && typeof variable === 'object' && 
+                    typeof variable.label === 'string' && 
+                    !reactiveLabels.has(variable.label)) {
+                    allVariables.push(variable);
+                }
+            });
+            
+            return allVariables;
         } catch (error) {
             console.warn('Error getting scope variables:', error);
             return [];
         }
-    }, [cellId, codeCellEngine]);
+    }, [cellId, codeCellEngine, reactiveStore]);
 
     return {
         introspectObject,

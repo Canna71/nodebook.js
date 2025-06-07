@@ -30,7 +30,10 @@ type EditorProps = {
     customCompletions?: Completion[]
     customVariableCompletions?: string[]
     objectCompletions?: { object: string, methods: Completion[] }[]
-    runtimeCompletions?: { getObjectCompletions: (objectPath: string) => Promise<Completion[]> }
+    runtimeCompletions?: { 
+        getObjectCompletions: (objectPath: string) => Promise<Completion[]>;
+        getScopeVariables?: () => Promise<Completion[]>;
+    }
     placeholder?: string
     theme?: Extension
     dimensions?: EditorDimensions
@@ -41,7 +44,10 @@ function getLanguageExtension(
     language: string | undefined, 
     customCompletions?: Completion[], 
     objectCompletions?: { object: string, methods: Completion[] }[],
-    runtimeCompletions?: { getObjectCompletions: (objectPath: string) => Promise<Completion[]> }
+    runtimeCompletions?: { 
+        getObjectCompletions: (objectPath: string) => Promise<Completion[]>;
+        getScopeVariables?: () => Promise<Completion[]>;
+    }
 ): Extension {
     switch (language) {
         case 'json':
@@ -148,7 +154,7 @@ function getLanguageExtension(
                                     allOptions.push(...objectCompletionsList)
                                 }
                                 
-                                // Add custom completions
+                                // Add custom completions (includes reactive variables from useCodeCompletions)
                                 if (customCompletions && Array.isArray(customCompletions)) {
                                     const objectLabels = allOptions.map(opt => opt.label)
                                     const customList = customCompletions
@@ -162,6 +168,29 @@ function getLanguageExtension(
                                     allOptions.push(...customList)
                                 }
                                 
+                                // Add runtime scope variables (reactive variables + runtime exports)
+                                if (runtimeCompletions && runtimeCompletions.getScopeVariables) {
+                                    try {
+                                        const scopeVars = await runtimeCompletions.getScopeVariables()
+                                        console.log('Runtime scope variables:', scopeVars)
+                                        if (Array.isArray(scopeVars)) {
+                                            const existingLabels = new Set(allOptions.map(opt => opt.label))
+                                            const scopeList = scopeVars
+                                                .filter(v => 
+                                                    v && 
+                                                    typeof v === 'object' &&
+                                                    typeof v.label === 'string' && 
+                                                    v.label.length > 0 &&
+                                                    !existingLabels.has(v.label)
+                                                )
+                                            allOptions.push(...scopeList)
+                                        }
+                                    } catch (error) {
+                                        console.warn('Error getting scope variables:', error)
+                                    }
+                                }
+                                
+                                console.log('Total completion options:', allOptions.length)
                                 if (allOptions.length > 0) {
                                     return {
                                         from: before.from,
