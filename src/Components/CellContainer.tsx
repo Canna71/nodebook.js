@@ -243,7 +243,7 @@ export function CellContainer({
                 </div>
 
                 {/* Grip icon on the right side - always takes up space, visibility controlled by opacity */}
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center">
                     <div className={`cell-controls transition-opacity duration-200 ${
                         isSelected || isHovered ? 'opacity-100' : 'opacity-0'
                     }`}>
