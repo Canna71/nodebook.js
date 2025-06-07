@@ -11,6 +11,7 @@ import { PlayIcon } from '@heroicons/react/24/solid';
 import { DomElementDisplay } from './DomElementDisplay';
 import { CodeSummary } from './CodeSummary';
 import { useCodeCompletions, useModuleCompletions } from '@/hooks/useCodeCompletions';
+import { useEnhancedCompletions } from '@/hooks/useRuntimeCompletions';
 
 interface CodeCellProps {
   definition: CodeCellDefinition;
@@ -26,6 +27,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     // Get code completions for IntelliSense
     const codeCompletions = useCodeCompletions();
     const moduleCompletions = useModuleCompletions();
+    const runtimeCompletions = useEnhancedCompletions(definition.id);
 
     // Subscribe to execution count to know when cell re-executes
     const [executionCount] = useReactiveValue(`__cell_${definition.id}_execution`, 0);
@@ -137,6 +139,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                         onChange={onCodeChange}
                         customCompletions={codeCompletions}
                         objectCompletions={moduleCompletions}
+                        runtimeCompletions={runtimeCompletions}
                         dimensions={{
                             width: '100%',
                             minHeight: '100px',

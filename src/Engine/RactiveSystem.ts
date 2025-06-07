@@ -1146,6 +1146,93 @@ export class CodeCellEngine {
     }
 
     /**
+     * Evaluate code in a cell's context and return the result
+     * Used for runtime introspection and completions
+     */
+    public async evaluateInCellContext(cellId: string, code: string): Promise<any> {
+        try {
+            // Prevent circular execution
+            if (this.executingCells.has(cellId)) {
+                throw new Error(`Cell ${cellId} is currently executing`);
+            }
+
+            // Create a temporary execution context similar to executeCodeCell
+            const { console: wrappedConsole } = this.createWrappedConsole();
+            
+            // Create a smart proxy for variable access (similar to executeCodeCell)
+            const localScope: { [key: string]: any } = {};
+            const smartProxy = new Proxy(localScope, {
+                get: (target, prop) => {
+                    if (typeof prop === 'string') {
+                        // Special handling for built-in functions
+                        if (prop === 'console') return wrappedConsole;
+                        if (prop === 'Math') return Math;
+
+                        // Node.js globals
+                        if (prop === 'require') return this.createSecureRequire();
+                        if (prop === 'process' && typeof process !== 'undefined') return process;
+                        if (prop === 'Buffer' && typeof Buffer !== 'undefined') return Buffer;
+                        if (prop === '__dirname') return process?.cwd() || '/';
+                        if (prop === '__filename') return `${cellId}.js`;
+
+                        // Check global scope first (for cached modules and globals)
+                        if (prop in this.globalScope) {
+                            return this.globalScope[prop];
+                        }
+
+                        // Check module cache directly
+                        if (this.moduleCache.has(prop)) {
+                            const cachedModule = this.moduleCache.get(prop);
+                            this.globalScope[prop] = cachedModule;
+                            return cachedModule;
+                        }
+
+                        // If variable exists in local scope, return it
+                        if (prop in target) {
+                            return target[prop];
+                        }
+
+                        // Get from reactive store (don't track dependencies for evaluation)
+                        const value = this.reactiveStore.getValue(prop);
+                        return value;
+                    }
+                    return undefined;
+                },
+
+                set: (target, prop, value) => {
+                    if (typeof prop === 'string') {
+                        target[prop] = value;
+                        return true;
+                    }
+                    return false;
+                },
+
+                has: (target, prop) => {
+                    return typeof prop === 'string' && (
+                        prop in target ||
+                        prop in this.globalScope ||
+                        this.reactiveStore.get(prop) !== undefined ||
+                        ['console', 'Math', 'require', 'process', 'Buffer', '__dirname', '__filename'].includes(prop)
+                    );
+                }
+            });
+
+            // Wrap the code in an immediately-executed function that returns the result
+            const wrappedCode = `(function() { ${code} })()`;
+            
+            const executeCode = new Function('scope', `with (scope) { return ${wrappedCode}; }`);
+            
+            // Execute and return the result
+            const result = executeCode(smartProxy);
+            return result;
+
+        } catch (error) {
+            log.error(`Error evaluating code in cell ${cellId}:`, error);
+            throw error;
+        }
+    }
+
+    /**
      * Get available modules
      */
     public getAvailableModules(): string[] {

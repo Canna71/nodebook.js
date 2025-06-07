@@ -30,13 +30,19 @@ type EditorProps = {
     customCompletions?: Completion[]
     customVariableCompletions?: string[]
     objectCompletions?: { object: string, methods: Completion[] }[]
+    runtimeCompletions?: { getObjectCompletions: (objectPath: string) => Promise<Completion[]> }
     placeholder?: string
     theme?: Extension
     dimensions?: EditorDimensions
     showLineNumbers?: boolean // NEW: Option to hide line numbers
 }
 
-function getLanguageExtension(language: string | undefined, customCompletions?: Completion[], objectCompletions?: { object: string, methods: Completion[] }[]): Extension {
+function getLanguageExtension(
+    language: string | undefined, 
+    customCompletions?: Completion[], 
+    objectCompletions?: { object: string, methods: Completion[] }[],
+    runtimeCompletions?: { getObjectCompletions: (objectPath: string) => Promise<Completion[]> }
+): Extension {
     switch (language) {
         case 'json':
             return json()
@@ -52,55 +58,129 @@ function getLanguageExtension(language: string | undefined, customCompletions?: 
         default:
             const jsLang = javascript({ typescript: true })
             
-            // If we have custom completions, add them to the language data
-            if (customCompletions || objectCompletions) {
-                return [
-                    jsLang,
-                    jsLang.language.data.of({
-                        autocomplete: (context: any) => {
-                            // Check for object member completion (e.g., Math.)
-                            if (objectCompletions && objectCompletions.length > 0) {
-                                for (const obj of objectCompletions) {
-                                    const regex = new RegExp(`${obj.object.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.\\w*$`)
-                                    const afterDot = context.matchBefore(regex)
-                                    if (afterDot) {
-                                        return {
-                                            from: afterDot.from + obj.object.length + 1, // after "object."
-                                            options: obj.methods
+            // If we have any completions, add them to the language data
+            if (customCompletions || objectCompletions || runtimeCompletions) {
+                // Create a single comprehensive completion source
+                const combinedCompletionSource = async (context: any) => {
+                    try {
+                        // Check for object member completion (e.g., Math.)
+                        const objectAccess = context.matchBefore(/([a-zA-Z_$][\w$]*)\.\w*$/)
+                        if (objectAccess) {
+                            const objectName = objectAccess.text.split('.')[0]
+                            const fromPos = objectAccess.from + objectName.length + 1; // after "object."
+                            
+                            // Try runtime completions first
+                            if (runtimeCompletions) {
+                                try {
+                                    console.log('Runtime completion triggered for object:', objectName)
+                                    const runtimeResults = await runtimeCompletions.getObjectCompletions(objectName)
+                                    console.log('Runtime completion results:', runtimeResults)
+                                    
+                                    if (Array.isArray(runtimeResults) && runtimeResults.length > 0) {
+                                        // Validate each completion item
+                                        const validResults = runtimeResults.filter(item => 
+                                            item && 
+                                            typeof item === 'object' && 
+                                            typeof item.label === 'string' && 
+                                            item.label.length > 0 &&
+                                            typeof item.type === 'string' &&
+                                            typeof item.info === 'string'
+                                        ).map(item => ({
+                                            label: item.label,
+                                            type: item.type,
+                                            info: item.info,
+                                            detail: item.detail || 'Runtime',
+                                            apply: item.apply || item.label
+                                        }))
+                                        
+                                        if (validResults.length > 0) {
+                                            return {
+                                                from: fromPos,
+                                                options: validResults
+                                            }
                                         }
                                     }
+                                } catch (error) {
+                                    console.warn('Runtime completions failed:', error)
                                 }
                             }
                             
-                            // Top-level identifier completions
-                            const before = context.matchBefore(/[a-zA-Z_$][\w$]*$/)
-                            if (before) {
-                                // Only show our custom completions for explicit requests or longer matches
-                                // This allows built-in JS completions to show for short inputs
-                                if (context.explicit || before.to - before.from >= 2) {
-                                    // Collect all object names as completions
-                                    const objectLabels = (objectCompletions ?? []).map(o => o.object)
-                                    const objectCompletionsList = (objectCompletions ?? []).map(o => ({
-                                        label: o.object,
-                                        type: "variable",
-                                        info: `Global ${o.object} object`,
-                                        apply: o.object
-                                    }))
-                                    // Merge with customCompletions (excluding duplicates)
-                                    const customList = (customCompletions ?? []).filter(
-                                        c => !objectLabels.includes(c.label)
-                                    )
-                                    
-                                    if (objectCompletionsList.length > 0 || customList.length > 0) {
-                                        return {
-                                            from: before.from,
-                                            options: [...objectCompletionsList, ...customList]
+                            // Fallback to static object completions
+                            if (objectCompletions && Array.isArray(objectCompletions)) {
+                                for (const obj of objectCompletions) {
+                                    if (obj && obj.object === objectName && obj.methods && Array.isArray(obj.methods)) {
+                                        const validMethods = obj.methods.filter(method => 
+                                            method && 
+                                            typeof method === 'object' &&
+                                            typeof method.label === 'string' && 
+                                            method.label.length > 0
+                                        )
+                                        
+                                        if (validMethods.length > 0) {
+                                            return {
+                                                from: fromPos,
+                                                options: validMethods
+                                            }
                                         }
                                     }
                                 }
                             }
-                            return null
                         }
+                        
+                        // Top-level identifier completions
+                        const before = context.matchBefore(/[a-zA-Z_$][\w$]*$/)
+                        if (before) {
+                            // Only show our custom completions for explicit requests or longer matches
+                            // This allows built-in JS completions to show for short inputs
+                            if (context.explicit || before.to - before.from >= 2) {
+                                const allOptions: any[] = []
+                                
+                                // Add object names as completions
+                                if (objectCompletions && Array.isArray(objectCompletions)) {
+                                    const objectCompletionsList = objectCompletions
+                                        .filter(o => o && o.object && typeof o.object === 'string')
+                                        .map(o => ({
+                                            label: o.object,
+                                            type: "variable",
+                                            info: `Global ${o.object} object`,
+                                            apply: o.object
+                                        }))
+                                    allOptions.push(...objectCompletionsList)
+                                }
+                                
+                                // Add custom completions
+                                if (customCompletions && Array.isArray(customCompletions)) {
+                                    const objectLabels = allOptions.map(opt => opt.label)
+                                    const customList = customCompletions
+                                        .filter(c => 
+                                            c && 
+                                            typeof c === 'object' &&
+                                            typeof c.label === 'string' && 
+                                            c.label.length > 0 &&
+                                            !objectLabels.includes(c.label)
+                                        )
+                                    allOptions.push(...customList)
+                                }
+                                
+                                if (allOptions.length > 0) {
+                                    return {
+                                        from: before.from,
+                                        options: allOptions
+                                    }
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.warn('Error in completion source:', error)
+                    }
+                    
+                    return null
+                }
+                
+                return [
+                    jsLang,
+                    jsLang.language.data.of({
+                        autocomplete: combinedCompletionSource
                     })
                 ]
             }
@@ -282,6 +362,7 @@ export default function Editor({
     customCompletions,
     customVariableCompletions,
     objectCompletions,
+    runtimeCompletions,
     placeholder,
     theme,
     dimensions,
@@ -445,7 +526,7 @@ export default function Editor({
                                 })
                             ]
                     ),
-                    languageCompartment.of(getLanguageExtension(language, customCompletions, objectCompletions)),
+                    languageCompartment.of(getLanguageExtension(language, customCompletions, objectCompletions, runtimeCompletions)),
                     listenerCompartment.of(listener),
                     // Setup completion compartment for JSON variable completions only
                     completionCompartment.of(
@@ -493,10 +574,10 @@ export default function Editor({
     useEffect(() => {
         if (viewRef.current) {
             viewRef.current.dispatch({
-                effects: languageCompartment.reconfigure(getLanguageExtension(language, customCompletions, objectCompletions))
+                effects: languageCompartment.reconfigure(getLanguageExtension(language, customCompletions, objectCompletions, runtimeCompletions))
             })
         }
-    }, [language, customCompletions, objectCompletions])
+    }, [language, customCompletions, objectCompletions, runtimeCompletions])
 
     // Update listener if onChange changes
     useEffect(() => {

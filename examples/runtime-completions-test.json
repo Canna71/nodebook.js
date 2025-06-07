@@ -1,0 +1,17 @@
+{
+  "id": "runtime-completions-test",
+  "name": "Runtime Completions Test",
+  "version": "1.0.0",
+  "cells": [
+    {
+      "id": "cell-1",
+      "type": "code",
+      "code": "// Create some test objects for runtime completion\nconst myObject = {\n  name: 'Test Object',\n  getValue: () => 42,\n  data: [1, 2, 3],\n  nested: {\n    property: 'nested value'\n  }\n};\n\nconst myArray = [1, 2, 3, 4, 5];\n\nexports.myObject = myObject;\nexports.myArray = myArray;\n\nconsole.log('Objects created for runtime completion testing');"
+    },
+    {
+      "id": "cell-2",
+      "type": "code",
+      "code": "// Try typing 'myObject.' to see runtime completions\n// You should see: name, getValue, data, nested\n\n// Try typing 'myArray.' to see Array methods\n// You should see: push, pop, length, etc.\n\nconsole.log('Type \"myObject.\" or \"myArray.\" to test runtime completions');"
+    }
+  ]
+}
