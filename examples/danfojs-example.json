@@ -14,7 +14,7 @@
     {
       "type": "code",
       "id": "import-danfo",
-      "code": "// Import Danfo.js and create a small dataset\nexports.dfd = require('danfojs');\nexports.data = {\n  A: [1, 2, 3],\n  B: [10, 20, 30]\n};\nconsole.log('Danfo.js imported. Data:', exports.data);\n\n// Output module info\noutput({\n  module: 'danfojs',\n  version: exports.dfd.version || 'unknown',\n  dataShape: { rows: exports.data.A.length, columns: Object.keys(exports.data).length }\n});"
+      "code": "// Import Danfo.js and create a small dataset\nexports.dfd = require('danfojs');\nexports.data = {\n  A: [1, 2, 4],\n  B: [10, 20, 30]\n};\nconsole.log('Danfo.js imported. Data:', exports.data);\n\n// Output module info\noutput({\n  module: 'danfojs',\n  version: exports.dfd.version || 'unknown',\n  dataShape: { rows: exports.data.A.length, columns: Object.keys(exports.data).length }\n});"
     },
     {
       "type": "code",
@@ -39,7 +39,7 @@
     {
       "type": "code",
       "id": "plotting-demo",
-      "code": "// Demonstrate both DOM output approaches\n\n// Scenario 1: Create DOM element and use output()\nconst div1 = document.createElement('div');\ndiv1.innerHTML = '<h3>Method 1: output(domElement)</h3><p>DataFrame shape: ' + JSON.stringify(df2.shape) + '</p>';\ndiv1.style.padding = '10px';\ndiv1.style.border = '1px solid #ccc';\ndiv1.style.margin = '5px 0';\ndiv1.style.backgroundColor = '#f9f9f9';\n\n// Output the DOM element\noutput(div1);\n\n// Scenario 2: Render directly to outEl container\nif (outEl) {\n  const div2 = document.createElement('div');\n  div2.innerHTML = '<h3>Method 2: Direct to outEl</h3><p>Column C sum: ' + sumC + '</p>';\n  div2.style.padding = '10px';\n  div2.style.border = '1px solid #007acc';\n  div2.style.margin = '5px 0';\n  div2.style.backgroundColor = '#e6f3ff';\n  \n  outEl.appendChild(div2);\n} else {\n  console.log('outEl container not available');\n}"
+      "code": "// Demonstrate both DOM output approaches\n\n// Scenario 1: Create DOM element and use output()\nconst div1 = document.createElement('div');\ndiv1.innerHTML = '<h3>Method 1bb: output(domElement)</h3><p>DataFrame shape: ' + JSON.stringify(df2.shape) + '</p>';\ndiv1.style.padding = '10px';\ndiv1.style.border = '1px solid #ccc';\ndiv1.style.margin = '5px 0';\n// div1.style.backgroundColor = '#f9f9f9';\n\n// Output the DOM element\noutput(div1);\n\n// Scenario 2: Render directly to outEl container\nif (outEl) {\n  const div2 = document.createElement('div');\n  div2.innerHTML = '<h3>Method 2: Direct to outEl</h3><p>Column C sum: ' + sumC + '</p>';\n  div2.style.padding = '10px';\n  div2.style.border = '1px solid #007acc';\n  div2.style.margin = '5px 0';\n  // div2.style.backgroundColor = '#e6f3ff';\n  \n  outEl.appendChild(div2);\n} else {\n  console.log('outEl container not available');\n}"
     }
   ],
   "metadata": {
