@@ -71,10 +71,20 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
             });
 
             // Execute the cell with DOM container when component first mounts and is initialized
-            // This ensures DOM output works from the start
-            if (outputContainerRef.current && executionCount === 0) {
-                log.debug(`Code cell ${definition.id} executing for the first time with DOM container`);
-                codeCellEngine.executeCodeCell(definition.id, currentCode, outputContainerRef.current);
+            if (outputContainerRef.current) {
+                if (executionCount === 0) {
+                    // Cell hasn't been executed yet, execute it for the first time
+                    log.debug(`Code cell ${definition.id} executing for the first time with DOM container`);
+                    codeCellEngine.executeCodeCell(definition.id, currentCode, outputContainerRef.current);
+                } else {
+                    // Cell was already executed during initialization, just update the container reference
+                    // for future reactive executions
+                    log.debug(`Code cell ${definition.id} setting up DOM container (execution count: ${executionCount})`);
+                    const cellInfo = codeCellEngine['executedCells'].get(definition.id);
+                    if (cellInfo) {
+                        cellInfo.lastOutputContainer = outputContainerRef.current;
+                    }
+                }
             }
 
         } catch (err) {

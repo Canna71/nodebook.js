@@ -152,6 +152,11 @@ export const markdownFilters: Record<string, FilterFunction> = {
  * Apply a markdown filter to a value
  */
 export function applyMarkdownFilter(value: any, filterExpression: string): string {
+  // Handle empty or whitespace-only filter expressions
+  if (!filterExpression || !filterExpression.trim()) {
+    return String(value);
+  }
+  
   const [filterName, ...args] = filterExpression.split(',').map(s => s.trim());
   const filterFunction = markdownFilters[filterName];
   

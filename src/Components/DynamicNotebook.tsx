@@ -31,25 +31,30 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
   // Initialize reactive values and formulas from cells
   useEffect(() => {
     const initializeNotebook = async () => {
-      // Initialize reactive values from input cells first
-      model.cells.forEach(cell => {
+      // Initialize cells in the order they appear in the notebook
+      for (const cell of model.cells) {
         if (cell.type === 'input') {
           const inputCell = cell as InputCellDefinition;
           if (!reactiveStore.get(inputCell.variableName)) {
             reactiveStore.define(inputCell.variableName, inputCell.value);
             log.debug(`Initialized reactive value from input cell: ${inputCell.variableName} = ${inputCell.value}`);
           }
-        }
-      });
-
-      // Initialize formulas from formula cells after reactive values
-      model.cells.forEach(cell => {
-        if (cell.type === 'formula') {
+        } else if (cell.type === 'code') {
+          // Execute code cells during initialization to ensure their exports are available
+          // for subsequent formula cells
+          try {
+            const exports = codeCellEngine.executeCodeCell(cell.id, cell.code);
+            log.debug(`Executed code cell during initialization: ${cell.id}, exports:`, exports);
+          } catch (error) {
+            log.error(`Error executing code cell ${cell.id} during initialization:`, error);
+          }
+        } else if (cell.type === 'formula') {
           const formulaCell = cell as FormulaCellDefinition;
           formulaEngine.createFormula(formulaCell.variableName, formulaCell.formula);
           log.debug(`Initialized formula from formula cell: ${formulaCell.variableName} = ${formulaCell.formula}`);
         }
-      });
+        // Note: Markdown cells don't need initialization
+      }
 
       // Don't execute code cells during initialization - let individual CodeCell components handle this
       // when they mount and have their DOM containers ready
