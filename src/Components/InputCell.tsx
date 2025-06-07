@@ -26,8 +26,8 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
   const [value, setValue] = useReactiveValue(effectiveVariableName, definition.value);
   const { currentModel, setModel, setDirty } = useApplication();
 
-  // Edit mode state
-  const [editConfig, setEditConfig] = useState({
+  // Calculate edit config from definition (no state needed!)
+  const getEditConfig = () => ({
     variableName: definition.variableName,
     inputType: definition.inputType,
     label: definition.label || '',
@@ -52,19 +52,6 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
     const currentValue = value ?? definition.value;
     setNumberInputValue(String(currentValue));
   }, [value, definition.value]);
-
-  // Update edit config when definition changes
-  useEffect(() => {
-    setEditConfig({
-      variableName: definition.variableName,
-      inputType: definition.inputType,
-      label: definition.label || '',
-      min: definition.props?.min?.toString() || '',
-      max: definition.props?.max?.toString() || '',
-      step: definition.props?.step?.toString() || '',
-      placeholder: definition.props?.placeholder || ''
-    });
-  }, [definition]);
 
   // Update constraint input values when definition changes
   useEffect(() => {
@@ -97,68 +84,17 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
   const displayLabel = definition.label || 
     (definition.variableName.trim() || `Input ${definition.id.slice(-4)}`);
 
-  const updateCellDefinition = () => {
-    if (!currentModel) return;
-
-    // Validate variable name
-    if (!editConfig.variableName.trim()) {
-      return; // Skip update if invalid
-    }
-
-    // Build props object
-    const props: InputCellDefinition['props'] = {};
-    
-    if (editConfig.inputType === 'number' || editConfig.inputType === 'range') {
-      if (editConfig.min !== '') {
-        const minVal = parseFloat(editConfig.min);
-        if (!isNaN(minVal)) props.min = minVal;
-      }
-      if (editConfig.max !== '') {
-        const maxVal = parseFloat(editConfig.max);
-        if (!isNaN(maxVal)) props.max = maxVal;
-      }
-      if (editConfig.step !== '') {
-        const stepVal = parseFloat(editConfig.step);
-        if (!isNaN(stepVal)) props.step = stepVal;
-      }
-    }
-    
-    if (editConfig.inputType === 'text' && editConfig.placeholder) {
-      props.placeholder = editConfig.placeholder;
-    }
-
-    // Create updated cell definition
-    const updatedCell: InputCellDefinition = {
-      ...definition,
-      variableName: editConfig.variableName.trim(),
-      inputType: editConfig.inputType,
-      label: editConfig.label.trim() || undefined, // Use undefined if empty
-      props: Object.keys(props).length > 0 ? props : undefined
-    };
-
-    // Update the model
-    const updatedModel = {
-      ...currentModel,
-      cells: currentModel.cells.map(cell => 
-        cell.id === definition.id ? updatedCell : cell
-      )
-    };
-
-    setModel(updatedModel);
-    setDirty(true);
-  };
-
   // Helper function to handle config changes and auto-update
-  const handleConfigChange = (updates: Partial<typeof editConfig>) => {
-    const newConfig = { ...editConfig, ...updates };
-    setEditConfig(newConfig);
+  const handleConfigChange = (updates: Partial<ReturnType<typeof getEditConfig>>) => {
+    const currentConfig = getEditConfig();
+    const newConfig = { ...currentConfig, ...updates };
     
-    // Always update the definition, regardless of variable name validity
+    // Update the cell definition immediately
     updateCellDefinitionWithConfig(newConfig);
   };
 
-  // New function to update with specific config
-  const updateCellDefinitionWithConfig = (config: typeof editConfig) => {
+  // Function to update cell definition with specific config
+  const updateCellDefinitionWithConfig = (config: ReturnType<typeof getEditConfig>) => {
     if (!currentModel) return;
 
     // Allow empty variable names - they will get auto-generated names for reactivity
@@ -214,9 +150,9 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
       [field]: inputValue
     }));
 
-    // Update edit config
-    const newConfig = { ...editConfig, [field]: inputValue };
-    setEditConfig(newConfig);
+    // Update config with new value
+    const currentConfig = getEditConfig();
+    const newConfig = { ...currentConfig, [field]: inputValue };
     
     // Update the cell definition with the new value
     updateCellDefinitionWithConfig(newConfig);
@@ -227,33 +163,40 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
       case 'number':
         return (
           <Input
-            type="text"
-            pattern="^-?[0-9]*\.?[0-9]*$"
+            type="number" // Use actual number input type
             value={numberInputValue}
             onChange={(e) => {
               const inputValue = e.target.value;
+              setNumberInputValue(inputValue);
               
-              // Validate against the pattern before setting the display value
-              const pattern = /^-?[0-9]*\.?[0-9]*$/;
-              if (inputValue === '' || pattern.test(inputValue)) {
-                setNumberInputValue(inputValue);
-                
-                // Only update reactive value for valid numbers or empty
-                if (inputValue === '') {
-                  setValue(definition.value);
-                } else {
-                  const numValue = parseFloat(inputValue);
-                  if (!isNaN(numValue) && isFinite(numValue)) {
-                    setValue(numValue); // This will trigger the useEffect above to save to definition
+              // Convert to number and validate
+              if (inputValue === '') {
+                setValue(definition.value);
+              } else {
+                const numValue = parseFloat(inputValue);
+                if (!isNaN(numValue) && isFinite(numValue)) {
+                  // Apply min/max constraints if defined
+                  let constrainedValue = numValue;
+                  if (definition.props?.min !== undefined && constrainedValue < definition.props.min) {
+                    constrainedValue = definition.props.min;
+                    setNumberInputValue(constrainedValue.toString());
                   }
-                  // If invalid, don't update reactive value - only display state changes
+                  if (definition.props?.max !== undefined && constrainedValue > definition.props.max) {
+                    constrainedValue = definition.props.max;
+                    setNumberInputValue(constrainedValue.toString());
+                  }
+                  setValue(constrainedValue);
                 }
               }
-              // If pattern doesn't match, ignore the input completely
+            }}
+            onBlur={(e) => {
+              // On blur, ensure the display value matches the reactive value
+              const currentValue = value ?? definition.value;
+              setNumberInputValue(String(currentValue));
             }}
             min={definition.props?.min}
             max={definition.props?.max}
-            step={definition.props?.step || undefined}
+            step={definition.props?.step || 1}
             className="input-max-width"
           />
         );
@@ -331,6 +274,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
 
   const renderEditMode = () => {
     const autoVariableName = generateAutoVariableName(definition.id);
+    const editConfig = getEditConfig(); // Calculate fresh each render
     
     return (
       <div className="input-cell-edit-mode space-y-4 p-2 bg-muted/50 rounded border">
