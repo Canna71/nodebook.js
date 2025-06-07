@@ -110,6 +110,15 @@
     },
     {
       "type": "formula",
+      "id": "simple-math-test",
+      "label": "Simple Math Test",
+      "variableName": "simpleMathTest",
+      "formula": "Math.round(42.7)",
+      "outputFormat": "number",
+      "decimals": 0
+    },
+    {
+      "type": "formula",
       "id": "complex-calculation",
       "label": "Complex Math (Enhanced)",
       "variableName": "complexResult",
@@ -120,12 +129,12 @@
     {
       "type": "markdown",
       "id": "formatting-test",
-      "content": "### Enhanced Formula System Comparison\n\n**Legacy $syntax formulas:**\n- Final Price: ${{formattedFinalPrice?.toFixed(2) || 'N/A'}}\n- Tax Rate: {{formattedTaxRate?.toFixed(1) || 'N/A'}}%\n- Savings: ${{potentialSavings?.toFixed(2) || 'N/A'}}\n\n**Enhanced natural syntax formulas:**\n- Final Price: ${{enhancedFinalPrice?.toFixed(2) || 'N/A'}}\n- Tax Rate: {{enhancedTaxRate?.toFixed(1) || 'N/A'}}%\n- Enhanced Savings: ${{enhancedSavings?.toFixed(2) || 'N/A'}}\n- Complex Result: ${{complexResult?.toFixed(2) || 'N/A'}}\n\n---\n\n**Key Differences:**\n✅ **Legacy**: Uses `$variable` syntax (auto-converted)\n✅ **Enhanced**: Uses natural `variable` syntax\n✅ **Enhanced**: Supports complex Math functions\n✅ **Enhanced**: Allows conditional expressions without $ prefix"
+      "content": "### Enhanced Formula System Comparison\n\n**Legacy $syntax formulas:**\n- Final Price: ${{formattedFinalPrice?.toFixed(2) || 'N/A'}}\n- Tax Rate: {{formattedTaxRate?.toFixed(1) || 'N/A'}}%\n- Savings: ${{potentialSavings?.toFixed(2) || 'N/A'}}\n\n**Enhanced natural syntax formulas:**\n- Final Price: ${{enhancedFinalPrice?.toFixed(2) || 'N/A'}}\n- Tax Rate: {{enhancedTaxRate?.toFixed(1) || 'N/A'}}%\n- Enhanced Savings: ${{enhancedSavings?.toFixed(2) || 'N/A'}}\n- Simple Math Test: {{simpleMathTest || 'N/A'}}\n- Complex Result: ${{complexResult?.toFixed(2) || 'N/A'}}\n\n---\n\n**Key Differences:**\n✅ **Legacy**: Uses `$variable` syntax (auto-converted)\n✅ **Enhanced**: Uses natural `variable` syntax\n✅ **Enhanced**: Supports complex Math functions\n✅ **Enhanced**: Allows conditional expressions without $ prefix"
     },
     {
       "type": "markdown",
       "id": "test-status",
-      "content": "### Reactive Test Status\n\n✅ **Input Values:**\n- Base Price: ${{basePrice}}\n- Tax Rate: {{taxRate}}%\n\n✅ **Calculated Values:**\n- Tax Amount: ${{taxAmount?.toFixed(2) || 'Not calculated'}}\n- Final Price: ${{finalPrice?.toFixed(2) || 'Not calculated'}}\n\n✅ **Formula Comparisons:**\n- Legacy Formula Result: ${{formattedFinalPrice?.toFixed(2) || 'N/A'}}\n- Enhanced Formula Result: ${{enhancedFinalPrice?.toFixed(2) || 'N/A'}}\n- Complex Math Result: ${{complexResult?.toFixed(2) || 'N/A'}}\n\n{{priceBreakdown ? '✅ **Price Breakdown Available**' : '❌ **Price Breakdown Missing**'}}\n\n---\n\n**Instructions:** \n1. Try changing the input values above\n2. Compare legacy vs enhanced formula results (should be identical)\n3. Notice the complex math formula with natural JavaScript syntax\n4. Both systems should update reactively",
+      "content": "### Reactive Test Status\n\n✅ **Input Values:**\n- Base Price: ${{basePrice}}\n- Tax Rate: {{taxRate}}%\n\n✅ **Calculated Values:**\n- Tax Amount: ${{taxAmount?.toFixed(2) || 'Not calculated'}}\n- Final Price: ${{finalPrice?.toFixed(2) || 'Not calculated'}}\n\n✅ **Formula Comparisons:**\n- Legacy Formula Result: ${{formattedFinalPrice?.toFixed(2) || 'N/A'}}\n- Enhanced Formula Result: ${{enhancedFinalPrice?.toFixed(2) || 'N/A'}}\n- Simple Math Test: {{simpleMathTest || 'N/A'}}\n- Complex Math Result: ${{complexResult?.toFixed(2) || 'N/A'}}\n\n{{priceBreakdown ? '✅ **Price Breakdown Available**' : '❌ **Price Breakdown Missing**'}}\n\n---\n\n**Instructions:** \n1. Try changing the input values above\n2. Compare legacy vs enhanced formula results (should be identical)\n3. Notice the complex math formula with natural JavaScript syntax\n4. Both systems should update reactively",
       "variables": [
         "basePrice",
         "taxRate", 
@@ -133,6 +142,7 @@
         "finalPrice",
         "formattedFinalPrice",
         "enhancedFinalPrice",
+        "simpleMathTest",
         "complexResult",
         "priceBreakdown"
       ]
