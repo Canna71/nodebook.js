@@ -86,13 +86,18 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     useEffect(() => {
         try {
             const variables = reactiveStore.getAllVariableNames();
+            console.log('🔍 All variables from store:', variables);
+            
             // Filter out internal variables
             const userVariables = variables.filter(name => 
                 !name.startsWith('__cell_') && 
                 !name.startsWith('__internal_')
             );
+            console.log('✅ User variables for intellisense:', userVariables);
+            
             setReactiveVariables(userVariables);
         } catch (error) {
+            console.error('❌ Failed to get reactive variables for intellisense:', error);
             log.warn('Failed to get reactive variables for intellisense:', error);
         }
     }, [reactiveStore, executionCount]);
@@ -101,8 +106,10 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     useEffect(() => {
         try {
             const modules = codeCellEngine.getAvailableModules();
+            console.log('📦 Available modules for intellisense:', modules);
             setAvailableModules(modules);
         } catch (error) {
+            console.error('❌ Failed to get available modules for intellisense:', error);
             log.warn('Failed to get available modules for intellisense:', error);
         }
     }, [codeCellEngine]);
@@ -174,9 +181,9 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                         language="javascript"
                         theme={oneDark}
                         onChange={onCodeChange}
-                        reactiveVariables={reactiveVariables} // NEW
-                        availableModules={availableModules} // NEW
-                        objectCompletions={objectCompletions} // NEW
+                        reactiveVariables={reactiveVariables}
+                        availableModules={availableModules}
+                        objectCompletions={objectCompletions}
                         dimensions={{
                             width: '100%',
                             minHeight: '100px',

@@ -229,28 +229,54 @@ function createJavaScriptCompletionSource(
     availableModules: string[] = []
 ): CompletionSource {
     return (context: CompletionContext) => {
+        console.log('🔍 Completion requested:', {
+            pos: context.pos,
+            explicit: context.explicit,
+            language: 'javascript',
+            reactiveVariables: reactiveVariables.length,
+            availableModules: availableModules.length
+        });
+
         const { state, pos } = context;
         const tree = syntaxTree(state);
         const node = tree.resolveInner(pos, -1);
         
         // Get the word being typed
         const word = context.matchBefore(/[\w$]+/);
-        if (!word && !context.explicit) return null;
+        console.log('📝 Word context:', {
+            word: word?.text,
+            from: word?.from,
+            to: word?.to
+        });
+        
+        if (!word && !context.explicit) {
+            console.log('❌ No word found and not explicit');
+            return null;
+        }
         
         const line = state.doc.lineAt(pos);
         const lineText = line.text;
         const beforeCursor = lineText.slice(0, pos - line.from);
         
+        console.log('🔤 Line context:', {
+            lineText,
+            beforeCursor,
+            cursorPos: pos - line.from
+        });
+        
         let completions: Completion[] = [];
         
         // 1. Handle require() statements
         if (beforeCursor.includes('require(') && !beforeCursor.includes(')')) {
+            console.log('📦 Require completion triggered');
             const moduleCompletions = availableModules.map(moduleName => ({
                 label: `'${moduleName}'`,
                 type: 'module' as const,
                 info: `Import ${moduleName} module`,
                 apply: `'${moduleName}')`
             }));
+            
+            console.log('📦 Module completions:', moduleCompletions);
             
             return {
                 from: word?.from || pos,
@@ -259,15 +285,17 @@ function createJavaScriptCompletionSource(
             };
         }
         
-        // 2. Handle object member access (e.g., obj.method)
+        // 2. Handle object member access
         const memberMatch = beforeCursor.match(/(\w+)\.(\w*)$/);
         if (memberMatch) {
+            console.log('🔗 Object member completion:', memberMatch);
             const objectName = memberMatch[1];
             const partialMember = memberMatch[2];
             
             // Check if it's a known object with methods
             const objectCompletion = objectCompletions.find(obj => obj.object === objectName);
             if (objectCompletion) {
+                console.log('✅ Found object completion:', objectCompletion);
                 return {
                     from: pos - partialMember.length,
                     options: objectCompletion.methods
@@ -277,6 +305,7 @@ function createJavaScriptCompletionSource(
             // Built-in JavaScript objects
             const builtinCompletions = getBuiltinObjectCompletions(objectName);
             if (builtinCompletions.length > 0) {
+                console.log('✅ Found builtin completions:', builtinCompletions.length);
                 return {
                     from: pos - partialMember.length,
                     options: builtinCompletions
@@ -286,6 +315,7 @@ function createJavaScriptCompletionSource(
         
         // 3. Handle exports object
         if (beforeCursor.endsWith('exports.')) {
+            console.log('📤 Exports completion triggered');
             return {
                 from: pos,
                 options: [
@@ -300,13 +330,17 @@ function createJavaScriptCompletionSource(
         
         // 4. General identifier completions
         if (word) {
+            console.log('🔤 General identifier completion');
+            
             // Add reactive variables
             const reactiveCompletions = reactiveVariables.map(varName => ({
                 label: varName,
                 type: 'variable' as const,
                 info: `Reactive variable: ${varName}`,
-                boost: 99 // Higher priority for reactive variables
+                boost: 99
             }));
+            
+            console.log('⚡ Reactive completions:', reactiveCompletions);
             
             // Add JavaScript built-ins
             const builtinCompletions = getJavaScriptBuiltins();
@@ -318,11 +352,15 @@ function createJavaScriptCompletionSource(
                 ...builtinCompletions
             ];
             
+            console.log('📋 Total completions available:', completions.length);
+            
             // Filter completions based on what's being typed
             const filter = word.text.toLowerCase();
             const filtered = completions.filter(c => 
                 c.label.toLowerCase().includes(filter)
             );
+            
+            console.log('🔍 Filtered completions:', filtered.length, 'from', completions.length);
             
             return {
                 from: word.from,
@@ -330,6 +368,7 @@ function createJavaScriptCompletionSource(
             };
         }
         
+        console.log('❌ No completion context matched');
         return null;
     };
 }
@@ -463,6 +502,23 @@ export default function Editor({
         }
         : () => null
 
+    // Test completion source - just to verify completion system works
+    const testCompletionSource: CompletionSource = (context) => {
+        console.log('🧪 TEST: Completion source called!', {
+            pos: context.pos,
+            explicit: context.explicit
+        });
+        
+        return {
+            from: context.pos,
+            options: [
+                { label: 'testCompletion', type: 'test', info: 'This is a test completion' },
+                { label: 'Math', type: 'namespace', info: 'Math object' },
+                { label: 'console', type: 'namespace', info: 'Console object' }
+            ]
+        };
+    };
+
     // Enhanced completion source for JavaScript
     const enhancedJSCompletionSource = createJavaScriptCompletionSource(
         customCompletions || [],
@@ -473,8 +529,11 @@ export default function Editor({
 
     // Custom completions for JavaScript: context-aware (top-level and after object.)
     const jsCustomCompletionSource: CompletionSource = (context) => {
-        // Use enhanced completion source for JavaScript
+        console.log('🔧 jsCustomCompletionSource called for language:', language);
+        
+        // For testing - always return test completions for JavaScript
         if (language === 'javascript') {
+            console.log('📝 Calling enhanced JS completion source');
             return enhancedJSCompletionSource(context);
         }
         
@@ -553,14 +612,23 @@ export default function Editor({
                 '.cm-lineNumbers': { display: 'none' }
             });
 
-            // Setup initial completion sources
+            // Setup initial completion sources - SIMPLIFIED FOR TESTING
             let initialCompletionSources: CompletionSource[] = [];
+            
+            console.log('🏗️ Setting up completion sources for language:', language);
+            
+            if (language === "javascript") {
+                // Use test completion source first to verify system works
+                initialCompletionSources.push(testCompletionSource);
+                console.log('✅ Added test completion source for JavaScript');
+            }
+            
             if (language === "json" && customVariableCompletions) {
                 initialCompletionSources.push(variableCompletionSource);
+                console.log('✅ Added variable completion source for JSON');
             }
-            if (language === "javascript") {
-                initialCompletionSources.push(jsCustomCompletionSource);
-            }
+
+            console.log('📋 Total completion sources:', initialCompletionSources.length);
 
             const startState = EditorState.create({
                 doc: value,
@@ -569,26 +637,26 @@ export default function Editor({
                         language === 'url'
                             ? [
                                 keymap.of([indentWithTab]),
-                                autocompletion(),
                             ]
                             : [
                                 basicSetup,
                                 keymap.of([indentWithTab]),
-                                autocompletion()
                             ]
                     ),
                     languageCompartment.of(getLanguageExtension(language)),
                     listenerCompartment.of(listener),
+                    // CRITICAL: Ensure autocompletion is configured correctly
                     completionCompartment.of(
-                        initialCompletionSources.length > 0
-                            ? autocompletion({ 
-                                override: initialCompletionSources,
-                                maxRenderedOptions: 20,
-                                optionClass: (completion) => {
-                                    return `cm-completionLabel-${completion.type || 'default'}`;
-                                }
-                            })
-                            : autocompletion()
+                        autocompletion({ 
+                            override: initialCompletionSources,
+                            maxRenderedOptions: 20,
+                            activateOnTyping: true, // Enable automatic activation
+                            closeOnBlur: false,     // Keep completions open longer
+                            defaultKeymap: true,    // Enable default completion keybindings
+                            optionClass: (completion) => {
+                                return `cm-completionLabel-${completion.type || 'default'}`;
+                            }
+                        })
                     ),
                     dimensionsCompartment.of(autoSizeExtensions),
                     lineNumbersExt,
@@ -597,10 +665,13 @@ export default function Editor({
                     themeExt
                 ]
             })
+            
             viewRef.current = new EditorView({
                 state: startState,
                 parent: editorRef.current
             })
+            
+            console.log('🎯 Editor initialized with completion sources');
         }
         return () => {
             if (viewRef.current) {
@@ -651,25 +722,42 @@ export default function Editor({
 
     // Update custom completions if prop changes
     useEffect(() => {
+        console.log('🔄 Updating completions with:', {
+            customCompletions: customCompletions?.length || 0,
+            objectCompletions: objectCompletions?.length || 0,
+            reactiveVariables: reactiveVariables.length,
+            availableModules: availableModules.length,
+            language
+        });
+
         if (viewRef.current) {
             let sources: CompletionSource[] = []
+            
+            // SIMPLIFIED: Use test source for now
+            if (language === "javascript") {
+                sources.push(testCompletionSource);
+                // TODO: Re-enable enhanced source after test works
+                // sources.push(jsCustomCompletionSource);
+            }
+            
             if (language === "json" && customVariableCompletions) {
                 sources.push(variableCompletionSource)
             }
-            if (language === "javascript") {
-                sources.push(jsCustomCompletionSource)
-            }
+            
+            console.log('📝 Reconfiguring completion sources:', sources.length);
+            
             viewRef.current.dispatch({
                 effects: completionCompartment.reconfigure(
-                    sources.length > 0
-                        ? autocompletion({ 
-                            override: sources,
-                            maxRenderedOptions: 20,
-                            optionClass: (completion) => {
-                                return `cm-completionLabel-${completion.type || 'default'}`;
-                            }
-                        })
-                        : autocompletion()
+                    autocompletion({ 
+                        override: sources,
+                        maxRenderedOptions: 20,
+                        activateOnTyping: true,
+                        closeOnBlur: false,
+                        defaultKeymap: true,
+                        optionClass: (completion) => {
+                            return `cm-completionLabel-${completion.type || 'default'}`;
+                        }
+                    })
                 )
             })
         }

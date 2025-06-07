@@ -252,7 +252,7 @@
   }
   
   .cm-completionInfo {
-    @apply bg-background-secondary border-l border-border text-secondary-foreground p-2 text-xs;
+    @apply bg-secondary border-l border-border text-secondary-foreground p-2 text-xs;
   }
   
   .cm-completionIcon {
