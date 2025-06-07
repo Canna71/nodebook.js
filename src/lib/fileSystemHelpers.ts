@@ -185,11 +185,11 @@ export class FileSystemHelpers {
                     const content = await fs.promises.readFile(filePath, 'utf8');
                     const notebook = JSON.parse(content) as NotebookModel;
 
-                    // Use filename as fallback for name
+                    // Use filename as fallback for description
                     const baseFileName = path.basename(file, '.json');
 
                     examples.push({
-                        description: notebook.description,
+                        description: baseFileName.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
                         filepath: filePath,
                         lastModified: stats.mtime,
                         size: stats.size
@@ -306,11 +306,11 @@ export class FileSystemHelpers {
                     const content = await fs.promises.readFile(filePath, 'utf8');
                     const notebook = JSON.parse(content) as NotebookModel;
 
-                    // Use filename as fallback for name
+                    // Use filename as fallback for description
                     const baseFileName = path.basename(file, '.json');
 
                     notebooks.push({
-                        description: notebook.description,
+                        description: baseFileName.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
                         filepath: filePath,
                         lastModified: stats.mtime,
                         size: stats.size

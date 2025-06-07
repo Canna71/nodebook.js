@@ -123,8 +123,6 @@ export function validateCellDefinition(cell: any): cell is CellDefinition {
 }
 
 export interface NotebookModel {
-  title?: string;
-  description?: string;
   cells: CellDefinition[];
   metadata?: {
     tags?: string[];

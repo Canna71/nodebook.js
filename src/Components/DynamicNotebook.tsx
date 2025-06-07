@@ -253,29 +253,6 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
 
   return (
     <div className="dynamic-notebook max-w-4xl mx-auto p-6">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">{model.title || 'Untitled Notebook'}</h1>
-        {model.description && <p className="description text-secondary-foreground mb-4">{model.description}</p>}
-        
-        {/* Module status - Hidden for now
-        <details className="mb-4 text-sm text-foreground">
-          <summary className="cursor-pointer hover:bg-background-secondary px-2 py-1 rounded">
-            Available Modules ({getAvailableModules().length})
-          </summary>
-          <div className="mt-2 ml-4 grid grid-cols-3 gap-2">
-            {getAvailableModules().map(module => (
-              <span 
-                key={module} 
-                className="inline-block bg-background-secondary text-foreground rounded px-2 py-1 text-xs"
-              >
-                {module}
-              </span>
-            ))}
-          </div>
-        </details>
-        */}
-      </header>
-
       <div className="notebook-cells">
         {model.cells.length === 0 ? (
           <div className="empty-notebook text-center py-12 text-secondary-foreground">

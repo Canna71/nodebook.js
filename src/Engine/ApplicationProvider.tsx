@@ -246,7 +246,7 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
         try {
             const result = await window.api.saveFileDialog({
                 title: 'Save Notebook As',
-                defaultPath: `${state.currentModel.title || 'notebook'}.notebook`,
+                defaultPath: 'notebook.notebook',
                 filters: [
                     { name: 'Notebook Files', extensions: ['notebook'] },
                     { name: 'JSON Files', extensions: ['json'] },
@@ -281,8 +281,6 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
         
         // Create a welcome tutorial notebook
         const welcomeNotebook: NotebookModel = {
-            title: 'Welcome to NotebookJS',
-            description: 'Learn the basics of reactive notebooks',
             cells: [
                 {
                     type: 'markdown',
@@ -365,7 +363,7 @@ Variables automatically update when their dependencies change, creating a live, 
         try {
             const result = await window.api.saveFileDialog({
                 title: 'Export as JSON',
-                defaultPath: `${state.currentModel.title || 'notebook'}.json`,
+                defaultPath: 'notebook.json',
                 filters: [
                     { name: 'JSON Files', extensions: ['json'] },
                     { name: 'All Files', extensions: ['*'] }

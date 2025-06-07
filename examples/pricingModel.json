@@ -1,6 +1,4 @@
 {
-  "title": "Pricing Calculator",
-  "description": "Calculate total pricing with discounts",
   "cells": [
     {
       "type": "markdown",
