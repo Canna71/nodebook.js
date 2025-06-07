@@ -105,7 +105,7 @@
   
   /* Specific handling for auto-height editors with scroll */
   .cell-container .cell-content .cm-editor[style*="auto"] .cm-scroller {
-    overflowY: auto !important;
+    /* overflowY: auto !important; */
     overscroll-behavior-y: contain !important;
   }
   
