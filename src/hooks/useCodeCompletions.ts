@@ -23,7 +23,7 @@ export function useCodeCompletions() {
             });
         });
 
-        // 2. Reactive system globals
+        // 2. Reactive system globals and common JavaScript globals
         const systemGlobals = [
             {
                 label: "exports",
@@ -34,44 +34,134 @@ export function useCodeCompletions() {
             {
                 label: "console",
                 type: "object", 
-                info: "Console object for logging",
-                detail: "Built-in"
+                info: "Console object for logging and debugging",
+                detail: "JavaScript Global"
             },
             {
                 label: "Math",
                 type: "object",
-                info: "Math object with mathematical functions",
-                detail: "Built-in"
+                info: "Math object with mathematical functions and constants",
+                detail: "JavaScript Global"
+            },
+            {
+                label: "Object",
+                type: "object",
+                info: "Object constructor with utility methods",
+                detail: "JavaScript Global"
+            },
+            {
+                label: "Array",
+                type: "object",
+                info: "Array constructor with utility methods",
+                detail: "JavaScript Global"
+            },
+            {
+                label: "String",
+                type: "object",
+                info: "String constructor with utility methods",
+                detail: "JavaScript Global"
+            },
+            {
+                label: "Number",
+                type: "object",
+                info: "Number constructor with utility methods",
+                detail: "JavaScript Global"
+            },
+            {
+                label: "Date",
+                type: "object",
+                info: "Date constructor for working with dates and times",
+                detail: "JavaScript Global"
+            },
+            {
+                label: "JSON",
+                type: "object",
+                info: "JSON object for parsing and stringifying",
+                detail: "JavaScript Global"
+            },
+            {
+                label: "Promise",
+                type: "object",
+                info: "Promise constructor for asynchronous operations",
+                detail: "JavaScript Global"
+            },
+            {
+                label: "RegExp",
+                type: "object",
+                info: "Regular expression constructor",
+                detail: "JavaScript Global"
+            },
+            {
+                label: "Error",
+                type: "object",
+                info: "Error constructor for creating error objects",
+                detail: "JavaScript Global"
+            },
+            {
+                label: "setTimeout",
+                type: "function",
+                info: "Execute a function after a delay",
+                detail: "Browser/Node.js Global"
+            },
+            {
+                label: "setInterval",
+                type: "function",
+                info: "Execute a function repeatedly at intervals",
+                detail: "Browser/Node.js Global"
+            },
+            {
+                label: "clearTimeout",
+                type: "function",
+                info: "Cancel a timeout created by setTimeout",
+                detail: "Browser/Node.js Global"
+            },
+            {
+                label: "clearInterval",
+                type: "function",
+                info: "Cancel an interval created by setInterval",
+                detail: "Browser/Node.js Global"
             },
             {
                 label: "require",
                 type: "function",
-                info: "Load modules",
+                info: "Load modules (Node.js/NotebookJS module system)",
                 detail: "Module System"
             },
             {
                 label: "process",
                 type: "object",
-                info: "Node.js process object",
-                detail: "Node.js"
+                info: "Node.js process object with environment info",
+                detail: "Node.js Global"
             },
             {
                 label: "Buffer",
                 type: "function",
-                info: "Node.js Buffer constructor",
-                detail: "Node.js"
+                info: "Node.js Buffer constructor for binary data",
+                detail: "Node.js Global"
             },
             {
                 label: "__dirname",
                 type: "string",
                 info: "Current directory path",
-                detail: "Node.js"
+                detail: "Node.js Global"
             },
             {
                 label: "__filename", 
                 type: "string",
                 info: "Current file path",
-                detail: "Node.js"
+                detail: "Node.js Global"
+            },
+            {
+                label: "global",
+                type: "object",
+                info: "Node.js global object",
+                detail: "Node.js Global"
+            },
+            {
+                label: "globalThis",
+                type: "object",
+                info: "Universal global object reference",
+                detail: "JavaScript Global"
             }
         ];
 
