@@ -5,6 +5,7 @@ Code cells in NotebookJS provide a powerful JavaScript execution environment wit
 ## Table of Contents
 
 - [Basic JavaScript Execution](#basic-javascript-execution)
+- [Cell Execution Behavior](#cell-execution-behavior)
 - [Reactive Values and Exports](#reactive-values-and-exports)
 - [Accessing Other Variables](#accessing-other-variables)
 - [Console Output](#console-output)
@@ -32,6 +33,52 @@ const data = [1, 2, 3, 4, 5];
 const doubled = data.map(x => x * 2);
 console.log("Doubled:", doubled);
 ```
+
+## Cell Execution Behavior
+
+### Manual Execution Required
+
+**Important**: After editing any code cell, you must **manually execute it** to run the new code and trigger the reactive chain.
+
+```javascript
+// 1. Edit this code
+exports.data = { A: [1, 2, 3], B: [10, 20, 30] };
+
+// 2. Click the ▶️ button or press Shift+Enter to execute
+
+// 3. Dependent cells will automatically re-execute
+```
+
+### Why Manual Execution?
+
+Code cells don't automatically re-execute when you edit them for several important reasons:
+
+- **Performance**: Prevents expensive computations from running on every keystroke
+- **Control**: You decide when potentially long-running code should execute
+- **Safety**: Avoids running incomplete or buggy code accidentally
+- **Debugging**: Allows you to edit multiple cells before executing
+
+### Reactive Chain Execution
+
+Once you manually execute a cell:
+
+1. **Cell executes** with your new code
+2. **Exports update** in the reactive system
+3. **Dependent cells automatically re-execute** in the correct order
+4. **Results propagate** throughout the notebook
+
+```javascript
+// Cell 1: Manual execution required after editing
+exports.baseValue = 10;
+
+// Cell 2: Automatically re-executes when Cell 1 runs
+exports.doubled = baseValue * 2;
+
+// Cell 3: Automatically re-executes when Cell 2 updates
+exports.final = doubled + 5;
+```
+
+This design ensures you have full control over when code runs while still maintaining the reactive benefits of automatic dependency updates.
 
 ## Reactive Values and Exports
 
