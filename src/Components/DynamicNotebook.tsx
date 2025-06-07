@@ -257,7 +257,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
         <h1 className="text-3xl font-bold text-foreground mb-2">{model.title || 'Untitled Notebook'}</h1>
         {model.description && <p className="description text-secondary-foreground mb-4">{model.description}</p>}
         
-        {/* Module status */}
+        {/* Module status - Hidden for now
         <details className="mb-4 text-sm text-foreground">
           <summary className="cursor-pointer hover:bg-background-secondary px-2 py-1 rounded">
             Available Modules ({getAvailableModules().length})
@@ -273,6 +273,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
             ))}
           </div>
         </details>
+        */}
       </header>
 
       <div className="notebook-cells">
