@@ -89,7 +89,7 @@ export function CodeSummary({ code, exports = [], dependencies = [] }: CodeSumma
           )}
           
           {/* Exports and dependencies summary */}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          {/* <div className="flex items-center gap-4 text-xs text-muted-foreground">
             {exports.length > 0 && (
               <span>
                 <strong>Exports:</strong> {exports.join(', ')}
@@ -100,7 +100,7 @@ export function CodeSummary({ code, exports = [], dependencies = [] }: CodeSumma
                 <strong>Uses:</strong> {dependencies.join(', ')}
               </span>
             )}
-          </div>
+          </div> */}
         </div>
         
         {/* Removed: Code type indicator - redundant with cell type indicator */}

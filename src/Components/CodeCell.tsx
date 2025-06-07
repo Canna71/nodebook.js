@@ -115,34 +115,14 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
 
     return (
         <div className="cell code-cell border border-border rounded-lg mb-4 bg-background">
-            {/* Simplified Header - only show in edit mode or when there are issues */}
-            {(isEditMode || error) && (
-                <div className="code-header bg-background-secondary px-4 py-2 border-b border-border">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-3">
-                            <span className="font-medium text-foreground">
-                                {exports.length > 0 ? `Code: ${exports.join(', ')}` : 'Code'}
-                            </span>
-                            {currentCode !== definition.code && (
-                                <span className="text-xs text-accent-foreground">• Modified</span>
-                            )}
-                        </div>
-                        {dependencies.length > 0 && (
-                            <span className="text-xs text-foreground">
-                                Uses: {dependencies.join(', ')}
-                            </span>
-                        )}
-                    </div>
-                    {exports.length > 0 && (
-                        <div className="mt-1 text-xs text-foreground">
-                            <strong>Exports:</strong> {exports.join(', ')}
-                        </div>
-                    )}
-                </div>
-            )}
+            <CodeSummary 
+                    code={currentCode}
+                    exports={exports}
+                    dependencies={dependencies}
+                />
 
             {/* Code Summary (View Mode) or Editor (Edit Mode) */}
-            {isEditMode ? (
+            {isEditMode && (
                 <div className="code-content bg-background-secondary px-4 py-3 overflow-x-auto">
                     <Editor
                         value={currentCode}
@@ -157,13 +137,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                         }}
                     />
                 </div>
-            ) : (
-                <CodeSummary 
-                    code={currentCode}
-                    exports={exports}
-                    dependencies={dependencies}
-                />
-            )}
+            ) }
 
             {/* DOM Output Container */}
             <div 

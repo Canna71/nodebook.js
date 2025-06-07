@@ -245,16 +245,6 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
           </div>
         </div>
 
-        {/* Formula Status */}
-        <div className="text-xs text-secondary-foreground bg-background rounded p-2 border border-border">
-          <div><strong>Reactive Variable:</strong></div>
-          <div>Name: <code>{editConfig.variableName}</code></div>
-          <div>Formula: <code>{editConfig.formula}</code></div>
-          <div>Current Value: <code>{JSON.stringify(value)}</code></div>
-          {error && (
-            <div className="text-destructive mt-1">Error: {error}</div>
-          )}
-        </div>
       </div>
     );
   };

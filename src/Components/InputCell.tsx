@@ -391,18 +391,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
           </div>
         )}
 
-        {/* Variable Status */}
-        <div className="text-xs text-secondary-foreground bg-background rounded p-2 border border-border">
-          <div><strong>Reactive Variable:</strong></div>
-          <div>
-            {definition.variableName.trim() ? (
-              <>Name: <code>{definition.variableName}</code></>
-            ) : (
-              <>Auto-generated: <code>{autoVariableName}</code></>
-            )}
-          </div>
-          <div>Current Value: <code>{JSON.stringify(value)}</code></div>
-        </div>
+        
       </div>
     );
   };
