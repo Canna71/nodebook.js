@@ -19,6 +19,7 @@ const api : ElectronApi = {
     getAppPath: () => ipcRenderer.invoke('get-app-path'),
     getAppName: () => ipcRenderer.invoke('get-app-name'),
     getAppLocale: () => ipcRenderer.invoke('get-app-locale'),
+    setWindowTitle: (title: string) => ipcRenderer.invoke('set-window-title', title),
     
     // Menu event handling
     onMenuAction: (event: string, callback: (...args: any[]) => void) => {

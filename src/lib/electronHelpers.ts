@@ -15,7 +15,7 @@ export interface ElectronApi {
     getAppPath: () => Promise<string>;
     getAppName: () => Promise<string>;
     getAppLocale: () => Promise<string>;
-    
+    setWindowTitle: (title: string) => Promise<void>;
     // Menu event handling
     onMenuAction: (event: string, callback: (...args: any[]) => void) => void;
     removeMenuListener: (event: string) => void;

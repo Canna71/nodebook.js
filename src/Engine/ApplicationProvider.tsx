@@ -48,6 +48,10 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
                     isLoading: false,
                 }));
                 
+                // Update window title with file name
+                const fileName = filePath.split('/').pop() || 'Untitled';
+                await window.api.setWindowTitle(`${fileName} - NotebookJS`);
+                
                 log.info('Notebook loaded successfully:', filePath);
             } else {
                 log.error('Failed to load notebook:', content.error);
@@ -87,10 +91,13 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
                 isDirty: false,
             }));
             
+            // Update window title when file path changes or dirty state clears
+            const fileName = targetPath.split('/').pop() || 'Untitled';
+            await window.api.setWindowTitle(`${fileName} - NotebookJS`);
+            
             log.info('Notebook saved successfully:', targetPath);
             
             // Show success toast with file name
-            const fileName = targetPath.split('/').pop() || 'notebook';
             toast.success(`Notebook saved: ${fileName}`, {
                 description: targetPath,
                 duration: 3000,
@@ -119,6 +126,9 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
             isDirty: false,
             error: null,
         }));
+        
+        // Update window title for new notebook
+        window.api.setWindowTitle('Untitled - NotebookJS');
         
         log.info('New notebook created');
     }, []);

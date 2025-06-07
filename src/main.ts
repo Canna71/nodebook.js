@@ -489,10 +489,16 @@ function registerHandlers() {
     );
     ipcMain.handle('get-app-locale', () => {
         return app.getLocale();
-    }
-    );
+    });
     
-
+    ipcMain.handle('set-window-title', (event, title: string) => {
+        const webContents = event.sender;
+        const window = BrowserWindow.fromWebContents(webContents);
+        if (window) {
+            window.setTitle(title);
+        }
+        return true;
+    });
 }
 
 async function loadExtensions() {

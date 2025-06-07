@@ -92,7 +92,7 @@
     {
       "type": "markdown",
       "id": "total-display",
-      "content": "<h3>**Total:** {{total | currency}}</h3>",
+      "content": "**Total:** {{total | currency}}",
       "variables": [
         "total"
       ]
