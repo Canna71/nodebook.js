@@ -5,6 +5,7 @@ import { useApplication } from '@/Engine/ApplicationProvider';
 import { MarkdownCellDefinition } from '@/Types/NotebookModel';
 import Editor from './Editor';
 import { oneDark } from '@codemirror/theme-one-dark';
+import MarkdownIt from 'markdown-it';
 
 interface MarkdownCellProps {
   definition: MarkdownCellDefinition;
@@ -12,10 +13,17 @@ interface MarkdownCellProps {
   isEditMode?: boolean;
 }
 
+// Initialize markdown-it instance
+const md = new MarkdownIt({
+  html: true,
+  linkify: true,
+  typographer: true
+});
+
 export function MarkdownCell({ definition, initialized, isEditMode = false }: MarkdownCellProps) {
   const { reactiveStore } = useReactiveSystem();
   const { currentModel, setModel, setDirty } = useApplication();
-  const [renderedContent, setRenderedContent] = React.useState(definition.content);
+  const [renderedContent, setRenderedContent] = React.useState('');
   
   // Local state for content being edited
   const [currentContent, setCurrentContent] = useState(definition.content);
@@ -51,10 +59,13 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
           const value = reactiveStore.getValue(varName);
           calculatedValues[varName] = value;
         });
-        const rendered = renderMarkdownWithValues(definition.content, calculatedValues);
+        // First apply variable interpolation, then render with markdown-it
+        const interpolatedContent = renderMarkdownWithValues(definition.content, calculatedValues);
+        const rendered = md.render(interpolatedContent);
         setRenderedContent(rendered);
       } else {
-        const rendered = renderMarkdownWithValues(definition.content, {});
+        // No variables, just render with markdown-it
+        const rendered = md.render(definition.content);
         setRenderedContent(rendered);
       }
     };
@@ -102,7 +113,7 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
         <div className="markdown-editor">
           <Editor
             value={currentContent}
-            language="text" // Use text mode for markdown since codemirror doesn't have built-in markdown
+            language="markdown" // Use markdown language instead of text
             theme={oneDark}
             onChange={onContentChange}
             showLineNumbers={false}
@@ -118,7 +129,7 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
     );
   }
 
-  // View mode: show rendered markdown
+  // View mode: show rendered markdown using markdown-it
   return (
     <div className="cell markdown-cell p-2">
       <div 

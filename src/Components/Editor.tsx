@@ -6,6 +6,7 @@ import { EditorState, Compartment, Extension } from '@codemirror/state'
 import { javascript } from "@codemirror/lang-javascript"
 import { json } from "@codemirror/lang-json"
 import { xml } from "@codemirror/lang-xml"
+import { markdown } from "@codemirror/lang-markdown" // NEW: Add markdown support
 import { indentWithTab } from '@codemirror/commands'
 import { autocompletion, Completion, CompletionSource } from '@codemirror/autocomplete'
 import { placeholder as cmPlaceholder } from '@codemirror/view'
@@ -24,7 +25,7 @@ interface EditorDimensions {
 type EditorProps = {
     value: string
     onChange?: (value: string) => void
-    language?: 'javascript' | 'json' | 'xml' | 'text' | 'url'
+    language?: 'javascript' | 'json' | 'xml' | 'text' | 'url' | 'markdown' // NEW: Add markdown
     customCompletions?: Completion[]
     customVariableCompletions?: string[]
     objectCompletions?: { object: string, methods: Completion[] }[]
@@ -40,6 +41,8 @@ function getLanguageExtension(language: string | undefined): Extension {
             return json()
         case 'xml':
             return xml()
+        case 'markdown': // NEW: Add markdown case
+            return markdown()
         case 'text':
             return [] // plain text, no language extension
         case 'url':
