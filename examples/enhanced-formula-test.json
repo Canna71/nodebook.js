@@ -39,47 +39,32 @@
     {
       "type": "formula",
       "id": "enhanced-subtotal",
-      "label": "Subtotal (Enhanced)",
       "variableName": "enhancedSubtotal",
-      "formula": "quantity * unitPrice",
-      "outputFormat": "currency",
-      "decimals": 2
+      "formula": "quantity * unitPrice"
     },
     {
       "type": "formula",
       "id": "enhanced-discount",
-      "label": "Bulk Discount",
       "variableName": "bulkDiscount",
-      "formula": "quantity >= 10 ? subtotal * 0.1 : 0",
-      "outputFormat": "currency",
-      "decimals": 2
+      "formula": "quantity >= 10 ? subtotal * 0.1 : 0"
     },
     {
       "type": "formula",
       "id": "enhanced-final-price",
-      "label": "Final Price",
       "variableName": "finalPrice",
-      "formula": "grandTotal - bulkDiscount",
-      "outputFormat": "currency",
-      "decimals": 2
+      "formula": "grandTotal - bulkDiscount"
     },
     {
       "type": "formula",
       "id": "enhanced-complex",
-      "label": "Complex Calculation",
       "variableName": "complexResult",
-      "formula": "Math.round((quantity * unitPrice * (1 + taxRate) - bulkDiscount) * 100) / 100",
-      "outputFormat": "currency",
-      "decimals": 2
+      "formula": "Math.round((quantity * unitPrice * (1 + taxRate) - bulkDiscount) * 100) / 100"
     },
     {
       "type": "formula",
       "id": "enhanced-percentage",
-      "label": "Savings Percentage",
       "variableName": "savingsPercentage",
-      "formula": "bulkDiscount > 0 ? (bulkDiscount / grandTotal) * 100 : 0",
-      "outputFormat": "percentage",
-      "decimals": 1
+      "formula": "bulkDiscount > 0 ? (bulkDiscount / grandTotal) * 100 : 0"
     },
     {
       "type": "markdown",

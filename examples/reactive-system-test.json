@@ -44,7 +44,7 @@
         "basePrice",
         "taxRate",
         "taxAmount",
-        "totalPrice", 
+        "totalPrice",
         "discount",
         "finalPrice"
       ]
@@ -57,74 +57,50 @@
     {
       "type": "formula",
       "id": "formatted-final-price",
-      "label": "Final Price (Legacy $syntax)",
       "variableName": "formattedFinalPrice",
-      "formula": "$finalPrice",
-      "outputFormat": "currency",
-      "decimals": 2
+      "formula": "$finalPrice"
     },
     {
       "type": "formula",
       "id": "enhanced-final-price",
-      "label": "Final Price (Enhanced syntax)",
       "variableName": "enhancedFinalPrice",
-      "formula": "finalPrice",
-      "outputFormat": "currency",
-      "decimals": 2
+      "formula": "finalPrice"
     },
     {
       "type": "formula",
       "id": "tax-rate-percentage",
-      "label": "Tax Rate (Legacy $syntax)",
       "variableName": "formattedTaxRate",
-      "formula": "$taxRate",
-      "outputFormat": "percentage",
-      "decimals": 1
+      "formula": "$taxRate"
     },
     {
       "type": "formula",
       "id": "enhanced-tax-rate",
-      "label": "Tax Rate (Enhanced syntax)",
       "variableName": "enhancedTaxRate",
-      "formula": "taxRate",
-      "outputFormat": "percentage",
-      "decimals": 1
+      "formula": "taxRate"
     },
     {
       "type": "formula",
       "id": "savings-calculation",
-      "label": "Potential Savings (Legacy)",
       "variableName": "potentialSavings",
-      "formula": "$discount > 0 ? $discount : 0",
-      "outputFormat": "currency",
-      "decimals": 2
+      "formula": "$discount > 0 ? $discount : 0"
     },
     {
       "type": "formula",
       "id": "enhanced-savings",
-      "label": "Enhanced Savings Calculation",
       "variableName": "enhancedSavings",
-      "formula": "discount > 0 ? discount + (basePrice * 0.01) : 0",
-      "outputFormat": "currency",
-      "decimals": 2
+      "formula": "discount > 0 ? discount + (basePrice * 0.01) : 0"
     },
     {
       "type": "formula",
       "id": "simple-math-test",
-      "label": "Simple Math Test",
       "variableName": "simpleMathTest",
-      "formula": "Math.round(42.7)",
-      "outputFormat": "number",
-      "decimals": 0
+      "formula": "Math.round(42.7)"
     },
     {
       "type": "formula",
       "id": "complex-calculation",
-      "label": "Complex Math (Enhanced)",
       "variableName": "complexResult",
-      "formula": "Math.round((finalPrice * 1.05 + Math.max(0, discount - 10)) * 100) / 100",
-      "outputFormat": "currency",
-      "decimals": 2
+      "formula": "Math.round((finalPrice * 1.05 + Math.max(0, discount - 10)) * 100) / 100"
     },
     {
       "type": "markdown",
@@ -137,7 +113,7 @@
       "content": "### Reactive Test Status\n\n✅ **Input Values:**\n- Base Price: ${{basePrice}}\n- Tax Rate: {{taxRate}}%\n\n✅ **Calculated Values:**\n- Tax Amount: ${{taxAmount?.toFixed(2) || 'Not calculated'}}\n- Final Price: ${{finalPrice?.toFixed(2) || 'Not calculated'}}\n\n✅ **Formula Comparisons:**\n- Legacy Formula Result: ${{formattedFinalPrice?.toFixed(2) || 'N/A'}}\n- Enhanced Formula Result: ${{enhancedFinalPrice?.toFixed(2) || 'N/A'}}\n- Simple Math Test: {{simpleMathTest || 'N/A'}}\n- Complex Math Result: ${{complexResult?.toFixed(2) || 'N/A'}}\n\n{{priceBreakdown ? '✅ **Price Breakdown Available**' : '❌ **Price Breakdown Missing**'}}\n\n---\n\n**Instructions:** \n1. Try changing the input values above\n2. Compare legacy vs enhanced formula results (should be identical)\n3. Notice the complex math formula with natural JavaScript syntax\n4. Both systems should update reactively",
       "variables": [
         "basePrice",
-        "taxRate", 
+        "taxRate",
         "taxAmount",
         "finalPrice",
         "formattedFinalPrice",

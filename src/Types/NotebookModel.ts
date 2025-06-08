@@ -44,10 +44,6 @@ export interface FormulaCellDefinition extends BaseCellDefinition {
   type: 'formula';
   variableName: string;
   formula: string;
-  outputFormat?: 'number' | 'currency' | 'percentage' | 'text';
-  decimals?: number;
-  label?: string; // Optional label for display
-  description?: string; // Optional description
 }
 
 export interface CodeCellDefinition extends BaseCellDefinition {
@@ -93,7 +89,7 @@ export function getCellDisplayName(cell: CellDefinition): string {
       }
       return firstLine.substring(0, 50) + (firstLine.length > 50 ? '...' : '');
     case 'formula':
-      return cell.label || `Formula: ${cell.variableName}`;
+      return `${cell.variableName} = ${cell.formula}`;
     case 'code':
       return `Code Cell`;
     default:

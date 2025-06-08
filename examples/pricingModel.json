@@ -45,28 +45,19 @@
       "type": "formula",
       "id": "subtotal-formula",
       "variableName": "subtotal",
-      "formula": "$price * $quantity",
-      "label": "Subtotal Calculation",
-      "outputFormat": "currency",
-      "decimals": 2
+      "formula": "$price * $quantity"
     },
     {
       "type": "formula",
       "id": "discount-formula",
       "variableName": "discount",
-      "formula": "$subtotal * ($discountPercent / 100)",
-      "label": "Discount Calculation",
-      "outputFormat": "currency",
-      "decimals": 2
+      "formula": "$subtotal * ($discountPercent / 100)"
     },
     {
       "type": "formula",
       "id": "total-formula",
       "variableName": "total",
-      "formula": "$subtotal - $discount",
-      "label": "Total Calculation",
-      "outputFormat": "currency",
-      "decimals": 2
+      "formula": "$subtotal - $discount"
     },
     {
       "type": "markdown",
