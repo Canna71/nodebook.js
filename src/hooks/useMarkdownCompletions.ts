@@ -11,7 +11,7 @@ export function useMarkdownCompletions() {
 
     const markdownCompletionSource: CompletionSource = useMemo(() => {
         return (context) => {
-            // Look for patterns like "{{variable" or "{{var|filter" within markdown
+            // Look for patterns like "{{variable" or "{{expr + var" within markdown
             const beforeCursor = context.state.sliceDoc(0, context.pos);
             
             // Find the last occurrence of {{ before the cursor
@@ -20,11 +20,11 @@ export function useMarkdownCompletions() {
                 return null; // Not inside a {{ block
             }
             
-            // Check if there's a closing }} after the opening {{
-            const afterOpenBrace = beforeCursor.slice(lastOpenBrace);
-            const hasClosingBrace = afterOpenBrace.includes('}}');
-            if (hasClosingBrace) {
-                return null; // Already closed, no completion needed
+            // Check if there's a closing }} between the {{ and cursor
+            const afterOpenBrace = beforeCursor.slice(lastOpenBrace + 2);
+            const closingBraceIndex = afterOpenBrace.indexOf('}}');
+            if (closingBraceIndex !== -1 && lastOpenBrace + 2 + closingBraceIndex < context.pos) {
+                return null; // Cursor is after the closing }}
             }
             
             // Extract the content after {{ up to the cursor
@@ -38,10 +38,36 @@ export function useMarkdownCompletions() {
                 return null; // Don't complete after pipe (filter section)
             }
             
-            // Match the current word being typed
-            const wordMatch = contentAfterBrace.match(/^([a-zA-Z_][a-zA-Z0-9_.]*)$/);
-            if (!wordMatch && contentAfterBrace.trim() !== '') {
-                return null; // Invalid variable name pattern
+            // Find the current word at cursor position within the {{ block
+            // Look for word boundaries to determine completion range
+            const textBeforePipe = pipeIndex >= 0 ? contentAfterBrace.slice(0, pipeIndex) : contentAfterBrace;
+            
+            // Match identifier pattern at cursor position
+            const wordMatch = context.matchBefore(/[a-zA-Z_][a-zA-Z0-9_]*$/);
+            
+            // Determine completion range
+            let completionFrom: number;
+            let completionTo: number;
+            
+            if (wordMatch) {
+                // We're in the middle of typing a word - complete from the start of the word
+                completionFrom = wordMatch.from;
+                completionTo = wordMatch.to;
+            } else {
+                // Check if cursor is in a valid position to start a new identifier
+                const charBeforeCursor = context.pos > 0 ? beforeCursor[context.pos - 1] : '';
+                const isValidStartPosition = (
+                    context.pos === lastOpenBrace + 2 || // Right after {{
+                    /[\s+\-*/()=<>!&|,.]/.test(charBeforeCursor) || // After operators or punctuation
+                    charBeforeCursor === '' // At start of document
+                );
+                
+                if (!isValidStartPosition) {
+                    return null; // Not in a valid completion position
+                }
+                
+                completionFrom = context.pos;
+                completionTo = context.pos;
             }
             
             // Get all reactive variables
@@ -90,8 +116,8 @@ export function useMarkdownCompletions() {
                 }
                 
                 return {
-                    from: lastOpenBrace + 2, // Start after {{
-                    to: context.pos, // End at cursor
+                    from: completionFrom,
+                    to: completionTo,
                     options: completions,
                     validFor: /^[a-zA-Z_][a-zA-Z0-9_.]*$/ // Valid characters for variable names
                 };
