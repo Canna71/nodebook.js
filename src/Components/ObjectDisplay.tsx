@@ -71,7 +71,7 @@ export function ObjectDisplay({
       }
     } catch (error) {
       // If there's any error in the lookup process, just return undefined
-      console.warn('Error during reverse variable lookup:', error);
+      console.warn('ObjectDisplay: Error during reverse variable lookup:', error);
     }
 
     return undefined;

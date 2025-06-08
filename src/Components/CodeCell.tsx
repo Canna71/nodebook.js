@@ -31,6 +31,11 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
 
     // Subscribe to execution count to know when cell re-executes
     const [executionCount] = useReactiveValue(`__cell_${definition.id}_execution`, 0);
+    
+    // Debug log execution count changes
+    useEffect(() => {
+        console.log('🎯 CodeCell execution count changed for', definition.id, ':', executionCount);
+    }, [executionCount, definition.id]);
 
     // Local state for the code being edited
     const [currentCode, setCurrentCode] = useState(definition.code);

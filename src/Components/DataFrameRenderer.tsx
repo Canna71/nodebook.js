@@ -128,6 +128,22 @@ const DataFrameRenderer: React.FC<{
     }
   });
 
+  // Sync localData with incoming data changes (e.g., from reactive re-execution)
+  useEffect(() => {
+    if (!isModified) { // Only update if user hasn't made local modifications
+      try {
+        setLocalData({
+          shape: data.shape,
+          columns: [...data.columns],
+          values: data.values.map((row: any[]) => [...row]),
+          dtypes: data.dtypes
+        });
+      } catch (err) {
+        console.error('Error syncing DataFrame data:', err);
+      }
+    }
+  }, [data, isModified]);
+
   // Handle value changes
   const handleValueChange = useCallback((rowIndex: number, columnId: string, newValue: any) => {
     setLocalData((prev: DataFrameData): DataFrameData => {
@@ -210,7 +226,6 @@ const DataFrameRenderer: React.FC<{
       }
 
       setIsModified(false);
-      console.log(`DataFrame "${name}" updated successfully`);
     } catch (err) {
       console.error('Error saving DataFrame changes:', err);
       setError(err instanceof Error ? err.message : 'Failed to save changes');
