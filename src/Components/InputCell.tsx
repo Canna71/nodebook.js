@@ -277,99 +277,99 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
     const editConfig = getEditConfig(); // Calculate fresh each render
     
     return (
-      <div className="input-cell-edit-mode space-y-4 p-2 bg-muted/50 rounded border">
-        {/* Variable Name */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-foreground">
-            Variable Name 
-            <span className="text-xs text-secondary-foreground ml-1">
-              (optional, auto-generated if empty)
-            </span>
-          </Label>
-          <Input
-            value={editConfig.variableName}
-            onChange={(e) => handleConfigChange({ variableName: e.target.value })}
-            placeholder={`Auto: ${autoVariableName}`}
-            className="input-max-width"
-          />
-          {!editConfig.variableName.trim() && (
-            <div className="text-xs text-secondary-foreground">
-              Will use auto-generated name: <code>{autoVariableName}</code>
+      <div className="input-cell-edit-mode p-2 bg-muted/50 rounded border">
+        {/* Main configuration in responsive grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-2 items-end mb-3">
+          {/* Variable Name */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center gap-2">
+              <Label className="text-xs font-medium text-foreground whitespace-nowrap">Variable:</Label>
+              <Input
+                value={editConfig.variableName}
+                onChange={(e) => handleConfigChange({ variableName: e.target.value })}
+                placeholder={`Auto: ${autoVariableName}`}
+                className="text-sm h-8 flex-1"
+              />
             </div>
-          )}
-        </div>
+            {!editConfig.variableName.trim() && (
+              <div className="text-xs text-secondary-foreground mt-1">
+                Auto: <code>{autoVariableName}</code>
+              </div>
+            )}
+          </div>
 
-        {/* Input Type */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-foreground">Input Type</Label>
-          <Select
-            value={editConfig.inputType}
-            onValueChange={(value) => handleConfigChange({ inputType: value as InputType })}
-          >
-            <SelectTrigger className="input-max-width">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="text">Text</SelectItem>
-              <SelectItem value="number">Number</SelectItem>
-              <SelectItem value="range">Range (Slider)</SelectItem>
-              <SelectItem value="checkbox">Checkbox</SelectItem>
-              <SelectItem value="select">Select</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+          {/* Input Type */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center gap-2">
+              <Label className="text-xs font-medium text-foreground whitespace-nowrap">Type:</Label>
+              <Select
+                value={editConfig.inputType}
+                onValueChange={(value) => handleConfigChange({ inputType: value as InputType })}
+              >
+                <SelectTrigger className="text-sm h-8 flex-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text">Text</SelectItem>
+                  <SelectItem value="number">Number</SelectItem>
+                  <SelectItem value="range">Range</SelectItem>
+                  <SelectItem value="checkbox">Checkbox</SelectItem>
+                  <SelectItem value="select">Select</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-        {/* Label */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-foreground">
-            Label <span className="text-xs text-secondary-foreground">(optional)</span>
-          </Label>
-          <Input
-            value={editConfig.label}
-            onChange={(e) => handleConfigChange({ label: e.target.value })}
-            placeholder={editConfig.variableName.trim() 
-              ? `Defaults to: ${editConfig.variableName}` 
-              : `Defaults to: Input ${definition.id.slice(-4)}`}
-            className="input-max-width"
-          />
+          {/* Label */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center gap-2">
+              <Label className="text-xs font-medium text-foreground whitespace-nowrap">Label:</Label>
+              <Input
+                value={editConfig.label}
+                onChange={(e) => handleConfigChange({ label: e.target.value })}
+                placeholder={editConfig.variableName.trim() 
+                  ? editConfig.variableName 
+                  : `Input ${definition.id.slice(-4)}`}
+                className="text-sm h-8 flex-1"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Numeric constraints for number and range inputs */}
         {(editConfig.inputType === 'number' || editConfig.inputType === 'range') && (
-          <div className="space-y-3">
-            <div className="text-sm font-medium text-foreground">Numeric Constraints</div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs text-secondary-foreground">Min</Label>
+          <div className="border-t border-border pt-2">
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <Label className="text-xs text-secondary-foreground mb-1 block">Min</Label>
                 <Input
                   type="number"
                   value={constraintInputValues.min}
                   onChange={(e) => handleConstraintChange('min', e.target.value)}
                   placeholder="No limit"
-                  className="text-xs w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
+                  className="text-xs h-7 w-full"
                 />
               </div>
               
-              <div className="space-y-1">
-                <Label className="text-xs text-secondary-foreground">Max</Label>
+              <div>
+                <Label className="text-xs text-secondary-foreground mb-1 block">Max</Label>
                 <Input
                   type="number"
                   value={constraintInputValues.max}
                   onChange={(e) => handleConstraintChange('max', e.target.value)}
                   placeholder="No limit"
-                  className="text-xs w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
+                  className="text-xs h-7 w-full"
                 />
               </div>
               
-              <div className="space-y-1 sm:col-span-2 lg:col-span-1">
-                <Label className="text-xs text-secondary-foreground">Step</Label>
+              <div>
+                <Label className="text-xs text-secondary-foreground mb-1 block">Step</Label>
                 <Input
                   type="number"
                   value={constraintInputValues.step}
                   onChange={(e) => handleConstraintChange('step', e.target.value)}
                   placeholder="1"
-                  className="text-xs w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
+                  className="text-xs h-7 w-full"
                 />
               </div>
             </div>
@@ -378,16 +378,16 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
 
         {/* Placeholder for text inputs */}
         {editConfig.inputType === 'text' && (
-          <div className="space-y-2">
-            <Label className="text-sm font-medium text-foreground">
-              Placeholder <span className="text-xs text-secondary-foreground">(optional)</span>
-            </Label>
-            <Input
-              value={editConfig.placeholder}
-              onChange={(e) => handleConfigChange({ placeholder: e.target.value })}
-              placeholder="Enter placeholder text"
-              className="input-max-width"
-            />
+          <div className="border-t border-border pt-2">
+            <div className="flex items-center gap-2">
+              <Label className="text-xs font-medium text-foreground whitespace-nowrap">Placeholder:</Label>
+              <Input
+                value={editConfig.placeholder}
+                onChange={(e) => handleConfigChange({ placeholder: e.target.value })}
+                placeholder="Enter placeholder text"
+                className="text-sm h-8 flex-1"
+              />
+            </div>
           </div>
         )}
 
@@ -397,9 +397,9 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
   };
 
   return (
-    <div className="cell input-cell p-2 space-y-2">
+    <div className="cell input-cell p-2">
       {/* Horizontal layout for label and input */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 mb-2">
         {/* Label - show for all input types except checkbox (which handles its own label) */}
         {definition.inputType !== 'checkbox' && (
           <Label 
@@ -418,7 +418,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
 
       {/* Only show configuration interface in edit mode */}
       {isEditMode && (
-        <div className="edit-mode-container mt-3">
+        <div className="edit-mode-container">
           {renderEditMode()}
         </div>
       )}
