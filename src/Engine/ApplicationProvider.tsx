@@ -179,7 +179,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                     const result = await window.api.openFileDialog({
                         title: 'Open Notebook',
                         filters: [
-                            { name: 'Notebook Files', extensions: ['notebook', 'json'] },
+                            { name: 'Notebook Files', extensions: ['nbjs', 'json'] },
                             { name: 'All Files', extensions: ['*'] }
                         ]
                     });
@@ -317,9 +317,9 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         try {
             const result = await window.api.saveFileDialog({
                 title: 'Save Notebook As',
-                defaultPath: 'notebook.notebook',
+                defaultPath: 'notebook.nbjs',
                 filters: [
-                    { name: 'Notebook Files', extensions: ['notebook'] },
+                    { name: 'Notebook Files', extensions: ['nbjs'] },
                     { name: 'JSON Files', extensions: ['json'] },
                     { name: 'All Files', extensions: ['*'] }
                 ]
