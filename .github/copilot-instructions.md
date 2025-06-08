@@ -49,9 +49,21 @@ NotebookJS is a reactive notebook application built with React, TypeScript, and 
 
 #### Error Handling
 - Always wrap potentially failing operations in try-catch
-- Log errors using `anylogger` with appropriate log levels
+- Log errors using `anylogger` with appropriate log levels and named logger. Avoid using console.log directly
 - Provide user-friendly error messages
 - Handle edge cases gracefully
+
+#### Logging
+- Use `anylogger` for logging
+- Use appropriate log levels: `debug`, `info`, `warn`, `error`
+- Use named loggers for different components or systems
+- Avoid using `console.log` directly, prefer `logger.debug`, `logger.info`, etc.
+
+### Troubleshooting
+- Avoid trying to build yourself the application, ask me to do it 
+- To troubleshoot issues, insert log messages in key points and ask me to report them to yourself
+- Use the `anylogger` system for consistent logging
+- If you need to isolate your specific log messages, use a unique logger name for your component or system
 
 #### Code Cell Engine
 - Use `executeCodeCell` for initial execution
