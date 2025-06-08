@@ -314,6 +314,30 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             'menu-find': () => {
                 // Implement find functionality
                 window.dispatchEvent(new CustomEvent('find-in-notebook'));
+            },
+            'menu-undo': async () => {
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('edit.undo');
+                    } catch (error) {
+                        log.error('Error executing undo command:', error);
+                    }
+                } else {
+                    // Fallback to application provider undo
+                    stateManager.undo();
+                }
+            },
+            'menu-redo': async () => {
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('edit.redo');
+                    } catch (error) {
+                        log.error('Error executing redo command:', error);
+                    }
+                } else {
+                    // Fallback to application provider redo
+                    stateManager.redo();
+                }
             }
         };
 

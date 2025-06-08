@@ -98,12 +98,16 @@ function createMenu(mainWindow: BrowserWindow) {
                 {
                     label: 'Undo',
                     accelerator: 'CmdOrCtrl+Z',
-                    role: 'undo'
+                    click: () => {
+                        mainWindow.webContents.send('menu-undo');
+                    }
                 },
                 {
                     label: 'Redo',
                     accelerator: 'CmdOrCtrl+Shift+Z',
-                    role: 'redo'
+                    click: () => {
+                        mainWindow.webContents.send('menu-redo');
+                    }
                 },
                 { type: 'separator' },
                 {
