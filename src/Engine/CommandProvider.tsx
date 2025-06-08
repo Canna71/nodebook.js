@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { CommandManager } from './CommandManager';
 import { ICommandManager, CommandContext } from '@/Types/CommandTypes';
 import { useApplication } from './ApplicationProvider';
@@ -47,8 +47,8 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
     const applicationProvider = useApplication();
     const reactiveSystem = useReactiveSystem();
     
-    // Create command manager instance
-    const commandManager = useMemo(() => new CommandManager(), []);
+    // Use the singleton command manager instance
+    const commandManager = commandManagerSingleton;
 
     // Execute all cells implementation
     const executeAllCells = async (): Promise<void> => {

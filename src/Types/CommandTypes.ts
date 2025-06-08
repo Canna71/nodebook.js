@@ -65,4 +65,5 @@ export interface ICommandManager {
     getCommand(commandId: string): ICommand | undefined;
     getAllCommands(): CommandInfo[];
     setContext(context: CommandContext): void;
+    getContext(): CommandContext | null;
 }
