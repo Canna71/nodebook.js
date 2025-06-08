@@ -84,7 +84,6 @@
     "danfojs-node": "^1.2.0",
     "electron-settings": "5.0.0",
     "electron-squirrel-startup": "^1.0.1",
-    "handsontable": "^15.3.0",
     "loglevel": "^1.9.2",
     "lucide-react": "^0.511.0",
     "markdown-it": "^14.1.0",
