@@ -11,12 +11,12 @@ log.debug("Initializing App");
 
 import danfojsPlottingExample from "../../examples/danfojs-plotting-example.json";
 import { NotebookViewer } from './NotebookViewer';
-import { NotebookModel } from 'src/Types/NotebookModel';
+import { NotebookModel, CellDefinition } from 'src/Types/NotebookModel';
 import Layout from '@/app/layout';
 import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
 
 function AppContent() {
-    const { currentModel, loadNotebook, isLoading, error, currentFilePath } = useApplication();
+    const { currentModel, loadNotebook, isLoading, error, currentFilePath, setModel, setDirty } = useApplication();
 
     useEffect(() => {
         log.debug("AppContent mounted, currentModel:", currentModel);
@@ -65,9 +65,69 @@ function AppContent() {
         );
     }
 
+    // Cell management function
+    const generateCellId = (): string => {
+        return `cell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    };
+
+    const addCell = (cellType: CellDefinition['type'], insertIndex?: number) => {
+        if (!currentModel) {
+            console.error('No current model available');
+            return;
+        }
+
+        const newId = generateCellId();
+        let newCell: CellDefinition;
+
+        switch (cellType) {
+            case 'markdown':
+                newCell = {
+                    type: 'markdown',
+                    id: newId,
+                    content: '# New Section\n\nAdd your content here...'
+                };
+                break;
+            case 'code':
+                newCell = {
+                    type: 'code',
+                    id: newId,
+                    code: '// Write your code here\nconsole.log("Hello, world!");'
+                };
+                break;
+            case 'formula':
+                newCell = {
+                    type: 'formula',
+                    id: newId,
+                    variableName: `result_${Date.now()}`,
+                    formula: '$variable1 + $variable2',
+                };
+                break;
+            case 'input':
+                newCell = {
+                    type: 'input',
+                    id: newId,
+                    inputType: 'number',
+                    variableName: `input_${Date.now()}`,
+                    value: 0
+                };
+                break;
+            default:
+                console.error(`Unknown cell type: ${cellType}`);
+                return;
+        }
+
+        const newCells = [...currentModel.cells];
+        const targetIndex = insertIndex ?? newCells.length;
+        newCells.splice(targetIndex, 0, newCell);
+
+        const updatedModel = { ...currentModel, cells: newCells };
+        setModel(updatedModel); // Update the model through the application provider
+        setDirty(true);
+    };
+
     return (
         <ReactiveProvider>
-            <CommandProvider>
+            <CommandProvider onAddCell={addCell}>
                 <NotebookViewer model={currentModel} />
             </CommandProvider>
         </ReactiveProvider>
