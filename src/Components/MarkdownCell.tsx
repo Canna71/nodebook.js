@@ -6,6 +6,7 @@ import { MarkdownCellDefinition } from '@/Types/NotebookModel';
 import Editor from './Editor';
 import { oneDark } from '@codemirror/theme-one-dark';
 import MarkdownIt from 'markdown-it';
+import { useMarkdownCompletions } from '@/hooks/useMarkdownCompletions';
 
 interface MarkdownCellProps {
   definition: MarkdownCellDefinition;
@@ -27,6 +28,9 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
   
   // Local state for content being edited
   const [currentContent, setCurrentContent] = useState(definition.content);
+
+  // Get markdown completion source for reactive variables
+  const markdownCompletionSource = useMarkdownCompletions();
 
   // Update local state when definition changes
   useEffect(() => {
@@ -165,6 +169,7 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
             theme={oneDark}
             onChange={onContentChange}
             showLineNumbers={false}
+            markdownCompletions={markdownCompletionSource}
             placeholder="# Write your markdown here...\n\nYou can use {{variableName}} to embed reactive values."
             dimensions={{
               width: '100%', // Explicitly constrain to container width

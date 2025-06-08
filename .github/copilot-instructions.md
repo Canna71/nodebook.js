@@ -167,3 +167,8 @@ The solution is using pnpm as the package manager. To build the project, run:
 pnpm run make
 ```
 
+### General rules
+
+- Chenge the code less as possible
+- If some requirements are not clear, ask for clarification
+- Use the existing code as a reference for new features
