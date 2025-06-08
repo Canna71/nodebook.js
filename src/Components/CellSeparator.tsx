@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
 import { CellDefinition } from '@/Types/NotebookModel';
-import { 
-    PlusIcon,
-    DocumentTextIcon,
-    CodeBracketIcon,
-    CalculatorIcon,
-    PencilSquareIcon
-} from '@heroicons/react/24/outline';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import { Button } from './ui/button';
+import { CellTypeIcon } from './CellTypeIcon';
 
 interface CellSeparatorProps {
     onAddCell: (cellType: CellDefinition['type'], insertIndex: number) => void;
@@ -23,25 +18,21 @@ export function CellSeparator({ onAddCell, insertIndex, isFirst = false, isLast 
         {
             type: 'input' as const,
             label: 'Input',
-            icon: PencilSquareIcon,
             description: 'Add an input field'
         },
         {
             type: 'code' as const,
             label: 'Code',
-            icon: CodeBracketIcon,
             description: 'Add a code cell'
         },
         {
             type: 'formula' as const,
             label: 'Formula',
-            icon: CalculatorIcon,
             description: 'Add a formula cell'
         },
         {
             type: 'markdown' as const,
             label: 'Markdown',
-            icon: DocumentTextIcon,
             description: 'Add markdown content'
         }
     ];
@@ -70,7 +61,6 @@ export function CellSeparator({ onAddCell, insertIndex, isFirst = false, isLast 
                     <div className="flex items-center gap-1 bg-background rounded-lg px-2 py-1 shadow-lg">
                         <PlusIcon className="w-4 h-4 text-muted-foreground mr-1" />
                         {cellTypes.map((cellType) => {
-                            const IconComponent = cellType.icon;
                             return (
                                 <Button
                                     key={cellType.type}
@@ -85,7 +75,7 @@ export function CellSeparator({ onAddCell, insertIndex, isFirst = false, isLast 
                                     title={cellType.description}
                                     className="text-xs"
                                 >
-                                    <IconComponent className="w-3 h-3 mr-1" />
+                                    <CellTypeIcon type={cellType.type} className="w-3 h-3 mr-1" />
                                     {cellType.label}
                                 </Button>
                             );

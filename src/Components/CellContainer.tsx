@@ -6,14 +6,12 @@ import {
     TrashIcon, 
     ChevronUpIcon, 
     ChevronDownIcon,
-    VariableIcon, 
 } from '@heroicons/react/24/outline';
 import { CodeIcon, GripVertical } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PlayIcon } from '@heroicons/react/24/solid';
 import { Button } from './ui/button';
-import { MarkdownIcon } from './icons/MarkdownIcon';
-import { JavascriptIcon } from './icons/JavascriptIcon';
+import { CellTypeIcon } from './CellTypeIcon';
 
 interface CellContainerProps {
     definition: CellDefinition;
@@ -49,16 +47,6 @@ export function CellContainer({
     children
 }: CellContainerProps) {
     const [isHovered, setIsHovered] = useState(true);
-
-    const getCellTypeLabel = (type: string): JSX.Element => {
-        switch (type) {
-            case 'markdown': return <MarkdownIcon className="w-4 h-4" />;
-            case 'code': return <JavascriptIcon className="w-4 h-4" />;
-            case 'formula': return <>𝒇𝑥</>;
-            case 'input': return <VariableIcon className="w-4 h-4" />;
-            default: return <>{type.toUpperCase()}</>;
-        }
-    };
 
     const getCellTypeColor = (type: string): string => {
         switch (type) {
@@ -209,7 +197,7 @@ export function CellContainer({
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <div className={`cell-type-badge text-xs font-medium px-1.5 py-1 rounded cursor-help ${getCellTypeColor(definition.type)}`}>
-                                    {getCellTypeLabel(definition.type)}
+                                    <CellTypeIcon type={definition.type} />
                                 </div>
                             </TooltipTrigger>
                             <TooltipContent side="right" className="max-w-xs">
