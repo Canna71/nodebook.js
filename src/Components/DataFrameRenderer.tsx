@@ -1,5 +1,5 @@
 import { createColumnHelper, ColumnDef, useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import ReactJson from "react-json-view";
 import { useReactiveSystem } from "@/Engine/ReactiveProvider";
 import { Button } from "@/components/ui/button";
@@ -129,15 +129,32 @@ const DataFrameRenderer: React.FC<{
   });
 
   // Sync localData with incoming data changes (e.g., from reactive re-execution)
+  // Use useRef to track the last processed data to avoid feedback loops
+  const lastProcessedDataRef = useRef<string>('');
+  
   useEffect(() => {
     if (!isModified) { // Only update if user hasn't made local modifications
       try {
-        setLocalData({
+        // Create a hash of the incoming data to check if it's actually new
+        const currentDataHash = JSON.stringify({
           shape: data.shape,
-          columns: [...data.columns],
-          values: data.values.map((row: any[]) => [...row]),
-          dtypes: data.dtypes
+          columns: data.columns,
+          values: data.values
         });
+        
+        // Only update if this is genuinely new data from the reactive system
+        if (currentDataHash !== lastProcessedDataRef.current) {
+          lastProcessedDataRef.current = currentDataHash;
+          
+          const newDataStructure = {
+            shape: data.shape,
+            columns: [...data.columns],
+            values: data.values.map((row: any[]) => [...row]),
+            dtypes: data.dtypes
+          };
+          
+          setLocalData(newDataStructure);
+        }
       } catch (err) {
         console.error('Error syncing DataFrame data:', err);
       }
