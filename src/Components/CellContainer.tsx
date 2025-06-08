@@ -171,12 +171,12 @@ export function CellContainer({
             )}
 
             <div
-                className={`cell-container relative flex border rounded-lg transition-all duration-200 ${
+                className={`cell-container relative flex border rounded-lg transition-all duration-200 ml-1 border-l-4 ${
                     isSelected 
-                        ? 'border-accent shadow-lg bg-accent/10 selected' 
+                        ? 'border-accent shadow-lg bg-accent/10 selected !border-l-primary' 
                         : isHovered 
-                            ? 'border-accent/50 shadow-md' 
-                            : 'border-border'
+                            ? 'border-accent/50 shadow-md border-l-transparent' 
+                            : 'border-border border-l-transparent'
                 } ${isEditMode ? 'edit-mode' : ''}`}
                 onClick={(e) => {
                     // Only select cell if clicking on the container itself, not on interactive elements
