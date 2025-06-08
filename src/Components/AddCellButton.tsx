@@ -31,7 +31,6 @@ const CELL_TEMPLATES: CellTemplate[] = [
         defaultDefinition: {
             variableName: 'result',
             formula: '$variable1 + $variable2',
-            outputFormat: 'number'
         }
     },
     {
