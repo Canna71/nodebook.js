@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
+import React, { JSX, useState } from 'react';
 import { CellDefinition } from '@/Types/NotebookModel';
 import { 
     PencilIcon, 
     EyeIcon, 
     TrashIcon, 
     ChevronUpIcon, 
-    ChevronDownIcon, 
+    ChevronDownIcon,
+    VariableIcon, 
 } from '@heroicons/react/24/outline';
-import { GripVertical } from 'lucide-react';
+import { CodeIcon, GripVertical } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PlayIcon } from '@heroicons/react/24/solid';
 import { Button } from './ui/button';
+import { MarkdownIcon } from './icons/MarkdownIcon';
+import { JavascriptIcon } from './icons/JavascriptIcon';
 
 interface CellContainerProps {
     definition: CellDefinition;
@@ -45,24 +48,24 @@ export function CellContainer({
     initialized,
     children
 }: CellContainerProps) {
-    const [isHovered, setIsHovered] = useState(false);
+    const [isHovered, setIsHovered] = useState(true);
 
-    const getCellTypeLabel = (type: string): string => {
+    const getCellTypeLabel = (type: string): JSX.Element => {
         switch (type) {
-            case 'markdown': return 'MD';
-            case 'code': return 'JS';
-            case 'formula': return 'FX';
-            case 'input': return 'IN';
-            default: return type.toUpperCase();
+            case 'markdown': return <MarkdownIcon className="w-4 h-4" />;
+            case 'code': return <JavascriptIcon className="w-4 h-4" />;
+            case 'formula': return <>𝒇𝑥</>;
+            case 'input': return <VariableIcon className="w-4 h-4" />;
+            default: return <>{type.toUpperCase()}</>;
         }
     };
 
     const getCellTypeColor = (type: string): string => {
         switch (type) {
-            case 'markdown': return 'bg-accent text-accent-foreground';
+            case 'markdown': return 'bg-primary text-primary-foreground';
             case 'code': return 'bg-primary text-primary-foreground';
-            case 'formula': return 'bg-secondary text-secondary-foreground';
-            case 'input': return 'bg-muted text-muted-foreground';
+            case 'formula': return 'bg-primary text-primary-foreground';
+            case 'input': return 'bg-primary text-primary-foreground';
             default: return 'bg-muted text-muted-foreground';
         }
     };
@@ -212,7 +215,7 @@ export function CellContainer({
                             <TooltipContent side="right" className="max-w-xs">
                                 <div className="text-sm">
                                     <div className="font-medium">{cellTypeInfo.label} Cell</div>
-                                    <div className="text-xs text-muted-foreground mt-1 whitespace-pre-line">
+                                    <div className="text-xs mt-1 whitespace-pre-line">
                                         {cellTypeInfo.tooltip}
                                     </div>
                                 </div>
