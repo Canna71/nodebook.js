@@ -13,6 +13,7 @@ export interface ApplicationState {
 export interface ApplicationContextType extends ApplicationState {
     loadNotebook: (filePath: string) => Promise<void>;
     saveNotebook: (filePath?: string) => Promise<void>;
+    showSaveAsDialog: () => Promise<void>;
     newNotebook: () => void;
     setModel: (model: NotebookModel) => void;
     setDirty: (dirty: boolean) => void;

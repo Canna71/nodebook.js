@@ -40,7 +40,17 @@ export class SaveNotebookCommand extends BaseCommand {
 
     async execute(): Promise<void> {
         try {
-            await this.context.applicationProvider.saveNotebook();
+            // Check if we have a current file path
+            const currentFilePath = this.context.applicationProvider.currentFilePath;
+            
+            if (currentFilePath) {
+                // Save to existing file
+                await this.context.applicationProvider.saveNotebook();
+            } else {
+                // No file path, show Save As dialog
+                await this.context.applicationProvider.showSaveAsDialog();
+            }
+            
             log.debug('Save notebook command executed');
         } catch (error) {
             log.error('Error saving notebook:', error);

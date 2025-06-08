@@ -31,9 +31,11 @@ export interface CommandContext {
     // Application services
     applicationProvider: {
         saveNotebook: (filePath?: string) => Promise<void>;
+        showSaveAsDialog: () => Promise<void>;
         newNotebook: () => void;
         loadNotebook: (filePath: string) => Promise<void>;
         currentModel: any;
+        currentFilePath: string | null;
         setModel: (model: any) => void;
         setDirty: (dirty: boolean) => void;
         isDirty: boolean;

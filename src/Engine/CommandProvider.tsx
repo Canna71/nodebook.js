@@ -216,9 +216,11 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
         const context: CommandContext = {
             applicationProvider: {
                 saveNotebook: applicationProvider.saveNotebook,
+                showSaveAsDialog: applicationProvider.showSaveAsDialog,
                 newNotebook: applicationProvider.newNotebook,
                 loadNotebook: applicationProvider.loadNotebook,
                 currentModel: applicationProvider.currentModel,
+                currentFilePath: applicationProvider.currentFilePath,
                 setModel: applicationProvider.setModel,
                 setDirty: applicationProvider.setDirty,
                 isDirty: applicationProvider.isDirty
