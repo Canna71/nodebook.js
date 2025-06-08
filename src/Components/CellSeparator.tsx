@@ -3,46 +3,72 @@ import { CellDefinition } from '@/Types/NotebookModel';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Button } from './ui/button';
 import { CellTypeIcon } from './CellTypeIcon';
+import { useCommands } from '@/Engine/CommandProvider';
+import anylogger from 'anylogger';
+
+const log = anylogger('CellSeparator');
 
 interface CellSeparatorProps {
-    onAddCell: (cellType: CellDefinition['type'], insertIndex: number) => void;
     insertIndex: number;
     isFirst?: boolean;
     isLast?: boolean;
+    // Keep onAddCell as fallback for backward compatibility
+    onAddCell?: (cellType: CellDefinition['type'], insertIndex: number) => void;
 }
 
-export function CellSeparator({ onAddCell, insertIndex, isFirst = false, isLast = false }: CellSeparatorProps) {
+export function CellSeparator({ insertIndex, isFirst = false, isLast = false, onAddCell }: CellSeparatorProps) {
     const [isHovered, setIsHovered] = useState(false);
+    const { commandManager } = useCommands();
 
     const cellTypes = [
         {
             type: 'input' as const,
             label: 'Input',
-            description: 'Add an input field'
+            description: 'Add an input field',
+            commandId: 'cell.add.input'
         },
         {
             type: 'code' as const,
             label: 'Code',
-            description: 'Add a code cell'
+            description: 'Add a code cell',
+            commandId: 'cell.add.code'
         },
         {
             type: 'formula' as const,
             label: 'Formula',
-            description: 'Add a formula cell'
+            description: 'Add a formula cell',
+            commandId: 'cell.add.formula'
         },
         {
             type: 'markdown' as const,
             label: 'Markdown',
-            description: 'Add markdown content'
+            description: 'Add markdown content',
+            commandId: 'cell.add.markdown'
         }
     ];
 
-    const handleAddCell = (cellType: CellDefinition['type']) => {
-        console.log(`CellSeparator: Adding ${cellType} cell at index ${insertIndex}`);
+    const handleAddCell = async (cellType: CellDefinition['type'], commandId: string) => {
+        log.debug(`CellSeparator: Adding ${cellType} cell at index ${insertIndex}`);
         try {
-            onAddCell(cellType, insertIndex);
+            // Use command system first
+            await commandManager.executeCommand(commandId, {
+                cellType,
+                insertStrategy: 'specific-index',
+                specificIndex: insertIndex
+            });
+            log.debug(`Successfully added ${cellType} cell via command system`);
         } catch (error) {
-            console.error('Error adding cell:', error);
+            log.error(`Error adding cell via command system:`, error);
+            
+            // Fallback to direct function call if provided
+            if (onAddCell) {
+                log.debug(`Falling back to direct function call for ${cellType} cell`);
+                try {
+                    onAddCell(cellType, insertIndex);
+                } catch (fallbackError) {
+                    log.error('Error in fallback cell addition:', fallbackError);
+                }
+            }
         }
     };
 
@@ -64,11 +90,11 @@ export function CellSeparator({ onAddCell, insertIndex, isFirst = false, isLast 
                             return (
                                 <Button
                                     key={cellType.type}
-                                    onClick={(e) => {
+                                    onClick={async (e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
-                                        console.log(`Button clicked: ${cellType.type}`);
-                                        handleAddCell(cellType.type);
+                                        log.debug(`Button clicked: ${cellType.type}`);
+                                        await handleAddCell(cellType.type, cellType.commandId);
                                     }}
                                     variant="ghost" 
                                     size="sm"

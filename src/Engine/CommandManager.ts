@@ -1,5 +1,5 @@
 
-import { ICommand, ICommandManager, CommandInfo, CommandContext } from '@/Types/CommandTypes';
+import { ICommand, ICommandManager, CommandInfo, CommandContext, isParameterizedCommand } from '@/Types/CommandTypes';
 import anylogger from 'anylogger';
 
 const log = anylogger('CommandManager');
@@ -32,9 +32,9 @@ export class CommandManager implements ICommandManager {
     }
 
     /**
-     * Execute a command by ID
+     * Execute a command by ID with optional parameters
      */
-    async executeCommand(commandId: string): Promise<void> {
+    async executeCommand(commandId: string, params?: any): Promise<void> {
         const commandInfo = this.commands.get(commandId);
         if (!commandInfo) {
             throw new Error(`Command not found: ${commandId}`);
@@ -53,8 +53,15 @@ export class CommandManager implements ICommandManager {
         }
 
         try {
-            log.debug(`Executing command: ${commandId}`);
-            await command.execute();
+            log.debug(`Executing command: ${commandId}`, params ? `with params: ${JSON.stringify(params)}` : '');
+            
+            // Check if command supports parameters
+            if (params && isParameterizedCommand(command)) {
+                await command.executeWithParams(params);
+            } else {
+                await command.execute();
+            }
+            
             log.debug(`Command executed successfully: ${commandId}`);
         } catch (error) {
             log.error(`Error executing command ${commandId}:`, error);

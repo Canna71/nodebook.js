@@ -11,6 +11,20 @@ export interface ICommand {
 }
 
 /**
+ * Parameterized command interface that can receive runtime parameters
+ */
+export interface IParameterizedCommand extends ICommand {
+    executeWithParams(params: any): Promise<void> | void;
+}
+
+/**
+ * Type guard to check if a command is parameterized
+ */
+export function isParameterizedCommand(command: ICommand): command is IParameterizedCommand {
+    return 'executeWithParams' in command;
+}
+
+/**
  * Command execution context providing access to application services
  */
 export interface CommandContext {
@@ -42,6 +56,11 @@ export interface CommandContext {
     uiOperations: {
         toggleSidebar?: () => void;
     };
+    
+    // UI state
+    uiState: {
+        selectedCellId: string | null;
+    };
 }
 
 /**
@@ -61,7 +80,7 @@ export interface CommandInfo {
 export interface ICommandManager {
     registerCommand(info: CommandInfo): void;
     unregisterCommand(commandId: string): void;
-    executeCommand(commandId: string): Promise<void>;
+    executeCommand(commandId: string, params?: any): Promise<void>;
     canExecuteCommand(commandId: string): boolean;
     getCommand(commandId: string): ICommand | undefined;
     getAllCommands(): CommandInfo[];

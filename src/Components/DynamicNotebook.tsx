@@ -17,13 +17,12 @@ interface DynamicNotebookProps {
 
 export function DynamicNotebook({ model }: DynamicNotebookProps) {
   const { reactiveStore, formulaEngine, enhancedFormulaEngine, codeCellEngine } = useReactiveSystem();
-  const { currentModel, setModel, setDirty } = useApplication();
+  const { currentModel, setModel, setDirty, selectedCellId, setSelectedCellId } = useApplication();
   const { getAvailableModules } = useCodeCellModules();
   const [initialized, setInitialized] = React.useState(false);
 
-  // Editing state
-  const [editingState, setEditingState] = useState<NotebookEditingState>({
-    selectedCellId: null,
+  // Editing state - only track local state, selectedCellId comes from application context
+  const [editingState, setEditingState] = useState<Pick<NotebookEditingState, 'editModeCells' | 'focusedCellId'>>({
     editModeCells: new Set(),
     focusedCellId: null
   });
@@ -133,9 +132,9 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     setDirty(true);
 
     // Select and edit the new cell
+    setSelectedCellId(newId);
     setEditingState(prev => ({
       ...prev,
-      selectedCellId: newId,
       editModeCells: new Set([...prev.editModeCells, newId])
     }));
 
@@ -150,13 +149,16 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     setDirty(true);
 
     // Clear selection if deleted cell was selected
+    if (selectedCellId === cellId) {
+      setSelectedCellId(null);
+    }
+    
     setEditingState(prev => {
       const newEditModeCells = new Set(prev.editModeCells);
       newEditModeCells.delete(cellId);
       
       return {
         ...prev,
-        selectedCellId: prev.selectedCellId === cellId ? null : prev.selectedCellId,
         editModeCells: newEditModeCells,
         focusedCellId: prev.focusedCellId === cellId ? null : prev.focusedCellId
       };
@@ -181,10 +183,8 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
   };
 
   const selectCell = (cellId: string) => {
-    setEditingState(prev => ({
-      ...prev,
-      selectedCellId: prev.selectedCellId === cellId ? null : cellId
-    }));
+    const newSelectedId = selectedCellId === cellId ? null : cellId;
+    setSelectedCellId(newSelectedId);
   };
 
   const toggleEditMode = (cellId: string) => {
@@ -203,7 +203,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
   };
 
   const renderCell = (cell: CellDefinition, index: number) => {
-    const isSelected = editingState.selectedCellId === cell.id;
+    const isSelected = selectedCellId === cell.id;
     const isEditMode = editingState.editModeCells.has(cell.id);
 
     // Get exports for code cells

@@ -1,5 +1,4 @@
-
-import { ICommand, CommandContext } from '@/Types/CommandTypes';
+import { ICommand, IParameterizedCommand, CommandContext } from '@/Types/CommandTypes';
 import { CellDefinition } from '@/Types/NotebookModel';
 import anylogger from 'anylogger';
 
@@ -70,33 +69,89 @@ export class NewNotebookCommand extends BaseCommand {
 }
 
 /**
- * Add cell command
+ * Enhanced Add cell command with support for multiple cell types and intelligent insertion
  */
 export class AddCellCommand extends BaseCommand {
     constructor(
         getContext: () => CommandContext | null,
         private cellType: CellDefinition['type'] = 'code',
-        private insertIndex?: number
+        private insertStrategy: 'end' | 'after-selected' | 'specific-index' = 'after-selected',
+        private specificIndex?: number
     ) {
         super(getContext);
     }
 
     getDescription(): string {
-        return `Add ${this.cellType} cell`;
+        const strategyDesc = this.insertStrategy === 'end' ? 'at end' :
+                           this.insertStrategy === 'after-selected' ? 'after selected cell' :
+                           `at index ${this.specificIndex}`;
+        return `Add ${this.cellType} cell ${strategyDesc}`;
     }
 
     canExecute(): boolean {
         return !!this.context.applicationProvider.currentModel;
     }
 
+    private calculateInsertIndex(): number | undefined {
+        const model = this.context.applicationProvider.currentModel;
+        if (!model) return undefined;
+
+        switch (this.insertStrategy) {
+            case 'end':
+                return model.cells.length;
+            
+            case 'specific-index':
+                return this.specificIndex;
+            
+            case 'after-selected':
+                // Try to get selected cell from editing state
+                const selectedCellId = this.getSelectedCellId();
+                if (selectedCellId) {
+                    const selectedIndex = model.cells.findIndex((cell: CellDefinition) => cell.id === selectedCellId);
+                    if (selectedIndex !== -1) {
+                        return selectedIndex + 1; // Insert after selected cell
+                    }
+                }
+                // Fallback to end if no selection
+                return model.cells.length;
+            
+            default:
+                return model.cells.length;
+        }
+    }
+
+    private getSelectedCellId(): string | null {
+        // Get selected cell ID from the context
+        return this.context.uiState.selectedCellId;
+    }
+
     execute(): void {
         try {
-            this.context.notebookOperations.addCell(this.cellType, this.insertIndex);
-            log.debug(`Add ${this.cellType} cell command executed`);
+            const insertIndex = this.calculateInsertIndex();
+            this.context.notebookOperations.addCell(this.cellType, insertIndex);
+            log.debug(`Add ${this.cellType} cell command executed with strategy '${this.insertStrategy}' at index ${insertIndex}`);
         } catch (error) {
             log.error(`Error adding ${this.cellType} cell:`, error);
             throw error;
         }
+    }
+
+    // Static factory methods for common use cases
+    static createForCellType(
+        getContext: () => CommandContext | null,
+        cellType: CellDefinition['type'],
+        insertStrategy: 'end' | 'after-selected' | 'specific-index' = 'after-selected',
+        specificIndex?: number
+    ): AddCellCommand {
+        return new AddCellCommand(getContext, cellType, insertStrategy, specificIndex);
+    }
+
+    static createForInsertAfterCell(
+        getContext: () => CommandContext | null,
+        cellType: CellDefinition['type'],
+        afterCellIndex: number
+    ): AddCellCommand {
+        return new AddCellCommand(getContext, cellType, 'specific-index', afterCellIndex + 1);
     }
 }
 
@@ -180,5 +235,98 @@ export class RedoCommand extends BaseCommand {
     execute(): void {
         // TODO: Implement redo functionality
         log.warn('Redo command not yet implemented');
+    }
+}
+
+/**
+ * Enhanced parameterized Add cell command
+ * Supports runtime parameters for cell type and insertion strategy
+ */
+export class ParameterizedAddCellCommand extends BaseCommand implements IParameterizedCommand {
+    constructor(getContext: () => CommandContext | null) {
+        super(getContext);
+    }
+
+    getDescription(): string {
+        return 'Add cell with runtime parameters';
+    }
+
+    canExecute(): boolean {
+        return !!this.context.applicationProvider.currentModel;
+    }
+
+    // Default execute for backward compatibility
+    execute(): void {
+        // Default behavior: add code cell after selected cell
+        this.executeWithParams({ cellType: 'code', insertStrategy: 'after-selected' });
+    }
+
+    executeWithParams(params: {
+        cellType?: CellDefinition['type'];
+        insertStrategy?: 'end' | 'after-selected' | 'specific-index';
+        specificIndex?: number;
+        afterCellId?: string;
+    }): void {
+        const {
+            cellType = 'code',
+            insertStrategy = 'after-selected',
+            specificIndex,
+            afterCellId
+        } = params;
+
+        try {
+            const insertIndex = this.calculateInsertIndex(insertStrategy, specificIndex, afterCellId);
+            this.context.notebookOperations.addCell(cellType, insertIndex);
+            log.debug(`Parameterized add cell command executed: ${cellType} at index ${insertIndex}`);
+        } catch (error) {
+            log.error(`Error adding ${cellType} cell:`, error);
+            throw error;
+        }
+    }
+
+    private calculateInsertIndex(
+        strategy: 'end' | 'after-selected' | 'specific-index',
+        specificIndex?: number,
+        afterCellId?: string
+    ): number | undefined {
+        const model = this.context.applicationProvider.currentModel;
+        if (!model) return undefined;
+
+        switch (strategy) {
+            case 'end':
+                return model.cells.length;
+            
+            case 'specific-index':
+                return specificIndex;
+            
+            case 'after-selected':
+                // First try the provided afterCellId
+                if (afterCellId) {
+                    const afterIndex = model.cells.findIndex((cell: CellDefinition) => cell.id === afterCellId);
+                    if (afterIndex !== -1) {
+                        return afterIndex + 1;
+                    }
+                }
+                
+                // Try to get selected cell from DOM (fallback method)
+                const selectedCellId = this.getSelectedCellId();
+                if (selectedCellId) {
+                    const selectedIndex = model.cells.findIndex((cell: CellDefinition) => cell.id === selectedCellId);
+                    if (selectedIndex !== -1) {
+                        return selectedIndex + 1;
+                    }
+                }
+                
+                // Fallback to end if no selection
+                return model.cells.length;
+            
+            default:
+                return model.cells.length;
+        }
+    }
+
+    private getSelectedCellId(): string | null {
+        // Get selected cell ID from the context
+        return this.context.uiState.selectedCellId;
     }
 }

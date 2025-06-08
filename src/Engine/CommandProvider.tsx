@@ -9,6 +9,7 @@ import {
     SaveNotebookCommand,
     NewNotebookCommand,
     AddCellCommand,
+    ParameterizedAddCellCommand,
     ExecuteAllCellsCommand,
     ToggleSidebarCommand,
     UndoCommand,
@@ -121,10 +122,43 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
 
         commandManager.registerCommand({
             id: 'cell.add',
-            command: new AddCellCommand(getContext, 'code'),
+            command: new ParameterizedAddCellCommand(getContext),
             shortcut: 'Cmd+Enter',
             icon: PlusIcon,
-            tooltip: 'Add cell (Cmd+Enter)'
+            tooltip: 'Add code cell (Cmd+Enter)'
+        });
+
+        // Register specific cell type commands
+        commandManager.registerCommand({
+            id: 'cell.add.code',
+            command: new ParameterizedAddCellCommand(getContext),
+            shortcut: 'Cmd+Enter',
+            icon: PlusIcon,
+            tooltip: 'Add code cell (Cmd+Enter)'
+        });
+
+        commandManager.registerCommand({
+            id: 'cell.add.markdown',
+            command: new ParameterizedAddCellCommand(getContext),
+            shortcut: 'Cmd+M',
+            icon: PlusIcon,
+            tooltip: 'Add markdown cell (Cmd+M)'
+        });
+
+        commandManager.registerCommand({
+            id: 'cell.add.formula',
+            command: new ParameterizedAddCellCommand(getContext),
+            shortcut: 'Cmd+F',
+            icon: PlusIcon,
+            tooltip: 'Add formula cell (Cmd+F)'
+        });
+
+        commandManager.registerCommand({
+            id: 'cell.add.input',
+            command: new ParameterizedAddCellCommand(getContext),
+            shortcut: 'Cmd+I',
+            icon: PlusIcon,
+            tooltip: 'Add input cell (Cmd+I)'
         });
 
         commandManager.registerCommand({
@@ -155,7 +189,19 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
 
         // Cleanup function to unregister commands when component unmounts
         return () => {
-            const commandIds = ['notebook.save', 'notebook.new', 'notebook.executeAll', 'cell.add', 'ui.toggleSidebar', 'edit.undo', 'edit.redo'];
+            const commandIds = [
+                'notebook.save', 
+                'notebook.new', 
+                'notebook.executeAll', 
+                'cell.add', 
+                'cell.add.code',
+                'cell.add.markdown',
+                'cell.add.formula',
+                'cell.add.input',
+                'ui.toggleSidebar', 
+                'edit.undo', 
+                'edit.redo'
+            ];
             commandIds.forEach(id => {
                 if (commandManager.unregisterCommand) {
                     commandManager.unregisterCommand(id);
@@ -188,6 +234,9 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
             },
             uiOperations: {
                 toggleSidebar: onToggleSidebar
+            },
+            uiState: {
+                selectedCellId: applicationProvider.selectedCellId
             }
         };
 

@@ -7,6 +7,7 @@ export interface ApplicationState {
     isDirty: boolean;
     isLoading: boolean;
     error: string | null;
+    selectedCellId: string | null;
 }
 
 export interface ApplicationContextType extends ApplicationState {
@@ -16,6 +17,7 @@ export interface ApplicationContextType extends ApplicationState {
     setModel: (model: NotebookModel) => void;
     setDirty: (dirty: boolean) => void;
     clearError: () => void;
+    setSelectedCellId: (cellId: string | null) => void;
 }
 
 export interface ApplicationProviderProps {

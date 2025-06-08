@@ -12,7 +12,9 @@ export function NotebookViewer({ model }: NotebookViewerProps) {
     <div className="notebook-viewer text-neutral-800 dark:text-neutral-300">
       <Toolbar />
       <div className="pt-12">
-        <DynamicNotebook model={model} />
+        <DynamicNotebook 
+          model={model} 
+        />
       </div>
     </div>
   );

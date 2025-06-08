@@ -20,14 +20,19 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export function Toolbar() {
-  const { commandManager, addCell } = useCommands();
+  const { commandManager } = useCommands();
 
   const handleCommand = (commandId: string) => {
     commandManager.executeCommand(commandId);
   };
 
   const handleAddCell = (cellType: string) => {
-    addCell(cellType as any);
+    // Use the new command system with proper parameters
+    const commandId = `cell.add.${cellType}`;
+    commandManager.executeCommand(commandId, {
+      cellType: cellType as any,
+      insertStrategy: 'after-selected'
+    });
   };
 
   // Get command info for tooltips and shortcuts

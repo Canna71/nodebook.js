@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { NotebookModel } from '@/Types/NotebookModel';
+import { NotebookModel, CellDefinition } from '@/Types/NotebookModel';
 import { ApplicationState, ApplicationContextType, ApplicationProviderProps } from '@/Types/ApplicationTypes';
 import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
 import { toast } from 'sonner';
@@ -17,6 +17,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         isDirty: false,
         isLoading: false,
         error: null,
+        selectedCellId: null,
     });
 
     const setLoading = useCallback((loading: boolean) => {
@@ -146,6 +147,10 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         setState((prev:ApplicationState) => ({ ...prev, isDirty: dirty }));
     }, []);
 
+    const setSelectedCellId = useCallback((cellId: string | null) => {
+        setState((prev: ApplicationState) => ({ ...prev, selectedCellId: cellId }));
+    }, []);
+
     // Add menu event handlers
     useEffect(() => {
         if (!window.api) return;
@@ -244,8 +249,12 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             'menu-insert-cell': async (cellType: string) => {
                 if (currentCommandManager) {
                     try {
-                        // Map cellType to appropriate command or use add cell command
-                        await currentCommandManager.executeCommand('cell.add');
+                        // Use the specific cell type command with proper parameters
+                        const commandId = `cell.add.${cellType}`;
+                        await currentCommandManager.executeCommand(commandId, {
+                            cellType: cellType as CellDefinition['type'],
+                            insertStrategy: 'after-selected'
+                        });
                     } catch (error) {
                         log.error('Error executing add cell command:', error);
                         // Fallback to custom event
@@ -491,6 +500,7 @@ Variables automatically update when their dependencies change, creating a live, 
         setModel,
         setDirty,
         clearError,
+        setSelectedCellId,
     };
 
     return (
