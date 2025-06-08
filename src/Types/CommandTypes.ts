@@ -60,6 +60,7 @@ export interface CommandInfo {
  */
 export interface ICommandManager {
     registerCommand(info: CommandInfo): void;
+    unregisterCommand(commandId: string): void;
     executeCommand(commandId: string): Promise<void>;
     canExecuteCommand(commandId: string): boolean;
     getCommand(commandId: string): ICommand | undefined;

@@ -89,38 +89,12 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
         }
     };
 
-    // Setup command context
+    // Register commands once when component mounts
     useEffect(() => {
-        const context: CommandContext = {
-            applicationProvider: {
-                saveNotebook: applicationProvider.saveNotebook,
-                newNotebook: applicationProvider.newNotebook,
-                loadNotebook: applicationProvider.loadNotebook,
-                currentModel: applicationProvider.currentModel,
-                setModel: applicationProvider.setModel,
-                setDirty: applicationProvider.setDirty,
-                isDirty: applicationProvider.isDirty
-            },
-            reactiveSystem: {
-                codeCellEngine: reactiveSystem.codeCellEngine,
-                reactiveStore: reactiveSystem.reactiveStore,
-                formulaEngine: reactiveSystem.formulaEngine
-            },
-            notebookOperations: {
-                addCell: onAddCell,
-                executeAllCells
-            },
-            uiOperations: {
-                toggleSidebar: onToggleSidebar
-            }
-        };
-
-        commandManager.setContext(context);
-
         // Get context function for commands
         const getContext = () => commandManager.getContext();
 
-        // Register all commands
+        // Register all commands only once
         commandManager.registerCommand({
             id: 'notebook.save',
             command: new SaveNotebookCommand(getContext),
@@ -178,6 +152,47 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
         });
 
         log.debug('Commands registered successfully');
+
+        // Cleanup function to unregister commands when component unmounts
+        return () => {
+            const commandIds = ['notebook.save', 'notebook.new', 'notebook.executeAll', 'cell.add', 'ui.toggleSidebar', 'edit.undo', 'edit.redo'];
+            commandIds.forEach(id => {
+                if (commandManager.unregisterCommand) {
+                    commandManager.unregisterCommand(id);
+                }
+            });
+            log.debug('Commands unregistered');
+        };
+    }, [commandManager]); // Only depend on commandManager instance
+
+    // Update command context when dependencies change
+    useEffect(() => {
+        const context: CommandContext = {
+            applicationProvider: {
+                saveNotebook: applicationProvider.saveNotebook,
+                newNotebook: applicationProvider.newNotebook,
+                loadNotebook: applicationProvider.loadNotebook,
+                currentModel: applicationProvider.currentModel,
+                setModel: applicationProvider.setModel,
+                setDirty: applicationProvider.setDirty,
+                isDirty: applicationProvider.isDirty
+            },
+            reactiveSystem: {
+                codeCellEngine: reactiveSystem.codeCellEngine,
+                reactiveStore: reactiveSystem.reactiveStore,
+                formulaEngine: reactiveSystem.formulaEngine
+            },
+            notebookOperations: {
+                addCell: onAddCell,
+                executeAllCells
+            },
+            uiOperations: {
+                toggleSidebar: onToggleSidebar
+            }
+        };
+
+        commandManager.setContext(context);
+        log.debug('Command context updated');
 
     }, [commandManager, applicationProvider, reactiveSystem, onAddCell, onToggleSidebar, executeAllCells]);
 
