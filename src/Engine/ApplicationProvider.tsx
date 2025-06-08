@@ -174,23 +174,33 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 }
             },
             'menu-open-notebook': async () => {
-                // File operations don't have commands yet, use direct implementation
-                try {
-                    const result = await window.api.openFileDialog({
-                        title: 'Open Notebook',
-                        filters: [
-                            { name: 'Notebook Files', extensions: ['nbjs', 'json'] },
-                            { name: 'All Files', extensions: ['*'] }
-                        ]
-                    });
-
-                    if (!result.canceled && result.filePaths.length > 0) {
-                        await loadNotebook(result.filePaths[0]);
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('notebook.open');
+                    } catch (error) {
+                        log.error('Error executing open notebook command:', error);
+                        await window.api.showErrorBox('Open Failed', 
+                            `Failed to open notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
                     }
-                } catch (error) {
-                    console.error('Error opening notebook:', error);
-                    await window.api.showErrorBox('Open Failed', 
-                        `Failed to open notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                } else {
+                    // Fallback to direct implementation if no command manager
+                    try {
+                        const result = await window.api.openFileDialog({
+                            title: 'Open Notebook',
+                            filters: [
+                                { name: 'Notebook Files', extensions: ['nbjs', 'json'] },
+                                { name: 'All Files', extensions: ['*'] }
+                            ]
+                        });
+
+                        if (!result.canceled && result.filePaths.length > 0) {
+                            await loadNotebook(result.filePaths[0]);
+                        }
+                    } catch (error) {
+                        console.error('Error opening notebook:', error);
+                        await window.api.showErrorBox('Open Failed', 
+                            `Failed to open notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    }
                 }
             },
             'menu-save-notebook': async () => {
