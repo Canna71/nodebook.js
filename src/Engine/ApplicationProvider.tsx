@@ -233,12 +233,23 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 }
             },
             'menu-save-notebook-as': async () => {
-                try {
-                    await showSaveAsDialog();
-                } catch (error) {
-                    console.error('Save As failed:', error);
-                    await window.api.showErrorBox('Save Failed', 
-                        `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('notebook.saveAs');
+                    } catch (error) {
+                        log.error('Error executing save as notebook command:', error);
+                        await window.api.showErrorBox('Save As Failed', 
+                            `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    }
+                } else {
+                    // Fallback to direct implementation if no command manager
+                    try {
+                        await showSaveAsDialog();
+                    } catch (error) {
+                        console.error('Save As failed:', error);
+                        await window.api.showErrorBox('Save Failed', 
+                            `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    }
                 }
             },
             'menu-export-json': () => {

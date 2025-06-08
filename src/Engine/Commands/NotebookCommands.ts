@@ -112,6 +112,33 @@ export class OpenNotebookCommand extends BaseCommand {
 }
 
 /**
+ * Save As notebook command
+ */
+export class SaveAsNotebookCommand extends BaseCommand {
+    getDescription(): string {
+        return 'Save the current notebook with a new name';
+    }
+
+    canExecute(): boolean {
+        return !!this.context.applicationProvider.currentModel;
+    }
+
+    async execute(): Promise<void> {
+        try {
+            // Use the existing showSaveAsDialog implementation
+            await this.context.applicationProvider.showSaveAsDialog();
+            
+            log.debug('Save As notebook command executed');
+        } catch (error) {
+            log.error('Error in Save As notebook:', error);
+            await window.api.showErrorBox('Save As Failed', 
+                `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw error;
+        }
+    }
+}
+
+/**
  * Enhanced Add cell command with support for multiple cell types and intelligent insertion
  */
 export class AddCellCommand extends BaseCommand {

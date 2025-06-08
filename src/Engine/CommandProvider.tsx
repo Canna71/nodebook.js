@@ -6,6 +6,7 @@ import { useReactiveSystem } from './ReactiveProvider';
 import { commandManagerSingleton } from './CommandManagerSingleton';
 import {
     SaveNotebookCommand,
+    SaveAsNotebookCommand,
     NewNotebookCommand,
     OpenNotebookCommand,
     AddCellCommand,
@@ -17,6 +18,7 @@ import {
 } from './Commands/NotebookCommands';
 import {
     DocumentArrowDownIcon as SaveIcon,
+    DocumentArrowDownIcon as SaveAsIcon,
     DocumentPlusIcon,
     FolderOpenIcon,
     PlusIcon,
@@ -122,6 +124,14 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
         });
 
         commandManager.registerCommand({
+            id: 'notebook.saveAs',
+            command: new SaveAsNotebookCommand(getContext),
+            shortcut: 'Shift+Cmd+S',
+            icon: SaveAsIcon,
+            tooltip: 'Save notebook as (Shift+Cmd+S)'
+        });
+
+        commandManager.registerCommand({
             id: 'notebook.executeAll',
             command: new ExecuteAllCellsCommand(getContext),
             shortcut: 'Shift+Cmd+Enter',
@@ -202,6 +212,7 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
                 'notebook.save', 
                 'notebook.new', 
                 'notebook.open',
+                'notebook.saveAs',
                 'notebook.executeAll', 
                 'cell.add', 
                 'cell.add.code',
