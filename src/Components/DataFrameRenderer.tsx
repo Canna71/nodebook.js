@@ -50,7 +50,7 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, rowIndex, columnId, 
 
   if (isEditing) {
     return (
-      <div className="flex items-center gap-1 px-2">
+      <div className="flex items-center gap-1 px-1">
         <Input
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
@@ -58,7 +58,7 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, rowIndex, columnId, 
             if (e.key === 'Enter') handleSave();
             if (e.key === 'Escape') handleCancel();
           }}
-          className="text-sm font-mono h-6 px-1"
+          className="text-xs font-mono h-5 px-1"
           autoFocus
           onBlur={handleSave}
         />
@@ -68,7 +68,7 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, rowIndex, columnId, 
           className="h-4 w-4 p-0"
           onClick={handleSave}
         >
-          <Check className="h-3 w-3" />
+          <Check className="h-2 w-2" />
         </Button>
         <Button
           size="sm"
@@ -76,7 +76,7 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, rowIndex, columnId, 
           className="h-4 w-4 p-0"
           onClick={handleCancel}
         >
-          <X className="h-3 w-3" />
+          <X className="h-2 w-2" />
         </Button>
       </div>
     );
@@ -84,11 +84,11 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, rowIndex, columnId, 
 
   return (
     <div 
-      className="text-sm font-mono px-2 text-right cursor-pointer hover:bg-muted group flex items-center justify-between"
+      className="text-xs font-mono px-2 py-1 text-right cursor-pointer hover:bg-muted group flex items-center justify-between h-6"
       onClick={() => setIsEditing(true)}
     >
       <span>{displayValue}</span>
-      <Edit3 className="h-3 w-3 opacity-0 group-hover:opacity-50" />
+      <Edit3 className="h-2 w-2 opacity-0 group-hover:opacity-50" />
     </div>
   );
 };
@@ -258,12 +258,21 @@ const DataFrameRenderer: React.FC<{
 
       // Convert DataFrame to table format
       const tableData = values.map((row: any[], rowIndex: number) => {
-        const rowData: any = { __index: rowIndex, __originalIndex: rowIndex };
+        const rowData: any = { __index: rowIndex, __originalIndex: rowIndex, __isAddRow: false };
         columnNames.forEach((colName: string, colIndex: number) => {
           rowData[colName] = row[colIndex];
         });
         return rowData;
       });
+
+      // Add a special "add row" entry if editing is enabled
+      if (canEdit) {
+        const addRowData: any = { __index: '+ Add Row', __originalIndex: -1, __isAddRow: true };
+        columnNames.forEach((colName: string) => {
+          addRowData[colName] = null;
+        });
+        tableData.push(addRowData);
+      }
 
       // Create column definitions
       const columnHelper = createColumnHelper<any>();
@@ -272,25 +281,41 @@ const DataFrameRenderer: React.FC<{
         columnHelper.accessor('__index', {
           id: 'index',
           header: '',
-          cell: (info) => (
-            <div className="text-xs text-foreground font-mono text-right px-2 flex items-center justify-between">
-              <span>{String(info.getValue())}</span>
-              {canEdit && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-4 w-4 p-0 opacity-0 group-hover:opacity-50"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteRow(info.getValue() as number);
-                  }}
+          cell: (info) => {
+            const isAddRow = info.row.original.__isAddRow;
+            const indexValue = info.getValue();
+            
+            if (isAddRow) {
+              return (
+                <div 
+                  className="text-xs text-muted-foreground font-mono px-2 py-1 cursor-pointer hover:text-foreground flex items-center justify-center h-6"
+                  onClick={handleAddRow}
                 >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              )}
-            </div>
-          ),
-          size: canEdit ? 80 : 60,
+                  <Plus className="h-3 w-3 mr-1" />
+                </div>
+              );
+            }
+            
+            return (
+              <div className="text-xs text-foreground font-mono text-right px-2 py-1 flex items-center justify-between h-6 group">
+                <span>{String(indexValue)}</span>
+                {canEdit && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-3 w-3 p-0 opacity-0 group-hover:opacity-50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteRow(indexValue as number);
+                    }}
+                  >
+                    <Trash2 className="h-2 w-2" />
+                  </Button>
+                )}
+              </div>
+            );
+          },
+          size: canEdit ? 60 : 50,
         }),
         // Data columns
         ...columnNames.map((colName: string) =>
@@ -298,6 +323,19 @@ const DataFrameRenderer: React.FC<{
             id: colName,
             header: colName,
             cell: (info) => {
+              const isAddRow = info.row.original.__isAddRow;
+              
+              if (isAddRow) {
+                return (
+                  <div 
+                    className="text-xs text-muted-foreground px-2 py-1 cursor-pointer hover:text-foreground text-center h-6 flex items-center justify-center"
+                    onClick={handleAddRow}
+                  >
+                    ···
+                  </div>
+                );
+              }
+              
               if (!canEdit) {
                 const value = info.getValue();
                 const displayValue = value === null || value === undefined ? 
@@ -307,7 +345,7 @@ const DataFrameRenderer: React.FC<{
                     String(value);
                 
                 return (
-                  <div className="text-sm font-mono px-2 text-right">
+                  <div className="text-xs font-mono px-2 py-1 text-right h-6 flex items-center justify-end">
                     {displayValue}
                   </div>
                 );
@@ -333,7 +371,7 @@ const DataFrameRenderer: React.FC<{
       setError(err instanceof Error ? err.message : 'Unknown error');
       return { tableData: [], columns: [] };
     }
-  }, [localData, canEdit, handleValueChange, handleDeleteRow]);
+  }, [localData, canEdit, handleValueChange, handleDeleteRow, handleAddRow]);
 
   const table = useReactTable({
     data: tableData,
@@ -363,56 +401,49 @@ const DataFrameRenderer: React.FC<{
   }
 
   return (
-    <div className="dataframe-display border border-border rounded-lg p-3 bg-background">
-      <div className="dataframe-header mb-3">
-        <div className="text-sm font-medium text-foreground mb-1">
-          {name && <span>{String(name)}: </span>}DataFrame
-        </div>
-        {info && (
-          <div className="text-xs text-muted-foreground">
-            Shape: {info.shape?.join('×')} | Columns: {info.columns?.length || 0}
-          </div>
-        )}
-        
-        {canEdit && (
-          <div className="flex items-center gap-2 mt-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleAddRow}
-              className="text-xs"
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Add Row
-            </Button>
-            
-            {isModified && (
-              <>
-                <Button
-                  size="sm"
-                  onClick={handleSaveChanges}
-                  className="text-xs"
-                >
-                  <Check className="h-3 w-3 mr-1" />
-                  Save Changes
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleResetChanges}
-                  className="text-xs"
-                >
-                  <X className="h-3 w-3 mr-1" />
-                  Reset
-                </Button>
-              </>
+    <div className="dataframe-display border border-border rounded-lg p-2 bg-background">
+      <div className="dataframe-header mb-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm font-medium text-foreground">
+              {name && <span>{String(name)}: </span>}DataFrame
+              {canEdit && isModified && (
+                <span className="ml-2 text-xs text-accent-foreground">*modified</span>
+              )}
+            </div>
+            {info && (
+              <div className="text-xs text-muted-foreground">
+                {info.shape?.join('×')} | {info.columns?.length || 0} cols
+              </div>
             )}
           </div>
-        )}
+          
+          {canEdit && isModified && (
+            <div className="flex items-center gap-1">
+              <Button
+                size="sm"
+                onClick={handleSaveChanges}
+                className="text-xs h-6 px-2"
+              >
+                <Check className="h-2 w-2 mr-1" />
+                Save
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleResetChanges}
+                className="text-xs h-6 px-2"
+              >
+                <X className="h-2 w-2 mr-1" />
+                Reset
+              </Button>
+            </div>
+          )}
+        </div>
 
         {!canEdit && editable && (
-          <div className="text-xs text-muted-foreground mt-2">
-            💡 Tip: Assign this DataFrame to a variable (e.g., <code className="bg-muted px-1 rounded">exports.myData = df</code>) to enable editing
+          <div className="text-xs text-muted-foreground mt-1">
+            💡 Assign to a variable (e.g., <code className="bg-muted px-1 rounded">exports.myData = df</code>) to enable editing
           </div>
         )}
       </div>
@@ -425,7 +456,7 @@ const DataFrameRenderer: React.FC<{
                 {headerGroup.headers.map(header => (
                   <th
                     key={header.id}
-                    className="px-3 py-2 text-left text-xs font-medium text-foreground uppercase tracking-wider border-r border-border last:border-r-0"
+                    className="px-2 py-1 text-left text-xs font-medium text-foreground uppercase tracking-wider border-r border-border last:border-r-0"
                     style={{ width: header.getSize() }}
                   >
                     {header.isPlaceholder
@@ -437,28 +468,35 @@ const DataFrameRenderer: React.FC<{
             ))}
           </thead>
           <tbody className="bg-background divide-y divide-border">
-            {table.getRowModel().rows.slice(0, 100).map((row, index) => (
-              <tr 
-                key={row.id} 
-                className={`hover:bg-muted ${index % 2 === 0 ? 'bg-background' : 'bg-muted/50'}`}
-              >
-                {row.getVisibleCells().map(cell => (
-                  <td
-                    key={cell.id}
-                    className="py-1 border-r border-border last:border-r-0"
-                    style={{ width: cell.column.getSize() }}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
+            {table.getRowModel().rows.slice(0, 100).map((row, index) => {
+              const isAddRow = row.original.__isAddRow;
+              return (
+                <tr 
+                  key={row.id} 
+                  className={`${
+                    isAddRow 
+                      ? 'bg-muted/30 hover:bg-muted/50 border-t-2 border-dashed border-muted-foreground/30' 
+                      : `hover:bg-muted/50 ${index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`
+                  }`}
+                >
+                  {row.getVisibleCells().map(cell => (
+                    <td
+                      key={cell.id}
+                      className="border-r border-border last:border-r-0"
+                      style={{ width: cell.column.getSize() }}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         
-        {tableData.length > 100 && (
-          <div className="bg-muted border-t border-border px-3 py-2 text-center text-xs text-muted-foreground">
-            Showing first 100 of {tableData.length} rows
+        {tableData.length > 101 && (
+          <div className="bg-muted border-t border-border px-2 py-1 text-center text-xs text-muted-foreground">
+            Showing first 100 of {tableData.length - 1} rows
           </div>
         )}
       </div>
