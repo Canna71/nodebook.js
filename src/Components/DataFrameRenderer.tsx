@@ -1,5 +1,5 @@
 import { createColumnHelper, ColumnDef, useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import ReactJson from "react-json-view";
 import { useReactiveSystem } from "@/Engine/ReactiveProvider";
 import { Button } from "@/components/ui/button";

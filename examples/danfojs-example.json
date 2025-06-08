@@ -28,6 +28,11 @@
     },
     {
       "type": "code",
+      "id": "code_mbo5bed2_mgxxt",
+      "code": "// Write your code here\noutput(df2);"
+    },
+    {
+      "type": "code",
       "id": "sum-column",
       "code": "// Sum column C from the new DataFrame\nexports.sumC = df2['C'].sum();\nconsole.log('Sum of column C:', exports.sumC);\n\n// Output calculation summary\noutput({\n  calculation: 'sum',\n  column: 'C',\n  result: exports.sumC,\n  verification: data.A.reduce((a, b) => a + b, 0) + data.B.reduce((a, b) => a + b, 0)\n});"
     },

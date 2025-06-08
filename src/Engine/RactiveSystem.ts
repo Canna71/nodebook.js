@@ -1046,7 +1046,17 @@ export class CodeCellEngine {
         if (!cellInfo) {
             throw new Error(`Code cell ${cellId} has not been executed before`);
         }
-        return this.executeCodeCell(cellId, cellInfo.code);
+        
+        // Get the last used container from cell info
+        const lastContainer = cellInfo.lastOutputContainer;
+        
+        // Clear previous DOM output if container is available
+        if (lastContainer) {
+            lastContainer.innerHTML = '';
+        }
+        
+        // Re-execute with the same container that was last used
+        return this.executeCodeCell(cellId, cellInfo.code, lastContainer);
     }
 
     /**
