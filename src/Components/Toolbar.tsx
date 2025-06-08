@@ -7,17 +7,12 @@ import {
   SaveIcon,
   FileIcon,
   PlayIcon,
-  PlusIcon,
   UndoIcon,
   RedoIcon,
-  ChevronDownIcon
+  VariableIcon
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { MarkdownIcon } from './icons/MarkdownIcon';
+import { JavascriptIcon } from './icons/JavascriptIcon';
 
 export function Toolbar() {
   const { commandManager } = useCommands();
@@ -102,36 +97,68 @@ export function Toolbar() {
 
         <Separator orientation="vertical" className="mx-2 h-6" />
 
-        {/* Add Cell Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="gap-1">
-              <>
-              <PlusIcon className="h-4 w-4" />
-              Add Cell
-              <ChevronDownIcon className="h-3 w-3" />
-                </>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => handleAddCell('code')}>
-              <span className="mr-2">{'{ }'}</span>
-              Code Cell
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAddCell('markdown')}>
-              <span className="mr-2">Md</span>
-              Markdown Cell
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAddCell('formula')}>
-              <span className="mr-2">fx</span>
-              Formula Cell
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAddCell('input')}>
-              <span className="mr-2">⚪</span>
-              Input Cell
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Add Cell Buttons */}
+        <div className="flex items-center space-x-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleAddCell('code')}
+              >
+                <JavascriptIcon className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Add Code Cell
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleAddCell('markdown')}
+              >
+                <MarkdownIcon className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Add Markdown Cell
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleAddCell('formula')}
+              >
+                <span className="font-bold text-current text-sm">𝒇𝑥</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Add Formula Cell
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleAddCell('input')}
+              >
+                <VariableIcon className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Add Input Cell
+            </TooltipContent>
+          </Tooltip>
+        </div>
 
         <Separator orientation="vertical" className="mx-2 h-6" />
 
