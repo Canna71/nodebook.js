@@ -66,9 +66,35 @@ function AppContent() {
         );
     }
 
-    // Cell management function
-    const generateCellId = (): string => {
-        return `cell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Cell management function - generates IDs with type-based prefixes and progressive numbering
+    const generateCellId = (cellType: CellDefinition['type']): string => {
+        if (!currentModel?.cells) {
+            return `${getTypePrefix(cellType)}_01`;
+        }
+
+        const prefix = getTypePrefix(cellType);
+        const existingIds = new Set(currentModel.cells.map(cell => cell.id));
+        
+        let counter = 1;
+        let candidateId: string;
+        
+        do {
+            const paddedNumber = counter.toString().padStart(2, '0');
+            candidateId = `${prefix}_${paddedNumber}`;
+            counter++;
+        } while (existingIds.has(candidateId));
+        
+        return candidateId;
+    };
+
+    const getTypePrefix = (cellType: CellDefinition['type']): string => {
+        switch (cellType) {
+            case 'markdown': return 'md';
+            case 'code': return 'code';
+            case 'formula': return 'fx';
+            case 'input': return 'var';
+            default: return 'cell';
+        }
     };
 
     const addCell = (cellType: CellDefinition['type'], insertIndex?: number) => {
@@ -77,7 +103,7 @@ function AppContent() {
             return;
         }
 
-        const newId = generateCellId();
+        const newId = generateCellId(cellType);
         let newCell: CellDefinition;
 
         switch (cellType) {
@@ -99,7 +125,7 @@ function AppContent() {
                 newCell = {
                     type: 'formula',
                     id: newId,
-                    variableName: `result_${Date.now()}`,
+                    variableName: newId, // Use the same ID as variable name
                     formula: '$variable1 + $variable2',
                 };
                 break;
@@ -108,7 +134,7 @@ function AppContent() {
                     type: 'input',
                     id: newId,
                     inputType: 'number',
-                    variableName: `input_${Date.now()}`,
+                    variableName: newId, // Use the same ID as variable name
                     value: 0
                 };
                 break;
