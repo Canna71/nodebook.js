@@ -93,8 +93,8 @@ importers:
         specifier: ^1.9.2
         version: 1.9.2
       lucide-react:
-        specifier: ^0.511.0
-        version: 0.511.0(react@19.1.0)
+        specifier: 0.513.0
+        version: 0.513.0(react@19.1.0)
       markdown-it:
         specifier: ^14.1.0
         version: 14.1.0
@@ -195,9 +195,6 @@ importers:
       typescript:
         specifier: 5.8.3
         version: 5.8.3
-      ulog:
-        specifier: 2.0.0-beta.19
-        version: 2.0.0-beta.19(anylogger@1.0.11)
       vite:
         specifier: 6.3.4
         version: 6.3.4(@types/node@22.15.3)(jiti@2.4.2)(lightningcss@1.30.1)
@@ -3180,9 +3177,6 @@ packages:
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
 
-  kurly@2.0.0-beta.3:
-    resolution: {integrity: sha512-WXSRkhL2VV9lI/sPomBDV9Xf4oQ1s/RiUqzxKt4slkG7ndCxcDfXJ2ZXdxEYDRfevnkSOxmiVX3etunBlHqTAw==}
-
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
@@ -3337,8 +3331,8 @@ packages:
     resolution: {integrity: sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA==}
     engines: {node: '>=12'}
 
-  lucide-react@0.511.0:
-    resolution: {integrity: sha512-VK5a2ydJ7xm8GvBeKLS9mu1pVK6ucef9780JVUjw6bAjJL/QXnd4Y0p7SPeOUMC27YhzNCZvm5d/QX0Tp3rc0w==}
+  lucide-react@0.513.0:
+    resolution: {integrity: sha512-CJZKq2g8Y8yN4Aq002GahSXbG2JpFv9kXwyiOAMvUBv7pxeOFHUWKB0mO7MiY4ZVFCV4aNjv2BJFq/z3DgKPQg==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -4474,11 +4468,6 @@ packages:
 
   uc.micro@2.1.0:
     resolution: {integrity: sha512-ARDJmphmdvUk6Glw7y9DQ2bFkKBHwQHLi2lsaH6PPmz/Ka9sFOBsBluozhDltWmnv9u/cF6Rt87znRTPV+yp/A==}
-
-  ulog@2.0.0-beta.19:
-    resolution: {integrity: sha512-27YIp4dUwaJQTh7ovk60wWjBMVV/AXMZhSVftkU7HMjaPc1t8wO5u6hVVUyBTyGKrLxYmR0v34Iihq8mE26LUg==}
-    peerDependencies:
-      anylogger: ^1.0.10
 
   unbox-primitive@1.1.0:
     resolution: {integrity: sha512-nWJ91DjeOkej/TA8pXQ3myruKpKEYgqvpw9lz4OPHj/NWFNluYrjbz9j01CJ8yKQd2g4jFoOkINCTW2I5LEEyw==}
@@ -8408,8 +8397,6 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
 
-  kurly@2.0.0-beta.3: {}
-
   levn@0.4.1:
     dependencies:
       prelude-ls: 1.2.1
@@ -8542,7 +8529,7 @@ snapshots:
 
   lru-cache@7.18.3: {}
 
-  lucide-react@0.511.0(react@19.1.0):
+  lucide-react@0.513.0(react@19.1.0):
     dependencies:
       react: 19.1.0
 
@@ -9791,11 +9778,6 @@ snapshots:
   ua-parser-js@1.0.40: {}
 
   uc.micro@2.1.0: {}
-
-  ulog@2.0.0-beta.19(anylogger@1.0.11):
-    dependencies:
-      anylogger: 1.0.11
-      kurly: 2.0.0-beta.3
 
   unbox-primitive@1.1.0:
     dependencies:
