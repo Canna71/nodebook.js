@@ -111,6 +111,9 @@ const DataFrameRenderer: React.FC<{
   const [isModified, setIsModified] = useState(false);
   const { reactiveStore } = useReactiveSystem();
 
+  // Only allow editing if we have a valid variable name
+  const canEdit = editable && name && typeof name === 'string';
+
   // Create a mutable copy of the data for editing
   const [localData, setLocalData] = useState<DataFrameData>(() => {
     try {
@@ -177,8 +180,8 @@ const DataFrameRenderer: React.FC<{
 
   // Save changes back to reactive system
   const handleSaveChanges = useCallback(async () => {
-    if (!name || typeof name !== 'string') {
-      console.warn('Cannot save DataFrame changes: no variable name provided');
+    if (!canEdit) {
+      console.warn('Cannot save DataFrame changes: editing not enabled or no variable name provided');
       return;
     }
 
@@ -199,11 +202,11 @@ const DataFrameRenderer: React.FC<{
       const newDataFrame = new dfd.DataFrame(dataObject);
       
       // Update the reactive value
-      const reactiveValue = reactiveStore.get(name);
+      const reactiveValue = reactiveStore.get(name as string);
       if (reactiveValue) {
         reactiveValue.setValue(newDataFrame);
       } else {
-        reactiveStore.define(name, newDataFrame);
+        reactiveStore.define(name as string, newDataFrame);
       }
 
       setIsModified(false);
@@ -212,7 +215,7 @@ const DataFrameRenderer: React.FC<{
       console.error('Error saving DataFrame changes:', err);
       setError(err instanceof Error ? err.message : 'Failed to save changes');
     }
-  }, [localData, name, reactiveStore]);
+  }, [localData, name, reactiveStore, canEdit]);
 
   // Reset changes
   const handleResetChanges = useCallback(() => {
@@ -257,7 +260,7 @@ const DataFrameRenderer: React.FC<{
           cell: (info) => (
             <div className="text-xs text-foreground font-mono text-right px-2 flex items-center justify-between">
               <span>{String(info.getValue())}</span>
-              {editable && (
+              {canEdit && (
                 <Button
                   size="sm"
                   variant="ghost"
@@ -272,7 +275,7 @@ const DataFrameRenderer: React.FC<{
               )}
             </div>
           ),
-          size: editable ? 80 : 60,
+          size: canEdit ? 80 : 60,
         }),
         // Data columns
         ...columnNames.map((colName: string) =>
@@ -280,7 +283,7 @@ const DataFrameRenderer: React.FC<{
             id: colName,
             header: colName,
             cell: (info) => {
-              if (!editable) {
+              if (!canEdit) {
                 const value = info.getValue();
                 const displayValue = value === null || value === undefined ? 
                   'null' : 
@@ -315,7 +318,7 @@ const DataFrameRenderer: React.FC<{
       setError(err instanceof Error ? err.message : 'Unknown error');
       return { tableData: [], columns: [] };
     }
-  }, [localData, editable, handleValueChange, handleDeleteRow]);
+  }, [localData, canEdit, handleValueChange, handleDeleteRow]);
 
   const table = useReactTable({
     data: tableData,
@@ -356,7 +359,7 @@ const DataFrameRenderer: React.FC<{
           </div>
         )}
         
-        {editable && (
+        {canEdit && (
           <div className="flex items-center gap-2 mt-2">
             <Button
               size="sm"
@@ -389,6 +392,12 @@ const DataFrameRenderer: React.FC<{
                 </Button>
               </>
             )}
+          </div>
+        )}
+
+        {!canEdit && editable && (
+          <div className="text-xs text-muted-foreground mt-2">
+            💡 Tip: Assign this DataFrame to a variable (e.g., <code className="bg-muted px-1 rounded">exports.myData = df</code>) to enable editing
           </div>
         )}
       </div>
