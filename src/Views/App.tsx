@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 
 import { ReactiveProvider } from '../Engine/ReactiveProvider';
 import { ApplicationProvider, useApplication } from '@/Engine/ApplicationProvider';
+import { CommandProvider } from '@/Engine/CommandProvider';
 import anylogger from "anylogger";
 import { moduleRegistry } from '../Engine/ModuleRegistry';
 
@@ -66,8 +67,9 @@ function AppContent() {
 
     return (
         <ReactiveProvider>
-            
-            <NotebookViewer model={currentModel} />
+            <CommandProvider>
+                <NotebookViewer model={currentModel} />
+            </CommandProvider>
         </ReactiveProvider>
     );
 }
@@ -106,11 +108,9 @@ export default function App() {
 
     return (
         <Layout>
-            <div>
-                <ApplicationProvider>
-                    <AppContent />
-                </ApplicationProvider>
-            </div>
+            <ApplicationProvider>
+                <AppContent />
+            </ApplicationProvider>
         </Layout>
     );
 }

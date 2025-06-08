@@ -27,6 +27,7 @@ NotebookJS is a reactive notebook application built with React, TypeScript, and 
 #### UI Components
 - Do not modify files in `src/components/ui/` as these come from shadcn/ui
 - Use existing shadcn components as-is for consistency
+- If needed, lookup which conponents are available in the shadcn/ui documentation
 
 #### Styling
 - Use Tailwind CSS classes for styling
@@ -159,3 +160,10 @@ export function ComponentName({ prop1, prop2 }: ComponentProps) {
 - Don't use direct DOM manipulation
 - Don't bypass the reactive system for state management
 - Don't forget to clean up subscriptions and event listeners
+
+### Building
+The solution is using pnpm as the package manager. To build the project, run:
+```zsh
+pnpm run make
+```
+
