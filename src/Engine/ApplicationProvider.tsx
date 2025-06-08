@@ -310,7 +310,6 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
                     id: generateId(),
                     variableName: 'doubled',
                     formula: '$x * 2',
-                    label: 'Double the input'
                 },
                 {
                     type: 'markdown',

@@ -106,7 +106,6 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
           id: newId,
           variableName: `result_${Date.now()}`,
           formula: '$variable1 + $variable2',
-          outputFormat: 'number'
         };
         break;
       case 'input':
