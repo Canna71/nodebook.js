@@ -1,4 +1,4 @@
-import React, { JSX, useState } from 'react';
+import React, { JSX, useState, useEffect } from 'react';
 import { CellDefinition } from '@/Types/NotebookModel';
 import { 
     PencilIcon, 
@@ -47,6 +47,28 @@ export function CellContainer({
     children
 }: CellContainerProps) {
     const [isHovered, setIsHovered] = useState(true);
+
+    // Add escape key listener for edit mode
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Only handle escape if this cell is in edit mode
+            if (isEditMode && e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleEditMode(); // Exit edit mode
+            }
+        };
+
+        // Add event listener when in edit mode
+        if (isEditMode) {
+            document.addEventListener('keydown', handleKeyDown);
+        }
+
+        // Cleanup event listener
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isEditMode, onToggleEditMode]);
 
     const getCellTypeColor = (type: string): string => {
         switch (type) {
@@ -185,6 +207,17 @@ export function CellContainer({
                     
                     if (!isInteractiveElement) {
                         onSelect();
+                    }
+                }}
+                onDoubleClick={(e) => {
+                    // Double-click to enter edit mode (if not already in edit mode)
+                    const target = e.target as HTMLElement;
+                    const isInteractiveElement = target.closest('.json-view-container, .cm-editor, input, button, select, textarea, [role="button"]');
+                    
+                    if (!isInteractiveElement && !isEditMode) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onToggleEditMode(); // Enter edit mode
                     }
                 }}
             >
