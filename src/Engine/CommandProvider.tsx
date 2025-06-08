@@ -4,6 +4,7 @@ import { CommandManager } from './CommandManager';
 import { ICommandManager, CommandContext } from '@/Types/CommandTypes';
 import { useApplication } from './ApplicationProvider';
 import { useReactiveSystem } from './ReactiveProvider';
+import { commandManagerSingleton } from './CommandManagerSingleton';
 import {
     SaveNotebookCommand,
     NewNotebookCommand,

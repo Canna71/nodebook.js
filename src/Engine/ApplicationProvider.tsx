@@ -4,12 +4,13 @@ import { ApplicationState, ApplicationContextType, ApplicationProviderProps } fr
 import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
 import { toast } from 'sonner';
 import anylogger from 'anylogger';
+import { commandManagerSingleton } from './CommandManagerSingleton';
 
 const log = anylogger('ApplicationProvider');
 
 const ApplicationContext = createContext<ApplicationContextType | undefined>(undefined);
 
-export function ApplicationProvider({ children }: ApplicationProviderProps) {
+export function ApplicationProvider({ children, commandManager }: ApplicationProviderProps) {
     const [state, setState] = useState<ApplicationState>({
         currentFilePath: null,
         currentModel: null,
@@ -149,12 +150,26 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
     useEffect(() => {
         if (!window.api) return;
 
+        // Capture commandManager in the closure explicitly
+        const currentCommandManager = commandManager;
+
         const handleMenuEvent = {
-            'menu-new-notebook': () => {
-                newNotebook(); // Call the local function
+            'menu-new-notebook': async () => {
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('notebook.new');
+                    } catch (error) {
+                        log.error('Error executing new notebook command:', error);
+                        await window.api.showErrorBox('New Notebook Failed', 
+                            `Failed to create new notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    }
+                } else {
+                    // Fallback to direct call if no command manager
+                    newNotebook();
+                }
             },
             'menu-open-notebook': async () => {
-                // Use window.api to show file dialog, then call local loadNotebook
+                // File operations don't have commands yet, use direct implementation
                 try {
                     const result = await window.api.openFileDialog({
                         title: 'Open Notebook',
@@ -174,17 +189,32 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
                 }
             },
             'menu-save-notebook': async () => {
-                try {
-                    if (state.currentFilePath) {
-                        await saveNotebook(); // Call local function with existing path
-                    } else {
-                        // No current path, show save dialog
-                        await showSaveAsDialog();
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('notebook.save');
+                    } catch (error) {
+                        log.error('Error executing save notebook command:', error);
+                        // If save command fails and no current path, show save dialog
+                        if (!state.currentFilePath) {
+                            await showSaveAsDialog();
+                        } else {
+                            await window.api.showErrorBox('Save Failed', 
+                                `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        }
                     }
-                } catch (error) {
-                    console.error('Save failed:', error);
-                    await window.api.showErrorBox('Save Failed', 
-                        `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                } else {
+                    // Fallback to direct call if no command manager
+                    try {
+                        if (state.currentFilePath) {
+                            await saveNotebook();
+                        } else {
+                            await showSaveAsDialog();
+                        }
+                    } catch (error) {
+                        console.error('Save failed:', error);
+                        await window.api.showErrorBox('Save Failed', 
+                            `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    }
                 }
             },
             'menu-save-notebook-as': async () => {
@@ -211,15 +241,37 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
             'menu-documentation': () => {
                 showDocumentationDialog();
             },
-            'menu-insert-cell': (cellType: string) => {
-                // This will be handled by DynamicNotebook
-                window.dispatchEvent(new CustomEvent('insert-cell', { detail: { cellType } }));
+            'menu-insert-cell': async (cellType: string) => {
+                if (currentCommandManager) {
+                    try {
+                        // Map cellType to appropriate command or use add cell command
+                        await currentCommandManager.executeCommand('cell.add');
+                    } catch (error) {
+                        log.error('Error executing add cell command:', error);
+                        // Fallback to custom event
+                        window.dispatchEvent(new CustomEvent('insert-cell', { detail: { cellType } }));
+                    }
+                } else {
+                    // Fallback to custom event
+                    window.dispatchEvent(new CustomEvent('insert-cell', { detail: { cellType } }));
+                }
             },
             'menu-run-cell': () => {
                 window.dispatchEvent(new CustomEvent('run-cell'));
             },
-            'menu-run-all-cells': () => {
-                window.dispatchEvent(new CustomEvent('run-all-cells'));
+            'menu-run-all-cells': async () => {
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('notebook.executeAll');
+                    } catch (error) {
+                        log.error('Error executing run all cells command:', error);
+                        // Fallback to custom event
+                        window.dispatchEvent(new CustomEvent('run-all-cells'));
+                    }
+                } else {
+                    // Fallback to custom event
+                    window.dispatchEvent(new CustomEvent('run-all-cells'));
+                }
             },
             'menu-clear-cell-output': () => {
                 window.dispatchEvent(new CustomEvent('clear-cell-output'));
@@ -247,7 +299,7 @@ export function ApplicationProvider({ children }: ApplicationProviderProps) {
                 window.api.removeMenuListener(event);
             });
         };
-    }, [loadNotebook, saveNotebook, newNotebook]); // Include stable callback functions
+    }, [loadNotebook, saveNotebook, newNotebook, commandManager, state.currentFilePath]); // Include commandManager and currentFilePath
 
     // Helper function for Save As dialog
     const showSaveAsDialog = async () => {

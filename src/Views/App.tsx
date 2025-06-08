@@ -3,6 +3,7 @@ import React, { useEffect } from 'react'
 import { ReactiveProvider } from '../Engine/ReactiveProvider';
 import { ApplicationProvider, useApplication } from '@/Engine/ApplicationProvider';
 import { CommandProvider } from '@/Engine/CommandProvider';
+import { commandManagerSingleton } from '@/Engine/CommandManagerSingleton';
 import anylogger from "anylogger";
 import { moduleRegistry } from '../Engine/ModuleRegistry';
 
@@ -168,7 +169,7 @@ export default function App() {
 
     return (
         <Layout>
-            <ApplicationProvider>
+            <ApplicationProvider commandManager={commandManagerSingleton}>
                 <AppContent />
             </ApplicationProvider>
         </Layout>

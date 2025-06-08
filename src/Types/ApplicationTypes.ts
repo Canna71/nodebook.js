@@ -1,4 +1,5 @@
 import { NotebookModel } from './NotebookModel';
+import { ICommandManager } from './CommandTypes';
 
 export interface ApplicationState {
     currentFilePath: string | null;
@@ -19,4 +20,5 @@ export interface ApplicationContextType extends ApplicationState {
 
 export interface ApplicationProviderProps {
     children: React.ReactNode;
+    commandManager?: ICommandManager;
 }
