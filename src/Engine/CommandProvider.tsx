@@ -244,7 +244,19 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
                 currentFilePath: applicationProvider.currentFilePath,
                 setModel: applicationProvider.setModel,
                 setDirty: applicationProvider.setDirty,
-                isDirty: applicationProvider.isDirty
+                isDirty: applicationProvider.isDirty,
+                // Add undo/redo operations
+                canUndo: applicationProvider.canUndo,
+                canRedo: applicationProvider.canRedo,
+                undo: applicationProvider.undo,
+                redo: applicationProvider.redo,
+                getUndoDescription: applicationProvider.getUndoDescription,
+                getRedoDescription: applicationProvider.getRedoDescription,
+                // Cell operations through state manager
+                updateCell: applicationProvider.updateCell,
+                addCell: applicationProvider.addCell,
+                deleteCell: applicationProvider.deleteCell,
+                moveCell: applicationProvider.moveCell
             },
             reactiveSystem: {
                 codeCellEngine: reactiveSystem.codeCellEngine,

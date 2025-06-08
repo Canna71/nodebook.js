@@ -23,7 +23,7 @@ const md = new MarkdownIt({
 
 export function MarkdownCell({ definition, initialized, isEditMode = false }: MarkdownCellProps) {
   const { reactiveStore } = useReactiveSystem();
-  const { currentModel, setModel, setDirty } = useApplication();
+  const { updateCell } = useApplication();
   const [renderedContent, setRenderedContent] = React.useState('');
   
   // Local state for content being edited
@@ -143,19 +143,8 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
     // Update local state immediately for responsive editing
     setCurrentContent(newContent);
     
-    // Update the notebook model to persist changes
-    if (currentModel) {
-      const updatedModel = {
-        ...currentModel,
-        cells: currentModel.cells.map(cell => 
-          cell.id === definition.id 
-            ? { ...cell, content: newContent }
-            : cell
-        )
-      };
-      setModel(updatedModel);
-      setDirty(true);
-    }
+    // Update the notebook model through state manager
+    updateCell(definition.id, { content: newContent }, 'Update markdown cell');
   };
 
   if (isEditMode) {

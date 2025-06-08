@@ -17,7 +17,7 @@ import Layout from '@/app/layout';
 import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
 
 function AppContent() {
-    const { currentModel, loadNotebook, isLoading, error, currentFilePath, setModel, setDirty } = useApplication();
+    const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook } = useApplication();
 
     useEffect(() => {
         log.debug("AppContent mounted, currentModel:", currentModel);
@@ -98,58 +98,8 @@ function AppContent() {
     };
 
     const addCell = (cellType: CellDefinition['type'], insertIndex?: number) => {
-        if (!currentModel) {
-            console.error('No current model available');
-            return;
-        }
-
-        const newId = generateCellId(cellType);
-        let newCell: CellDefinition;
-
-        switch (cellType) {
-            case 'markdown':
-                newCell = {
-                    type: 'markdown',
-                    id: newId,
-                    content: '# New Section\n\nAdd your content here...'
-                };
-                break;
-            case 'code':
-                newCell = {
-                    type: 'code',
-                    id: newId,
-                    code: '// Write your code here\nconsole.log("Hello, world!");'
-                };
-                break;
-            case 'formula':
-                newCell = {
-                    type: 'formula',
-                    id: newId,
-                    variableName: newId, // Use the same ID as variable name
-                    formula: '$variable1 + $variable2',
-                };
-                break;
-            case 'input':
-                newCell = {
-                    type: 'input',
-                    id: newId,
-                    inputType: 'number',
-                    variableName: newId, // Use the same ID as variable name
-                    value: 0
-                };
-                break;
-            default:
-                console.error(`Unknown cell type: ${cellType}`);
-                return;
-        }
-
-        const newCells = [...currentModel.cells];
-        const targetIndex = insertIndex ?? newCells.length;
-        newCells.splice(targetIndex, 0, newCell);
-
-        const updatedModel = { ...currentModel, cells: newCells };
-        setModel(updatedModel); // Update the model through the application provider
-        setDirty(true);
+        // Use state manager's addCell method
+        addCellToNotebook(cellType, insertIndex, `Add ${cellType} cell`);
     };
 
     return (

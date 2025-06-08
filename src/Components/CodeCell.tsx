@@ -22,7 +22,7 @@ interface CodeCellProps {
 // Add CodeCell component for display purposes
 export function CodeCell({ definition, initialized, isEditMode = false }: CodeCellProps) {
     const { codeCellEngine } = useReactiveSystem();
-    const { currentModel, setModel, setDirty } = useApplication();
+    const { updateCell } = useApplication();
 
     // Get code completions for IntelliSense
     const codeCompletions = useCodeCompletions();
@@ -102,19 +102,8 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         // Update the engine's internal tracking
         codeCellEngine.updateCodeCell(definition.id, newCode);
         
-        // Update the notebook model to persist changes
-        if (currentModel) {
-            const updatedModel = {
-                ...currentModel,
-                cells: currentModel.cells.map(cell => 
-                    cell.id === definition.id 
-                        ? { ...cell, code: newCode }
-                        : cell
-                )
-            };
-            setModel(updatedModel);
-            setDirty(true);
-        }
+        // Update the notebook model through state manager
+        updateCell(definition.id, { code: newCode }, 'Update code cell');
         
         log.debug(`Code cell ${definition.id} code updated`);
     };

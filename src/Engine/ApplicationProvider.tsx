@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { NotebookModel, CellDefinition } from '@/Types/NotebookModel';
 import { ApplicationState, ApplicationContextType, ApplicationProviderProps } from '@/Types/ApplicationTypes';
 import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
 import { toast } from 'sonner';
 import anylogger from 'anylogger';
 import { commandManagerSingleton } from './CommandManagerSingleton';
+import { NotebookStateManager } from './NotebookStateManager';
 
 const log = anylogger('ApplicationProvider');
 
@@ -19,6 +20,24 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         error: null,
         selectedCellId: null,
     });
+
+    // Initialize state manager
+    const stateManagerRef = useRef<NotebookStateManager | null>(null);
+    
+    // Initialize state manager on first render
+    if (!stateManagerRef.current) {
+        stateManagerRef.current = new NotebookStateManager(state, {
+            maxHistorySize: 50,
+            enableHistory: true
+        });
+        
+        // Subscribe to state manager changes
+        stateManagerRef.current.onStateChange((newState) => {
+            setState(newState);
+        });
+    }
+
+    const stateManager = stateManagerRef.current;
 
     const setLoading = useCallback((loading: boolean) => {
         setState((prev:ApplicationState) => ({ ...prev, isLoading: loading }));
@@ -42,13 +61,8 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             if (content.success) {
                 const model = content.data;
             
-                setState((prev:ApplicationState) => ({
-                    ...prev,
-                    currentFilePath: filePath,
-                    currentModel: model,
-                    isDirty: false,
-                    isLoading: false,
-                }));
+                // Use state manager for loading notebook
+                stateManager.loadNotebook(filePath, model, `Load notebook: ${filePath.split('/').pop()}`);
                 
                 // Update window title with file name
                 const fileName = filePath.split('/').pop() || 'Untitled';
@@ -65,15 +79,13 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             setError(`Failed to load notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
             setLoading(false);
         }
-    }, []);
-
-    const saveNotebook = useCallback(async (filePath?: string) => {
+    }, [stateManager]);    const saveNotebook = useCallback(async (filePath?: string) => {
         if (!state.currentModel) {
             setError('No notebook to save');
             toast.error('No notebook to save');
             return;
         }
-        
+
         const targetPath = filePath || state.currentFilePath;
         if (!targetPath) {
             setError('No file path specified');
@@ -87,11 +99,8 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             const fs = getFileSystemHelpers();
             await fs.saveNotebook(state.currentModel, targetPath);
             
-            setState((prev: ApplicationState) => ({
-                ...prev,
-                currentFilePath: targetPath,
-                isDirty: false,
-            }));
+            // Use state manager for saving
+            stateManager.saveNotebook(targetPath, `Save notebook: ${targetPath.split('/').pop()}`);
             
             // Update window title when file path changes or dirty state clears
             const fileName = targetPath.split('/').pop() || 'Untitled';
@@ -114,42 +123,32 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 duration: 5000,
             });
         }
-    }, [state.currentModel, state.currentFilePath]);
+    }, [state.currentModel, state.currentFilePath, stateManager]);
 
     const newNotebook = useCallback(() => {
-        const emptyNotebook: NotebookModel = {
-            cells: []
-        };
-
-        setState((prev:ApplicationState) => ({
-            ...prev,
-            currentFilePath: null,
-            currentModel: emptyNotebook,
-            isDirty: false,
-            error: null,
-        }));
+        // Use state manager for creating new notebook
+        stateManager.newNotebook('Create new notebook');
         
         // Update window title for new notebook
         window.api.setWindowTitle('Untitled - NotebookJS');
         
         log.info('New notebook created');
-    }, []);
+    }, [stateManager]);
 
     const setModel = useCallback((model: NotebookModel) => {
-        setState((prev: ApplicationState) => ({
-            ...prev,
-            currentModel: model,
-            isDirty: true, // Only mark dirty when model content changes
-        }));
-    }, []);
+        // Use state manager for model updates
+        stateManager.setNotebookModel(model, 'Update notebook model');
+    }, [stateManager]);
 
     const setDirty = useCallback((dirty: boolean) => {
-        setState((prev:ApplicationState) => ({ ...prev, isDirty: dirty }));
-    }, []);
+        // Use state manager for dirty state updates
+        stateManager.setDirtyState(dirty, dirty ? 'Mark as dirty' : 'Mark as clean');
+    }, [stateManager]);
 
     const setSelectedCellId = useCallback((cellId: string | null) => {
-        setState((prev: ApplicationState) => ({ ...prev, selectedCellId: cellId }));
-    }, []);
+        // Use state manager for selection changes
+        stateManager.setSelectedCell(cellId, cellId ? `Select cell: ${cellId}` : 'Clear selection');
+    }, [stateManager]);
 
     // Add menu event handlers
     useEffect(() => {
@@ -523,6 +522,27 @@ Variables automatically update when their dependencies change, creating a live, 
         setDirty,
         clearError,
         setSelectedCellId,
+        
+        // State manager for centralized operations
+        stateManager,
+        
+        // Undo/Redo operations
+        canUndo: () => stateManager.canUndo(),
+        canRedo: () => stateManager.canRedo(),
+        undo: () => stateManager.undo(),
+        redo: () => stateManager.redo(),
+        getUndoDescription: () => stateManager.getUndoDescription(),
+        getRedoDescription: () => stateManager.getRedoDescription(),
+        
+        // Cell operations through state manager
+        updateCell: (cellId: string, updates: Partial<CellDefinition>, description?: string) => 
+            stateManager.updateCell(cellId, updates, description),
+        addCell: (cellType: CellDefinition['type'], insertIndex?: number, description?: string) => 
+            stateManager.addCell(cellType, insertIndex, description),
+        deleteCell: (cellId: string, description?: string) => 
+            stateManager.deleteCell(cellId, description),
+        moveCell: (cellId: string, direction: 'up' | 'down', description?: string) => 
+            stateManager.moveCell(cellId, direction, description),
     };
 
     return (

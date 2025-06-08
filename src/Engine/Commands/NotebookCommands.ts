@@ -271,40 +271,58 @@ export class ToggleSidebarCommand extends BaseCommand {
 }
 
 /**
- * Placeholder undo command (for future implementation)
+ * Undo command - reverses the last state-changing operation
  */
 export class UndoCommand extends BaseCommand {
     getDescription(): string {
-        return 'Undo the last action';
+        const description = this.context.applicationProvider.getUndoDescription();
+        return description ? `Undo: ${description}` : 'Undo';
     }
 
     canExecute(): boolean {
-        // TODO: Implement undo stack
-        return false;
+        return this.context.applicationProvider.canUndo();
     }
 
     execute(): void {
-        // TODO: Implement undo functionality
-        log.warn('Undo command not yet implemented');
+        try {
+            const success = this.context.applicationProvider.undo();
+            if (success) {
+                log.debug('Undo command executed successfully');
+            } else {
+                log.warn('Undo command failed - nothing to undo');
+            }
+        } catch (error) {
+            log.error('Error executing undo command:', error);
+            throw error;
+        }
     }
 }
 
 /**
- * Placeholder redo command (for future implementation)
+ * Redo command - reapplies a previously undone operation
  */
 export class RedoCommand extends BaseCommand {
     getDescription(): string {
-        return 'Redo the last undone action';
+        const description = this.context.applicationProvider.getRedoDescription();
+        return description ? `Redo: ${description}` : 'Redo';
     }
 
     canExecute(): boolean {
-        // TODO: Implement redo stack
-        return false;
+        return this.context.applicationProvider.canRedo();
     }
 
     execute(): void {
-        // TODO: Implement redo functionality
-        log.warn('Redo command not yet implemented');
+        try {
+            const success = this.context.applicationProvider.redo();
+            if (success) {
+                log.debug('Redo command executed successfully');
+            } else {
+                log.warn('Redo command failed - nothing to redo');
+            }
+        } catch (error) {
+            log.error('Error executing redo command:', error);
+            throw error;
+        }
     }
 }
 
