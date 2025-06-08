@@ -47,6 +47,7 @@ export function CellContainer({
     children
 }: CellContainerProps) {
     const [isHovered, setIsHovered] = useState(true);
+    const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
     // Add escape key listener for edit mode
     useEffect(() => {
@@ -69,6 +70,55 @@ export function CellContainer({
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, [isEditMode, onToggleEditMode]);
+
+    // Cleanup click timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (clickTimeout) {
+                clearTimeout(clickTimeout);
+            }
+        };
+    }, [clickTimeout]);
+
+    const handleClick = (e: React.MouseEvent) => {
+        // Only select cell if clicking on the container itself, not on interactive elements
+        const target = e.target as HTMLElement;
+        const isInteractiveElement = target.closest('.json-view-container, .cm-editor, input, button, select, textarea, [role="button"]');
+        
+        if (!isInteractiveElement) {
+            // Clear any existing timeout
+            if (clickTimeout) {
+                clearTimeout(clickTimeout);
+                setClickTimeout(null);
+            }
+            
+            // Set a timeout to handle the click
+            const timeout = setTimeout(() => {
+                onSelect();
+                setClickTimeout(null);
+            }, 200); // 200ms delay to allow for double-click detection
+            
+            setClickTimeout(timeout);
+        }
+    };
+
+    const handleDoubleClick = (e: React.MouseEvent) => {
+        // Clear the single click timeout
+        if (clickTimeout) {
+            clearTimeout(clickTimeout);
+            setClickTimeout(null);
+        }
+        
+        // Double-click to enter edit mode (if not already in edit mode)
+        const target = e.target as HTMLElement;
+        const isInteractiveElement = target.closest('.json-view-container, .cm-editor, input, button, select, textarea, [role="button"]');
+        
+        if (!isInteractiveElement && !isEditMode) {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleEditMode(); // Enter edit mode
+        }
+    };
 
     const getCellTypeColor = (type: string): string => {
         switch (type) {
@@ -200,26 +250,8 @@ export function CellContainer({
                             ? 'border-accent/50 shadow-md border-l-transparent' 
                             : 'border-border border-l-transparent'
                 } ${isEditMode ? 'edit-mode' : ''}`}
-                onClick={(e) => {
-                    // Only select cell if clicking on the container itself, not on interactive elements
-                    const target = e.target as HTMLElement;
-                    const isInteractiveElement = target.closest('.json-view-container, .cm-editor, input, button, select, textarea, [role="button"]');
-                    
-                    if (!isInteractiveElement) {
-                        onSelect();
-                    }
-                }}
-                onDoubleClick={(e) => {
-                    // Double-click to enter edit mode (if not already in edit mode)
-                    const target = e.target as HTMLElement;
-                    const isInteractiveElement = target.closest('.json-view-container, .cm-editor, input, button, select, textarea, [role="button"]');
-                    
-                    if (!isInteractiveElement && !isEditMode) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onToggleEditMode(); // Enter edit mode
-                    }
-                }}
+                onClick={handleClick}
+                onDoubleClick={handleDoubleClick}
             >
                 {/* Left Cell Type Indicator - always takes up space, visibility controlled by opacity */}
                 <div className={`cell-type-indicator flex flex-col items-center justify-start px-1 py-2 bg-background-secondary border-r border-border rounded-l-lg transition-opacity duration-200 ${

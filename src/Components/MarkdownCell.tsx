@@ -176,8 +176,13 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
   return (
     <div className="cell markdown-cell p-2">
       <div 
-        className="markdown-content prose prose-sm max-w-none dark:prose-invert"
-        dangerouslySetInnerHTML={{ __html: renderedContent }} 
+        className="markdown-content markdown-rendered-content prose prose-sm max-w-none dark:prose-invert"
+        dangerouslySetInnerHTML={{ __html: renderedContent }}
+        onDoubleClick={(e) => {
+          // Prevent text selection on double-click and let the event bubble to CellContainer
+          e.preventDefault();
+        }}
+        style={{ userSelect: 'text' }} // Keep text selectable for single clicks and drag selections
       />
     </div>
   );
