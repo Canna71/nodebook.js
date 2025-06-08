@@ -4,7 +4,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Separator } from '@/components/ui/separator';
 import { useCommands } from '@/Engine/CommandProvider';
 import {
-  PanelLeftIcon,
   SaveIcon,
   FileIcon,
   PlayIcon,
@@ -39,32 +38,12 @@ export function Toolbar() {
   const saveInfo = getCommandInfo('notebook.save');
   const newInfo = getCommandInfo('notebook.new');
   const executeAllInfo = getCommandInfo('notebook.executeAll');
-  const toggleSidebarInfo = getCommandInfo('ui.toggleSidebar');
   const undoInfo = getCommandInfo('edit.undo');
   const redoInfo = getCommandInfo('edit.redo');
 
   return (
-    <div className="flex items-center h-12 px-4 border-b border-border bg-background">
+    <div className="fixed top-0 left-0 right-0 z-40 flex items-center h-12 pl-12 pr-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <TooltipProvider>
-        {/* Sidebar Toggle */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleCommand('ui.toggleSidebar')}
-              className="mr-2"
-            >
-              <PanelLeftIcon className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {toggleSidebarInfo?.tooltip}
-          </TooltipContent>
-        </Tooltip>
-
-        <Separator orientation="vertical" className="mx-2 h-6" />
-
         {/* File Operations */}
         <div className="flex items-center space-x-1">
           <Tooltip>
