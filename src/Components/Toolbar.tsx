@@ -6,6 +6,7 @@ import { useCommands } from '@/Engine/CommandProvider';
 import {
   SaveIcon,
   FileIcon,
+  FolderOpenIcon,
   PlayIcon,
   UndoIcon,
   RedoIcon,
@@ -37,6 +38,7 @@ export function Toolbar() {
 
   const saveInfo = getCommandInfo('notebook.save');
   const newInfo = getCommandInfo('notebook.new');
+  const openInfo = getCommandInfo('notebook.open');
   const executeAllInfo = getCommandInfo('notebook.executeAll');
   const undoInfo = getCommandInfo('edit.undo');
   const redoInfo = getCommandInfo('edit.redo');
@@ -58,6 +60,21 @@ export function Toolbar() {
             </TooltipTrigger>
             <TooltipContent>
               {newInfo?.tooltip}
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleCommand('notebook.open')}
+              >
+                <FolderOpenIcon className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {openInfo?.tooltip}
             </TooltipContent>
           </Tooltip>
 

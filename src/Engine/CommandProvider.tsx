@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect } from 'react';
 import { CommandManager } from './CommandManager';
 import { ICommandManager, CommandContext } from '@/Types/CommandTypes';
@@ -8,6 +7,7 @@ import { commandManagerSingleton } from './CommandManagerSingleton';
 import {
     SaveNotebookCommand,
     NewNotebookCommand,
+    OpenNotebookCommand,
     AddCellCommand,
     ParameterizedAddCellCommand,
     ExecuteAllCellsCommand,
@@ -18,6 +18,7 @@ import {
 import {
     DocumentArrowDownIcon as SaveIcon,
     DocumentPlusIcon,
+    FolderOpenIcon,
     PlusIcon,
     PlayIcon,
     Bars3Icon,
@@ -113,6 +114,14 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
         });
 
         commandManager.registerCommand({
+            id: 'notebook.open',
+            command: new OpenNotebookCommand(getContext),
+            shortcut: 'Cmd+O',
+            icon: FolderOpenIcon,
+            tooltip: 'Open notebook (Cmd+O)'
+        });
+
+        commandManager.registerCommand({
             id: 'notebook.executeAll',
             command: new ExecuteAllCellsCommand(getContext),
             shortcut: 'Shift+Cmd+Enter',
@@ -192,6 +201,7 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
             const commandIds = [
                 'notebook.save', 
                 'notebook.new', 
+                'notebook.open',
                 'notebook.executeAll', 
                 'cell.add', 
                 'cell.add.code',

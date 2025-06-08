@@ -79,6 +79,39 @@ export class NewNotebookCommand extends BaseCommand {
 }
 
 /**
+ * Open notebook command
+ */
+export class OpenNotebookCommand extends BaseCommand {
+    getDescription(): string {
+        return 'Open an existing notebook';
+    }
+
+    async execute(): Promise<void> {
+        try {
+            // Use window.api to show open dialog
+            const result = await window.api.openFileDialog({
+                title: 'Open Notebook',
+                filters: [
+                    { name: 'Notebook Files', extensions: ['nbjs', 'json'] },
+                    { name: 'All Files', extensions: ['*'] }
+                ]
+            });
+
+            if (!result.canceled && result.filePaths.length > 0) {
+                await this.context.applicationProvider.loadNotebook(result.filePaths[0]);
+            }
+            
+            log.debug('Open notebook command executed');
+        } catch (error) {
+            log.error('Error opening notebook:', error);
+            await window.api.showErrorBox('Open Failed', 
+                `Failed to open notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw error;
+        }
+    }
+}
+
+/**
  * Enhanced Add cell command with support for multiple cell types and intelligent insertion
  */
 export class AddCellCommand extends BaseCommand {
