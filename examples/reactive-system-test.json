@@ -3,20 +3,7 @@
     {
       "type": "markdown",
       "id": "header",
-      "content": "<h2>Reactive System Test</h2><p>Test input cell → code cell → markdown cell reactivity</p>"
-    },
-    {
-      "type": "input",
-      "id": "base-price-input",
-      "label": "Base Price ($)",
-      "inputType": "number",
-      "variableName": "basePrice",
-      "value": 100,
-      "props": {
-        "min": 0,
-        "max": 1000,
-        "step": 1
-      }
+      "content": "# Reactive System Test\n\nTest input cell → code cell → markdown cell reactivity"
     },
     {
       "type": "input",
@@ -29,6 +16,19 @@
         "min": 0,
         "max": 50,
         "step": 0.1
+      }
+    },
+    {
+      "type": "input",
+      "id": "base-price-input",
+      "label": "Base Price ($)",
+      "inputType": "number",
+      "variableName": "basePrice",
+      "value": 100,
+      "props": {
+        "min": 0,
+        "max": 1000,
+        "step": 1
       }
     },
     {

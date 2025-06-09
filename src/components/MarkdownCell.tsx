@@ -6,6 +6,7 @@ import { MarkdownCellDefinition } from '@/Types/NotebookModel';
 import Editor from './Editor';
 import { oneDark } from '@codemirror/theme-one-dark';
 import MarkdownIt from 'markdown-it';
+import { useMarkdownCompletions } from '@/hooks/useMarkdownCompletions';
 
 interface MarkdownCellProps {
   definition: MarkdownCellDefinition;
@@ -22,11 +23,14 @@ const md = new MarkdownIt({
 
 export function MarkdownCell({ definition, initialized, isEditMode = false }: MarkdownCellProps) {
   const { reactiveStore } = useReactiveSystem();
-  const { currentModel, setModel, setDirty } = useApplication();
+  const { updateCell } = useApplication();
   const [renderedContent, setRenderedContent] = React.useState('');
   
   // Local state for content being edited
   const [currentContent, setCurrentContent] = useState(definition.content);
+
+  // Get markdown completion source for reactive variables
+  const markdownCompletionSource = useMarkdownCompletions();
 
   // Update local state when definition changes
   useEffect(() => {
@@ -139,19 +143,8 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
     // Update local state immediately for responsive editing
     setCurrentContent(newContent);
     
-    // Update the notebook model to persist changes
-    if (currentModel) {
-      const updatedModel = {
-        ...currentModel,
-        cells: currentModel.cells.map(cell => 
-          cell.id === definition.id 
-            ? { ...cell, content: newContent }
-            : cell
-        )
-      };
-      setModel(updatedModel);
-      setDirty(true);
-    }
+    // Update the notebook model through state manager
+    updateCell(definition.id, { content: newContent }, 'Update markdown cell');
   };
 
   if (isEditMode) {
@@ -165,6 +158,7 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
             theme={oneDark}
             onChange={onContentChange}
             showLineNumbers={false}
+            markdownCompletions={markdownCompletionSource}
             placeholder="# Write your markdown here...\n\nYou can use {{variableName}} to embed reactive values."
             dimensions={{
               width: '100%', // Explicitly constrain to container width
@@ -182,8 +176,13 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
   return (
     <div className="cell markdown-cell p-2">
       <div 
-        className="markdown-content prose prose-sm max-w-none dark:prose-invert"
-        dangerouslySetInnerHTML={{ __html: renderedContent }} 
+        className="markdown-content markdown-rendered-content prose prose-sm max-w-none dark:prose-invert"
+        dangerouslySetInnerHTML={{ __html: renderedContent }}
+        onDoubleClick={(e) => {
+          // Prevent text selection on double-click and let the event bubble to CellContainer
+          e.preventDefault();
+        }}
+        style={{ userSelect: 'text' }} // Keep text selectable for single clicks and drag selections
       />
     </div>
   );

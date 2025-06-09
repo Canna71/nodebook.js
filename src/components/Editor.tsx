@@ -34,6 +34,7 @@ type EditorProps = {
         getObjectCompletions: (objectPath: string) => Promise<Completion[]>;
         getScopeVariables?: () => Promise<Completion[]>;
     }
+    markdownCompletions?: CompletionSource // NEW: Add markdown completion source
     placeholder?: string
     theme?: Extension
     dimensions?: EditorDimensions
@@ -47,14 +48,18 @@ function getLanguageExtension(
     runtimeCompletions?: { 
         getObjectCompletions: (objectPath: string) => Promise<Completion[]>;
         getScopeVariables?: () => Promise<Completion[]>;
-    }
+    },
+    markdownCompletions?: CompletionSource
 ): Extension {
     switch (language) {
         case 'json':
             return json()
         case 'xml':
             return xml()
-        case 'markdown': // NEW: Add markdown case
+        case 'markdown': // NEW: Add markdown case with completion support
+            if (markdownCompletions) {
+                return [markdown(), autocompletion({ override: [markdownCompletions] })]
+            }
             return markdown()
         case 'text':
             return [] // plain text, no language extension
@@ -393,6 +398,7 @@ export default function Editor({
     customVariableCompletions,
     objectCompletions,
     runtimeCompletions,
+    markdownCompletions,
     placeholder,
     theme,
     dimensions,
@@ -556,7 +562,7 @@ export default function Editor({
                                 })
                             ]
                     ),
-                    languageCompartment.of(getLanguageExtension(language, customCompletions, objectCompletions, runtimeCompletions)),
+                    languageCompartment.of(getLanguageExtension(language, customCompletions, objectCompletions, runtimeCompletions, markdownCompletions)),
                     listenerCompartment.of(listener),
                     // Setup completion compartment for JSON variable completions only
                     completionCompartment.of(
@@ -604,10 +610,10 @@ export default function Editor({
     useEffect(() => {
         if (viewRef.current) {
             viewRef.current.dispatch({
-                effects: languageCompartment.reconfigure(getLanguageExtension(language, customCompletions, objectCompletions, runtimeCompletions))
+                effects: languageCompartment.reconfigure(getLanguageExtension(language, customCompletions, objectCompletions, runtimeCompletions, markdownCompletions))
             })
         }
-    }, [language, customCompletions, objectCompletions, runtimeCompletions])
+    }, [language, customCompletions, objectCompletions, runtimeCompletions, markdownCompletions])
 
     // Update listener if onChange changes
     useEffect(() => {

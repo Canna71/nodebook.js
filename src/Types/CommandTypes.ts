@@ -31,12 +31,26 @@ export interface CommandContext {
     // Application services
     applicationProvider: {
         saveNotebook: (filePath?: string) => Promise<void>;
+        showSaveAsDialog: () => Promise<void>;
         newNotebook: () => void;
         loadNotebook: (filePath: string) => Promise<void>;
         currentModel: any;
+        currentFilePath: string | null;
         setModel: (model: any) => void;
         setDirty: (dirty: boolean) => void;
         isDirty: boolean;
+        // Undo/Redo operations
+        canUndo: () => boolean;
+        canRedo: () => boolean;
+        undo: () => boolean;
+        redo: () => boolean;
+        getUndoDescription: () => string | null;
+        getRedoDescription: () => string | null;
+        // Cell operations through state manager
+        updateCell: (cellId: string, updates: any, description?: string) => void;
+        addCell: (cellType: string, insertIndex?: number, description?: string) => string | null;
+        deleteCell: (cellId: string, description?: string) => void;
+        moveCell: (cellId: string, direction: 'up' | 'down', description?: string) => void;
     };
     
     // Reactive system

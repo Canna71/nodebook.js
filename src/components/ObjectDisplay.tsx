@@ -3,6 +3,7 @@ import ReactJson, { ThemeKeys, ThemeObject } from 'react-json-view';
 
 import SeriesRenderer from './SeriesRenderer';
 import DataFrameRenderer from './DataFrameRenderer';
+import { useReactiveSystem } from '../Engine/ReactiveProvider';
 
 interface ObjectDisplayProps {
   data: any;
@@ -45,6 +46,40 @@ export function ObjectDisplay({
   enableClipboard = true,
   theme = 'tomorrow'
 }: ObjectDisplayProps) {
+  const reactiveContext = useReactiveSystem();
+
+  // Reverse lookup function to find variable name by object reference
+  const findVariableNameByReference = useMemo(() => {
+    if (name !== false || !reactiveContext?.reactiveStore) {
+      return undefined;
+    }
+
+    try {
+      const allVariableNames = reactiveContext.reactiveStore.getAllVariableNames();
+      
+      for (const variableName of allVariableNames) {
+        try {
+          const variableValue = reactiveContext.reactiveStore.getValue(variableName);
+          // Use strict equality to check if it's the same object reference
+          if (variableValue === data) {
+            return variableName;
+          }
+        } catch (error) {
+          // Skip variables that can't be accessed
+          continue;
+        }
+      }
+    } catch (error) {
+      // If there's any error in the lookup process, just return undefined
+      console.warn('ObjectDisplay: Error during reverse variable lookup:', error);
+    }
+
+    return undefined;
+  }, [name, data, reactiveContext]);
+
+  // Determine the effective name to pass to specialized renderers
+  const effectiveName = name !== false ? name : findVariableNameByReference;
+
   // Handle different data types
   if (data === null || data === undefined) {
     return <span className="text-foreground italic">null</span>;
@@ -56,11 +91,11 @@ export function ObjectDisplay({
 
   // Check for specific object types and use specialized renderers
   if (isDanfoDataFrame(data)) {
-    return <DataFrameRenderer data={data} name={typeof name === 'string' ? name : undefined} />;
+    return <DataFrameRenderer data={data} name={effectiveName} editable={true} />;
   }
 
   if (isDanfoSeries(data)) {
-    return <SeriesRenderer data={data} name={typeof name === 'string' ? name : undefined} />;
+    return <SeriesRenderer data={data} name={effectiveName} />;
   }
 
   // TODO: Add more specific renderers here for other object types

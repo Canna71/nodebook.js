@@ -19,7 +19,7 @@ interface FormulaCellProps {
 
 export function FormulaCell({ definition, initialized, isEditMode = false }: FormulaCellProps) {
   const { reactiveStore } = useReactiveSystem();
-  const { currentModel, setModel, setDirty } = useApplication();
+  const { updateCell } = useApplication();
   const [value, setValue] = useReactiveValue(definition.variableName, null);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,8 +80,6 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
 
   // Update cell definition with specific config
   const updateCellDefinitionWithConfig = (config: typeof editConfig) => {
-    if (!currentModel) return;
-
     // Only require non-empty variable name - allow incomplete formulas
     if (!config.variableName.trim()) {
       return; // Skip update only if variable name is empty
@@ -94,16 +92,8 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
       formula: config.formula // Don't trim or validate - allow any content
     };
 
-    // Update the model
-    const updatedModel = {
-      ...currentModel,
-      cells: currentModel.cells.map(cell => 
-        cell.id === definition.id ? updatedCell : cell
-      )
-    };
-
-    setModel(updatedModel);
-    setDirty(true);
+    // Update through state manager
+    updateCell(definition.id, updatedCell, 'Update formula cell');
   };
 
   const renderEditMode = () => {

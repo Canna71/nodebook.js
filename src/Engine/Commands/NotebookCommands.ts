@@ -40,7 +40,17 @@ export class SaveNotebookCommand extends BaseCommand {
 
     async execute(): Promise<void> {
         try {
-            await this.context.applicationProvider.saveNotebook();
+            // Check if we have a current file path
+            const currentFilePath = this.context.applicationProvider.currentFilePath;
+            
+            if (currentFilePath) {
+                // Save to existing file
+                await this.context.applicationProvider.saveNotebook();
+            } else {
+                // No file path, show Save As dialog
+                await this.context.applicationProvider.showSaveAsDialog();
+            }
+            
             log.debug('Save notebook command executed');
         } catch (error) {
             log.error('Error saving notebook:', error);
@@ -63,6 +73,66 @@ export class NewNotebookCommand extends BaseCommand {
             log.debug('New notebook command executed');
         } catch (error) {
             log.error('Error creating new notebook:', error);
+            throw error;
+        }
+    }
+}
+
+/**
+ * Open notebook command
+ */
+export class OpenNotebookCommand extends BaseCommand {
+    getDescription(): string {
+        return 'Open an existing notebook';
+    }
+
+    async execute(): Promise<void> {
+        try {
+            // Use window.api to show open dialog
+            const result = await window.api.openFileDialog({
+                title: 'Open Notebook',
+                filters: [
+                    { name: 'Notebook Files', extensions: ['nbjs', 'json'] },
+                    { name: 'All Files', extensions: ['*'] }
+                ]
+            });
+
+            if (!result.canceled && result.filePaths.length > 0) {
+                await this.context.applicationProvider.loadNotebook(result.filePaths[0]);
+            }
+            
+            log.debug('Open notebook command executed');
+        } catch (error) {
+            log.error('Error opening notebook:', error);
+            await window.api.showErrorBox('Open Failed', 
+                `Failed to open notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw error;
+        }
+    }
+}
+
+/**
+ * Save As notebook command
+ */
+export class SaveAsNotebookCommand extends BaseCommand {
+    getDescription(): string {
+        return 'Save the current notebook with a new name';
+    }
+
+    canExecute(): boolean {
+        return !!this.context.applicationProvider.currentModel;
+    }
+
+    async execute(): Promise<void> {
+        try {
+            // Use the existing showSaveAsDialog implementation
+            await this.context.applicationProvider.showSaveAsDialog();
+            
+            log.debug('Save As notebook command executed');
+        } catch (error) {
+            log.error('Error in Save As notebook:', error);
+            await window.api.showErrorBox('Save As Failed', 
+                `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
             throw error;
         }
     }
@@ -201,40 +271,58 @@ export class ToggleSidebarCommand extends BaseCommand {
 }
 
 /**
- * Placeholder undo command (for future implementation)
+ * Undo command - reverses the last state-changing operation
  */
 export class UndoCommand extends BaseCommand {
     getDescription(): string {
-        return 'Undo the last action';
+        const description = this.context.applicationProvider.getUndoDescription();
+        return description ? `Undo: ${description}` : 'Undo';
     }
 
     canExecute(): boolean {
-        // TODO: Implement undo stack
-        return false;
+        return this.context.applicationProvider.canUndo();
     }
 
     execute(): void {
-        // TODO: Implement undo functionality
-        log.warn('Undo command not yet implemented');
+        try {
+            const success = this.context.applicationProvider.undo();
+            if (success) {
+                log.debug('Undo command executed successfully');
+            } else {
+                log.warn('Undo command failed - nothing to undo');
+            }
+        } catch (error) {
+            log.error('Error executing undo command:', error);
+            throw error;
+        }
     }
 }
 
 /**
- * Placeholder redo command (for future implementation)
+ * Redo command - reapplies a previously undone operation
  */
 export class RedoCommand extends BaseCommand {
     getDescription(): string {
-        return 'Redo the last undone action';
+        const description = this.context.applicationProvider.getRedoDescription();
+        return description ? `Redo: ${description}` : 'Redo';
     }
 
     canExecute(): boolean {
-        // TODO: Implement redo stack
-        return false;
+        return this.context.applicationProvider.canRedo();
     }
 
     execute(): void {
-        // TODO: Implement redo functionality
-        log.warn('Redo command not yet implemented');
+        try {
+            const success = this.context.applicationProvider.redo();
+            if (success) {
+                log.debug('Redo command executed successfully');
+            } else {
+                log.warn('Redo command failed - nothing to redo');
+            }
+        } catch (error) {
+            log.error('Error executing redo command:', error);
+            throw error;
+        }
     }
 }
 
