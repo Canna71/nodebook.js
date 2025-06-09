@@ -792,9 +792,7 @@ export class CodeCellEngine {
                             if (prop === 'exports') return exports;
 
                             // Generic DOM output container (Scenario 2)
-                            if (prop === 'outEl') {
-                                return outputContainer || null;
-                            }
+                            if (prop === 'outEl') return outputContainer || null;
 
                             // Enhanced output function (Scenario 1)
                             if (prop === 'output') {
@@ -805,14 +803,16 @@ export class CodeCellEngine {
                                             if (outputContainer) {
                                                 // Append DOM element to container
                                                 outputContainer.appendChild(value);
+                                                log.debug(`DOM element appended to output container for cell ${cellId}`);
                                             } else {
-                                                console.warn('DOM element output attempted but no container available for cell', cellId);
+                                                log.warn(`DOM element output attempted but no container available for cell ${cellId}`);
                                             }
                                         } else {
                                             // Handle as regular output value
                                             outputValues.push(value);
                                         }
                                     });
+                                    log.debug(`Output captured for cell ${cellId}:`, values);
                                     return values.length === 1 ? values[0] : values;
                                 };
                             }
@@ -966,9 +966,7 @@ export class CodeCellEngine {
             });
 
             // Create a reactive value for this cell's execution state
-            console.log('🔄 Setting execution count for cell:', cellId, 'count:', executionCount);
             this.reactiveStore.define(`__cell_${cellId}_execution`, executionCount);
-            console.log('🔄 Execution count set for cell:', cellId, 'reactive value updated');
 
             // Set up reactive execution for dependencies (only if not already set up)
             if (!previousCellInfo || JSON.stringify(previousCellInfo.dependencies) !== JSON.stringify(dependencyArray)) {
@@ -1032,9 +1030,7 @@ export class CodeCellEngine {
                     }
                     
                     // Re-execute with the same container that was last used
-                    console.log('🔄 Reactive re-execution starting for cell:', cellId);
                     this.executeCodeCell(cellId, code, lastContainer);
-                    console.log('🔄 Reactive re-execution completed for cell:', cellId);
                 } catch (error) {
                     log.error(`Error re-executing code cell ${cellId}:`, error);
                 }
@@ -1050,17 +1046,7 @@ export class CodeCellEngine {
         if (!cellInfo) {
             throw new Error(`Code cell ${cellId} has not been executed before`);
         }
-        
-        // Get the last used container from cell info
-        const lastContainer = cellInfo.lastOutputContainer;
-        
-        // Clear previous DOM output if container is available
-        if (lastContainer) {
-            lastContainer.innerHTML = '';
-        }
-        
-        // Re-execute with the same container that was last used
-        return this.executeCodeCell(cellId, cellInfo.code, lastContainer);
+        return this.executeCodeCell(cellId, cellInfo.code);
     }
 
     /**

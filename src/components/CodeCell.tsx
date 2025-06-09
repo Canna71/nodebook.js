@@ -22,7 +22,7 @@ interface CodeCellProps {
 // Add CodeCell component for display purposes
 export function CodeCell({ definition, initialized, isEditMode = false }: CodeCellProps) {
     const { codeCellEngine } = useReactiveSystem();
-    const { updateCell } = useApplication();
+    const { currentModel, setModel, setDirty } = useApplication();
 
     // Get code completions for IntelliSense
     const codeCompletions = useCodeCompletions();
@@ -31,11 +31,6 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
 
     // Subscribe to execution count to know when cell re-executes
     const [executionCount] = useReactiveValue(`__cell_${definition.id}_execution`, 0);
-    
-    // Debug log execution count changes
-    useEffect(() => {
-        console.log('🎯 CodeCell execution count changed for', definition.id, ':', executionCount);
-    }, [executionCount, definition.id]);
 
     // Local state for the code being edited
     const [currentCode, setCurrentCode] = useState(definition.code);
@@ -107,8 +102,19 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         // Update the engine's internal tracking
         codeCellEngine.updateCodeCell(definition.id, newCode);
         
-        // Update the notebook model through state manager
-        updateCell(definition.id, { code: newCode }, 'Update code cell');
+        // Update the notebook model to persist changes
+        if (currentModel) {
+            const updatedModel = {
+                ...currentModel,
+                cells: currentModel.cells.map(cell => 
+                    cell.id === definition.id 
+                        ? { ...cell, code: newCode }
+                        : cell
+                )
+            };
+            setModel(updatedModel);
+            setDirty(true);
+        }
         
         log.debug(`Code cell ${definition.id} code updated`);
     };

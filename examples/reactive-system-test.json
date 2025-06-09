@@ -3,20 +3,7 @@
     {
       "type": "markdown",
       "id": "header",
-      "content": "# Reactive System Test\n\nTest input cell → code cell → markdown cell reactivity"
-    },
-    {
-      "type": "input",
-      "id": "tax-rate-input",
-      "label": "Tax Rate (%)",
-      "inputType": "number",
-      "variableName": "taxRate",
-      "value": 8.5,
-      "props": {
-        "min": 0,
-        "max": 50,
-        "step": 0.1
-      }
+      "content": "<h2>Reactive System Test</h2><p>Test input cell → code cell → markdown cell reactivity</p>"
     },
     {
       "type": "input",
@@ -29,6 +16,19 @@
         "min": 0,
         "max": 1000,
         "step": 1
+      }
+    },
+    {
+      "type": "input",
+      "id": "tax-rate-input",
+      "label": "Tax Rate (%)",
+      "inputType": "number",
+      "variableName": "taxRate",
+      "value": 8.5,
+      "props": {
+        "min": 0,
+        "max": 50,
+        "step": 0.1
       }
     },
     {

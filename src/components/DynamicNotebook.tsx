@@ -17,13 +17,7 @@ interface DynamicNotebookProps {
 
 export function DynamicNotebook({ model }: DynamicNotebookProps) {
   const { reactiveStore, formulaEngine, enhancedFormulaEngine, codeCellEngine } = useReactiveSystem();
-  const { 
-    addCell: addCellToNotebook, 
-    deleteCell: deleteCellFromNotebook, 
-    moveCell: moveCellInNotebook, 
-    selectedCellId, 
-    setSelectedCellId 
-  } = useApplication();
+  const { currentModel, setModel, setDirty, selectedCellId, setSelectedCellId } = useApplication();
   const { getAvailableModules } = useCodeCellModules();
   const [initialized, setInitialized] = React.useState(false);
 
@@ -80,27 +74,79 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
   };
 
   const addCell = (cellType: CellDefinition['type'], insertIndex?: number) => {
-    console.log(`DynamicNotebook.addCell called with:`, { cellType, insertIndex });
+    console.log(`DynamicNotebook.addCell called with:`, { cellType, insertIndex, hasCurrentModel: !!currentModel });
     
-    // Use state manager's addCell method
-    const newCellId = addCellToNotebook(cellType, insertIndex, `Add ${cellType} cell`);
-    
-    if (newCellId) {
-      // Update editing state to include the new cell in edit mode
-      setEditingState(prev => ({
-        ...prev,
-        editModeCells: new Set([...prev.editModeCells, newCellId])
-      }));
-      
-      // Select the new cell
-      setSelectedCellId(newCellId);
-      console.log(`Cell added successfully. New cell ID: ${newCellId}`);
+    if (!currentModel) {
+      console.error('No current model available');
+      return;
     }
+
+    const newId = generateCellId();
+    let newCell: CellDefinition;
+
+    switch (cellType) {
+      case 'markdown':
+        newCell = {
+          type: 'markdown',
+          id: newId,
+          content: '# New Section\n\nAdd your content here...'
+        };
+        break;
+      case 'code':
+        newCell = {
+          type: 'code',
+          id: newId,
+          code: '// Write your code here\nconsole.log("Hello, world!");'
+        };
+        break;
+      case 'formula':
+        newCell = {
+          type: 'formula',
+          id: newId,
+          variableName: `result_${Date.now()}`,
+          formula: '$variable1 + $variable2',
+        };
+        break;
+      case 'input':
+        newCell = {
+          type: 'input',
+          id: newId,
+          inputType: 'number',
+          variableName: `input_${Date.now()}`,
+          value: 0
+        };
+        break;
+      default:
+        console.error(`Unknown cell type: ${cellType}`);
+        return;
+    }
+
+    const newCells = [...currentModel.cells];
+    const targetIndex = insertIndex ?? newCells.length;
+    newCells.splice(targetIndex, 0, newCell);
+
+    console.log(`Adding cell at index ${targetIndex}:`, newCell);
+
+    const updatedModel = { ...currentModel, cells: newCells };
+    setModel(updatedModel);
+    setDirty(true);
+
+    // Select and edit the new cell
+    setSelectedCellId(newId);
+    setEditingState(prev => ({
+      ...prev,
+      editModeCells: new Set([...prev.editModeCells, newId])
+    }));
+
+    console.log(`Cell added successfully. New model has ${updatedModel.cells.length} cells`);
   };
 
   const deleteCell = (cellId: string) => {
-    // Use state manager's deleteCell method
-    deleteCellFromNotebook(cellId, 'Delete cell');
+    if (!currentModel) return;
+
+    const newCells = currentModel.cells.filter(cell => cell.id !== cellId);
+    setModel({ ...currentModel, cells: newCells });
+    setDirty(true);
 
     // Clear selection if deleted cell was selected
     if (selectedCellId === cellId) {
@@ -120,8 +166,20 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
   };
 
   const moveCell = (cellId: string, direction: 'up' | 'down') => {
-    // Use state manager's moveCell method
-    moveCellInNotebook(cellId, direction, `Move cell ${direction}`);
+    if (!currentModel) return;
+
+    const cellIndex = currentModel.cells.findIndex(cell => cell.id === cellId);
+    if (cellIndex === -1) return;
+
+    const newIndex = direction === 'up' ? cellIndex - 1 : cellIndex + 1;
+    if (newIndex < 0 || newIndex >= currentModel.cells.length) return;
+
+    const newCells = [...currentModel.cells];
+    const [movedCell] = newCells.splice(cellIndex, 1);
+    newCells.splice(newIndex, 0, movedCell);
+
+    setModel({ ...currentModel, cells: newCells });
+    setDirty(true);
   };
 
   const selectCell = (cellId: string) => {

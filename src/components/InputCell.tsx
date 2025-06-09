@@ -24,7 +24,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
   const effectiveVariableName = definition.variableName.trim() || generateAutoVariableName(definition.id);
   
   const [value, setValue] = useReactiveValue(effectiveVariableName, definition.value);
-  const { updateCell } = useApplication();
+  const { currentModel, setModel, setDirty } = useApplication();
 
   // Calculate edit config from definition (no state needed!)
   const getEditConfig = () => ({
@@ -64,11 +64,21 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
 
   // NEW: Save value back to definition whenever it changes
   useEffect(() => {
-    if (value === undefined || value === definition.value) return;
+    if (!currentModel || value === undefined || value === definition.value) return;
 
-    // Update the definition with the current value through state manager
-    updateCell(definition.id, { value: value }, 'Update input value');
-  }, [value, updateCell, definition.id, definition.value]);
+    // Update the definition with the current value
+    const updatedModel = {
+      ...currentModel,
+      cells: currentModel.cells.map(cell => 
+        cell.id === definition.id && cell.type === 'input'
+          ? { ...cell, value: value }
+          : cell
+      )
+    };
+
+    setModel(updatedModel);
+    setDirty(true);
+  }, [value, currentModel, setModel, setDirty, definition.id, definition.value]);
 
   // Use label if provided, otherwise fallback to variableName (or auto name if empty)
   const displayLabel = definition.label || 
@@ -85,6 +95,8 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
 
   // Function to update cell definition with specific config
   const updateCellDefinitionWithConfig = (config: ReturnType<typeof getEditConfig>) => {
+    if (!currentModel) return;
+
     // Allow empty variable names - they will get auto-generated names for reactivity
     
     // Build props object
@@ -118,8 +130,16 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
       props: Object.keys(props).length > 0 ? props : undefined
     };
 
-    // Update through state manager
-    updateCell(definition.id, updatedCell, 'Update input cell configuration');
+    // Update the model
+    const updatedModel = {
+      ...currentModel,
+      cells: currentModel.cells.map(cell => 
+        cell.id === definition.id ? updatedCell : cell
+      )
+    };
+
+    setModel(updatedModel);
+    setDirty(true);
   };
 
   // Helper function for numeric constraint changes

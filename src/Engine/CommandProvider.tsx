@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect } from 'react';
 import { CommandManager } from './CommandManager';
 import { ICommandManager, CommandContext } from '@/Types/CommandTypes';
@@ -6,9 +7,7 @@ import { useReactiveSystem } from './ReactiveProvider';
 import { commandManagerSingleton } from './CommandManagerSingleton';
 import {
     SaveNotebookCommand,
-    SaveAsNotebookCommand,
     NewNotebookCommand,
-    OpenNotebookCommand,
     AddCellCommand,
     ParameterizedAddCellCommand,
     ExecuteAllCellsCommand,
@@ -18,9 +17,7 @@ import {
 } from './Commands/NotebookCommands';
 import {
     DocumentArrowDownIcon as SaveIcon,
-    DocumentArrowDownIcon as SaveAsIcon,
     DocumentPlusIcon,
-    FolderOpenIcon,
     PlusIcon,
     PlayIcon,
     Bars3Icon,
@@ -116,22 +113,6 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
         });
 
         commandManager.registerCommand({
-            id: 'notebook.open',
-            command: new OpenNotebookCommand(getContext),
-            shortcut: 'Cmd+O',
-            icon: FolderOpenIcon,
-            tooltip: 'Open notebook (Cmd+O)'
-        });
-
-        commandManager.registerCommand({
-            id: 'notebook.saveAs',
-            command: new SaveAsNotebookCommand(getContext),
-            shortcut: 'Shift+Cmd+S',
-            icon: SaveAsIcon,
-            tooltip: 'Save notebook as (Shift+Cmd+S)'
-        });
-
-        commandManager.registerCommand({
             id: 'notebook.executeAll',
             command: new ExecuteAllCellsCommand(getContext),
             shortcut: 'Shift+Cmd+Enter',
@@ -211,8 +192,6 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
             const commandIds = [
                 'notebook.save', 
                 'notebook.new', 
-                'notebook.open',
-                'notebook.saveAs',
                 'notebook.executeAll', 
                 'cell.add', 
                 'cell.add.code',
@@ -237,26 +216,12 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
         const context: CommandContext = {
             applicationProvider: {
                 saveNotebook: applicationProvider.saveNotebook,
-                showSaveAsDialog: applicationProvider.showSaveAsDialog,
                 newNotebook: applicationProvider.newNotebook,
                 loadNotebook: applicationProvider.loadNotebook,
                 currentModel: applicationProvider.currentModel,
-                currentFilePath: applicationProvider.currentFilePath,
                 setModel: applicationProvider.setModel,
                 setDirty: applicationProvider.setDirty,
-                isDirty: applicationProvider.isDirty,
-                // Add undo/redo operations
-                canUndo: applicationProvider.canUndo,
-                canRedo: applicationProvider.canRedo,
-                undo: applicationProvider.undo,
-                redo: applicationProvider.redo,
-                getUndoDescription: applicationProvider.getUndoDescription,
-                getRedoDescription: applicationProvider.getRedoDescription,
-                // Cell operations through state manager
-                updateCell: applicationProvider.updateCell,
-                addCell: applicationProvider.addCell,
-                deleteCell: applicationProvider.deleteCell,
-                moveCell: applicationProvider.moveCell
+                isDirty: applicationProvider.isDirty
             },
             reactiveSystem: {
                 codeCellEngine: reactiveSystem.codeCellEngine,
