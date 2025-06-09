@@ -79,9 +79,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             setError(`Failed to load notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
             setLoading(false);
         }
-    }, [stateManager]);    
-    
-    const saveNotebook = useCallback(async (filePath?: string) => {
+    }, [stateManager]);    const saveNotebook = useCallback(async (filePath?: string) => {
         if (!state.currentModel) {
             setError('No notebook to save');
             toast.error('No notebook to save');
