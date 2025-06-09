@@ -161,7 +161,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
 
         const handleMenuEvent = {
             'menu-new-notebook': async () => {
-                if (currentCommandManager) {
+                if (currentCommandManager && currentCommandManager.getCommand('notebook.new')) {
                     try {
                         await currentCommandManager.executeCommand('notebook.new');
                     } catch (error) {
@@ -170,12 +170,12 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                             `Failed to create new notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
                     }
                 } else {
-                    // Fallback to direct call if no command manager
+                    // Fallback to direct call if no command manager or command not found
                     newNotebook();
                 }
             },
             'menu-open-notebook': async () => {
-                if (currentCommandManager) {
+                if (currentCommandManager && currentCommandManager.getCommand('notebook.open')) {
                     try {
                         await currentCommandManager.executeCommand('notebook.open');
                     } catch (error) {
@@ -184,7 +184,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                             `Failed to open notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
                     }
                 } else {
-                    // Fallback to direct implementation if no command manager
+                    // Fallback to direct implementation if no command manager or command not found
                     try {
                         const result = await window.api.openFileDialog({
                             title: 'Open Notebook',
@@ -205,7 +205,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 }
             },
             'menu-save-notebook': async () => {
-                if (currentCommandManager) {
+                if (currentCommandManager && currentCommandManager.getCommand('notebook.save')) {
                     try {
                         await currentCommandManager.executeCommand('notebook.save');
                     } catch (error) {
@@ -219,7 +219,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                         }
                     }
                 } else {
-                    // Fallback to direct call if no command manager
+                    // Fallback to direct call if no command manager or command not found
                     try {
                         if (state.currentFilePath) {
                             await saveNotebook();
@@ -234,7 +234,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 }
             },
             'menu-save-notebook-as': async () => {
-                if (currentCommandManager) {
+                if (currentCommandManager && currentCommandManager.getCommand('notebook.saveAs')) {
                     try {
                         await currentCommandManager.executeCommand('notebook.saveAs');
                     } catch (error) {
@@ -243,7 +243,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                             `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
                     }
                 } else {
-                    // Fallback to direct implementation if no command manager
+                    // Fallback to direct implementation if no command manager or command not found
                     try {
                         await showSaveAsDialog();
                     } catch (error) {
