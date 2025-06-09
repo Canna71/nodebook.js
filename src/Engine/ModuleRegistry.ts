@@ -109,18 +109,16 @@ export class ModuleRegistry {
       log.warn('Node.js require not available, cannot add node_modules path');
     }
 
-    const danfojs = this.nodeRequire('danfojs'); // Try both danfojs-node and danfojs
-
-    // const danfojs = this.nodeRequire("/Users/gcannata/Projects/notebookjs/node_modules/danfojs/dist/danfojs-browser/src/index.js"); // || this.nodeRequire(process.resourcesPath + "/" + 'danfojs/lib/bundle.js'); // Try both danfojs-node and danfojs
+    // const danfojs = this.nodeRequire('danfojs'); // Try both danfojs-node and danfojs
 
 
     // Register statically imported danfojs
-    if (danfojs) {
-      this.modules.set('danfojs', danfojs);
-      log.info('✓ Successfully loaded danfojs (bundled via ES6 import)');
-    } else {
-      log.warn('⚠️ danfojs not available');
-    }
+    // if (danfojs) {
+    //   this.modules.set('danfojs', danfojs);
+    //   log.info('✓ Successfully loaded danfojs (bundled via ES6 import)');
+    // } else {
+    //   log.warn('⚠️ danfojs not available');
+    // }
 
     // Optional npm modules
     const optionalModules:string[] = [
