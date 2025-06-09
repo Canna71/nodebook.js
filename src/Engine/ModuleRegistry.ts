@@ -76,8 +76,8 @@ export class ModuleRegistry {
 
     // Built-in Node.js modules
     const builtinModules = [
-      'os', 'path', 'fs', 'util', 'crypto', 'url', 'querystring',
-      'events', 'stream', 'buffer', 'process'
+      'os', 'path', 'fs', 'util'
+    //   'events', 'stream', 'buffer', 'process'
     ];
 
     builtinModules.forEach(moduleName => {
@@ -123,9 +123,9 @@ export class ModuleRegistry {
     }
 
     // Optional npm modules
-    const optionalModules = [
-      '@tensorflow/tfjs', '@tensorflow/tfjs-node',
-      'lodash', 'moment', 'axios'
+    const optionalModules:string[] = [
+    //   '@tensorflow/tfjs',
+    //   'lodash', 'moment', 'axios'
     ];
 
     optionalModules.forEach(moduleName => {
