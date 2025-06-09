@@ -462,7 +462,7 @@ function registerHandlers() {
         return { canceled: false, filePath: result.filePath };
     }
     );
-    ipcMain.handle('show-messge-box', async (event, options) => {
+    ipcMain.handle('show-message-box', async (event, options) => {
         const { dialog } = require('electron');
         const result = await dialog.showMessageBox({
             type: 'info',
