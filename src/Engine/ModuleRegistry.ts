@@ -6,7 +6,7 @@ const path = require('node:path');
 
 // preloaded modules
 
-import * as danfojs from '/node_modules/danfojs/dist/danfojs-browser/src';
+// import * as danfojs from '/node_modules/danfojs/dist/danfojs-browser/src';
 
 
 const log = anylogger('ModuleRegistry');
@@ -114,9 +114,8 @@ export class ModuleRegistry {
       log.warn('Node.js require not available, cannot add node_modules path');
     }
 
-    // const danfojs = this.nodeRequire('danfojs'); // Try both danfojs-node and danfojs
+    const danfojs = this.nodeRequire('danfojs'); // Try both danfojs-node and danfojs
 
-    // Use ES6 import for danfojs-node
 
     // Register statically imported danfojs
     if (danfojs) {

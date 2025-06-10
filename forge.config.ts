@@ -13,7 +13,7 @@ import fs from 'fs-extra';
 
 // List of modules to place outside ASAR
     const modulesToExternalize = [
-    // 'danfojs',
+    'danfojs',
     'long',
     '@tensorflow',
     'seedrandom',
