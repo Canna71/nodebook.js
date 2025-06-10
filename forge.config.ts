@@ -40,7 +40,9 @@ import fs from 'fs-extra';
     'lodash.clonedeep',
     'fast-deep-equal',
     'lodash.truncate',
-    'd3'
+    'd3',
+    'ansi-regex',
+    'emoji-regex'
 ];
 
 const config: ForgeConfig = {
