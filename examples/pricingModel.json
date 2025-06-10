@@ -45,7 +45,7 @@
       "type": "formula",
       "id": "subtotal-formula",
       "variableName": "subtotal",
-      "formula": "$price * $quantity"
+      "formula": "$price * $quantity + 2"
     },
     {
       "type": "formula",

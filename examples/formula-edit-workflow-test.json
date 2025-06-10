@@ -1,0 +1,29 @@
+{
+  "cells": [
+    {
+      "type": "input",
+      "id": "input-base",
+      "variableName": "basePrice",
+      "value": 100,
+      "label": "Base Price ($)"
+    },
+    {
+      "type": "input", 
+      "id": "input-tax",
+      "variableName": "taxRate",
+      "value": 0.08,
+      "label": "Tax Rate (decimal)"
+    },
+    {
+      "type": "formula",
+      "id": "formula-total",
+      "variableName": "totalPrice",
+      "formula": "basePrice * (1 + taxRate)"
+    },
+    {
+      "type": "markdown",
+      "id": "display-result",
+      "content": "## Formula Editing Test\n\n**Current Total:** ${{totalPrice?.toFixed(2) || 'Calculating...'}}\n\n### Instructions:\n1. **Edit the formula above** - change it to something like `basePrice * 2`\n2. **Notice:** The formula doesn't re-execute until you click \"Apply Changes\" or press Ctrl+Enter\n3. **Test the fix:** After applying changes, modify the basePrice input - it should now use the NEW formula\n\n### Workflow:\n- ✏️ **Edit Mode**: Type changes without immediate execution\n- 🔄 **Dirty State**: See \"Unsaved changes\" indicator\n- ✅ **Apply**: Click button or press `Ctrl+Enter` to commit\n- ❌ **Cancel**: Click button or press `Esc` to discard\n\nThis prevents unnecessary re-execution during editing while ensuring formulas update correctly when committed!"
+    }
+  ]
+}
