@@ -33,7 +33,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     focusedCellId: null
   });
 
-  // Initialize reactive values and formulas from cells
+  // Initialize reactive values and formulas from cells - ONLY ONCE on mount
   useEffect(() => {
     const initializeNotebook = async () => {
       // Initialize cells in the order they appear in the notebook
@@ -72,7 +72,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     };
 
     initializeNotebook();
-  }, [model, reactiveStore, formulaEngine, enhancedFormulaEngine, codeCellEngine]);
+  }, [reactiveStore, formulaEngine, enhancedFormulaEngine, codeCellEngine]); // Removed 'model' from dependencies!
 
   // Cell management functions
   const generateCellId = (): string => {

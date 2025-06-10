@@ -54,6 +54,19 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         setCurrentCode(definition.code);
     }, [definition.code]);
 
+    // Separate effect for initial setup - only runs once when initialized
+    useEffect(() => {
+        if (!initialized || !outputContainerRef.current) return;
+
+        // Set up DOM container reference for future executions
+        log.debug(`Code cell ${definition.id} setting up DOM container reference`);
+        const cellInfo = codeCellEngine['executedCells'].get(definition.id);
+        if (cellInfo) {
+            cellInfo.lastOutputContainer = outputContainerRef.current;
+        }
+    }, [initialized, definition.id, codeCellEngine]);
+
+    // Separate effect for execution count changes - only runs when cell is actually executed
     useEffect(() => {
         if (!initialized) return;
 
@@ -69,28 +82,12 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
             setConsoleOutput(rawOutput);
             setOutputValues(cellOutputValues);
 
-            log.debug(`Code cell ${definition.id} UI updated:`, {
+            log.debug(`Code cell ${definition.id} UI updated after execution:`, {
                 exports: newExports,
                 dependencies: newDependencies,
-                outputValues: cellOutputValues
+                outputValues: cellOutputValues,
+                executionCount
             });
-
-            // Execute the cell with DOM container when component first mounts and is initialized
-            if (outputContainerRef.current) {
-                if (executionCount === 0) {
-                    // Cell hasn't been executed yet, execute it for the first time
-                    log.debug(`Code cell ${definition.id} executing for the first time with DOM container`);
-                    codeCellEngine.executeCodeCell(definition.id, currentCode, outputContainerRef.current);
-                } else {
-                    // Cell was already executed during initialization, just update the container reference
-                    // for future reactive executions
-                    log.debug(`Code cell ${definition.id} setting up DOM container (execution count: ${executionCount})`);
-                    const cellInfo = codeCellEngine['executedCells'].get(definition.id);
-                    if (cellInfo) {
-                        cellInfo.lastOutputContainer = outputContainerRef.current;
-                    }
-                }
-            }
 
         } catch (err) {
             setError(err as Error);
@@ -98,7 +95,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
             setDependencies([]);
             setOutputValues([]);
         }
-    }, [initialized, definition.id, codeCellEngine, executionCount, currentCode]);
+    }, [initialized, definition.id, codeCellEngine, executionCount]);
 
     const onCodeChange = (newCode: string) => {
         // Update local state immediately for responsive editing
