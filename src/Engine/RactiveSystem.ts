@@ -435,7 +435,8 @@ export class ReactiveFormulaEngine {
                 log.error(`Error evaluating formula "${formula}":`, error);
                 throw new FormulaError(`Error evaluating formula: ${error instanceof Error ? error.message : String(error)}`);
             }
-        };
+
+        }        
     }
 
     /**
@@ -793,6 +794,11 @@ export class CodeCellEngine {
 
                             // Generic DOM output container (Scenario 2)
                             if (prop === 'outEl') {
+                                if (outputContainer) {
+                                    log.debug(`outEl accessed in cell ${cellId} - container available`);
+                                } else {
+                                    log.debug(`outEl accessed in cell ${cellId} - no container available, returning null`);
+                                }
                                 return outputContainer || null;
                             }
 

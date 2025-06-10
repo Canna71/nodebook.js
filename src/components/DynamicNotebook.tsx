@@ -45,11 +45,13 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
             log.debug(`Initialized reactive value from input cell: ${inputCell.variableName} = ${inputCell.value}`);
           }
         } else if (cell.type === 'code') {
-          // Execute code cells during initialization to ensure their exports are available
-          // for subsequent formula cells
+          // Execute code cells during initialization
+          // Try to find existing DOM container by ID
+          const outputContainer = document.getElementById(`${cell.id}-outEl`) as HTMLDivElement | null;
+          
           try {
-            const exports = codeCellEngine.executeCodeCell(cell.id, cell.code);
-            log.debug(`Executed code cell during initialization: ${cell.id}, exports:`, exports);
+            const exports = codeCellEngine.executeCodeCell(cell.id, cell.code, outputContainer || undefined);
+            log.debug(`Executed code cell during initialization: ${cell.id}, exports:`, exports, `container: ${outputContainer ? 'found' : 'not found'}`);
           } catch (error) {
             log.error(`Error executing code cell ${cell.id} during initialization:`, error);
           }
@@ -63,9 +65,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
         // Note: Markdown cells don't need initialization
       }
 
-      // Don't execute code cells during initialization - let individual CodeCell components handle this
-      // when they mount and have their DOM containers ready
-      log.debug('Notebook initialized with reactive values and formulas from cells. Code cells will execute when components mount.');
+      log.debug('Notebook initialized with reactive values and formulas from cells.');
 
       // Mark as initialized to trigger component rendering
       setInitialized(true);

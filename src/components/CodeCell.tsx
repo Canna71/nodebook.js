@@ -154,8 +154,9 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                 </div>
             )}
 
-            {/* DOM Output Container */}
+            {/* DOM Output Container with predictable ID */}
             <div 
+                id={`${definition.id}-outEl`}
                 ref={outputContainerRef}
                 className="dom-output-container bg-background border-t border-border"
                 style={{ minHeight: '0px' }}
