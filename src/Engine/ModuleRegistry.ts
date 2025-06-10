@@ -4,6 +4,11 @@ import anylogger from 'anylogger';
 // const { app, remote } = require('electron');
 const path = require('node:path');
 
+// preloaded modules
+
+import * as danfojs from '/node_modules/danfojs/dist/danfojs-browser/src';
+
+
 const log = anylogger('ModuleRegistry');
 // Ensure TextDecoder is available globally
 /**
@@ -111,14 +116,15 @@ export class ModuleRegistry {
 
     // const danfojs = this.nodeRequire('danfojs'); // Try both danfojs-node and danfojs
 
+    // Use ES6 import for danfojs-node
 
     // Register statically imported danfojs
-    // if (danfojs) {
-    //   this.modules.set('danfojs', danfojs);
-    //   log.info('✓ Successfully loaded danfojs (bundled via ES6 import)');
-    // } else {
-    //   log.warn('⚠️ danfojs not available');
-    // }
+    if (danfojs) {
+      this.modules.set('danfojs', danfojs);
+      log.info('✓ Successfully loaded danfojs (bundled via ES6 import)');
+    } else {
+      log.warn('⚠️ danfojs not available');
+    }
 
     // Optional npm modules
     const optionalModules:string[] = [

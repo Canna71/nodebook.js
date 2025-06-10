@@ -9,9 +9,11 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 import path from 'node:path';
 import fs from 'fs-extra';
 
+// const modulesToExternalize = ["axios"];
+
 // List of modules to place outside ASAR
     const modulesToExternalize = [
-    'danfojs',
+    // 'danfojs',
     'long',
     '@tensorflow',
     'seedrandom',

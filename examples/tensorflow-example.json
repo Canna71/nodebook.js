@@ -1,12 +1,6 @@
 {
   "title": "TensorFlow.js Numeric Operations Example",
   "description": "A comprehensive notebook demonstrating TensorFlow.js for numeric operations on arrays as an alternative to numpy.",
-  "reactiveValues": [
-    { "name": "arraySize", "defaultValue": 10, "type": "number" },
-    { "name": "multiplier", "defaultValue": 2.5, "type": "number" },
-    { "name": "useRandomData", "defaultValue": true, "type": "boolean" }
-  ],
-  "formulas": [],
   "cells": [
     {
       "type": "markdown",
@@ -19,8 +13,12 @@
       "label": "Array Size",
       "inputType": "range",
       "variableName": "arraySize",
-      "defaultValue": 10,
-      "props": { "min": 5, "max": 100, "step": 1 }
+      "value": 10,
+      "props": {
+        "min": 5,
+        "max": 100,
+        "step": 1
+      }
     },
     {
       "type": "input",
@@ -28,8 +26,12 @@
       "label": "Multiplier",
       "inputType": "number",
       "variableName": "multiplier",
-      "defaultValue": 2.5,
-      "props": { "min": 0.1, "max": 10, "step": 0.1 }
+      "value": 2.5,
+      "props": {
+        "min": 0.1,
+        "max": 10,
+        "step": 0.1
+      }
     },
     {
       "type": "input",
@@ -57,7 +59,7 @@
     {
       "type": "code",
       "id": "basic-operations",
-      "code": "// Basic mathematical operations\nexports.sum1 = tf.sum(tensor1).arraySync();\nexports.mean1 = tf.mean(tensor1).arraySync();\nexports.std1 = tf.moments(tensor1).variance.sqrt().arraySync();\nexports.min1 = tf.min(tensor1).arraySync();\nexports.max1 = tf.max(tensor1).arraySync();\n\nconsole.log('Statistics for Tensor 1:');\nconsole.log('Sum:', exports.sum1);\nconsole.log('Mean:', exports.mean1);\nconsole.log('Standard Deviation:', exports.std1);\nconsole.log('Min:', exports.min1);\nconsole.log('Max:', exports.max1);\n\n// Output statistics\noutput({\n  operation: 'Basic Statistics',\n  tensor: 'data1',\n  statistics: {\n    sum: exports.sum1,\n    mean: exports.mean1,\n    std: exports.std1,\n    min: exports.min1,\n    max: exports.max1,\n    range: exports.max1 - exports.min1\n  }\n});"
+      "code": "// Basic mathematical operations\ntf.setBackend('webgl')\n\nexports.sum1 = tf.sum(tensor1).arraySync();\nexports.mean1 = tf.mean(tensor1).arraySync();\nexports.std1 = tf.moments(tensor1).variance.sqrt().arraySync();\nexports.min1 = tf.min(tensor1).arraySync();\nexports.max1 = tf.max(tensor1).arraySync();\n\nconsole.log('Statistics for Tensor 1:');\nconsole.log('Sum:', exports.sum1);\nconsole.log('Mean:', exports.mean1);\nconsole.log('Standard Deviation:', exports.std1);\nconsole.log('Min:', exports.min1);\nconsole.log('Max:', exports.max1);\n\n// Output statistics\noutput({\n  operation: 'Basic Statistics',\n  tensor: 'data1',\n  statistics: {\n    sum: exports.sum1,\n    mean: exports.mean1,\n    std: exports.std1,\n    min: exports.min1,\n    max: exports.max1,\n    range: exports.max1 - exports.min1\n  }\n});"
     },
     {
       "type": "code",
@@ -91,6 +93,12 @@
     }
   ],
   "metadata": {
-    "tags": ["tensorflow", "numeric", "arrays", "numpy-alternative", "mathematics"]
+    "tags": [
+      "tensorflow",
+      "numeric",
+      "arrays",
+      "numpy-alternative",
+      "mathematics"
+    ]
   }
 }
