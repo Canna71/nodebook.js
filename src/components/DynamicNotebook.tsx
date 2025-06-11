@@ -33,7 +33,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     focusedCellId: null
   });
 
-  // Initialize reactive values and formulas from cells
+  // Initialize reactive values and formulas from cells - ONLY ONCE on mount
   useEffect(() => {
     const initializeNotebook = async () => {
       // Initialize cells in the order they appear in the notebook
@@ -72,7 +72,41 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     };
 
     initializeNotebook();
-  }, [model, reactiveStore, formulaEngine, enhancedFormulaEngine, codeCellEngine]);
+  }, [reactiveStore, formulaEngine, enhancedFormulaEngine, codeCellEngine]); // Removed 'model' from dependencies!
+
+  // Track previous formula states to detect changes
+  const [previousFormulas, setPreviousFormulas] = React.useState<Map<string, string>>(new Map());
+
+  // Watch for formula cell changes and update the enhanced formula engine
+  useEffect(() => {
+    if (!initialized || !model) return;
+
+    const currentFormulas = new Map<string, string>();
+    let hasChanges = false;
+
+    // Check each formula cell for changes
+    model.cells.forEach(cell => {
+      if (cell.type === 'formula') {
+        const formulaCell = cell as FormulaCellDefinition;
+        const currentFormula = formulaCell.formula;
+        const previousFormula = previousFormulas.get(formulaCell.variableName);
+        
+        currentFormulas.set(formulaCell.variableName, currentFormula);
+        
+        // Only update if the formula has actually changed
+        if (previousFormula !== currentFormula) {
+          enhancedFormulaEngine.updateFormula(formulaCell.variableName, formulaCell.formula);
+          log.debug(`Updated enhanced formula: ${formulaCell.variableName} = ${formulaCell.formula} (was: ${previousFormula || 'new'})`);
+          hasChanges = true;
+        }
+      }
+    });
+
+    // Update our tracking state only if there were changes
+    if (hasChanges || previousFormulas.size !== currentFormulas.size) {
+      setPreviousFormulas(currentFormulas);
+    }
+  }, [initialized, model?.cells, enhancedFormulaEngine]); // Removed previousFormulas from dependencies to avoid loops
 
   // Cell management functions
   const generateCellId = (): string => {

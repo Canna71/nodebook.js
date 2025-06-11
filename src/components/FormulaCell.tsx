@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useReactiveValue, useReactiveSystem } from '@/Engine/ReactiveProvider';
 import { useApplication } from '@/Engine/ApplicationProvider';
 import { FormulaCellDefinition } from '@/Types/NotebookModel';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { Button } from './ui/button';
 import Editor from './Editor';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { log } from './DynamicNotebook';
@@ -28,11 +29,12 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
   const moduleCompletions = useModuleCompletions();
   const runtimeCompletions = useFormulaRuntimeCompletions();
 
-  // Edit mode state (simplified)
+  // Edit mode state with dirty tracking
   const [editConfig, setEditConfig] = useState({
     variableName: definition.variableName,
     formula: definition.formula
   });
+  const [isDirty, setIsDirty] = useState(false);
 
   // Update edit config when definition changes
   useEffect(() => {
@@ -40,6 +42,7 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
       variableName: definition.variableName,
       formula: definition.formula
     });
+    setIsDirty(false);
   }, [definition]);
 
   useEffect(() => {
@@ -69,32 +72,73 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
     }
   }, [value, initialized, definition.id, definition.variableName]);
 
-  // Helper function to handle config changes and auto-update
+  // Helper function to handle config changes (no auto-commit)
   const handleConfigChange = (updates: Partial<typeof editConfig>) => {
     const newConfig = { ...editConfig, ...updates };
     setEditConfig(newConfig);
     
-    // Update the cell definition immediately without validation
-    updateCellDefinitionWithConfig(newConfig);
+    // Mark as dirty if there are actual changes
+    const hasChanges = newConfig.variableName !== definition.variableName || 
+                      newConfig.formula !== definition.formula;
+    setIsDirty(hasChanges);
   };
 
-  // Update cell definition with specific config
-  const updateCellDefinitionWithConfig = (config: typeof editConfig) => {
+  // Commit changes to the cell definition
+  const commitChanges = useCallback(() => {
+    if (!isDirty) return;
+
     // Only require non-empty variable name - allow incomplete formulas
-    if (!config.variableName.trim()) {
-      return; // Skip update only if variable name is empty
+    if (!editConfig.variableName.trim()) {
+      setError('Variable name is required');
+      return;
     }
 
-    // Create updated cell definition - allow any formula content
+    // Create updated cell definition
     const updatedCell: FormulaCellDefinition = {
       ...definition,
-      variableName: config.variableName.trim(),
-      formula: config.formula // Don't trim or validate - allow any content
+      variableName: editConfig.variableName.trim(),
+      formula: editConfig.formula
     };
 
     // Update through state manager
     updateCell(definition.id, updatedCell, 'Update formula cell');
-  };
+    setIsDirty(false);
+    setError(null);
+  }, [isDirty, editConfig, definition, updateCell]);
+
+  // Discard changes and revert to saved state
+  const discardChanges = useCallback(() => {
+    setEditConfig({
+      variableName: definition.variableName,
+      formula: definition.formula
+    });
+    setIsDirty(false);
+    setError(null);
+  }, [definition]);
+
+  // Keyboard shortcuts for edit mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isEditMode || !isDirty) return;
+      
+      // Ctrl+Enter or Cmd+Enter to apply changes
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        commitChanges();
+      }
+      
+      // Escape to cancel changes
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        discardChanges();
+      }
+    };
+
+    if (isEditMode) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isEditMode, isDirty, commitChanges, discardChanges]);
 
   const renderEditMode = () => {
     return (
@@ -141,6 +185,32 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
             </div>
           </div>
         </div>
+
+        {/* Action buttons - only show when there are changes */}
+        {isDirty && (
+          <div className="flex items-center gap-2 mt-3 pt-2 border-t border-border">
+            <Button
+              onClick={commitChanges}
+              size="sm"
+              className="h-7 px-3 text-xs"
+              title="Apply changes (Ctrl+Enter)"
+            >
+              Apply Changes
+            </Button>
+            <Button
+              onClick={discardChanges}
+              variant="outline"
+              size="sm"
+              className="h-7 px-3 text-xs"
+              title="Cancel changes (Escape)"
+            >
+              Cancel
+            </Button>
+            <span className="text-xs text-secondary-foreground ml-2">
+              <kbd className="px-1 py-0.5 text-xs font-mono bg-muted border rounded">Ctrl+Enter</kbd> to apply, <kbd className="px-1 py-0.5 text-xs font-mono bg-muted border rounded">Esc</kbd> to cancel
+            </span>
+          </div>
+        )}
       </div>
     );
   };
@@ -183,6 +253,11 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
         <code className="text-xs bg-muted text-secondary-foreground px-1 py-0.5 rounded">
           {definition.formula}
         </code>
+        {isDirty && (
+          <span className="text-orange-500 text-xs font-medium">
+            • Unsaved changes
+          </span>
+        )}
         {error && (
           <>
             <span className="text-secondary-foreground">→</span>
