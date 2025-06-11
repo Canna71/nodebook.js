@@ -12,6 +12,9 @@ const path = require('node:path');
 // case 5)
 const danfojs = require('danfojs'); // Assuming danfojs is installed in node_modules
 
+// case 6)
+// import * as danfojs from 'danfojs'; 
+
 const log = anylogger('ModuleRegistry');
 // Ensure TextDecoder is available globally
 /**
