@@ -6,8 +6,11 @@ const path = require('node:path');
 
 // preloaded modules
 
+// case 2)
 // import * as danfojs from '/node_modules/danfojs/dist/danfojs-browser/src';
 
+// case 5)
+const danfojs = require('danfojs'); // Assuming danfojs is installed in node_modules
 
 const log = anylogger('ModuleRegistry');
 // Ensure TextDecoder is available globally
@@ -114,8 +117,12 @@ export class ModuleRegistry {
       log.warn('Node.js require not available, cannot add node_modules path');
     }
 
-    const danfojs = this.nodeRequire('danfojs'); // Try both danfojs-node and danfojs
-
+    // case 1)
+    // const danfojs = this.nodeRequire('danfojs'); 
+    // case 3)
+    // const danfojs = require('danfojs'); 
+    // case 4)
+    // const danfojs:any = undefined;
 
     // Register statically imported danfojs
     if (danfojs) {
