@@ -8,15 +8,18 @@ const path = require('node:path');
 
 // case 2)
 // import * as danfojs from '/node_modules/danfojs/dist/danfojs-browser/src';
+
 // #if !DEV
 // @ts-ignore - danfojs module path resolution
 import * as danfojs from '/node_modules/danfojs/dist/danfojs-browser/src';
 // #endif
+
 // case 5)
 // const danfojs = require('danfojs'); // Assuming danfojs is installed in node_modules
 
 // case 6)
 // import danfojs from 'danfojs';
+
 // case 7)
 // import * as danfojs from 'danfojs'; 
 
