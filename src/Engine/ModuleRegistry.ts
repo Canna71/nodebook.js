@@ -8,7 +8,10 @@ const path = require('node:path');
 
 // case 2)
 // import * as danfojs from '/node_modules/danfojs/dist/danfojs-browser/src';
-
+// #if !DEV
+// @ts-ignore - danfojs module path resolution
+import * as danfojs from '/node_modules/danfojs/dist/danfojs-browser/src';
+// #endif
 // case 5)
 // const danfojs = require('danfojs'); // Assuming danfojs is installed in node_modules
 
@@ -123,11 +126,15 @@ export class ModuleRegistry {
     }
 
     // case 1)
-    const danfojs = this.nodeRequire('danfojs'); 
+    // const danfojs = this.nodeRequire('danfojs'); 
     // case 3)
     // const danfojs = require('danfojs'); 
     // case 4)
     // const danfojs:any = undefined;
+
+// #if DEV
+const danfojs:any = undefined;
+// #endif
 
     // Register statically imported danfojs
     if (danfojs) {
