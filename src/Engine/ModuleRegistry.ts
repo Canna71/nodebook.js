@@ -10,9 +10,11 @@ const path = require('node:path');
 // import * as danfojs from '/node_modules/danfojs/dist/danfojs-browser/src';
 
 // case 5)
-const danfojs = require('danfojs'); // Assuming danfojs is installed in node_modules
+// const danfojs = require('danfojs'); // Assuming danfojs is installed in node_modules
 
 // case 6)
+// import danfojs from 'danfojs';
+// case 7)
 // import * as danfojs from 'danfojs'; 
 
 const log = anylogger('ModuleRegistry');
@@ -121,7 +123,7 @@ export class ModuleRegistry {
     }
 
     // case 1)
-    // const danfojs = this.nodeRequire('danfojs'); 
+    const danfojs = this.nodeRequire('danfojs'); 
     // case 3)
     // const danfojs = require('danfojs'); 
     // case 4)
