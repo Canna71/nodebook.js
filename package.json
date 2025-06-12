@@ -51,7 +51,6 @@
     "@vitejs/plugin-react": "^4.4.1",
     "anylogger": "^1.0.11",
     "electron": "36.1.0",
-    "electron-rebuild": "^3.2.9",
     "eslint": "9.26.0",
     "eslint-plugin-import": "^2.25.0",
     "tailwindcss": "^4.1.8",
