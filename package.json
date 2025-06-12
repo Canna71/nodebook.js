@@ -20,7 +20,8 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@tensorflow/tfjs-node",
-      "electron"
+      "electron",
+      "lzma-native"
     ],
     "ignoredBuiltDependencies": [
       "electron-winstaller",
