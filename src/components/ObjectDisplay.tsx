@@ -44,7 +44,7 @@ export function ObjectDisplay({
   displayDataTypes = true, 
   displayObjectSize = true,
   enableClipboard = true,
-  theme = 'tomorrow'
+  theme = 'codeschool'
 }: ObjectDisplayProps) {
   const reactiveContext = useReactiveSystem();
 
