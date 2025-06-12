@@ -213,6 +213,12 @@
     width: 2px;
     background: linear-gradient(to bottom, rgba(59, 130, 246, 0.3), rgba(34, 197, 94, 0.3));
   }
+
+  .prose {
+   
+    --tw-prose-invert-pre-bg: rgb(0 0 0 / 15%);
+    }
+  
 }
 
 /* @utility border-err {
