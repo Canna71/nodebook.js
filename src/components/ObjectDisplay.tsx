@@ -4,6 +4,7 @@ import ReactJson, { ThemeKeys, ThemeObject } from 'react-json-view';
 import SeriesRenderer from './SeriesRenderer';
 import DataFrameRenderer from './DataFrameRenderer';
 import { useReactiveSystem } from '../Engine/ReactiveProvider';
+const { typesetMath } = require("mathjax-electron");
 
 interface ObjectDisplayProps {
   data: any;

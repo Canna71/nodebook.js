@@ -39,6 +39,16 @@
       "type": "code",
       "id": "code_mbti4nn0_53ohw",
       "code": "\noutput(mathjs.derivative('2x^2 + 3x + 4', 'x').toString()) // '4 * x + 3'\noutput(mathjs.derivative('sin(2x)', 'x').toString()) // '2 * cos(2 * x)'"
+    },
+    {
+      "type": "markdown",
+      "id": "md_mbtik8lm_f6fwo",
+      "content": "## Latex output\n"
+    },
+    {
+      "type": "code",
+      "id": "code_mbtikuc4_1sv43",
+      "code": "const expr = 'sqrt(75 / 3) + det([[-1, 2], [3, 1]]) - sin(pi / 4)^2';\nconst node = mathjs.parse(expr);\noutput(\"$$\"+node.toTex()+\"$$\");\n\n\n"
     }
   ]
 }
