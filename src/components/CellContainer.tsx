@@ -46,7 +46,7 @@ export function CellContainer({
     initialized,
     children
 }: CellContainerProps) {
-    const [isHovered, setIsHovered] = useState(true);
+    const [isHovered, setIsHovered] = useState(false);
     const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
     // Add escape key listener for edit mode
