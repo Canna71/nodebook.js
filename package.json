@@ -79,6 +79,7 @@
     "anylogger-console": "^1.0.0",
     "anylogger-loglevel": "^1.0.0",
     "axios": "^1.9.0",
+    "better-react-mathjax": "^2.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "codemirror": "^6.0.1",

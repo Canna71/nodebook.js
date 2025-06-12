@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import anylogger from 'anylogger';
+import { MathJax } from 'better-react-mathjax';
 
 const log = anylogger('LatexRenderer');
 
@@ -27,39 +28,40 @@ export function isLatexContent(content: string): boolean {
 export function LatexRenderer({ content, inline = false }: LatexRendererProps) {
     const containerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (!containerRef.current || !content) return;
+    // useEffect(() => {
+    //     if (!containerRef.current || !content) return;
 
-        const container = containerRef.current;
+    //     const container = containerRef.current;
         
-        try {
-            // Set the content
-            container.innerHTML = content;
-            // Helper.loadMathJax(document, () => {
-            // // Apply MathJax typesetting
-            //     mathjaxHelper.typesetMath(container);
-            //     log.debug('LaTeX content rendered successfully:', content);
-            // });
+    //     try {
+    //         // Set the content
+    //         container.innerHTML = content;
+    //         // Helper.loadMathJax(document, () => {
+    //         // // Apply MathJax typesetting
+    //         //     mathjaxHelper.typesetMath(container);
+    //         //     log.debug('LaTeX content rendered successfully:', content);
+    //         // });
             
-        } catch (error) {
-            log.error('Error rendering LaTeX content:', error);
-            // Fallback to plain text display
-            container.textContent = content;
-        }
-    }, [content]);
+    //     } catch (error) {
+    //         log.error('Error rendering LaTeX content:', error);
+    //         // Fallback to plain text display
+    //         container.textContent = content;
+    //     }
+    // }, [content]);
 
     return (
-        <div 
-            ref={containerRef}
-            className={`latex-renderer ${inline ? 'inline' : 'block'}`}
-            style={{
-                display: inline ? 'inline' : 'block',
-                margin: inline ? '0' : '10px 0',
-                textAlign: inline ? 'inherit' : 'center',
-                fontSize: '16px',
-                lineHeight: '1.5'
-            }}
-        />
+        // <div 
+        //     ref={containerRef}
+        //     className={`latex-renderer ${inline ? 'inline' : 'block'}`}
+        //     style={{
+        //         display: inline ? 'inline' : 'block',
+        //         margin: inline ? '0' : '10px 0',
+        //         textAlign: inline ? 'inherit' : 'center',
+        //         fontSize: '16px',
+        //         lineHeight: '1.5'
+        //     }}
+        // />
+        <MathJax>{content}</MathJax>
     );
 }
 

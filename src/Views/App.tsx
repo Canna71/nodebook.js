@@ -15,6 +15,7 @@ import { NotebookViewer } from './NotebookViewer';
 import { NotebookModel, CellDefinition } from 'src/Types/NotebookModel';
 import Layout from '@/app/layout';
 import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
+import { MathJaxContext } from 'better-react-mathjax';
 
 function AppContent() {
     const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook } = useApplication();
@@ -105,7 +106,9 @@ function AppContent() {
     return (
         <ReactiveProvider>
             <CommandProvider onAddCell={addCell}>
-                <NotebookViewer model={currentModel} />
+                <MathJaxContext>
+                    <NotebookViewer model={currentModel} />
+                </MathJaxContext>
             </CommandProvider>
         </ReactiveProvider>
     );
