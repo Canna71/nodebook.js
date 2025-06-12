@@ -5,7 +5,7 @@ import SeriesRenderer from './SeriesRenderer';
 import DataFrameRenderer from './DataFrameRenderer';
 import { useReactiveSystem } from '../Engine/ReactiveProvider';
 import { LatexRenderer, isLatexContent, renderMixedContent } from './LatexRenderer';
-const { typesetMath } = require("mathjax-electron");
+
 
 interface ObjectDisplayProps {
   data: any;

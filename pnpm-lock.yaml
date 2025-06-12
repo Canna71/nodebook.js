@@ -98,9 +98,6 @@ importers:
       markdown-it:
         specifier: ^14.1.0
         version: 14.1.0
-      mathjax-electron:
-        specifier: ^3.0.0
-        version: 3.0.0
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -3478,9 +3475,6 @@ packages:
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
-
-  mathjax-electron@3.0.0:
-    resolution: {integrity: sha512-pMm2u+8XM72ieo3Z3y4JrEO7VrpbZUnRQBFfL14l48gkZhBUPivo3nlLzYjoKPDBL1Z9qVcBDu1aD8ZhHYW3iA==}
 
   mathjs@9.4.4:
     resolution: {integrity: sha512-5EEJXnWOzLDgMHSFyw623nH+MTBZxquWwXtrzTsingOouJJ6UZG2VNO1lwH31IMt9aMno1axO6TYleIP4YSDaQ==}
@@ -9025,8 +9019,6 @@ snapshots:
     optional: true
 
   math-intrinsics@1.1.0: {}
-
-  mathjax-electron@3.0.0: {}
 
   mathjs@9.4.4:
     dependencies:
