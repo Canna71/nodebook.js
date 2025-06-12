@@ -329,9 +329,29 @@ export class NotebookStateManager {
     // Helper methods
     private generateCellId(cellType: CellDefinition['type']): string {
         const prefix = this.getTypePrefix(cellType);
+        return this.generateSequentialId(prefix);
+    }
+
+    private generateSequentialId(prefix: string): string {
+        if (!this.currentState.currentModel) {
+            return `${prefix}_01`;
+        }
+
+        const existingIds = new Set(this.currentState.currentModel.cells.map(cell => cell.id));
+        
+        // Find the first available number
+        for (let i = 1; i <= 999; i++) {
+            const paddedNumber = i.toString().padStart(2, '0');
+            const candidateId = `${prefix}_${paddedNumber}`;
+            
+            if (!existingIds.has(candidateId)) {
+                return candidateId;
+            }
+        }
+        
+        // Fallback if somehow we reach 999 cells of the same type
         const timestamp = Date.now().toString(36);
-        const random = Math.random().toString(36).substr(2, 5);
-        return `${prefix}_${timestamp}_${random}`;
+        return `${prefix}_${timestamp}`;
     }
 
     private getTypePrefix(cellType: CellDefinition['type']): string {
@@ -362,7 +382,7 @@ export class NotebookStateManager {
                 return {
                     type: 'formula',
                     id: cellId,
-                    variableName: `result_${Date.now()}`,
+                    variableName: this.generateVariableName('fx'),
                     formula: '$variable1 + $variable2'
                 };
             case 'input':
@@ -370,11 +390,42 @@ export class NotebookStateManager {
                     type: 'input',
                     id: cellId,
                     inputType: 'number',
-                    variableName: `input_${Date.now()}`,
+                    variableName: this.generateVariableName('var'),
                     value: 0
                 };
             default:
                 throw new Error(`Unknown cell type: ${cellType}`);
         }
+    }
+
+    private generateVariableName(prefix: string): string {
+        if (!this.currentState.currentModel) {
+            return `${prefix}_01`;
+        }
+
+        // Collect all existing variable names from formula and input cells
+        const existingVariableNames = new Set<string>();
+        
+        this.currentState.currentModel.cells.forEach(cell => {
+            if (cell.type === 'formula') {
+                existingVariableNames.add((cell as FormulaCellDefinition).variableName);
+            } else if (cell.type === 'input') {
+                existingVariableNames.add((cell as InputCellDefinition).variableName);
+            }
+        });
+        
+        // Find the first available number for this prefix
+        for (let i = 1; i <= 999; i++) {
+            const paddedNumber = i.toString().padStart(2, '0');
+            const candidateVariable = `${prefix}_${paddedNumber}`;
+            
+            if (!existingVariableNames.has(candidateVariable)) {
+                return candidateVariable;
+            }
+        }
+        
+        // Fallback if somehow we reach 999 variables of the same type
+        const timestamp = Date.now().toString(36);
+        return `${prefix}_${timestamp}`;
     }
 }

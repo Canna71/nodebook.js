@@ -1,0 +1,9 @@
+{
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "md_01",
+      "content": "## Sequential Cell ID and Variable Name Test\n\nThis notebook demonstrates the new sequential naming system for cells and variables.\n\n### Current Naming Rules:\n- **Cell IDs**: `{prefix}_{number}` (e.g., `fx_01`, `code_02`, `var_03`, `md_04`)\n- **Variable Names**: `{prefix}_{number}` for formula and input cells\n- **Prefixes**:\n  - Formula cells: `fx`\n  - Code cells: `code`\n  - Input cells: `var`\n  - Markdown cells: `md`\n\n### Test Instructions:\n1. **Add new cells** using the \"+\" button\n2. **Observe the IDs** - they should follow sequential numbering\n3. **Check variable names** - formula and input cells should have sequential variable names\n4. **Delete cells and add new ones** - numbers should fill gaps (reuse deleted numbers)\n\n### Expected Behavior:\n- ✅ **Sequential numbering**: `fx_01`, `fx_02`, `fx_03`, etc.\n- ✅ **Gap filling**: If `fx_02` is deleted, next formula cell should be `fx_02` again\n- ✅ **Zero-padded**: Numbers are zero-padded (01, 02, 03, not 1, 2, 3)\n- ✅ **Type-specific**: Each cell type has its own sequence\n- ✅ **Variable names match**: Formula and input variable names follow same pattern\n\nTry adding different types of cells below to test!"
+    }
+  ]
+}
