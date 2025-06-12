@@ -162,13 +162,13 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
 
             {/* Output Values Display - No explicit label */}
             {outputValues.length > 0 && (
-                <div className="output-values bg-background-secondary px-4 py-3 border-t border-border">
-                    <div className="output-content space-y-2">
+                <div className="output-values bg-background-secondary  border-t border-border">
+                    <div className="output-content ">
                         {outputValues.map((value, index) => (
-                            <div key={index} className="output-item">
-                                {outputValues.length > 1 && (
+                            <div key={index} className="output-item px-4 py-1 [&:not(:last-child)]:border-b">
+                                {/* {outputValues.length > 1 && (
                                     <div className="text-xs text-secondary-foreground mb-1">#{index + 1}:</div>
-                                )}
+                                )} */}
                                 {value instanceof HTMLElement || value instanceof SVGElement ? (
                                     <DomElementDisplay
                                         element={value}
