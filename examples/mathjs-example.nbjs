@@ -23,7 +23,7 @@
     {
       "type": "markdown",
       "id": "md_mbti1j6a_3d4u0",
-      "content": "## work with an expression tree\n\n"
+      "content": "## work with an expression tree\n\n```c#\ninternal class() {\n\n}\n```"
     },
     {
       "type": "code",

@@ -6,6 +6,7 @@ import { MarkdownCellDefinition } from '@/Types/NotebookModel';
 import Editor from './Editor';
 import { oneDark } from '@codemirror/theme-one-dark';
 import MarkdownIt from 'markdown-it';
+import hljs from 'highlight.js';
 import { useMarkdownCompletions } from '@/hooks/useMarkdownCompletions';
 
 interface MarkdownCellProps {
@@ -18,7 +19,18 @@ interface MarkdownCellProps {
 const md = new MarkdownIt({
   html: true,
   linkify: true,
-  typographer: true
+  typographer: true,
+  highlight: function (str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return hljs.highlight(lang, str, true).value;
+      } catch (__) {
+        console.warn(`Failed to highlight code block with language "${lang}":`, __);
+      }
+    }
+
+    return ''; // use external default escaping
+  }
 });
 
 export function MarkdownCell({ definition, initialized, isEditMode = false }: MarkdownCellProps) {
