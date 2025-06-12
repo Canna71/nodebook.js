@@ -1,0 +1,21 @@
+{
+  "cells": [
+    {
+      "type": "input",
+      "id": "input-multiplier",
+      "variableName": "multiplier",
+      "value": 2,
+      "label": "Multiplier"
+    },
+    {
+      "type": "code",
+      "id": "code-test",
+      "code": "// Test code cell with commit workflow\nconst result = multiplier * 10;\nconsole.log('Current result:', result);\nexports.result = result;"
+    },
+    {
+      "type": "markdown",
+      "id": "instructions",
+      "content": "## Code Cell Commit Workflow Test\n\n**Current Result:** {{result || 'Not calculated'}}\n\n### Instructions:\n1. **Edit the code above** - try changing `multiplier * 10` to `multiplier * 20`\n2. **Notice:** You'll see \"Unsaved changes\" indicator\n3. **Don't execute yet** - change the multiplier input above\n4. **Observe:** The result doesn't change because code isn't committed\n5. **Apply changes** - Click \"Apply Changes\" or press Ctrl+Enter\n6. **Now execute** - The code should use the NEW multiplier value\n\n### Workflow Benefits:\n- ✏️ **Edit without side effects** - Changes don't affect model until committed\n- 🔄 **Visual feedback** - Clear indication of unsaved changes\n- ✅ **Explicit commit** - Intentional workflow prevents accidental updates\n- 🚀 **Auto-commit on execute** - Running code automatically commits changes\n\n### Keyboard Shortcuts:\n- `Ctrl+Enter` - Apply changes\n- `Esc` - Cancel changes and revert\n\nThis prevents the notebook model from being updated on every keystroke while maintaining responsive editing!"
+    }
+  ]
+}

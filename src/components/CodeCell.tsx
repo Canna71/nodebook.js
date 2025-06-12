@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useReactiveSystem, useReactiveValue } from '@/Engine/ReactiveProvider';
 import { useApplication } from '@/Engine/ApplicationProvider';
 import { CodeCellDefinition } from '@/Types/NotebookModel';
@@ -8,6 +8,7 @@ import Editor from './Editor';
 import { oneDark } from '@codemirror/theme-one-dark';
 import ConsoleOutput from './ConsoleOutput';
 import { PlayIcon } from '@heroicons/react/24/solid';
+import { Button } from './ui/button';
 import { DomElementDisplay } from './DomElementDisplay';
 import { CodeSummary } from './CodeSummary';
 import { useCodeCompletions, useModuleCompletions } from '@/hooks/useCodeCompletions';
@@ -40,6 +41,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
 
     // Local state for the code being edited
     const [currentCode, setCurrentCode] = useState(definition.code);
+    const [isDirty, setIsDirty] = useState(false);
 
     // Add ref for DOM output container
     const outputContainerRef = React.useRef<HTMLDivElement>(null);
@@ -53,6 +55,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     // Update local state when definition changes
     useEffect(() => {
         setCurrentCode(definition.code);
+        setIsDirty(false);
     }, [definition.code]);
 
     // Separate effect for initial setup - only runs once when initialized
@@ -102,34 +105,91 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         // Update local state immediately for responsive editing
         setCurrentCode(newCode);
         
-        // Update the engine's internal tracking
-        codeCellEngine.updateCodeCell(definition.id, newCode);
+        // Mark as dirty if there are actual changes
+        const hasChanges = newCode !== definition.code;
+        setIsDirty(hasChanges);
         
-        // Update the notebook model through state manager
-        updateCell(definition.id, { code: newCode }, 'Update code cell');
-        
-        log.debug(`Code cell ${definition.id} code updated`);
+        log.debug(`Code cell ${definition.id} code editing (dirty: ${hasChanges})`);
     };
 
+    // Commit changes to the cell definition and engine
+    const commitChanges = useCallback(() => {
+        if (!isDirty) return;
+
+        // Update the engine's internal tracking
+        codeCellEngine.updateCodeCell(definition.id, currentCode);
+        
+        // Update the notebook model through state manager
+        updateCell(definition.id, { code: currentCode }, 'Update code cell');
+        
+        setIsDirty(false);
+        log.debug(`Code cell ${definition.id} changes committed`);
+    }, [isDirty, currentCode, definition.id, definition.code, codeCellEngine, updateCell]);
+
+    // Discard changes and revert to saved state
+    const discardChanges = useCallback(() => {
+        setCurrentCode(definition.code);
+        setIsDirty(false);
+        log.debug(`Code cell ${definition.id} changes discarded`);
+    }, [definition.code, definition.id]);
+
+    // Keyboard shortcuts for edit mode
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (!isEditMode || !isDirty) return;
+            
+            // Ctrl+Enter or Cmd+Enter to apply changes
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                commitChanges();
+            }
+            
+            // Escape to cancel changes
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                discardChanges();
+            }
+        };
+
+        if (isEditMode) {
+            document.addEventListener('keydown', handleKeyDown);
+            return () => document.removeEventListener('keydown', handleKeyDown);
+        }
+    }, [isEditMode, isDirty, commitChanges, discardChanges]);
+
     const onExecute = () => {
+        // Commit any unsaved changes before executing
+        if (isDirty) {
+            commitChanges();
+        }
+        
         // Clear previous DOM output
         if (outputContainerRef.current) {
             outputContainerRef.current.innerHTML = '';
         }
         
-        // Execute with the current code (which might be different from definition.code)
+        // Execute with the current code (which should now be committed)
         codeCellEngine.executeCodeCell(definition.id, currentCode, outputContainerRef.current || undefined);
-        log.debug(`Code cell ${definition.id} executed with current code`);
+        log.debug(`Code cell ${definition.id} executed`);
     };
 
     return (
         <div className="cell code-cell border border-border rounded-lg mb-4 bg-background overflow-hidden">
             {/* Code Summary - styled like code comments */}
-            <CodeSummary 
-                code={currentCode}
-                exports={exports}
-                dependencies={dependencies}
-            />
+            <div className="flex items-center justify-between">
+                <CodeSummary 
+                    code={currentCode}
+                    exports={exports}
+                    dependencies={dependencies}
+                />
+                {isDirty && isEditMode && (
+                    <div className="px-4 py-2">
+                        <span className="text-orange-500 text-xs font-medium">
+                            • Unsaved changes
+                        </span>
+                    </div>
+                )}
+            </div>
 
             {/* Code Editor (Edit Mode) */}
             {isEditMode && (
@@ -149,6 +209,32 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                             maxHeight: '600px'
                         }}
                     />
+                    
+                    {/* Action buttons - only show when there are changes */}
+                    {isDirty && (
+                        <div className="flex items-center gap-2 mt-3 pt-2 border-t border-border">
+                            <Button
+                                onClick={commitChanges}
+                                size="sm"
+                                className="h-7 px-3 text-xs"
+                                title="Apply changes (Ctrl+Enter)"
+                            >
+                                Apply Changes
+                            </Button>
+                            <Button
+                                onClick={discardChanges}
+                                variant="outline"
+                                size="sm"
+                                className="h-7 px-3 text-xs"
+                                title="Cancel changes (Escape)"
+                            >
+                                Cancel
+                            </Button>
+                            <span className="text-xs text-secondary-foreground ml-2">
+                                <kbd className="px-1 py-0.5 text-xs font-mono bg-muted border rounded">Ctrl+Enter</kbd> to apply, <kbd className="px-1 py-0.5 text-xs font-mono bg-muted border rounded">Esc</kbd> to cancel
+                            </span>
+                        </div>
+                    )}
                 </div>
             )}
 
