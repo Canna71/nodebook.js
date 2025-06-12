@@ -7,7 +7,7 @@ import Editor from './Editor';
 import { oneDark } from '@codemirror/theme-one-dark';
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
-import 'highlight.js/styles/github-dark.css'; // Import highlight.js theme
+import 'highlight.js/styles/vs2015.css'; // Import highlight.js theme
 import { useMarkdownCompletions } from '@/hooks/useMarkdownCompletions';
 
 interface MarkdownCellProps {
