@@ -58,16 +58,6 @@ function AppContent() {
         );
     }
 
-    if (!currentModel) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <div>No notebook loaded</div>
-                </div>
-            </div>
-        );
-    }
-
     // Cell management function - generates IDs with type-based prefixes and progressive numbering
     const generateCellId = (cellType: CellDefinition['type']): string => {
         if (!currentModel?.cells) {
