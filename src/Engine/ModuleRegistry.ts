@@ -136,13 +136,17 @@ export class ModuleRegistry {
     // const danfojs:any = undefined;
 
 // #if DEV
-const danfojs:any = undefined;
+const danfojs:any = this.nodeRequire('danfojs');
 // #endif
 
     // Register statically imported danfojs
     if (danfojs) {
       this.modules.set('danfojs', danfojs);
-      log.info('✓ Successfully loaded danfojs (bundled via ES6 import)');
+      // also register the exported tensorFlow module
+      if (danfojs.tensorflow) {
+        this.modules.set('@tensorflow/tfjs', danfojs.tensorflow);
+      }
+      log.info('✓ Successfully loaded danfojs');
     } else {
       log.warn('⚠️ danfojs not available');
     }
