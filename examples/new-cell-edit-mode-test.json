@@ -1,0 +1,9 @@
+{
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "instructions",
+      "content": "## New Cell Edit Mode Test\n\nThis notebook tests that newly created cells automatically start in edit mode.\n\n### Instructions:\n1. **Add a new cell** - Use the \"+\" button between any cells\n2. **Observe:** The new cell should immediately be in edit mode (showing editor, not just content)\n3. **Test different cell types:**\n   - Add a Code cell - should show code editor immediately\n   - Add a Formula cell - should show formula editor immediately\n   - Add a Markdown cell - should show markdown editor immediately\n   - Add an Input cell - should show input controls immediately\n\n### Expected Behavior:\n- ✅ **New cells in edit mode** - Freshly created cells start ready for editing\n- ✅ **No manual toggle needed** - Skip the extra click to enter edit mode\n- ✅ **Existing cells unchanged** - Only new cells get edit mode automatically\n- ✅ **All cell types supported** - Code, Formula, Markdown, and Input cells\n\n### Technical Implementation:\n- The `DynamicNotebook` component detects newly added cells by comparing cell IDs\n- When new cells are detected, they're automatically added to the `editModeCells` set\n- This happens via a `useEffect` that watches for changes in the cell list\n- No manual state management needed when creating cells through `NotebookStateManager`\n\nTry adding cells below and above this text to test the functionality!"
+    }
+  ]
+}

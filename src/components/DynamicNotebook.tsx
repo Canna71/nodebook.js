@@ -33,6 +33,9 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     focusedCellId: null
   });
 
+  // Track previous cells to detect newly added cells
+  const [previousCellIds, setPreviousCellIds] = useState<Set<string>>(new Set());
+
   // Initialize reactive values and formulas from cells - ONLY ONCE on mount
   useEffect(() => {
     const initializeNotebook = async () => {
@@ -65,6 +68,10 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
         // Note: Markdown cells don't need initialization
       }
 
+      // Track initial cell IDs
+      const initialCellIds = new Set(model.cells.map(cell => cell.id));
+      setPreviousCellIds(initialCellIds);
+
       log.debug('Notebook initialized with reactive values and formulas from cells.');
 
       // Mark as initialized to trigger component rendering
@@ -73,6 +80,29 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
 
     initializeNotebook();
   }, [reactiveStore, formulaEngine, enhancedFormulaEngine, codeCellEngine]); // Removed 'model' from dependencies!
+
+  // Detect newly added cells and put them in edit mode
+  useEffect(() => {
+    if (!initialized) return;
+
+    const currentCellIds = new Set(model.cells.map(cell => cell.id));
+    const newCellIds = new Set([...currentCellIds].filter(id => !previousCellIds.has(id)));
+
+    if (newCellIds.size > 0) {
+      setEditingState(prev => {
+        const newEditModeCells = new Set([...prev.editModeCells, ...newCellIds]);
+        return {
+          ...prev,
+          editModeCells: newEditModeCells
+        };
+      });
+      
+      log.debug('New cells detected and added to edit mode:', Array.from(newCellIds));
+    }
+
+    // Update our tracking state
+    setPreviousCellIds(currentCellIds);
+  }, [initialized, model.cells]); // Removed previousCellIds from dependencies to prevent infinite loop
 
   // Track previous formula states to detect changes
   const [previousFormulas, setPreviousFormulas] = React.useState<Map<string, string>>(new Map());
@@ -120,13 +150,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     const newCellId = addCellToNotebook(cellType, insertIndex, `Add ${cellType} cell`);
     
     if (newCellId) {
-      // Update editing state to include the new cell in edit mode
-      setEditingState(prev => ({
-        ...prev,
-        editModeCells: new Set([...prev.editModeCells, newCellId])
-      }));
-      
-      // Select the new cell
+      // Select the new cell - edit mode will be handled automatically by the effect above
       setSelectedCellId(newCellId);
       console.log(`Cell added successfully. New cell ID: ${newCellId}`);
     }
