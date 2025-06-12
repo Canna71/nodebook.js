@@ -1,0 +1,44 @@
+{
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "md_mbthsdfa_hv9vy",
+      "content": "# Mathjs Example\n\n"
+    },
+    {
+      "type": "code",
+      "id": "code_mbthu70i_bxyvx",
+      "code": "// importing mathjs\nconst mathjs = require('mathjs')\nexports.mathjs = mathjs;\n"
+    },
+    {
+      "type": "markdown",
+      "id": "md_mbthwqrn_1f5hf",
+      "content": "## Simplify"
+    },
+    {
+      "type": "code",
+      "id": "code_mbthwfdu_el2vx",
+      "code": "const simplify = mathjs.simplify;\noutput(simplify('3 + 2 / 4').toString());\noutput(simplify('2x + 3x').toString());\noutput(simplify('2 * 3 * x', { x: 4 }).toString());\noutput(simplify('x^2 + x + 3 + x^2').toString());\noutput(simplify('x * y * -x / (x ^ 2)').toString());"
+    },
+    {
+      "type": "markdown",
+      "id": "md_mbti1j6a_3d4u0",
+      "content": "## work with an expression tree\n\n"
+    },
+    {
+      "type": "code",
+      "id": "code_mbti1x72_wlawe",
+      "code": "const f = mathjs.parse('2x + x')\nconst simplified = mathjs.simplify(f);\noutput(simplified.toString());\noutput(simplified.evaluate({ x: 4 }));"
+    },
+    {
+      "type": "markdown",
+      "id": "md_mbti4dn4_jcwbn",
+      "content": "## calculate a derivative"
+    },
+    {
+      "type": "code",
+      "id": "code_mbti4nn0_53ohw",
+      "code": "\noutput(mathjs.derivative('2x^2 + 3x + 4', 'x').toString()) // '4 * x + 3'\noutput(mathjs.derivative('sin(2x)', 'x').toString()) // '2 * cos(2 * x)'"
+    }
+  ]
+}
