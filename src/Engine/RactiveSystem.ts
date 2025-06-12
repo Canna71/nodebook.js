@@ -757,9 +757,9 @@ export class CodeCellEngine {
     }
 
     /**
-     * Execute code cell and handle exports
+     * Execute code cell and handle exports (async version)
      */
-    public executeCodeCell(cellId: string, code: string, outputContainer?: HTMLElement): string[] {
+    public async executeCodeCell(cellId: string, code: string, outputContainer?: HTMLElement): Promise<string[]> {
         // Prevent circular execution
         if (this.executingCells.has(cellId)) {
             log.debug(`Code cell ${cellId} is already executing, skipping to prevent circular reference`);
@@ -906,18 +906,21 @@ export class CodeCellEngine {
                 });
             };
 
+            // Create an async function that can handle await in user code
             const executeCode = new Function(
                 'scope',
                 `
-        with (scope) {
-          ${code}
-        }
+        return (async function() {
+            with (scope) {
+                ${code}
+            }
+        })();
         `
             );
 
-            // Execute the code with the smart proxy
+            // Execute the code with the smart proxy (now returns a Promise)
             const smartProxy = createSmartProxy();
-            executeCode(smartProxy);
+            await executeCode(smartProxy);
 
             // Collect exports from the exports object
             const exportValues = new Map<string, any>();
@@ -1022,7 +1025,7 @@ export class CodeCellEngine {
     private setupReactiveExecution(cellId: string, code: string, dependencies: string[]): void {
         // Subscribe to all dependencies
         dependencies.forEach(depName => {
-            this.reactiveStore.subscribe(depName, () => {
+            this.reactiveStore.subscribe(depName, async () => {
                 log.debug(`Dependency ${depName} changed, re-executing code cell ${cellId}`);
                 // Re-execute the code cell when dependency changes
                 try {
@@ -1036,7 +1039,7 @@ export class CodeCellEngine {
                     }
                     
                     // Re-execute with the same container that was last used
-                    this.executeCodeCell(cellId, code, lastContainer);
+                    await this.executeCodeCell(cellId, code, lastContainer);
                 } catch (error) {
                     log.error(`Error re-executing code cell ${cellId}:`, error);
                 }
@@ -1047,7 +1050,7 @@ export class CodeCellEngine {
     /**
      * Re-execute a code cell
      */
-    public reExecuteCodeCell(cellId: string): string[] {
+    public async reExecuteCodeCell(cellId: string): Promise<string[]> {
         const cellInfo = this.executedCells.get(cellId);
         if (!cellInfo) {
             throw new Error(`Code cell ${cellId} has not been executed before`);
@@ -1062,7 +1065,7 @@ export class CodeCellEngine {
         }
         
         // Re-execute with the same container that was last used
-        return this.executeCodeCell(cellId, cellInfo.code, lastContainer);
+        return await this.executeCodeCell(cellId, cellInfo.code, lastContainer);
     }
 
     /**
@@ -1260,13 +1263,13 @@ export class CodeCellEngine {
                 }
             });
 
-            // Wrap the code in an immediately-executed function that returns the result
-            const wrappedCode = `(function() { ${code} })()`;
+            // Wrap the code in an async immediately-executed function that returns the result
+            const wrappedCode = `(async function() { ${code} })()`;
             
             const executeCode = new Function('scope', `with (scope) { return ${wrappedCode}; }`);
             
-            // Execute and return the result
-            const result = executeCode(smartProxy);
+            // Execute and return the result (now awaits the async execution)
+            const result = await executeCode(smartProxy);
             return result;
 
         } catch (error) {
@@ -1327,7 +1330,7 @@ export class FormulaEngine {
     /**
      * Create or update a formula that executes as a code cell
      */
-    public createFormula(variableName: string, formula: string): FormulaInfo {
+    public async createFormula(variableName: string, formula: string): Promise<FormulaInfo> {
         // Store the original formula
         this.formulaMap.set(variableName, formula);
 
@@ -1358,7 +1361,7 @@ exports.${variableName} = __result;
 
         // Execute using the code cell engine - it will handle dependency tracking automatically
         try {
-            const exports = this.codeCellEngine.executeCodeCell(cellId, wrappedCode);
+            const exports = await this.codeCellEngine.executeCodeCell(cellId, wrappedCode);
             log.debug(`Formula "${variableName}" executed successfully:`, exports);
             
             // Get dependencies from the executed cell (tracked by the proxy)
@@ -1386,8 +1389,8 @@ exports.${variableName} = __result;
     /**
      * Update an existing formula
      */
-    public updateFormula(variableName: string, formula: string): FormulaInfo {
-        return this.createFormula(variableName, formula);
+    public async updateFormula(variableName: string, formula: string): Promise<FormulaInfo> {
+        return await this.createFormula(variableName, formula);
     }
 
     /**

@@ -79,7 +79,7 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
                 const codeCell = cell as any; // CodeCellDefinition
                 try {
                     log.debug(`Executing code cell: ${cell.id}`);
-                    codeCellEngine.executeCodeCell(cell.id, codeCell.code);
+                    await codeCellEngine.executeCodeCell(cell.id, codeCell.code);
                 } catch (cellError) {
                     log.error(`Error executing code cell ${cell.id}:`, cellError);
                     // Continue with other cells even if one fails

@@ -53,7 +53,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
           const outputContainer = document.getElementById(`${cell.id}-outEl`) as HTMLDivElement | null;
           
           try {
-            const exports = codeCellEngine.executeCodeCell(cell.id, cell.code, outputContainer || undefined);
+            const exports = await codeCellEngine.executeCodeCell(cell.id, cell.code, outputContainer || undefined);
             log.debug(`Executed code cell during initialization: ${cell.id}, exports:`, exports, `container: ${outputContainer ? 'found' : 'not found'}`);
           } catch (error) {
             log.error(`Error executing code cell ${cell.id} during initialization:`, error);
@@ -62,8 +62,12 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
           const formulaCell = cell as FormulaCellDefinition;
           // Use enhanced formula engine that supports natural JavaScript expressions
           // without requiring $ syntax
-          enhancedFormulaEngine.createFormula(formulaCell.variableName, formulaCell.formula);
-          log.debug(`Initialized enhanced formula from formula cell: ${formulaCell.variableName} = ${formulaCell.formula}`);
+          try {
+            await enhancedFormulaEngine.createFormula(formulaCell.variableName, formulaCell.formula);
+            log.debug(`Initialized enhanced formula from formula cell: ${formulaCell.variableName} = ${formulaCell.formula}`);
+          } catch (error) {
+            log.error(`Error initializing formula ${formulaCell.variableName}:`, error);
+          }
         }
         // Note: Markdown cells don't need initialization
       }
@@ -210,10 +214,14 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     const exports = cell.type === 'code' ? codeCellEngine.getCellExports(cell.id) : undefined;
 
     // Create execute callback for code cells
-    const handleExecuteCode = cell.type === 'code' ? () => {
+    const handleExecuteCode = cell.type === 'code' ? async () => {
       const currentCode = codeCellEngine.getCurrentCode(cell.id) || cell.code;
-      codeCellEngine.executeCodeCell(cell.id, currentCode);
-      log.debug(`Code cell ${cell.id} executed from header button`);
+      try {
+        await codeCellEngine.executeCodeCell(cell.id, currentCode);
+        log.debug(`Code cell ${cell.id} executed from header button`);
+      } catch (error) {
+        log.error(`Error executing code cell ${cell.id} from header button:`, error);
+      }
     } : undefined;
 
     let cellComponent: React.ReactNode;

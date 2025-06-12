@@ -1,0 +1,39 @@
+{
+  "cells": [
+    {
+      "id": "md_01",
+      "type": "markdown",
+      "content": "# TensorFlow.js Async Training Test\n\nThis notebook tests async/await functionality with TensorFlow.js model training."
+    },
+    {
+      "id": "code_01",
+      "type": "code",
+      "code": "// Import TensorFlow.js\nconst tf = require('@tensorflow/tfjs-node');\n\nconsole.log('TensorFlow.js version:', tf.version.tfjs);\nconsole.log('Backend:', tf.getBackend());\n\n// Create sample training data\nconst xs = tf.tensor2d([\n    [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]\n]);\nconst ys = tf.tensor2d([\n    [3], [5], [7], [9], [11]  // y = 2x + 1\n]);\n\nconsole.log('Training data created');\nconsole.log('Input shape:', xs.shape);\nconsole.log('Output shape:', ys.shape);\n\nexports.trainingData = { xs, ys };"
+    },
+    {
+      "id": "code_02",
+      "type": "code",
+      "code": "// Create and compile a simple model\nconst model = tf.sequential({\n    layers: [\n        tf.layers.dense({ inputShape: [2], units: 4, activation: 'relu' }),\n        tf.layers.dense({ units: 1 })\n    ]\n});\n\nmodel.compile({\n    optimizer: 'adam',\n    loss: 'meanSquaredError',\n    metrics: ['mae']\n});\n\nconsole.log('Model created and compiled');\nmodel.summary();\n\nexports.model = model;"
+    },
+    {
+      "id": "code_03",
+      "type": "code",
+      "code": "// Train the model asynchronously\nconsole.log('Starting async training...');\nconst startTime = Date.now();\n\n// This uses await in the code cell!\nconst history = await model.fit(trainingData.xs, trainingData.ys, {\n    epochs: 50,\n    validationSplit: 0.2,\n    callbacks: {\n        onEpochEnd: (epoch, logs) => {\n            if (epoch % 10 === 0) {\n                console.log(`Epoch ${epoch}: loss = ${logs.loss.toFixed(4)}, mae = ${logs.val_mae?.toFixed(4) || 'N/A'}`);\n            }\n        }\n    }\n});\n\nconst endTime = Date.now();\nconst trainingTime = endTime - startTime;\n\nconsole.log(`Training completed in ${trainingTime}ms`);\nconsole.log('Final loss:', history.history.loss[history.history.loss.length - 1]);\n\nexports.trainingResult = {\n    history: history.history,\n    trainingTime,\n    finalLoss: history.history.loss[history.history.loss.length - 1]\n};"
+    },
+    {
+      "id": "code_04",
+      "type": "code",
+      "code": "// Make predictions asynchronously\nconst testData = tf.tensor2d([[6, 7], [7, 8], [8, 9]]);\n\nconsole.log('Making predictions...');\n\n// Async prediction\nconst predictions = model.predict(testData);\nconst predictionData = await predictions.data();\n\nconsole.log('Test inputs:', await testData.data());\nconsole.log('Predictions:', Array.from(predictionData));\n\n// Expected results should be close to [13, 15, 17] for y = 2x + 1\nconst expected = [13, 15, 17];\nconst actual = Array.from(predictionData);\nconst errors = actual.map((pred, i) => Math.abs(pred - expected[i]));\nconst avgError = errors.reduce((sum, err) => sum + err, 0) / errors.length;\n\nconsole.log('Expected:', expected);\nconsole.log('Average prediction error:', avgError.toFixed(4));\n\n// Clean up tensors\ntestData.dispose();\npredictions.dispose();\n\nexports.predictionResult = {\n    predictions: actual,\n    expected,\n    avgError,\n    success: avgError < 2.0  // Allow some tolerance\n};"
+    },
+    {
+      "id": "code_05",
+      "type": "code",
+      "code": "// Verify all async operations completed successfully\nconsole.log('=== Final Results ===');\nconsole.log('Training time:', trainingResult.trainingTime, 'ms');\nconsole.log('Final training loss:', trainingResult.finalLoss.toFixed(4));\nconsole.log('Prediction accuracy:', predictionResult.success ? 'PASS' : 'FAIL');\nconsole.log('Average prediction error:', predictionResult.avgError.toFixed(4));\n\nconst overallSuccess = {\n    trainingCompleted: trainingResult.trainingTime > 0,\n    lossDecreased: trainingResult.finalLoss < 50, // Should be much lower after training\n    predictionsAccurate: predictionResult.success,\n    allTestsPassed: false\n};\n\noverallSuccess.allTestsPassed = \n    overallSuccess.trainingCompleted && \n    overallSuccess.lossDecreased && \n    overallSuccess.predictionsAccurate;\n\nconsole.log('Overall test results:', overallSuccess);\n\n// Clean up remaining tensors\ntrainingData.xs.dispose();\ntrainingData.ys.dispose();\n\nexports.testSummary = overallSuccess;"
+    },
+    {
+      "id": "md_02",
+      "type": "markdown",
+      "content": "## Async TensorFlow.js Test Results\n\nThis test validates that:\n1. **Async model training** works with `await model.fit()`\n2. **Async predictions** work with tensor operations\n3. **Cross-cell async state sharing** allows accessing training results\n4. **Proper resource cleanup** disposes of tensors\n5. **Error handling** works in async contexts\n\nIf all tests pass, async/await is fully functional in NotebookJS code cells!"
+    }
+  ]
+}

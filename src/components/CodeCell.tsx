@@ -157,7 +157,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         }
     }, [isEditMode, isDirty, commitChanges, discardChanges]);
 
-    const onExecute = () => {
+    const onExecute = async () => {
         // Commit any unsaved changes before executing
         if (isDirty) {
             commitChanges();
@@ -169,8 +169,12 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         }
         
         // Execute with the current code (which should now be committed)
-        codeCellEngine.executeCodeCell(definition.id, currentCode, outputContainerRef.current || undefined);
-        log.debug(`Code cell ${definition.id} executed`);
+        try {
+            await codeCellEngine.executeCodeCell(definition.id, currentCode, outputContainerRef.current || undefined);
+            log.debug(`Code cell ${definition.id} executed`);
+        } catch (error) {
+            log.error(`Error executing code cell ${definition.id}:`, error);
+        }
     };
 
     return (
