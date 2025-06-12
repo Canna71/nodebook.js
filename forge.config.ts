@@ -14,12 +14,12 @@ import fs from 'fs-extra';
 
 // List of modules to place outside ASAR
     const modulesToExternalize = [
-    'danfojs',
+    '@babel/runtime', // this is needed for loading modules at runtime
+    // 'danfojs',
     'long',
-    '@tensorflow',
+    // '@tensorflow',
     'seedrandom',
     'mathjs',
-    '@babel/runtime',
     'typed-function',
     'decimal.js',
     'complex.js',
@@ -31,21 +31,21 @@ import fs from 'fs-extra';
     'node-fetch',
     'escape-latex',
     'tiny-emitter',
-    'table',
+    // 'table',
     'papaparse',
     'plotly.js-dist-min',
     'xlsx',
-    'string-width',
-    'strip-ansi',
-    'is-fullwidth-code-point',
-    'astral-regex',
-    'ansi-styles',
-    'lodash.clonedeep',
-    'fast-deep-equal',
-    'lodash.truncate',
+    // 'string-width',
+    // 'strip-ansi',
+    // 'is-fullwidth-code-point',
+    // 'astral-regex',
+    // 'ansi-styles',
+    // 'lodash.clonedeep',
+    // 'fast-deep-equal',
+    // 'lodash.truncate',
     'd3',
-    'ansi-regex',
-    'emoji-regex'
+    // 'ansi-regex',
+    // 'emoji-regex'
 ];
 
 const config: ForgeConfig = {
