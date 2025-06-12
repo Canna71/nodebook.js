@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
 import { useCommands } from '@/Engine/CommandProvider';
+import { useApplication } from '@/Engine/ApplicationProvider';
 import {
   SaveIcon,
   FileIcon,
@@ -17,6 +18,7 @@ import { JavascriptIcon } from './icons/JavascriptIcon';
 
 export function Toolbar() {
   const { commandManager } = useCommands();
+  const { currentModel } = useApplication();
 
   const handleCommand = (commandId: string) => {
     commandManager.executeCommand(commandId);
@@ -44,7 +46,7 @@ export function Toolbar() {
   const redoInfo = getCommandInfo('edit.redo');
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-40 flex items-center h-12 pl-12 pr-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="sticky top-0 left-0 right-0 z-40 flex items-center h-12 px-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <TooltipProvider>
         {/* File Operations */}
         <div className="flex items-center space-x-1">
@@ -84,98 +86,103 @@ export function Toolbar() {
                 variant="ghost"
                 size="sm"
                 onClick={() => handleCommand('notebook.save')}
+                disabled={!currentModel}
               >
                 <SaveIcon className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {saveInfo?.tooltip}
+              {saveInfo?.tooltip} {!currentModel && "(No notebook loaded)"}
             </TooltipContent>
           </Tooltip>
         </div>
 
-        <Separator orientation="vertical" className="mx-2 h-6" />
+        {currentModel && (
+          <>
+            <Separator orientation="vertical" className="mx-2 h-6" />
 
-        {/* Execution */}
-        <Tooltip>
-          <TooltipTrigger asChild>          
-            <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleCommand('notebook.executeAll')}
-          >
-              <PlayIcon className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {executeAllInfo?.tooltip}
-          </TooltipContent>
-        </Tooltip>
-
-        <Separator orientation="vertical" className="mx-2 h-6" />
-
-        {/* Add Cell Buttons */}
-        <div className="flex items-center space-x-1">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
+            {/* Execution */}
+            <Tooltip>
+              <TooltipTrigger asChild>          
+                <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleAddCell('code')}
+                onClick={() => handleCommand('notebook.executeAll')}
               >
-                <JavascriptIcon className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Add Code Cell
-            </TooltipContent>
-          </Tooltip>
+                  <PlayIcon className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {executeAllInfo?.tooltip}
+              </TooltipContent>
+            </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleAddCell('markdown')}
-              >
-                <MarkdownIcon className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Add Markdown Cell
-            </TooltipContent>
-          </Tooltip>
+            <Separator orientation="vertical" className="mx-2 h-6" />
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleAddCell('formula')}
-              >
-                <span className="font-bold text-current text-sm">𝒇𝑥</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Add Formula Cell
-            </TooltipContent>
-          </Tooltip>
+            {/* Add Cell Buttons */}
+            <div className="flex items-center space-x-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleAddCell('code')}
+                  >
+                    <JavascriptIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Add Code Cell
+                </TooltipContent>
+              </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleAddCell('input')}
-              >
-                <VariableIcon className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Add Input Cell
-            </TooltipContent>
-          </Tooltip>
-        </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleAddCell('markdown')}
+                  >
+                    <MarkdownIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Add Markdown Cell
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleAddCell('formula')}
+                  >
+                    <span className="font-bold text-current text-sm">𝒇𝑥</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Add Formula Cell
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleAddCell('input')}
+                  >
+                    <VariableIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Add Input Cell
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </>
+        )}
 
         <Separator orientation="vertical" className="mx-2 h-6" />
 

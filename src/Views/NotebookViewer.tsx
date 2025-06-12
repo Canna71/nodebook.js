@@ -1,7 +1,6 @@
 import React from "react";
 import { DynamicNotebook } from "../components/DynamicNotebook";
 import { NotebookModel } from "../Types/NotebookModel";
-import { Toolbar } from "@/components/Toolbar";
 
 interface NotebookViewerProps {
   model: NotebookModel;
@@ -10,12 +9,9 @@ interface NotebookViewerProps {
 export function NotebookViewer({ model }: NotebookViewerProps) {
   return (
     <div className="notebook-viewer text-neutral-800 dark:text-neutral-300">
-      <Toolbar />
-      <div className="pt-12">
-        <DynamicNotebook 
-          model={model} 
-        />
-      </div>
+      <DynamicNotebook 
+        model={model} 
+      />
     </div>
   );
 }
