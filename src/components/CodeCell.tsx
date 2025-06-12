@@ -12,6 +12,7 @@ import { DomElementDisplay } from './DomElementDisplay';
 import { CodeSummary } from './CodeSummary';
 import { useCodeCompletions, useModuleCompletions } from '@/hooks/useCodeCompletions';
 import { useEnhancedCompletions } from '@/hooks/useRuntimeCompletions';
+import { LatexRenderer, isLatexContent, renderMixedContent } from './LatexRenderer';
 
 interface CodeCellProps {
   definition: CodeCellDefinition;
@@ -180,6 +181,10 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                                         collapsed={false}
                                         displayDataTypes={false}
                                         displayObjectSize={false} />
+                                ) : typeof value === 'string' && isLatexContent(value) ? (
+                                    <div className="latex-output">
+                                        {renderMixedContent(value)}
+                                    </div>
                                 ) : (
                                     <span className="text-accent-foreground font-mono text-sm">
                                         {value === null ? 'null' : String(value)}

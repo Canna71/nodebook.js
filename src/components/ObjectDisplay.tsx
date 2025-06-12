@@ -4,6 +4,7 @@ import ReactJson, { ThemeKeys, ThemeObject } from 'react-json-view';
 import SeriesRenderer from './SeriesRenderer';
 import DataFrameRenderer from './DataFrameRenderer';
 import { useReactiveSystem } from '../Engine/ReactiveProvider';
+import { LatexRenderer, isLatexContent, renderMixedContent } from './LatexRenderer';
 const { typesetMath } = require("mathjax-electron");
 
 interface ObjectDisplayProps {
@@ -86,7 +87,19 @@ export function ObjectDisplay({
     return <span className="text-foreground italic">null</span>;
   }
 
-  if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
+  if (typeof data === 'string') {
+    // Check if string contains LaTeX content
+    if (isLatexContent(data)) {
+      return (
+        <div className="latex-string-output">
+          {renderMixedContent(data)}
+        </div>
+      );
+    }
+    return <span>{data}</span>;
+  }
+
+  if (typeof data === 'number' || typeof data === 'boolean') {
     return <span>{String(data)}</span>;
   }
 
