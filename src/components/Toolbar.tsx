@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useCommands } from '@/Engine/CommandProvider';
 import { useApplication } from '@/Engine/ApplicationProvider';
 import {
@@ -48,6 +49,11 @@ export function Toolbar() {
   return (
     <div className="sticky top-0 left-0 right-0 z-40 flex items-center h-12 px-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <TooltipProvider>
+        {/* Sidebar Toggle */}
+        <SidebarTrigger className="mr-2 bg-background/80 hover:bg-background/90" />
+        
+        <Separator orientation="vertical" className="mx-2 h-6" />
+
         {/* File Operations */}
         <div className="flex items-center space-x-1">
           <Tooltip>
