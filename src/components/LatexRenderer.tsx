@@ -10,7 +10,7 @@ interface LatexRendererProps {
 
 // Import mathjax-electron
 const { typesetMath } = require("mathjax-electron");
-
+const mathjaxHelper = require('mathjax-electron');
 /**
  * Detect if content contains LaTeX syntax
  */
@@ -39,11 +39,12 @@ export function LatexRenderer({ content, inline = false }: LatexRendererProps) {
         try {
             // Set the content
             container.innerHTML = content;
-            
+            mathjaxHelper.loadMathJax(document, () => {
             // Apply MathJax typesetting
-            typesetMath(container);
+                mathjaxHelper.typesetMath(container);
+                log.debug('LaTeX content rendered successfully:', content);
+            });
             
-            log.debug('LaTeX content rendered successfully:', content);
         } catch (error) {
             log.error('Error rendering LaTeX content:', error);
             // Fallback to plain text display
