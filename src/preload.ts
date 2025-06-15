@@ -27,6 +27,7 @@ const api : ElectronApi = {
     // API Key storage
     saveAPIKeys: (keys) => ipcRenderer.invoke('save-api-keys', keys),
     getStoredAPIKeys: () => ipcRenderer.invoke('get-stored-api-keys'),
+    getApiKeyStorageInfo: () => ipcRenderer.invoke('get-api-key-storage-info'),
     
     // Menu event handling
     onMenuAction: (event: string, callback: (...args: any[]) => void) => {

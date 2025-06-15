@@ -569,13 +569,9 @@ function registerHandlers() {
     // API Key storage handlers
     ipcMain.handle('save-api-keys', async (event, keys: {openai?: string, anthropic?: string}) => {
         try {
-            const fs = require('fs');
-            const userDataPath = app.getPath('userData');
-            const apiKeysPath = path.join(userDataPath, 'api-keys.json');
-            
-            // Simple file-based storage (you could enhance this with encryption)
-            await fs.promises.writeFile(apiKeysPath, JSON.stringify(keys, null, 2), 'utf8');
-            log.info('API keys saved to storage');
+            const { SecureApiKeyStorage } = await import('./lib/secureApiKeyStorage');
+            await SecureApiKeyStorage.saveApiKeys(keys);
+            log.info('API keys saved securely');
         } catch (error) {
             log.error('Failed to save API keys:', error);
             throw error;
@@ -584,22 +580,26 @@ function registerHandlers() {
 
     ipcMain.handle('get-stored-api-keys', async () => {
         try {
-            const fs = require('fs');
-            const userDataPath = app.getPath('userData');
-            const apiKeysPath = path.join(userDataPath, 'api-keys.json');
-            
-            // Check if file exists
-            if (!fs.existsSync(apiKeysPath)) {
-                return null;
-            }
-            
-            const data = await fs.promises.readFile(apiKeysPath, 'utf8');
-            const keys = JSON.parse(data);
-            log.info('API keys loaded from storage');
+            const { SecureApiKeyStorage } = await import('./lib/secureApiKeyStorage');
+            const keys = await SecureApiKeyStorage.loadApiKeys();
+            log.info('API keys loaded securely');
             return keys;
         } catch (error) {
-            log.warn('Failed to load API keys from storage:', error);
+            log.warn('Failed to load API keys:', error);
             return null;
+        }
+    });
+
+    // Debug handler for API key storage info
+    ipcMain.handle('get-api-key-storage-info', async () => {
+        try {
+            const { SecureApiKeyStorage } = await import('./lib/secureApiKeyStorage');
+            const info = await SecureApiKeyStorage.getStorageInfo();
+            log.debug('API key storage info:', info);
+            return info;
+        } catch (error) {
+            log.error('Failed to get storage info:', error);
+            return { error: error.message };
         }
     });
 }

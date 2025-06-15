@@ -296,6 +296,37 @@ export function SettingsView() {
                 </CardContent>
             </Card>
             
+            {/* Debug Section */}
+            {process.env.NODE_ENV === 'development' && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <SparklesIcon className="h-5 w-5" />
+                            Debug Information
+                        </CardTitle>
+                        <CardDescription>
+                            Development tools and storage diagnostics
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button 
+                            onClick={async () => {
+                                try {
+                                    const info = await window.api.getApiKeyStorageInfo();
+                                    console.log('API Key Storage Info:', info);
+                                    alert(JSON.stringify(info, null, 2));
+                                } catch (error) {
+                                    console.error('Failed to get storage info:', error);
+                                }
+                            }}
+                            variant="outline"
+                        >
+                            Check Storage Info
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+            
             {/* Future settings sections can be added here */}
         </div>
     );
