@@ -1,0 +1,20 @@
+{
+  "cells": [
+    {
+      "id": "instructions-cell",
+      "type": "markdown",
+      "content": "# Testing Storage Dirty Indicator\n\n## Test Steps:\n\n1. **Load this notebook** \n   - Window title should show just the filename without the dirty indicator \"•\"\n\n2. **Run the code cell below** \n   - This should mark the notebook as dirty\n   - Window title should show \"• filename.nbjs - NotebookJS\" \n   - Toolbar should show \"• filename\" or \"• Untitled\"\n\n3. **Save the notebook (Ctrl/Cmd+S)**\n   - Window title should remove the dirty indicator\n   - Toolbar should show just the filename without \"•\"\n\n4. **Reload the notebook**\n   - Storage data should persist\n   - No dirty indicator should be shown\n\n---\n\nRun the code below to test storage persistence and dirty state:"
+    },
+    {
+      "id": "test-storage-dirty-cell",
+      "type": "code",
+      "code": "// Test storage operations to trigger dirty state\nconsole.log('=== Testing Storage & Dirty State ===');\n\n// Set some test data in storage\nstorage.set('test_timestamp', new Date().toISOString());\nstorage.set('test_counter', Math.floor(Math.random() * 1000));\nstorage.set('test_data', {\n  message: 'Hello from storage!',\n  notebook: 'dirty-test',\n  features: ['storage', 'dirty-indicator', 'persistence']\n});\n\nconsole.log('✅ Storage data set:');\nconsole.log('- test_timestamp:', storage.get('test_timestamp'));\nconsole.log('- test_counter:', storage.get('test_counter'));\nconsole.log('- test_data:', storage.get('test_data'));\nconsole.log('\\n📝 The notebook should now be marked as dirty!');\nconsole.log('   Look at the window title and toolbar for the \"•\" indicator.');\n\nconsole.log('\\n💾 Save the notebook (Ctrl/Cmd+S) to clear the dirty state.');\nconsole.log('🔄 Reload the notebook to test persistence.');"
+    },
+    {
+      "id": "check-persistence-cell",
+      "type": "code",
+      "code": "// Check if storage data persisted after reload\nconsole.log('=== Checking Storage Persistence ===');\n\nif (storage.has('test_timestamp')) {\n  console.log('✅ Storage persistence works!');\n  console.log('- test_timestamp:', storage.get('test_timestamp'));\n  console.log('- test_counter:', storage.get('test_counter'));\n  console.log('- test_data:', storage.get('test_data'));\n} else {\n  console.log('❌ Storage data was not persisted.');\n  console.log('   This means either:');\n  console.log('   1. The notebook was not saved after setting storage data');\n  console.log('   2. There\\'s an issue with storage persistence');\n}\n\nconsole.log('\\nStorage keys:', storage.keys());"
+    }
+  ],
+  "storage": {}
+}
