@@ -565,6 +565,43 @@ function registerHandlers() {
         });
         return result;
     });
+
+    // API Key storage handlers
+    ipcMain.handle('save-api-keys', async (event, keys: {openai?: string, anthropic?: string}) => {
+        try {
+            const fs = require('fs');
+            const userDataPath = app.getPath('userData');
+            const apiKeysPath = path.join(userDataPath, 'api-keys.json');
+            
+            // Simple file-based storage (you could enhance this with encryption)
+            await fs.promises.writeFile(apiKeysPath, JSON.stringify(keys, null, 2), 'utf8');
+            log.info('API keys saved to storage');
+        } catch (error) {
+            log.error('Failed to save API keys:', error);
+            throw error;
+        }
+    });
+
+    ipcMain.handle('get-stored-api-keys', async () => {
+        try {
+            const fs = require('fs');
+            const userDataPath = app.getPath('userData');
+            const apiKeysPath = path.join(userDataPath, 'api-keys.json');
+            
+            // Check if file exists
+            if (!fs.existsSync(apiKeysPath)) {
+                return null;
+            }
+            
+            const data = await fs.promises.readFile(apiKeysPath, 'utf8');
+            const keys = JSON.parse(data);
+            log.info('API keys loaded from storage');
+            return keys;
+        } catch (error) {
+            log.warn('Failed to load API keys from storage:', error);
+            return null;
+        }
+    });
 }
 
 async function loadExtensions() {

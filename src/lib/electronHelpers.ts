@@ -19,6 +19,9 @@ export interface ElectronApi {
     getAppName: () => Promise<string>;
     getAppLocale: () => Promise<string>;
     setWindowTitle: (title: string) => Promise<void>;
+    // API Key storage
+    saveAPIKeys: (keys: {openai?: string, anthropic?: string}) => Promise<void>;
+    getStoredAPIKeys: () => Promise<{openai?: string, anthropic?: string} | null>;
     // Menu event handling
     onMenuAction: (event: string, callback: (...args: any[]) => void) => void;
     removeMenuListener: (event: string) => void;

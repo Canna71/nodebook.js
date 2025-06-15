@@ -74,9 +74,17 @@ export class AIService {
      */
     private async loadAPIKeysFromSecureStorage(): Promise<void> {
         try {
-            // TODO: Implement secure storage when safeStorage is available
-            // For now, skip secure storage
-            log.debug('Secure storage not implemented yet');
+            // Use Electron's userData directory for storage
+            const storedKeys = await window.api.getStoredAPIKeys();
+            if (storedKeys) {
+                this.apiKeys = storedKeys;
+                log.info('API keys loaded from secure storage:', {
+                    hasOpenAI: !!storedKeys.openai,
+                    hasAnthropic: !!storedKeys.anthropic
+                });
+            } else {
+                log.debug('No stored API keys found');
+            }
         } catch (error) {
             log.warn('Failed to load API keys from secure storage:', error);
         }
@@ -106,10 +114,13 @@ export class AIService {
      */
     public async saveAPIKeys(keys: APIKeys): Promise<void> {
         try {
-            // TODO: Implement secure storage when safeStorage is available
-            // For now, just store in memory
+            // Store in memory
             this.apiKeys = { ...keys };
-            log.info('API keys saved (in memory - not persistent):', {
+            
+            // Also store persistently using Electron API
+            await window.api.saveAPIKeys(keys);
+            
+            log.info('API keys saved to secure storage:', {
                 hasOpenAI: !!keys.openai,
                 hasAnthropic: !!keys.anthropic
             });
