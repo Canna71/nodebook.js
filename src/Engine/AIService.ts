@@ -159,7 +159,14 @@ export class AIService {
     public async generateNotebook(prompt: string, config?: Partial<AIConfiguration>): Promise<string> {
         const finalConfig = { ...this.defaultConfig, ...config };
         
+        log.info('Starting notebook generation', {
+            prompt: prompt.substring(0, 100) + (prompt.length > 100 ? '...' : ''),
+            provider: finalConfig.provider,
+            model: finalConfig.model
+        });
+        
         if (!this.hasAPIKeys()) {
+            log.error('Notebook generation failed: No API keys configured');
             throw new Error('No API keys configured. Please configure API keys in settings.');
         }
 
@@ -168,10 +175,17 @@ export class AIService {
 
         try {
             const result = await this.generateText(systemPrompt, userPrompt, finalConfig);
-            log.info('Notebook generated successfully');
+            log.info('Notebook generated successfully', {
+                responseLength: result.length,
+                promptLength: prompt.length
+            });
             return result;
         } catch (error) {
-            log.error('Failed to generate notebook:', error);
+            log.error('Failed to generate notebook:', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                prompt: prompt.substring(0, 100) + '...',
+                config: finalConfig
+            });
             throw error;
         }
     }
@@ -186,7 +200,17 @@ export class AIService {
     ): Promise<string> {
         const finalConfig = { ...this.defaultConfig, ...config };
         
+        log.info('Starting code cell generation', {
+            prompt: prompt.substring(0, 100) + (prompt.length > 100 ? '...' : ''),
+            provider: finalConfig.provider,
+            model: finalConfig.model,
+            contextVariables: context.variables.length,
+            contextModules: context.modules.length,
+            contextCells: context.cellContents.length
+        });
+        
         if (!this.hasAPIKeys()) {
+            log.error('Code cell generation failed: No API keys configured');
             throw new Error('No API keys configured. Please configure API keys in settings.');
         }
 
@@ -195,10 +219,23 @@ export class AIService {
 
         try {
             const result = await this.generateText(systemPrompt, userPrompt, finalConfig);
-            log.info('Code cell generated successfully');
+            log.info('Code cell generated successfully', {
+                responseLength: result.length,
+                promptLength: prompt.length,
+                contextSize: context.variables.length + context.modules.length + context.cellContents.length
+            });
             return result;
         } catch (error) {
-            log.error('Failed to generate code cell:', error);
+            log.error('Failed to generate code cell:', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                prompt: prompt.substring(0, 100) + '...',
+                config: finalConfig,
+                context: {
+                    variables: context.variables.length,
+                    modules: context.modules.length,
+                    cells: context.cellContents.length
+                }
+            });
             throw error;
         }
     }
@@ -222,13 +259,31 @@ export class AIService {
         userPrompt: string, 
         config: AIConfiguration
     ): Promise<string> {
+        const requestId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+        const startTime = Date.now();
+        
+        log.info(`[${requestId}] Starting LLM request`, {
+            provider: config.provider,
+            model: config.model,
+            maxTokens: config.maxTokens,
+            temperature: config.temperature,
+            systemPromptLength: systemPrompt.length,
+            userPromptLength: userPrompt.length
+        });
+        
+        log.debug(`[${requestId}] System prompt:`, systemPrompt.substring(0, 200) + '...');
+        log.debug(`[${requestId}] User prompt:`, userPrompt);
+
         const apiKey = this.apiKeys[config.provider];
         if (!apiKey) {
+            log.error(`[${requestId}] No API key configured for provider: ${config.provider}`);
             throw new Error(`No API key configured for provider: ${config.provider}`);
         }
 
         let model;
         try {
+            log.debug(`[${requestId}] Creating provider instance for ${config.provider}`);
+            
             switch (config.provider) {
                 case 'openai':
                     // Create OpenAI provider with API key
@@ -245,9 +300,12 @@ export class AIService {
                     model = anthropicProvider(config.model);
                     break;
                 default:
+                    log.error(`[${requestId}] Unsupported provider: ${config.provider}`);
                     throw new Error(`Unsupported provider: ${config.provider}`);
             }
 
+            log.debug(`[${requestId}] Sending request to ${config.provider} API`);
+            
             const result = await generateText({
                 model,
                 system: systemPrompt,
@@ -256,9 +314,29 @@ export class AIService {
                 temperature: config.temperature
             });
 
+            const duration = Date.now() - startTime;
+            
+            log.info(`[${requestId}] LLM request completed successfully`, {
+                duration: `${duration}ms`,
+                responseLength: result.text.length,
+                usage: result.usage ? {
+                    promptTokens: result.usage.promptTokens,
+                    completionTokens: result.usage.completionTokens,
+                    totalTokens: result.usage.totalTokens
+                } : 'not available'
+            });
+            
+            log.debug(`[${requestId}] Response text:`, result.text.substring(0, 500) + (result.text.length > 500 ? '...' : ''));
+
             return result.text;
         } catch (error) {
-            log.error('LLM generation failed:', error);
+            const duration = Date.now() - startTime;
+            log.error(`[${requestId}] LLM generation failed after ${duration}ms:`, {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                stack: error instanceof Error ? error.stack : undefined,
+                provider: config.provider,
+                model: config.model
+            });
             throw new Error(`LLM generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }

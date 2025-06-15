@@ -43,57 +43,80 @@ export class AIDialogHelper {
      * Show a prompt dialog and return user input
      */
     async showPrompt(title: string, message: string, placeholder?: string): Promise<string | null> {
+        log.debug('Showing prompt dialog', { title, message, placeholder });
+        
         if (!this.dialogHandlers.showPrompt) {
             log.warn('Prompt dialog handler not registered, falling back to window.prompt');
-            return window.prompt(message) || null;
+            const result = window.prompt(message) || null;
+            log.debug('Window.prompt result:', { hasResult: !!result, length: result?.length });
+            return result;
         }
-        return this.dialogHandlers.showPrompt(title, message, placeholder);
+        
+        const result = await this.dialogHandlers.showPrompt(title, message, placeholder);
+        log.debug('Prompt dialog result:', { hasResult: !!result, length: result?.length });
+        return result;
     }
 
     /**
      * Show an error dialog
      */
     async showError(title: string, message: string): Promise<void> {
+        log.debug('Showing error dialog', { title, message });
+        
         if (!this.dialogHandlers.showError) {
             log.warn('Error dialog handler not registered, falling back to alert');
             alert(`${title}: ${message}`);
             return;
         }
-        return this.dialogHandlers.showError(title, message);
+        
+        await this.dialogHandlers.showError(title, message);
+        log.debug('Error dialog completed');
     }
 
     /**
      * Show a success dialog
      */
     async showSuccess(title: string, message: string): Promise<void> {
+        log.debug('Showing success dialog', { title, message });
+        
         if (!this.dialogHandlers.showSuccess) {
             log.warn('Success dialog handler not registered, falling back to alert');
             alert(`${title}: ${message}`);
             return;
         }
-        return this.dialogHandlers.showSuccess(title, message);
+        
+        await this.dialogHandlers.showSuccess(title, message);
+        log.debug('Success dialog completed');
     }
 
     /**
      * Show a progress dialog
      */
     async showProgress(title: string, message: string): Promise<void> {
+        log.debug('Showing progress dialog', { title, message });
+        
         if (!this.dialogHandlers.showProgress) {
             log.warn('Progress dialog handler not registered');
             return;
         }
-        return this.dialogHandlers.showProgress(title, message);
+        
+        await this.dialogHandlers.showProgress(title, message);
+        log.debug('Progress dialog shown');
     }
 
     /**
      * Hide the progress dialog
      */
     hideProgress(): void {
+        log.debug('Hiding progress dialog');
+        
         if (!this.dialogHandlers.hideProgress) {
             log.warn('Progress hide handler not registered');
             return;
         }
+        
         this.dialogHandlers.hideProgress();
+        log.debug('Progress dialog hidden');
     }
 }
 
