@@ -172,10 +172,10 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         const updateWindowTitle = () => {
             if (state.currentFilePath) {
                 const fileName = state.currentFilePath.split('/').pop() || 'Untitled';
-                const dirtyIndicator = state.isDirty ? '• ' : '';
+                const dirtyIndicator = state.isDirty ? '● ' : '';
                 window.api.setWindowTitle(`${dirtyIndicator}${fileName} - NotebookJS`);
             } else {
-                const dirtyIndicator = state.isDirty ? '• ' : '';
+                const dirtyIndicator = state.isDirty ? '● ' : '';
                 window.api.setWindowTitle(`${dirtyIndicator}Untitled - NotebookJS`);
             }
         };
