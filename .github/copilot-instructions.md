@@ -6,7 +6,7 @@ NotebookJS is a reactive notebook application built with React, TypeScript, and 
 ## Architecture Guidelines
 
 ### Core Systems
-- **Reactive System**: Located in `/src/Engine/RactiveSystem.ts` - handles reactive values, formulas, and code execution
+- **Reactive System**: Located in `/src/Engine/ReactiveSystem.ts` - handles reactive values, formulas, and code execution
 - **Components**: Located in `/src/components/` - React components for UI
 - **Types**: Located in `/src/Types/` - TypeScript type definitions
 

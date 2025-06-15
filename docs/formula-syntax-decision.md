@@ -143,7 +143,7 @@ This decision provides maximum value with minimal risk, allowing the formula sys
 ---
 
 **Files Updated:**
-- `/src/Engine/RactiveSystem.ts` - FormulaEngine implementation
+- `/src/Engine/ReactiveSystem.ts` - FormulaEngine implementation
 - `/src/components/DynamicNotebook.tsx` - Enhanced formula integration
 - `/src/Engine/ReactiveProvider.tsx` - Context updates
 - `/examples/` - Test notebooks demonstrating both syntaxes

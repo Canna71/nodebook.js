@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { ReactiveStore } from "src/Engine/RactiveSystem";
+import { ReactiveStore } from "@/Engine/ReactiveSystem";
 
 /**
  * Props for reactive UI components
