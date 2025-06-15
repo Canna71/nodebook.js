@@ -19,7 +19,7 @@ import { JavascriptIcon } from './icons/JavascriptIcon';
 
 export function Toolbar() {
   const { commandManager } = useCommands();
-  const { currentModel, isDirty, currentFilePath } = useApplication();
+  const { currentModel } = useApplication();
 
   const handleCommand = (commandId: string) => {
     commandManager.executeCommand(commandId);
@@ -101,17 +101,6 @@ export function Toolbar() {
               {saveInfo?.tooltip} {!currentModel && "(No notebook loaded)"}
             </TooltipContent>
           </Tooltip>
-        </div>
-
-        {/* File Status Indicator */}
-        <div className="flex items-center mx-4">
-          <div className="text-sm text-muted-foreground">
-            {isDirty && <span className="text-accent-foreground mr-1">•</span>}
-            {currentFilePath ? 
-              <span className="font-medium">{currentFilePath.split('/').pop()}</span> : 
-              <span className="italic">Untitled</span>
-            }
-          </div>
         </div>
 
         {currentModel && (
