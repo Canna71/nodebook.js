@@ -1,9 +1,0 @@
-{
-  "cells": [
-    {
-      "type": "markdown",
-      "id": "md_01",
-      "content": "## Toolbar Layout Test\n\nThis notebook tests the new toolbar layout and functionality.\n\n### What's Fixed:\n1. **Responsive Positioning**: Toolbar now properly adjusts to sidebar state\n2. **Always Visible**: Toolbar is shown even when no notebook is loaded\n3. **Context-Aware**: Notebook-specific commands are disabled/hidden when no notebook is active\n\n### Testing Instructions:\n1. **Toggle Sidebar**: Use the hamburger menu button to expand/collapse sidebar\n2. **Observe Toolbar**: Should always stay properly positioned relative to content area\n3. **Close Notebook**: File → New or close current notebook to see toolbar without document\n4. **Try Commands**: Notice which commands are available vs disabled\n\n### Expected Behavior:\n- ✅ **Toolbar follows content**: Stays properly positioned when sidebar toggles\n- ✅ **Always accessible**: File operations (New, Open) always available\n- ✅ **Smart disabling**: Save, Execute, Add Cell commands disabled without notebook\n- ✅ **No overlap**: Toolbar never overlaps with sidebar\n- ✅ **Sticky positioning**: Toolbar stays at top when scrolling\n\n### Available Commands:\n**Always Available:**\n- New Notebook (File icon)\n- Open Notebook (Folder icon)\n- Undo/Redo (when implemented)\n\n**Only With Notebook:**\n- Save Notebook (Save icon)\n- Execute All Cells (Play icon)\n- Add Cell buttons (Code, Markdown, Formula, Input)\n\nThe toolbar should now provide a consistent, context-aware interface!"
-    }
-  ]
-}
