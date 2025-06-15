@@ -109,7 +109,10 @@ export class AIService {
             // TODO: Implement secure storage when safeStorage is available
             // For now, just store in memory
             this.apiKeys = { ...keys };
-            log.info('API keys saved (in memory - not persistent)');
+            log.info('API keys saved (in memory - not persistent):', {
+                hasOpenAI: !!keys.openai,
+                hasAnthropic: !!keys.anthropic
+            });
         } catch (error) {
             log.error('Failed to save API keys:', error);
             throw error;
@@ -120,7 +123,13 @@ export class AIService {
      * Check if API keys are configured
      */
     public hasAPIKeys(): boolean {
-        return !!(this.apiKeys.openai || this.apiKeys.anthropic);
+        const hasKeys = !!(this.apiKeys.openai || this.apiKeys.anthropic);
+        log.debug('Checking API keys:', { 
+            hasOpenAI: !!this.apiKeys.openai, 
+            hasAnthropic: !!this.apiKeys.anthropic,
+            hasKeys 
+        });
+        return hasKeys;
     }
 
     /**

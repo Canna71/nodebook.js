@@ -7,6 +7,7 @@ import { ViewProvider, useView } from '@/Engine/ViewProvider';
 import { commandManagerSingleton } from '@/Engine/CommandManagerSingleton';
 import anylogger from "anylogger";
 import { moduleRegistry } from '../Engine/ModuleRegistry';
+import { AIService } from '@/Engine/AIService';
 
 const log = anylogger("App");
 log.debug("Initializing App");
@@ -133,8 +134,11 @@ export default function App() {
             try {
                 const initialize = await moduleRegistry.initialize();
                 const fs = getFileSystemHelpers();
-
-               
+                
+                // Initialize AI Service
+                const aiService = AIService.getInstance();
+                await aiService.initializeAPIKeys();
+                log.info('AIService initialized');
 
                 setAppReady(true);
             } catch (error) {

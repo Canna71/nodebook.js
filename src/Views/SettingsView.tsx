@@ -62,15 +62,19 @@ export function SettingsView() {
         }));
     };
 
-    const handleSaveSettings = () => {
+    const handleSaveSettings = async () => {
         try {
-            // Save API keys
+            // Prepare API keys object
+            const apiKeys: any = {};
             if (aiSettings.openaiApiKey) {
-                aiService.setApiKey('openai', aiSettings.openaiApiKey);
+                apiKeys.openai = aiSettings.openaiApiKey;
             }
             if (aiSettings.claudeApiKey) {
-                aiService.setApiKey('claude', aiSettings.claudeApiKey);
+                apiKeys.anthropic = aiSettings.claudeApiKey; // Note: internal name is 'anthropic'
             }
+            
+            // Save API keys using the saveAPIKeys method
+            await aiService.saveAPIKeys(apiKeys);
             
             // Save provider and model
             aiService.setProvider(getInternalProvider(aiSettings.provider));
@@ -117,7 +121,16 @@ export function SettingsView() {
                 throw new Error('API key is required for testing');
             }
 
-            aiService.setApiKey(aiSettings.provider, currentApiKey);
+            // Prepare API keys object for testing
+            const testApiKeys: any = {};
+            if (aiSettings.provider === 'openai') {
+                testApiKeys.openai = currentApiKey;
+            } else {
+                testApiKeys.anthropic = currentApiKey; // Note: internal name is 'anthropic'
+            }
+            
+            // Save API keys and configuration for testing
+            await aiService.saveAPIKeys(testApiKeys);
             aiService.setProvider(getInternalProvider(aiSettings.provider));
             aiService.setModel(aiSettings.model);
 
