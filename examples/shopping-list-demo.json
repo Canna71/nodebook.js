@@ -29,5 +29,31 @@
       "code": "// Save shoppingList DataFrame to storage\nif (shoppingList) {\n  // Convert DataFrame to JSON for storage\n  const listData = {\n    item: shoppingList.loc({columns: ['item']}).values.flat(),\n    price: shoppingList.loc({columns: ['price']}).values.flat(),\n    quantity: shoppingList.loc({columns: ['quantity']}).values.flat(),\n    savedAt: new Date().toISOString()\n  };\n  \n  storage.set('shopping_list', listData);\n  storage.set('shopping_list_updated', new Date().toISOString());\n  \n  console.log('Shopping list saved:', listData.item.length, 'items');\n} else {\n  console.log('No shopping list to save');\n}"
     }
   ],
-  "storage": {}
+  "storage": {
+    "shopping_list": {
+      "item": [
+        "Apples",
+        "Bread",
+        "Milk",
+        "Eggs",
+        "Car"
+      ],
+      "price": [
+        3.5,
+        2.25,
+        4.8,
+        5.2,
+        25000
+      ],
+      "quantity": [
+        6,
+        3,
+        2,
+        12,
+        1
+      ],
+      "savedAt": "2025-06-15T18:52:16.661Z"
+    },
+    "shopping_list_updated": "2025-06-15T18:52:16.661Z"
+  }
 }

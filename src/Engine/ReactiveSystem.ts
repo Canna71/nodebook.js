@@ -587,6 +587,7 @@ export class CodeCellEngine {
     private moduleCache: Map<string, any>;
     private globalScope: { [key: string]: any };
     private notebookStorage: Map<string, any>; // Internal storage
+    private storageChangeHandler?: () => void; // Handler for storage changes
 
     /**
      * Initialize only preloaded/injected modules in global scope
@@ -1420,6 +1421,10 @@ export class CodeCellEngine {
             set: (key: string, value: any) => {
                 this.notebookStorage.set(key, value);
                 log.debug(`Storage set: ${key}`);
+                // Call storage change handler if defined
+                if (this.storageChangeHandler) {
+                    this.storageChangeHandler();
+                }
             },
             has: (key: string) => {
                 return this.notebookStorage.has(key);
@@ -1427,6 +1432,10 @@ export class CodeCellEngine {
             delete: (key: string) => {
                 const result = this.notebookStorage.delete(key);
                 if (result) log.debug(`Storage deleted: ${key}`);
+                // Call storage change handler if defined
+                if (this.storageChangeHandler) {
+                    this.storageChangeHandler();
+                }
                 return result;
             },
             keys: () => {
@@ -1435,6 +1444,10 @@ export class CodeCellEngine {
             clear: () => {
                 this.notebookStorage.clear();
                 log.debug('Storage cleared');
+                // Call storage change handler if defined
+                if (this.storageChangeHandler) {
+                    this.storageChangeHandler();
+                }
             }
         };
     }
@@ -1472,6 +1485,14 @@ export class CodeCellEngine {
 
     getStorageKeys(): string[] {
         return Array.from(this.notebookStorage.keys());
+    }
+
+    /**
+     * Set the storage change handler
+     */
+    public setStorageChangeHandler(handler: (() => void) | undefined): void {
+        this.storageChangeHandler = handler;
+        log.debug('Storage change handler set:', !!handler);
     }
 }
 

@@ -1,0 +1,15 @@
+{
+  "cells": [
+    {
+      "id": "test-storage-cell",
+      "type": "code",
+      "code": "// Test storage persistence\nconsole.log('Testing storage functionality...');\n\n// Set some data in storage\nstorage.set('test_key', 'test_value');\nstorage.set('test_number', 42);\nstorage.set('test_object', { name: 'Test', value: 123 });\n\nconsole.log('Storage keys:', storage.keys());\nconsole.log('Storage test_key:', storage.get('test_key'));\nconsole.log('Storage test_number:', storage.get('test_number'));\nconsole.log('Storage test_object:', storage.get('test_object'));\n\nconsole.log('✅ Storage test completed');"
+    },
+    {
+      "id": "intro-cell",
+      "type": "markdown",
+      "content": "# Storage Persistence Test\n\nThis notebook tests if storage changes properly mark the notebook as dirty and get persisted.\n\n**Instructions:**\n1. Run the code cell below\n2. Check if the notebook shows as 'dirty' (unsaved changes)\n3. Save the notebook\n4. Reload the notebook and check if the storage data is still there"
+    }
+  ],
+  "storage": {}
+}

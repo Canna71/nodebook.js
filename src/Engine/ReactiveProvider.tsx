@@ -22,7 +22,7 @@ export const ReactiveProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
     const [system] = useState(() => createReactiveSystem());
-    const { setStorageExporter } = useApplication();
+    const { setStorageExporter, currentModel, stateManager } = useApplication();
 
     // Set up storage exporter on mount
     useEffect(() => {
@@ -42,17 +42,36 @@ export const ReactiveProvider: React.FC<{
             };
             setStorageExporter(exporter);
             
-            log.debug('Storage exporter registered with ApplicationProvider');
+            // Set up storage change handler to mark notebook as dirty
+            const handleStorageChange = () => {
+                if (currentModel && stateManager) {
+                    log.debug('Storage changed, updating notebook model');
+                    const updatedStorage = system.codeCellEngine.exportStorageToNotebook();
+                    const updatedModel = {
+                        ...currentModel,
+                        storage: updatedStorage
+                    };
+                    stateManager.setNotebookModel(updatedModel, 'Update notebook storage');
+                }
+            };
+            
+            // Set the storage change handler on the code cell engine
+            system.codeCellEngine.setStorageChangeHandler(handleStorageChange);
+            
+            log.debug('Storage exporter and change handler registered with ApplicationProvider');
         } catch (error) {
             log.error('Error setting up storage exporter:', error);
         }
         
         // Cleanup on unmount
         return () => {
-            log.debug('Cleaning up storage exporter');
+            log.debug('Cleaning up storage exporter and change handler');
             setStorageExporter(null);
+            if (system?.codeCellEngine) {
+                system.codeCellEngine.setStorageChangeHandler(undefined);
+            }
         };
-    }, [system, system?.codeCellEngine, setStorageExporter]);
+    }, [system, system?.codeCellEngine, setStorageExporter, currentModel, stateManager]);
 
     return (
         <ReactiveContext.Provider value={system}>
