@@ -8,12 +8,12 @@
     {
       "id": "code_01",
       "type": "code",
-      "code": "// Test 1: Simple async function with setTimeout\nasync function delay(ms) {\n    return new Promise(resolve => setTimeout(resolve, ms));\n}\n\nconsole.log('Starting async test...');\nconst startTime = Date.now();\n\n// Use await in code cell\nawait delay(100); // Wait 100ms\n\nconst endTime = Date.now();\nconst elapsed = endTime - startTime;\n\nconsole.log(`Async delay completed in ${elapsed}ms`);\n\n// Export the result\nexports.asyncTestResult = {\n    elapsed,\n    success: elapsed >= 100\n};"
+      "code": "// Test 1: Simple async function with setTimeout\nasync function delay(ms) {\n    return new Promise(resolve => setTimeout(resolve, ms));\n}\n\nconsole.log('Starting async test...');\nconst startTime = Date.now();\n\n// Use await in code cell\nawait delay(100); // Wait 100ms\n\nconst endTime = Date.now();\nconst elapsed = endTime - startTime;\n\nconsole.log(`Async delay completed in ${elapsed}ms`);\n\n// Export the result AND the delay function for other cells\nexports.asyncTestResult = {\n    elapsed,\n    success: elapsed >= 100\n};\nexports.delay = delay; // Export the delay function for reuse"
     },
     {
       "id": "code_02", 
       "type": "code",
-      "code": "// Test 2: Fetch simulation with async/await\nasync function simulateFetch(url) {\n    console.log(`Simulating fetch to: ${url}`);\n    await delay(50); // Simulate network delay\n    return {\n        url,\n        status: 200,\n        data: { message: 'Success', timestamp: Date.now() }\n    };\n}\n\n// Multiple await calls\nconst response1 = await simulateFetch('https://api.example.com/data1');\nconst response2 = await simulateFetch('https://api.example.com/data2');\n\nconsole.log('Fetch results:', { response1, response2 });\n\n// Export combined results\nexports.fetchResults = {\n    responses: [response1, response2],\n    totalTime: response2.data.timestamp - response1.data.timestamp\n};"
+      "code": "// Test 2: Fetch simulation with async/await\nasync function simulateFetch(url) {\n    console.log(`Simulating fetch to: ${url}`);\n    await delay(50); // Use delay function from previous cell\n    return {\n        url,\n        status: 200,\n        data: { message: 'Success', timestamp: Date.now() }\n    };\n}\n\n// Multiple await calls\nconst response1 = await simulateFetch('https://api.example.com/data1');\nconst response2 = await simulateFetch('https://api.example.com/data2');\n\nconsole.log('Fetch results:', { response1, response2 });\n\n// Export combined results\nexports.fetchResults = {\n    responses: [response1, response2],\n    totalTime: response2.data.timestamp - response1.data.timestamp\n};"
     },
     {
       "id": "code_03",

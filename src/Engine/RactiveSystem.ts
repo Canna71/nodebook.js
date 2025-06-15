@@ -941,11 +941,25 @@ export class CodeCellEngine {
             const lastExportValues = previousCellInfo?.lastExportValues || new Map();
             let hasChanges = false;
 
-            // Compare with previous export values
+            // Compare with previous export values - handle objects properly
             for (const [name, value] of exportValues) {
-                if (!lastExportValues.has(name) || lastExportValues.get(name) !== value) {
+                if (!lastExportValues.has(name)) {
+                    // New export
                     hasChanges = true;
                     break;
+                } else {
+                    const lastValue = lastExportValues.get(name);
+                    // For objects, always consider them changed (since they often contain timestamps, random values, etc.)
+                    // For primitives, do strict comparison
+                    if (typeof value === 'object' && value !== null) {
+                        // Objects are considered changed (common in async results)
+                        hasChanges = true;
+                        break;
+                    } else if (lastValue !== value) {
+                        // Primitive values - strict comparison
+                        hasChanges = true;
+                        break;
+                    }
                 }
             }
 

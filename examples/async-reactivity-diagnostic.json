@@ -1,0 +1,35 @@
+{
+  "cells": [
+    {
+      "id": "md_01",
+      "type": "markdown",
+      "content": "# Async Reactivity Diagnostic\n\n## Purpose\nThis simplified test helps diagnose exactly where the async reactivity is breaking.\n\n**Expected behavior**: Slider change → immediate async start → wait for delay → immediate dependent execution\n\n**Problem symptoms**: Long delays (10+ seconds) between async completion and dependent execution."
+    },
+    {
+      "id": "var_01",
+      "type": "input",
+      "variableName": "testDelay",
+      "inputType": "range",
+      "value": 500,
+      "min": 200,
+      "max": 1000,
+      "step": 100,
+      "label": "Test Delay (ms)"
+    },
+    {
+      "id": "code_01",
+      "type": "code",
+      "code": "// DIAGNOSTIC ASYNC CELL\nconsole.log(`🚀 [${new Date().toLocaleTimeString()}] ASYNC CELL START - testDelay = ${testDelay}ms`);\n\nconst asyncStartTime = Date.now();\nconst cellId = 'diagnostic_async';\n\n// Simple async operation\nconsole.log(`⏳ [${new Date().toLocaleTimeString()}] Starting ${testDelay}ms delay...`);\n\n// Use a simple Promise to test async\nconst result = await new Promise(resolve => {\n    setTimeout(() => {\n        const endTime = Date.now();\n        const actualDelay = endTime - asyncStartTime;\n        console.log(`✅ [${new Date().toLocaleTimeString()}] Async completed in ${actualDelay}ms`);\n        \n        resolve({\n            testDelay: testDelay,\n            actualDelay: actualDelay,\n            startTime: asyncStartTime,\n            endTime: endTime,\n            value: Math.random() * 100\n        });\n    }, testDelay);\n});\n\nconsole.log(`📤 [${new Date().toLocaleTimeString()}] EXPORTING async result:`, result);\n\n// Export the result\nexports.diagnosticResult = result;\n\nconsole.log(`🎯 [${new Date().toLocaleTimeString()}] ASYNC CELL COMPLETE - exported diagnosticResult`);"
+    },
+    {
+      "id": "code_02",
+      "type": "code",
+      "code": "// DIAGNOSTIC DEPENDENT CELL\nconst dependentStartTime = Date.now();\nconsole.log(`🔗 [${new Date().toLocaleTimeString()}] DEPENDENT CELL START`);\n\n// Check if we have the async result\nif (!diagnosticResult) {\n    console.log(`❌ [${new Date().toLocaleTimeString()}] ERROR: diagnosticResult is undefined!`);\n} else {\n    console.log(`📥 [${new Date().toLocaleTimeString()}] Received diagnosticResult:`, diagnosticResult);\n    \n    // Calculate timing\n    const timingAnalysis = {\n        asyncCompleted: diagnosticResult.endTime,\n        dependentStarted: dependentStartTime,\n        reactiveTriggerDelay: dependentStartTime - diagnosticResult.endTime,\n        testDelay: diagnosticResult.testDelay,\n        actualAsyncDelay: diagnosticResult.actualDelay\n    };\n    \n    console.log(`⏱️  [${new Date().toLocaleTimeString()}] TIMING ANALYSIS:`);\n    console.log(`   - Async completed at: ${new Date(timingAnalysis.asyncCompleted).toLocaleTimeString()}`);\n    console.log(`   - Dependent started at: ${new Date(timingAnalysis.dependentStarted).toLocaleTimeString()}`);\n    console.log(`   - Reactive trigger delay: ${timingAnalysis.reactiveTriggerDelay}ms`);\n    console.log(`   - Expected delay: ${timingAnalysis.testDelay}ms`);\n    console.log(`   - Actual async delay: ${timingAnalysis.actualAsyncDelay}ms`);\n    \n    // Diagnostic assessment\n    const diagnostics = {\n        asyncWorking: timingAnalysis.actualAsyncDelay >= (timingAnalysis.testDelay - 50), // Within 50ms tolerance\n        reactivityWorking: timingAnalysis.reactiveTriggerDelay < 1000, // Should be < 1 second\n        reactivityFast: timingAnalysis.reactiveTriggerDelay < 100, // Should be < 100ms ideally\n        overallWorking: false\n    };\n    \n    diagnostics.overallWorking = diagnostics.asyncWorking && diagnostics.reactivityWorking;\n    \n    console.log(`\\n🧪 [${new Date().toLocaleTimeString()}] DIAGNOSTIC RESULTS:`);\n    console.log(`   - Async functioning: ${diagnostics.asyncWorking ? '✅ YES' : '❌ NO'}`);\n    console.log(`   - Reactivity functioning: ${diagnostics.reactivityWorking ? '✅ YES' : '❌ NO'}`);\n    console.log(`   - Reactivity fast: ${diagnostics.reactivityFast ? '✅ YES' : '❌ NO'}`);\n    console.log(`   - Overall status: ${diagnostics.overallWorking ? '✅ WORKING' : '❌ BROKEN'}`);\n    \n    if (!diagnostics.reactivityWorking) {\n        console.log(`\\n🚨 PROBLEM IDENTIFIED: Reactive trigger delay is ${timingAnalysis.reactiveTriggerDelay}ms`);\n        console.log(`   This indicates the reactive system is not immediately triggering dependent cells.`);\n        console.log(`   Expected: < 100ms delay, Actual: ${timingAnalysis.reactiveTriggerDelay}ms delay`);\n    }\n    \n    if (!diagnostics.asyncWorking) {\n        console.log(`\\n🚨 PROBLEM IDENTIFIED: Async delay incorrect`);\n        console.log(`   Expected: ~${timingAnalysis.testDelay}ms, Actual: ${timingAnalysis.actualAsyncDelay}ms`);\n    }\n    \n    // Export diagnostics\n    exports.timingAnalysis = timingAnalysis;\n    exports.diagnostics = diagnostics;\n}\n\nconsole.log(`✅ [${new Date().toLocaleTimeString()}] DEPENDENT CELL COMPLETE`);"
+    },
+    {
+      "id": "md_02",
+      "type": "markdown",
+      "content": "## Diagnostic Results\n\n### What This Test Shows\n\n1. **Move the slider** and watch the console timestamps carefully\n2. **Look for the timing pattern**:\n   ```\n   🚀 ASYNC CELL START\n   ⏳ Starting delay...\n   ✅ Async completed in XXXms  ← Should match slider value\n   📤 EXPORTING async result\n   🎯 ASYNC CELL COMPLETE\n   🔗 DEPENDENT CELL START     ← Should be immediate after export\n   📥 Received diagnosticResult\n   ⏱️ TIMING ANALYSIS\n   🧪 DIAGNOSTIC RESULTS\n   ```\n\n### Expected vs Actual\n\n- **✅ Good**: Reactive trigger delay < 100ms\n- **⚠️ Slow**: Reactive trigger delay 100ms - 1000ms \n- **❌ Broken**: Reactive trigger delay > 1000ms\n\n### Diagnostic Interpretation\n\n**If \"Reactivity functioning: ❌ NO\"**:\n- The reactive system is not properly triggering dependent cells\n- This indicates a fundamental issue with async exports not triggering reactivity\n- The `exports.diagnosticResult` is not causing dependent cell re-execution\n\n**If \"Async functioning: ❌ NO\"**:\n- The async/await mechanism itself is not working\n- This would indicate issues with the async execution wrapper\n\n**If both show ✅ but delays are high**:\n- Reactivity works but is slow\n- May indicate performance issues or queuing delays\n\n---\n\n**Current Status**: {{diagnostics?.overallWorking ? '✅ WORKING' : diagnostics ? '❌ BROKEN' : 'Run test to see results'}}\n\n**Reactive Delay**: {{timingAnalysis?.reactiveTriggerDelay || 'N/A'}}ms"
+    }
+  ]
+}
