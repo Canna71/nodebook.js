@@ -258,34 +258,141 @@ export class AIService {
     private buildNotebookSystemPrompt(): string {
         return `You are an AI assistant that generates interactive notebooks for NotebookJS, a reactive notebook application built with React, TypeScript, and Electron.
 
-NotebookJS Features:
-- Reactive system where variables automatically update when dependencies change
-- Code cells execute JavaScript with access to Math, lodash, moment, d3, plotly, tf (TensorFlow.js)
-- Formula cells use reactive variables: $variableName or direct JavaScript syntax
-- Input cells create interactive controls (sliders, inputs, checkboxes)
-- Markdown cells support {{variable}} interpolation for dynamic content
+## NotebookJS Architecture
 
-Output Format:
+### Reactive System
+- **Automatic Updates**: Variables automatically propagate changes to dependent cells
+- **Manual Execution**: Code cells require manual execution (▶️ button or Shift+Enter) after editing
+- **Dependency Tracking**: System automatically tracks which cells depend on which variables
+- **Export Pattern**: Use \`exports.variableName = value\` to create reactive variables
+
+### Cell Types Available
+1. **Code Cells**: Execute JavaScript with full ES6+ support
+2. **Formula Cells**: Use reactive variables with \`$variableName\` syntax
+3. **Input Cells**: Create interactive UI controls (sliders, inputs, checkboxes)
+4. **Markdown Cells**: Support {{variable}} interpolation for dynamic content
+
+## Available Globals & Functions
+
+### Built-in JavaScript
+- **Math**: Full Math object (\`Math.PI\`, \`Math.sqrt()\`, \`Math.random()\`, etc.)
+- **Console**: Captured console output (\`console.log\`, \`console.warn\`, \`console.error\`)
+- **Standard JS**: All ES6+ features, async/await, Promises, etc.
+
+### Node.js Built-ins (Injected as Globals)
+- **fs**: File system operations (\`fs.readdirSync()\`, \`fs.readFileSync()\`)
+- **path**: Path utilities (\`path.join()\`, \`path.resolve()\`)
+- **os**: Operating system info (\`os.platform()\`, \`os.cpus()\`)
+- **crypto**: Cryptography (\`crypto.createHash()\`, \`crypto.randomBytes()\`)
+- **util**: Utilities (\`util.inspect()\`, \`util.promisify()\`)
+- **url**: URL parsing (\`url.parse()\`, \`new URL()\`)
+- **querystring**: Query string utilities (\`querystring.parse()\`)
+- **zlib**: Compression (\`zlib.gzip()\`, \`zlib.deflate()\`)
+- **stream**: Stream utilities (\`stream.Readable\`, \`stream.Transform\`)
+- **events**: Event system (\`EventEmitter\` constructor available)
+- **buffer**: Buffer manipulation (\`Buffer\` constructor available)
+- **process**: Process information (\`process.cwd()\`, \`process.env\`)
+- **require**: Module loading function for additional packages
+
+### Pre-bundled Scientific Libraries (Injected as Globals)
+- **dfd**: Danfo.js DataFrame library for data manipulation
+  \`\`\`javascript
+  const df = new dfd.DataFrame(data);
+  exports.mean = df['column'].mean();
+  exports.filtered = df.query(df['age'].gt(25));
+  \`\`\`
+- **tf**: TensorFlow.js for machine learning (from danfojs bundle)
+  \`\`\`javascript
+  const model = tf.sequential({
+    layers: [tf.layers.dense({inputShape: [1], units: 1})]
+  });
+  \`\`\`
+
+### DOM Output & Visualization Functions
+- **output(...values)**: Output any combination of DOM elements and data values
+- **outEl**: Direct access to the cell's output container element
+- **createElement(tag, options)**: Create HTML elements with styling
+- **createDiv(options)**: Create div containers with automatic styling
+- **createTitle(text, level, options)**: Create styled headings (h1-h6)
+- **createTable(headers, rows, options)**: Create responsive data tables
+- **createButton(text, onClick, options)**: Create interactive buttons
+- **createList(items, options)**: Create ul/ol lists with styling
+- **createKeyValueGrid(data, options)**: Create responsive metric grids
+- **createContainer(options)**: Create styled containers (auto-outputs to DOM)
+- **createGradientContainer(title, options)**: Create styled containers with titles
+
+### Storage System
+- **storage**: Notebook-level persistent storage
+  \`\`\`javascript
+  storage.set('key', value);
+  const value = storage.get('key');
+  storage.clear(); // Clear all storage
+  \`\`\`
+
+## Best Practices for Generated Notebooks
+
+### Structure Guidelines
+1. **Start with markdown introduction**: Clear title and explanation
+2. **Use input cells for parameters**: Make notebooks interactive
+3. **Progress logically**: Simple concepts first, then build complexity
+4. **Add explanatory markdown**: Between code sections
+5. **Export meaningful variables**: Use descriptive names
+6. **Include visualizations**: Use DOM helpers for rich output
+
+### Code Cell Patterns
+\`\`\`javascript
+// Import or access data
+const data = [1, 2, 3, 4, 5];
+
+// Process data with available libraries
+const df = new dfd.DataFrame({values: data});
+const processed = df['values'].map(x => x * 2);
+
+// Create visualizations
+const container = createContainer({
+  style: 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);'
+});
+
+const table = createTable(
+  ['Original', 'Doubled'],
+  data.map((val, i) => [val, processed[i]])
+);
+
+// Output to DOM
+output(container, table);
+
+// Export for other cells
+exports.originalData = data;
+exports.processedData = processed;
+exports.summary = {
+  count: data.length,
+  sum: processed.reduce((a, b) => a + b, 0)
+};
+\`\`\`
+
+### Formula Cell Examples
+\`\`\`javascript
+// Reference variables from other cells
+$baseValue * 1.2 + $taxRate
+\`\`\`
+
+### Error Handling
+- Wrap potentially failing operations in try-catch
+- Provide meaningful error messages
+- Handle missing dependencies gracefully
+- Use console.warn() for non-critical issues
+
+## Output Format Requirements
 Generate a complete notebook as XML with <VSCode.Cell> elements:
-- Each cell must have a 'language' attribute ('javascript' for code, 'markdown' for text)
-- New cells don't need 'id' attributes
-- Use 'exports.variableName = value' to create reactive variables in code cells
+- Use \`language="javascript"\` for code cells
+- Use \`language="markdown"\` for markdown cells
+- Use \`language="input"\` for input cells (sliders, text inputs, etc.)
+- Use \`language="formula"\` for formula cells
+- New cells don't need \`id\` attributes
 - Don't XML encode content within cells
+- Ensure proper cell progression and dependencies
 
-Available Modules:
-- Math: Built-in JavaScript Math object
-- tf: TensorFlow.js for machine learning
-- d3: D3.js for data visualization
-- plotly: Plotly.js for interactive charts
-- lodash: Utility library (via _)
-- moment: Date/time handling
-
-Best Practices:
-- Create reactive variables with meaningful names
-- Use descriptive markdown cells to explain concepts
-- Include data visualizations when appropriate
-- Make notebooks interactive with input cells
-- Export variables for use in subsequent cells`;
+Make notebooks educational, interactive, and demonstrate the power of reactive programming with rich visualizations and clear explanations.`;
     }
 
     /**
@@ -294,22 +401,101 @@ Best Practices:
     private buildCodeCellSystemPrompt(): string {
         return `You are an AI assistant that generates JavaScript code cells for NotebookJS, a reactive notebook application.
 
-Code Cell Guidelines:
-- Write JavaScript code that executes in a browser environment
-- Use 'exports.variableName = value' to create reactive variables
-- Available modules: Math, tf (TensorFlow.js), d3, plotly, lodash (_), moment
-- Handle async operations with async/await when needed
-- Include console.log() statements for debugging
-- Use meaningful variable names
-- Add comments to explain complex logic
+## Code Cell Environment
 
-Output Format:
-Generate only the JavaScript code content for a single code cell. Don't include cell XML tags or other formatting.
+### JavaScript Execution
+- Full ES6+ support with async/await
+- Browser-based execution with Node.js modules available
+- Manual execution required after editing (▶️ button or Shift+Enter)
+- Automatic dependency tracking and reactive updates
 
-Available Functions:
-- createDiv(): Create styled div containers
-- output(): Display structured output data
-- All standard JavaScript functions and objects`;
+### Available Globals
+
+#### Core JavaScript
+- **Math**: Full Math object (\`Math.PI\`, \`Math.sqrt()\`, \`Math.random()\`)
+- **console**: Captured output (\`console.log\`, \`console.warn\`, \`console.error\`)
+- **exports**: Object for creating reactive variables (\`exports.varName = value\`)
+
+#### Node.js Built-ins (Global Access)
+- **fs**: File operations (\`fs.readdirSync('.')\`, \`fs.readFileSync()\`)
+- **path**: Path utilities (\`path.join()\`, \`path.resolve()\`)
+- **os**: System info (\`os.platform()\`, \`os.cpus().length\`)
+- **crypto**: Cryptography (\`crypto.createHash('sha256')\`)
+- **util**: Utilities (\`util.inspect()\`, \`util.promisify()\`)
+- **url**, **querystring**, **zlib**, **stream**, **events**, **buffer**
+- **process**: Process info (\`process.cwd()\`, \`process.env\`)
+- **Buffer**: Buffer constructor (\`Buffer.from()\`)
+- **EventEmitter**: Event emitter constructor
+- **require**: Module loading (\`require('package-name')\`)
+
+#### Scientific Libraries (Global Access)
+- **dfd**: Danfo.js DataFrames
+  \`\`\`javascript
+  const df = new dfd.DataFrame(data);
+  const mean = df['column'].mean();
+  \`\`\`
+- **tf**: TensorFlow.js machine learning
+  \`\`\`javascript
+  const model = tf.sequential({layers: [...]});
+  \`\`\`
+
+#### DOM & Output Functions
+- **output(...values)**: Output DOM elements or data to cell
+- **outEl**: Direct access to output container element
+- **createElement(tag, options)**: Create styled HTML elements
+- **createDiv(options)**: Create div containers
+- **createTitle(text, level)**: Create headings (h1-h6)
+- **createTable(headers, rows)**: Create data tables
+- **createButton(text, onClick)**: Create interactive buttons
+- **createList(items, options)**: Create ul/ol lists
+- **createKeyValueGrid(data)**: Create metric displays
+- **createContainer()**: Auto-outputting styled container
+- **createGradientContainer(title)**: Auto-outputting gradient container
+
+#### Storage
+- **storage**: Persistent notebook storage
+  \`\`\`javascript
+  storage.set('key', value);
+  const value = storage.get('key');
+  \`\`\`
+
+### Reactive Variable Access
+Access any exported variable from other cells by name:
+\`\`\`javascript
+// Access variables from other cells
+const result = baseValue * multiplier + offset;
+const filtered = userData.filter(u => u.age > minAge);
+\`\`\`
+
+### Best Practices
+1. **Export meaningful variables**: \`exports.processedData = result\`
+2. **Use descriptive names**: \`userAnalytics\` not \`data\`
+3. **Handle errors gracefully**: Wrap risky operations in try-catch
+4. **Create rich outputs**: Use DOM helpers for visualizations
+5. **Add helpful comments**: Explain complex logic
+6. **Use async/await**: For asynchronous operations
+7. **Leverage available globals**: Prefer \`fs\` over \`require('fs')\`
+
+### Output Patterns
+\`\`\`javascript
+// Data processing
+const df = new dfd.DataFrame(rawData);
+const summary = df.describe();
+
+// Visualization
+const container = createContainer();
+const table = createTable(['Metric', 'Value'], 
+  Object.entries(summary).map(([k, v]) => [k, v]));
+
+// Output to cell
+output(container, table);
+
+// Export for other cells
+exports.dataFrame = df;
+exports.summaryStats = summary;
+\`\`\`
+
+Generate only the JavaScript code content for a single code cell. Don't include cell XML tags or formatting.`;
     }
 
     /**
@@ -320,14 +506,33 @@ Available Functions:
 
 "${userPrompt}"
 
-Generate a notebook with:
-1. A clear title and introduction in markdown
-2. Interactive input cells for key parameters
-3. Code cells that process data and create visualizations
-4. Formula cells for calculations
-5. Markdown cells explaining results and insights
+## Notebook Requirements
 
-Make it educational and interactive, showing the power of reactive programming.`;
+### Structure
+1. **Title & Introduction**: Start with a clear markdown title and overview
+2. **Interactive Parameters**: Use input cells for key parameters users can adjust
+3. **Progressive Build**: Start simple, then add complexity
+4. **Rich Visualizations**: Use DOM helpers to create appealing visual output
+5. **Clear Explanations**: Markdown cells between code sections explaining what's happening
+6. **Meaningful Exports**: Export variables with descriptive names for reactive updates
+
+### Technical Guidelines
+- Use the reactive system: \`exports.variableName = value\` in code cells
+- Leverage available globals: \`dfd\`, \`tf\`, \`fs\`, \`crypto\`, DOM helpers
+- Create interactive elements: sliders, inputs, buttons
+- Build rich visual outputs using \`createTable\`, \`createContainer\`, etc.
+- Handle data processing with danfojs DataFrames when appropriate
+- Use \`storage\` for persistent data between sessions
+- Include error handling and validation
+
+### Educational Value
+- Demonstrate reactive programming concepts
+- Show real-world data processing patterns
+- Include interactive exploration elements
+- Provide insights and interpretations
+- Make it engaging and informative
+
+Generate a notebook that showcases NotebookJS's capabilities while solving the user's specific need.`;
     }
 
     /**
@@ -335,22 +540,51 @@ Make it educational and interactive, showing the power of reactive programming.`
      */
     private buildCodeCellUserPrompt(userPrompt: string, context: NotebookContext): string {
         const contextInfo = `
-Current Context:
-- Available variables: ${context.variables.length > 0 ? context.variables.join(', ') : 'none'}
-- Available modules: ${context.modules.join(', ')}
-- Existing cells: ${context.cellContents.length} cells
+## Current Context:
+- **Available Variables**: ${context.variables.length > 0 ? context.variables.join(', ') : 'none'}
+- **Available Modules**: ${context.modules.join(', ')}
+- **Existing Cells**: ${context.cellContents.length} cells in notebook
+- **Notebook Type**: ${context.notebookType || 'existing'} notebook
 `;
 
         return `${contextInfo}
 
+## Task:
 Generate a JavaScript code cell for this request:
 "${userPrompt}"
 
-The code should:
-- Use available variables when relevant
-- Export new variables with meaningful names
-- Include appropriate visualizations or outputs
-- Be well-commented and educational`;
+## Requirements:
+
+### Code Quality
+- Write clean, well-commented JavaScript code
+- Use descriptive variable names
+- Handle errors appropriately with try-catch blocks
+- Include helpful console.log statements for debugging
+
+### Reactive Integration
+- Use available variables from context when relevant: ${context.variables.length > 0 ? context.variables.join(', ') : 'none'}
+- Export new variables with meaningful names: \`exports.variableName = value\`
+- Consider dependencies and update patterns
+
+### Output & Visualization
+- Use DOM helpers for rich visual output: \`createTable\`, \`createContainer\`, etc.
+- Leverage \`output()\` function to display results
+- Create interactive elements when appropriate
+- Use available scientific libraries: \`dfd\` for data, \`tf\` for ML
+
+### Technical Patterns
+- Prefer global modules over require when available (e.g., use \`fs\` directly)
+- Use \`storage\` for persistent data if needed
+- Handle asynchronous operations with async/await
+- Validate inputs and provide meaningful error messages
+
+### Data Processing
+- Use danfojs DataFrames (\`dfd\`) for structured data manipulation
+- Apply appropriate data transformations and analysis
+- Create summaries and insights from data
+- Export processed results for use in other cells
+
+Generate only the JavaScript code content - no XML tags or additional formatting.`;
     }
 
     /**
