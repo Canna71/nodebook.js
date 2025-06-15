@@ -574,36 +574,20 @@ export class CodeCellEngine {
     private globalScope: { [key: string]: any };
 
     /**
-     * Initialize all registered modules in global scope with conventional names
+     * Initialize only preloaded/injected modules in global scope
+     * These are modules that should be available without require()
      */
-    private initializeRegisteredModules(): void {
+    private initializePreloadedModules(): void {
         const availableModules = moduleRegistry.getAvailableModules();
         
-        // Module name mappings to conventional variable names
-        const moduleNameMappings: Record<string, string> = {
-            // Scientific libraries
+        // Only inject modules that should be truly global (preloaded)
+        const preloadedModules: Record<string, string> = {
+            // Scientific libraries that are preloaded
             'danfojs': 'dfd',
             '@tensorflow/tfjs': 'tf',
             'tensorflow': 'tf',
             
-            // Data visualization
-            'plotly.js-dist-min': 'Plotly',
-            'd3': 'd3',
-            
-            // Data processing
-            'lodash': '_',
-            'mathjs': 'math',
-            'papaparse': 'Papa',
-            'xlsx': 'XLSX',
-            
-            // HTTP clients
-            'axios': 'axios',
-            'node-fetch': 'fetch',
-            
-            // Date/time
-            'moment': 'moment',
-            
-            // Keep original names for Node.js built-ins
+            // Node.js built-ins (always available)
             'fs': 'fs',
             'path': 'path',
             'os': 'os',
@@ -615,7 +599,7 @@ export class CodeCellEngine {
             'stream': 'stream',
             'buffer': 'Buffer',
             'events': 'EventEmitter',
-            'readline': 'readline',
+            'readline': 'readline', 
             'worker_threads': 'worker_threads',
             'child_process': 'child_process',
             'string_decoder': 'StringDecoder',
@@ -626,27 +610,29 @@ export class CodeCellEngine {
             'constants': 'constants'
         };
         
-        // Inject modules into global scope
+        // Only inject truly preloaded modules into global scope
         for (const moduleName of availableModules) {
-            try {
-                const moduleExports = moduleRegistry.getModule(moduleName);
-                const variableName = moduleNameMappings[moduleName] || moduleName;
-                
-                this.globalScope[variableName] = moduleExports;
-                
-                // For Buffer, also expose the Buffer constructor
-                if (moduleName === 'buffer') {
-                    this.globalScope['Buffer'] = moduleExports.Buffer;
+            if (preloadedModules[moduleName]) {
+                try {
+                    const moduleExports = moduleRegistry.getModule(moduleName);
+                    const variableName = preloadedModules[moduleName];
+                    
+                    this.globalScope[variableName] = moduleExports;
+                    
+                    // Special handling for Buffer constructor
+                    if (moduleName === 'buffer') {
+                        this.globalScope['Buffer'] = moduleExports.Buffer;
+                    }
+                    
+                    // Special handling for EventEmitter constructor
+                    if (moduleName === 'events') {
+                        this.globalScope['EventEmitter'] = moduleExports.EventEmitter;
+                    }
+                    
+                    log.debug(`Injected preloaded module ${moduleName} as ${variableName}`);
+                } catch (error) {
+                    log.warn(`Failed to inject preloaded module ${moduleName}:`, error);
                 }
-                
-                // For events, expose EventEmitter constructor
-                if (moduleName === 'events') {
-                    this.globalScope['EventEmitter'] = moduleExports.EventEmitter;
-                }
-                
-                log.debug(`Injected module ${moduleName} as ${variableName}`);
-            } catch (error) {
-                log.warn(`Failed to inject module ${moduleName}:`, error);
             }
         }
     }
@@ -661,18 +647,27 @@ export class CodeCellEngine {
             ...domHelpers
         };
         
-        // Initialize all registered modules in global scope
-        this.initializeRegisteredModules();
+        // Initialize only preloaded modules in global scope
+        this.initializePreloadedModules();
     }
 
     /**
      * Register a module for use in code cells
+     * Only preloaded modules are injected into global scope automatically
      */
     public registerModule(name: string, moduleExports: any): void {
         moduleRegistry.registerModule(name, moduleExports);
         this.moduleCache.set(name, moduleExports);
-        this.globalScope[name] = moduleExports;
-        log.debug(`Registered module in code cell engine: ${name}`);
+        
+        // Only inject preloaded modules into global scope
+        const preloadedModules = ['danfojs', '@tensorflow/tfjs', 'tensorflow'];
+        if (preloadedModules.includes(name)) {
+            const globalName = name === 'danfojs' ? 'dfd' : name === '@tensorflow/tfjs' || name === 'tensorflow' ? 'tf' : name;
+            this.globalScope[globalName] = moduleExports;
+            log.debug(`Registered and injected preloaded module ${name} as ${globalName}`);
+        } else {
+            log.debug(`Registered module ${name} (require-only)`);
+        }
     }
 
     /**
@@ -714,16 +709,13 @@ export class CodeCellEngine {
             // Check local cache first
             if (this.moduleCache.has(moduleName)) {
                 log.debug(`Loading cached module: ${moduleName}`);
-                const cachedModule = this.moduleCache.get(moduleName);
-                this.globalScope[moduleName] = cachedModule;
-                return cachedModule;
+                return this.moduleCache.get(moduleName);
             }
 
             try {
                 // Use module registry (which uses Node.js require in Electron)
                 const moduleExports = moduleRegistry.requireSync(moduleName);
                 this.moduleCache.set(moduleName, moduleExports);
-                this.globalScope[moduleName] = moduleExports;
                 log.debug(`Loaded module from registry: ${moduleName}`);
                 return moduleExports;
             } catch (error) {
@@ -1253,8 +1245,8 @@ export class CodeCellEngine {
             ...domHelpers
         };
         
-        // Re-initialize all registered modules
-        this.initializeRegisteredModules();
+        // Re-initialize preloaded modules only
+        this.initializePreloadedModules();
         log.debug('Global scope cleared and modules reinitialized');
     }
 
