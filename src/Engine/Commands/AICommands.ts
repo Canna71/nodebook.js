@@ -1,6 +1,7 @@
 import { ICommand, CommandContext } from '@/Types/CommandTypes';
 import { CellDefinition, CodeCellDefinition, MarkdownCellDefinition } from '@/Types/NotebookModel';
 import { AIService, NotebookContext } from '@/Engine/AIService';
+import { aiDialogHelper } from '@/lib/AIDialogHelper';
 import anylogger from 'anylogger';
 
 const log = anylogger('AICommands');
@@ -47,7 +48,7 @@ export class GenerateNotebookCommand extends BaseAICommand {
             
             // Check if API keys are configured
             if (!aiService.hasAPIKeys()) {
-                await this.showErrorDialog(
+                await aiDialogHelper.showError(
                     'AI Configuration Required',
                     'Please configure your AI API keys in the settings before generating notebooks.'
                 );
@@ -55,7 +56,7 @@ export class GenerateNotebookCommand extends BaseAICommand {
             }
             
             // Show input dialog to get user prompt
-            const prompt = await this.showPromptDialog(
+            const prompt = await aiDialogHelper.showPrompt(
                 'Generate Notebook with AI',
                 'Describe the notebook you want to create (e.g., "A data analysis notebook for sales data with charts")'
             );
@@ -67,54 +68,48 @@ export class GenerateNotebookCommand extends BaseAICommand {
 
             log.info('Generating notebook with AI prompt:', prompt);
             
+            // Show progress dialog
+            await aiDialogHelper.showProgress(
+                'Generating Notebook',
+                'AI is generating your notebook... This may take a few moments.'
+            );
+            
             try {
                 // Generate notebook using AI service
                 const generatedContent = await aiService.generateNotebook(prompt);
+                
+                // Hide progress dialog
+                aiDialogHelper.hideProgress();
                 
                 // Parse the generated content and create a new notebook
                 await this.createNotebookFromGenerated(generatedContent);
                 
                 log.info('Notebook generated and created successfully');
                 
+                // Show success dialog
+                await aiDialogHelper.showSuccess(
+                    'Notebook Generated',
+                    'Your AI-generated notebook has been created successfully!'
+                );
+                
             } catch (aiError) {
+                // Hide progress dialog on error
+                aiDialogHelper.hideProgress();
+                
                 log.error('AI generation failed:', aiError);
-                await this.showErrorDialog(
+                await aiDialogHelper.showError(
                     'AI Generation Failed',
                     `Failed to generate notebook: ${aiError instanceof Error ? aiError.message : 'Unknown error'}`
                 );
             }
             
         } catch (error) {
+            // Hide progress dialog on error
+            aiDialogHelper.hideProgress();
+            
             log.error('Error in GenerateNotebookCommand:', error);
-            await this.showErrorDialog('Error generating notebook', error instanceof Error ? error.message : 'Unknown error');
+            await aiDialogHelper.showError('Error generating notebook', error instanceof Error ? error.message : 'Unknown error');
         }
-    }
-
-    private async showPromptDialog(title: string, message: string): Promise<string | null> {
-        // Use electron dialog API
-        const result = await window.api.showInputDialog({
-            title,
-            message,
-            placeholder: 'Enter your prompt here...'
-        });
-        
-        return result.cancelled ? null : result.value;
-    }
-
-    private async showInfoDialog(title: string, message: string): Promise<void> {
-        await window.api.showMessageDialog({
-            type: 'info',
-            title,
-            message
-        });
-    }
-
-    private async showErrorDialog(title: string, message: string): Promise<void> {
-        await window.api.showMessageDialog({
-            type: 'error',
-            title,
-            message
-        });
     }
 
     /**
@@ -210,7 +205,7 @@ export class GenerateCodeCellCommand extends BaseAICommand {
             
             // Check if API keys are configured
             if (!aiService.hasAPIKeys()) {
-                await this.showErrorDialog(
+                await aiDialogHelper.showError(
                     'AI Configuration Required',
                     'Please configure your AI API keys in the settings before generating code cells.'
                 );
@@ -218,7 +213,7 @@ export class GenerateCodeCellCommand extends BaseAICommand {
             }
             
             // Show input dialog to get user prompt
-            const prompt = await this.showPromptDialog(
+            const prompt = await aiDialogHelper.showPrompt(
                 'Generate Code Cell with AI',
                 'Describe the code you want to generate (e.g., "Create a scatter plot using the sales data")'
             );
@@ -234,26 +229,47 @@ export class GenerateCodeCellCommand extends BaseAICommand {
             const context = this.buildNotebookContext();
             log.debug('Notebook context for AI:', context);
             
+            // Show progress dialog
+            await aiDialogHelper.showProgress(
+                'Generating Code Cell',
+                'AI is generating your code cell... This may take a few moments.'
+            );
+            
             try {
                 // Generate code cell using AI service
                 const generatedCode = await aiService.generateCodeCell(prompt, context);
+                
+                // Hide progress dialog
+                aiDialogHelper.hideProgress();
                 
                 // Create and add the new code cell
                 await this.createCodeCellFromGenerated(generatedCode);
                 
                 log.info('Code cell generated and added successfully');
                 
+                // Show success dialog
+                await aiDialogHelper.showSuccess(
+                    'Code Cell Generated',
+                    'Your AI-generated code cell has been added successfully!'
+                );
+                
             } catch (aiError) {
+                // Hide progress dialog on error
+                aiDialogHelper.hideProgress();
+                
                 log.error('AI generation failed:', aiError);
-                await this.showErrorDialog(
+                await aiDialogHelper.showError(
                     'AI Generation Failed',
                     `Failed to generate code cell: ${aiError instanceof Error ? aiError.message : 'Unknown error'}`
                 );
             }
             
         } catch (error) {
+            // Hide progress dialog on error
+            aiDialogHelper.hideProgress();
+            
             log.error('Error in GenerateCodeCellCommand:', error);
-            await this.showErrorDialog('Error generating code cell', error instanceof Error ? error.message : 'Unknown error');
+            await aiDialogHelper.showError('Error generating code cell', error instanceof Error ? error.message : 'Unknown error');
         }
     }
 
@@ -336,32 +352,5 @@ export class GenerateCodeCellCommand extends BaseAICommand {
             log.error('Failed to create code cell from generated content:', error);
             throw new Error(`Failed to add generated code cell: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
-    }
-
-    private async showPromptDialog(title: string, message: string): Promise<string | null> {
-        // Use electron dialog API
-        const result = await window.api.showInputDialog({
-            title,
-            message,
-            placeholder: 'Enter your prompt here...'
-        });
-        
-        return result.cancelled ? null : result.value;
-    }
-
-    private async showInfoDialog(title: string, message: string): Promise<void> {
-        await window.api.showMessageDialog({
-            type: 'info',
-            title,
-            message
-        });
-    }
-
-    private async showErrorDialog(title: string, message: string): Promise<void> {
-        await window.api.showMessageDialog({
-            type: 'error',
-            title,
-            message
-        });
     }
 }
