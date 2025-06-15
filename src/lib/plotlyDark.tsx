@@ -140,6 +140,13 @@ function applyDarkModeToPlotly(el: HTMLElement) {
     
     return Plotly.restyle(el as HTMLElement, 
         {
+            // Font styling for dark mode
+            font: {
+                color: "#ffffff"  // or use CSS custom property: getComputedStyle(document.documentElement).getPropertyValue('--color-foreground')
+            },
+            // Paper and plot background
+            paper_bgcolor: "rgba(0,0,0,0)",
+            plot_bgcolor: "rgba(0,0,0,0)",
             // annotationdefaults: {
             //     arrowcolor: "#f2f5fa",
             //     arrowhead: 0,

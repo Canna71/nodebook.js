@@ -233,3 +233,29 @@
 .dark .plot-container g.cartesianlayer  g.gridlayer path {
     stroke: var(--color-muted-foreground) !important;
 }
+
+/* SVG text color inheritance */
+svg text {
+    fill: var(--color-foreground);
+  }
+  
+  /* Ensure SVG elements respect the current color context */
+  svg {
+    color: var(--color-foreground);
+  }
+  
+  /* SVG text in specific contexts */
+  .cell-output svg text,
+  .output-container svg text {
+    fill: currentColor;
+  }
+  
+  /* Specific adjustments for dark mode SVG elements */
+.dark svg text {
+  fill: var(--color-foreground);
+}
+
+/* Exclude SVG text from plot container filters if needed */
+.dark .plot-container svg text {
+  filter: invert(100%) hue-rotate(180deg);
+}
