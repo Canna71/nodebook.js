@@ -1,0 +1,28 @@
+{
+  "id": "storage-integration-test",
+  "title": "Storage Integration Test",
+  "description": "Testing the storage system integration with save/load workflow",
+  "cells": [
+    {
+      "id": "intro-cell",
+      "type": "markdown",
+      "content": "# Storage Integration Test\n\nThis notebook tests the storage system integration with the save/load workflow.\n\n## Test Steps:\n1. Store some data using the storage API\n2. Save the notebook\n3. Reload the notebook\n4. Verify the data is still available"
+    },
+    {
+      "id": "store-data-cell",
+      "type": "code",
+      "code": "// Store some test data\nstorage.set('testString', 'Hello, World!');\nstorage.set('testNumber', 42);\nstorage.set('testArray', [1, 2, 3, 4, 5]);\nstorage.set('testObject', {\n  name: 'Test Object',\n  timestamp: new Date().toISOString(),\n  nested: {\n    value: 'nested data'\n  }\n});\n\nconsole.log('Data stored successfully!');\nconsole.log('Storage keys:', storage.keys());"
+    },
+    {
+      "id": "verify-data-cell",
+      "type": "code",
+      "code": "// Verify stored data\nconsole.log('=== Stored Data Verification ===');\nconsole.log('testString:', storage.get('testString'));\nconsole.log('testNumber:', storage.get('testNumber'));\nconsole.log('testArray:', storage.get('testArray'));\nconsole.log('testObject:', storage.get('testObject'));\n\n// Test if data exists\nconsole.log('\\n=== Existence Tests ===');\nconsole.log('has testString:', storage.has('testString'));\nconsole.log('has nonexistent:', storage.has('nonexistent'));\n\n// Show all keys\nconsole.log('\\n=== All Keys ===');\nconsole.log('All keys:', storage.keys());"
+    },
+    {
+      "id": "instructions-cell",
+      "type": "markdown",
+      "content": "## Manual Test Instructions\n\n**After running the cells above:**\n\n1. Save this notebook (Cmd+S or File > Save)\n2. Close and reopen the notebook\n3. Run the \"Verify stored data\" cell again\n4. The stored data should still be available\n\nThis tests that the storage is properly exported to the notebook file during save and loaded back when the notebook is opened."
+    }
+  ],
+  "storage": {}
+}

@@ -1,0 +1,44 @@
+{
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "md_01",
+      "content": "# Data Storage Example\n\nThis notebook demonstrates how to use the explicit storage system to persist data across notebook sessions.\n\n## Key Concepts\n\n1. **`storage.set(key, value)`** - Store data with explicit serialization\n2. **`storage.get(key)`** - Retrieve stored data\n3. **`storage.has(key)`** - Check if data exists\n4. **`storage.keys()`** - List all stored keys\n5. **User Controls Serialization** - You decide how to serialize/deserialize your data\n\nThis approach gives you full control over data persistence and avoids automatic overriding issues."
+    },
+    {
+      "type": "code",
+      "id": "code_01",
+      "code": "// Create a DataFrame and store it explicitly\nconst dfd = require('danfojs');\n\n// Create sample data\nconst data = {\n  name: ['Alice', 'Bob', 'Charlie', 'Diana'],\n  age: [25, 30, 35, 28],\n  city: ['New York', 'London', 'Tokyo', 'Paris'],\n  salary: [75000, 85000, 95000, 70000]\n};\n\nconst df = new dfd.DataFrame(data);\nconsole.log('Created DataFrame:');\nconsole.log('Shape:', df.shape);\nconsole.log('Columns:', df.columns);\n\n// Explicit serialization - user controls the format\nconst serializedData = {\n  columns: df.columns,\n  values: df.values,\n  shape: df.shape,\n  dtypes: df.dtypes\n};\n\n// Store in the notebook's persistent storage\nstorage.set('employee_data', serializedData);\nstorage.set('last_modified', new Date().toISOString());\n\nconsole.log('Data stored in notebook storage');\nconsole.log('Storage keys:', storage.keys());\n\n// Export for reactive use in other cells\nexports.df = df;\nexports.originalDataShape = df.shape;"
+    },
+    {
+      "type": "markdown",
+      "id": "md_02",
+      "content": "## Data Stored Successfully\n\nThe DataFrame has been stored using:\n- **storage.set('employee_data', serializedData)** - Custom serialization format\n- **storage.set('last_modified', timestamp)** - Simple timestamp storage\n\nThe storage contains **{{storage.keys().length}}** entries: {{storage.keys().join(', ')}}\n\nStored at: **{{storage.get('last_modified')}}**"
+    },
+    {
+      "type": "code",
+      "id": "code_02",
+      "code": "// Restore data from storage (this would work even after notebook reload)\nif (storage.has('employee_data')) {\n  console.log('Found stored data! Restoring...');\n  \n  const storedData = storage.get('employee_data');\n  console.log('Stored data shape:', storedData.shape);\n  \n  // Reconstruct DataFrame using danfojs\n  const restoredDf = new dfd.DataFrame(storedData.values, { columns: storedData.columns });\n  \n  console.log('Restored DataFrame:');\n  console.log('Shape:', restoredDf.shape);\n  console.log('Columns:', restoredDf.columns);\n  \n  // Show first few rows\n  restoredDf.head().print();\n  \n  // Export the restored DataFrame\n  exports.restoredDf = restoredDf;\n  \n} else {\n  console.log('No stored data found');\n}\n\n// Show storage info\nconsole.log('\\n=== Storage Info ===');\nconsole.log('Total keys:', storage.keys().length);\nconsole.log('Keys:', storage.keys());\nconsole.log('Last modified:', storage.get('last_modified'));"
+    },
+    {
+      "type": "code",
+      "id": "code_03",
+      "code": "// Demonstrate data editing and re-storage\nif (restoredDf) {\n  console.log('Modifying the restored DataFrame...');\n  \n  // Add a new column\n  const bonuses = [5000, 7000, 10000, 4000];\n  restoredDf.addColumn('bonus', bonuses, { inplace: true });\n  \n  console.log('Added bonus column:');\n  restoredDf.head().print();\n  \n  // Store the modified version\n  const modifiedData = {\n    columns: restoredDf.columns,\n    values: restoredDf.values,\n    shape: restoredDf.shape,\n    dtypes: restoredDf.dtypes,\n    version: 2  // Track versions\n  };\n  \n  storage.set('employee_data', modifiedData);\n  storage.set('last_modified', new Date().toISOString());\n  \n  console.log('\\nUpdated data stored!');\n  console.log('New shape:', restoredDf.shape);\n  \n  // Export the modified DataFrame\n  exports.modifiedDf = restoredDf;\n  \n} else {\n  console.log('No DataFrame to modify (run previous cell first)');\n}"
+    },
+    {
+      "type": "markdown",
+      "id": "md_04",
+      "content": "## Key Benefits of Explicit Storage\n\n### ✅ **User Control**\n- **You decide** what to store and how to serialize it\n- **Custom formats**: Use DataFrame.toJSON(), CSV, or any format\n- **Versioning**: Add version numbers, timestamps, metadata\n\n### ✅ **No Override Issues**\n- **Explicit restore**: Only restore when you call `storage.get()`\n- **Conditional logic**: Check if stored data exists before using\n- **Cell independence**: Each cell controls its own data flow\n\n### ✅ **Flexible Serialization**\n```javascript\n// DataFrame with custom serialization\nstorage.set('df_csv', df.toCSV());\nstorage.set('df_json', df.toJSON());\nstorage.set('df_custom', {\n  data: df.values,\n  meta: { created: Date.now(), user: 'me' }\n});\n\n// Restore with appropriate method\nconst df1 = dfd.readCSV(storage.get('df_csv'));\nconst df2 = dfd.readJSON(storage.get('df_json'));\nconst custom = storage.get('df_custom');\n```\n\n### ✅ **Storage Management**\n```javascript\n// Check what's stored\nconsole.log('Keys:', storage.keys());\nconsole.log('Has data:', storage.has('my_data'));\n\n// Clean up\nstorage.delete('old_data');\nstorage.clear(); // Remove everything\n```"
+    },
+    {
+      "type": "code",
+      "id": "code_04",
+      "code": "// Advanced storage patterns\n\n// 1. Versioned storage with metadata\nfunction storeDataWithMetadata(key, data, metadata = {}) {\n  const entry = {\n    data: data,\n    metadata: {\n      version: 1,\n      created: new Date().toISOString(),\n      ...metadata\n    }\n  };\n  \n  // Check if exists and increment version\n  if (storage.has(key)) {\n    const existing = storage.get(key);\n    entry.metadata.version = (existing.metadata?.version || 0) + 1;\n    entry.metadata.previousVersion = existing.metadata;\n  }\n  \n  storage.set(key, entry);\n  return entry.metadata.version;\n}\n\n// 2. Compressed storage for large data\nfunction storeCompressed(key, data) {\n  // In a real scenario, you might use a compression library\n  const serialized = JSON.stringify(data);\n  const compressed = serialized; // Placeholder for compression\n  \n  storage.set(key, {\n    type: 'compressed',\n    data: compressed,\n    originalSize: serialized.length,\n    compressedSize: compressed.length\n  });\n}\n\n// 3. Storage with expiration\nfunction storeWithExpiration(key, data, expirationHours = 24) {\n  const entry = {\n    data: data,\n    expires: new Date(Date.now() + expirationHours * 60 * 60 * 1000).toISOString()\n  };\n  storage.set(key, entry);\n}\n\nfunction getWithExpiration(key) {\n  if (!storage.has(key)) return null;\n  \n  const entry = storage.get(key);\n  if (entry.expires && new Date() > new Date(entry.expires)) {\n    storage.delete(key);\n    return null;\n  }\n  \n  return entry.data;\n}\n\n// Demo the advanced patterns\nif (modifiedDf) {\n  // Store with metadata\n  const version = storeDataWithMetadata('employee_versioned', {\n    columns: modifiedDf.columns,\n    values: modifiedDf.values,\n    shape: modifiedDf.shape\n  }, {\n    user: 'demo',\n    description: 'Employee data with bonuses'\n  });\n  \n  console.log(`Stored employee data as version ${version}`);\n  \n  // Store with expiration (expires in 1 hour)\n  storeWithExpiration('temp_calc', { result: 42, computation: 'demo' }, 1);\n  \n  console.log('\\n=== Storage Summary ===');\n  storage.keys().forEach(key => {\n    const value = storage.get(key);\n    console.log(`${key}:`, typeof value === 'object' ? JSON.stringify(value).substring(0, 100) + '...' : value);\n  });\n  \n} else {\n  console.log('Run previous cells first to see advanced storage patterns');\n}\n\nexports.storeDataWithMetadata = storeDataWithMetadata;\nexports.getWithExpiration = getWithExpiration;"
+    },
+    {
+      "type": "markdown",
+      "id": "md_05",
+      "content": "## Summary\n\nThe explicit storage system provides:\n\n1. **Full Control**: Users decide what, when, and how to store data\n2. **No Conflicts**: Explicit restore prevents automatic override issues\n3. **Flexible Serialization**: Support for any data format (CSV, JSON, binary, etc.)\n4. **Metadata Support**: Add versions, timestamps, descriptions\n5. **Storage Management**: List, check, delete, and clear stored data\n\nThis approach is much more robust than automatic serialization because:\n- **DataFrames can use optimized serialization** (toCSV, toJSON, etc.)\n- **Users control the data lifecycle** (when to save/restore)\n- **No surprise overrides** from cell re-execution\n- **Version control and metadata** can be added as needed\n\nThe storage persists with the notebook file, so when you save and reload the notebook, your data is still there!"
+    }
+  ]
+}

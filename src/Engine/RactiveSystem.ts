@@ -524,6 +524,18 @@ export class ReactiveFormulaEngine {
 }
 
 /**
+ * Storage interface for explicit data persistence
+ */
+interface NotebookStorageAPI {
+    get: (key: string) => any;
+    set: (key: string, value: any) => void;
+    has: (key: string) => boolean;
+    delete: (key: string) => boolean;
+    keys: () => string[];
+    clear: () => void;
+}
+
+/**
  * Code cell execution context
  */
 interface CodeExecutionContext {
@@ -531,6 +543,8 @@ interface CodeExecutionContext {
     get: (name: string) => any;
     // Output: export reactive values
     exportValue: (name: string, value: any) => void;
+    // Storage: explicit data persistence
+    storage: NotebookStorageAPI;
     // Utility functions
     console: Console;
     Math: typeof Math;
@@ -572,6 +586,7 @@ export class CodeCellEngine {
     private executingCells: Set<string>;
     private moduleCache: Map<string, any>;
     private globalScope: { [key: string]: any };
+    private notebookStorage: Map<string, any>; // Internal storage
 
     /**
      * Initialize only preloaded/injected modules in global scope
@@ -642,6 +657,7 @@ export class CodeCellEngine {
         this.executedCells = new Map();
         this.executingCells = new Set();
         this.moduleCache = new Map();
+        this.notebookStorage = new Map(); // Initialize storage
         this.globalScope = {
             // Add basic DOM helpers to global scope (non-auto-outputting versions)
             ...domHelpers
@@ -864,6 +880,7 @@ export class CodeCellEngine {
                             if (prop === 'console') return wrappedConsole;
                             if (prop === 'Math') return Math;
                             if (prop === 'exports') return exports;
+                            if (prop === 'storage') return this.createStorageAPI();
 
                             // Generic DOM output container (Scenario 2)
                             if (prop === 'outEl') {
@@ -973,7 +990,7 @@ export class CodeCellEngine {
                             prop in target ||
                             prop in this.globalScope ||
                             this.reactiveStore.get(prop) !== undefined ||
-                            ['console', 'Math', 'exports', 'require', 'process', 'Buffer', '__dirname', '__filename', 'output', 'outEl'].includes(prop)
+                            ['console', 'Math', 'exports', 'storage', 'require', 'process', 'Buffer', '__dirname', '__filename', 'output', 'outEl'].includes(prop)
                         );
                     }
                 });
@@ -1390,6 +1407,71 @@ export class CodeCellEngine {
      */
     public getReactiveStore(): ReactiveStore {
         return this.reactiveStore;
+    }
+
+    /**
+     * Create storage API for code cells
+     */
+    private createStorageAPI(): NotebookStorageAPI {
+        return {
+            get: (key: string) => {
+                return this.notebookStorage.get(key);
+            },
+            set: (key: string, value: any) => {
+                this.notebookStorage.set(key, value);
+                log.debug(`Storage set: ${key}`);
+            },
+            has: (key: string) => {
+                return this.notebookStorage.has(key);
+            },
+            delete: (key: string) => {
+                const result = this.notebookStorage.delete(key);
+                if (result) log.debug(`Storage deleted: ${key}`);
+                return result;
+            },
+            keys: () => {
+                return Array.from(this.notebookStorage.keys());
+            },
+            clear: () => {
+                this.notebookStorage.clear();
+                log.debug('Storage cleared');
+            }
+        };
+    }
+
+    /**
+     * Load storage data from notebook model
+     */
+    public loadStorageFromNotebook(storage: { [key: string]: any } = {}): void {
+        this.notebookStorage.clear();
+        Object.entries(storage).forEach(([key, value]) => {
+            this.notebookStorage.set(key, value);
+        });
+        log.debug(`Loaded ${Object.keys(storage).length} storage entries from notebook`);
+    }
+
+    /**
+     * Export storage data for notebook saving
+     */
+    public exportStorageToNotebook(): { [key: string]: any } {
+        const storage: { [key: string]: any } = {};
+        this.notebookStorage.forEach((value, key) => {
+            storage[key] = value;
+        });
+        return storage;
+    }
+
+    // Public methods to access storage from components
+    getStorageValue(key: string): any {
+        return this.notebookStorage.get(key);
+    }
+
+    hasStorageKey(key: string): boolean {
+        return this.notebookStorage.has(key);
+    }
+
+    getStorageKeys(): string[] {
+        return Array.from(this.notebookStorage.keys());
     }
 }
 

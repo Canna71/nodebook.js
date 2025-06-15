@@ -19,6 +19,14 @@ interface CodeMetadata {
  * Parse code to extract metadata from comments and structure
  */
 function parseCodeMetadata(code: string): CodeMetadata {
+  // Handle undefined or null code
+  if (!code || typeof code !== 'string') {
+    return {
+      firstLine: '',
+      hasComments: false
+    };
+  }
+  
   const lines = code.split('\n').map(line => line.trim()).filter(line => line.length > 0);
   
   let title: string | undefined;

@@ -118,8 +118,18 @@ export function validateCellDefinition(cell: any): cell is CellDefinition {
   }
 }
 
+/**
+ * Key-value storage for explicit data persistence in notebooks
+ * Users can manually serialize/deserialize data using storage.set() and storage.get()
+ */
+export interface NotebookStorage {
+  [key: string]: any; // Allow any serializable value
+}
+
 export interface NotebookModel {
   cells: CellDefinition[];
+  // Add explicit key-value storage that users control
+  storage?: NotebookStorage;
   metadata?: {
     tags?: string[];
     version?: string;

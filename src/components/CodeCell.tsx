@@ -40,7 +40,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     }, [executionCount, definition.id]);
 
     // Local state for the code being edited
-    const [currentCode, setCurrentCode] = useState(definition.code);
+    const [currentCode, setCurrentCode] = useState(definition.code || '');
     const [isDirty, setIsDirty] = useState(false);
 
     // Add ref for DOM output container
@@ -54,7 +54,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
 
     // Update local state when definition changes
     useEffect(() => {
-        setCurrentCode(definition.code);
+        setCurrentCode(definition.code || '');
         setIsDirty(false);
     }, [definition.code]);
 

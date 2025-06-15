@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ReactiveStore, ReactiveFormulaEngine, CodeCellEngine, FormulaEngine, createReactiveSystem } from './RactiveSystem';
+import { useApplication } from './ApplicationProvider';
 import anylogger from "anylogger";
 import { moduleRegistry } from './ModuleRegistry';
 
@@ -21,6 +22,37 @@ export const ReactiveProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
     const [system] = useState(() => createReactiveSystem());
+    const { setStorageExporter } = useApplication();
+
+    // Set up storage exporter on mount
+    useEffect(() => {
+        try {
+            if (!system?.codeCellEngine) {
+                log.warn('CodeCellEngine not available, skipping storage exporter setup');
+                return;
+            }
+
+            const exporter = () => {
+                log.debug('Storage exporter called, codeCellEngine:', !!system.codeCellEngine);
+                if (!system.codeCellEngine) {
+                    log.error('CodeCellEngine not available during export');
+                    return {};
+                }
+                return system.codeCellEngine.exportStorageToNotebook();
+            };
+            setStorageExporter(exporter);
+            
+            log.debug('Storage exporter registered with ApplicationProvider');
+        } catch (error) {
+            log.error('Error setting up storage exporter:', error);
+        }
+        
+        // Cleanup on unmount
+        return () => {
+            log.debug('Cleaning up storage exporter');
+            setStorageExporter(null);
+        };
+    }, [system, system?.codeCellEngine, setStorageExporter]);
 
     return (
         <ReactiveContext.Provider value={system}>

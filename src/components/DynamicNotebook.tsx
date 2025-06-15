@@ -39,6 +39,12 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
   // Initialize reactive values and formulas from cells - ONLY ONCE on mount
   useEffect(() => {
     const initializeNotebook = async () => {
+      // Load storage from notebook model first
+      if (model.storage) {
+        codeCellEngine.loadStorageFromNotebook(model.storage);
+        log.debug(`Loaded storage from notebook:`, Object.keys(model.storage));
+      }
+      
       // Initialize cells in the order they appear in the notebook
       for (const cell of model.cells) {
         if (cell.type === 'input') {

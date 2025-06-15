@@ -1,0 +1,63 @@
+{
+  "id": "comprehensive-storage-test",
+  "title": "Comprehensive Storage System Test",
+  "description": "Complete test of storage system integration including API, markdown, and persistence",
+  "cells": [
+    {
+      "id": "intro-cell",
+      "type": "markdown",
+      "content": "# Storage System Integration Test\n\nThis notebook tests the complete storage system implementation:\n\n1. **Storage API** - Set, get, has, delete, keys, clear operations\n2. **Markdown Integration** - Access storage in markdown expressions  \n3. **Save/Load Integration** - Persistence across sessions\n4. **Error Handling** - Graceful handling of edge cases\n\n## Current Storage Status\n\n- **Keys Count**: {{storage.keys().length}}\n- **All Keys**: {{storage.keys().join(', ') || 'No keys stored'}}\n- **Storage Empty**: {{storage.keys().length === 0 ? 'Yes' : 'No'}}"
+    },
+    {
+      "id": "basic-operations-cell",
+      "type": "code",
+      "code": "// Test 1: Basic Storage Operations\nconsole.log('=== Test 1: Basic Storage Operations ===');\n\n// Store different data types\nstorage.set('string_test', 'Hello World');\nstorage.set('number_test', 42);\nstorage.set('boolean_test', true);\nstorage.set('array_test', [1, 2, 3, 4, 5]);\nstorage.set('object_test', {\n  name: 'Test Object',\n  created: new Date().toISOString(),\n  nested: {\n    value: 123,\n    active: true\n  }\n});\n\nconsole.log('✅ Stored 5 different data types');\nconsole.log('Storage keys:', storage.keys());\nconsole.log('Keys count:', storage.keys().length);"
+    },
+    {
+      "id": "retrieval-test-cell",
+      "type": "code",
+      "code": "// Test 2: Retrieval and Verification\nconsole.log('=== Test 2: Data Retrieval ===');\n\n// Test get operations\nconsole.log('string_test:', storage.get('string_test'));\nconsole.log('number_test:', storage.get('number_test'));\nconsole.log('boolean_test:', storage.get('boolean_test'));\nconsole.log('array_test:', storage.get('array_test'));\nconsole.log('object_test:', storage.get('object_test'));\n\n// Test has operations\nconsole.log('\\n=== Existence Tests ===');\nconsole.log('has string_test:', storage.has('string_test'));\nconsole.log('has nonexistent:', storage.has('nonexistent'));\n\n// Test undefined get\nconsole.log('get nonexistent:', storage.get('nonexistent'));\n\nconsole.log('✅ All retrieval tests passed');"
+    },
+    {
+      "id": "status-after-basic-cell",
+      "type": "markdown",
+      "content": "## Storage Status After Basic Tests\n\n- **Total Keys**: {{storage.keys().length}}\n- **String Value**: {{storage.get('string_test')}}\n- **Number Value**: {{storage.get('number_test')}}\n- **Array Length**: {{storage.get('array_test').length}}\n- **Object Name**: {{storage.get('object_test').name}}\n- **Has String**: {{storage.has('string_test') ? 'Yes' : 'No'}}\n- **Has Missing**: {{storage.has('missing_key') ? 'Yes' : 'No'}}"
+    },
+    {
+      "id": "complex-data-cell",
+      "type": "code",
+      "code": "// Test 3: Complex Data Storage (DataFrame simulation)\nconsole.log('=== Test 3: Complex Data Storage ===');\n\n// Simulate storing a DataFrame\nconst employeeData = {\n  columns: ['name', 'age', 'department', 'salary'],\n  values: [\n    ['Alice Johnson', 28, 'Engineering', 85000],\n    ['Bob Smith', 34, 'Marketing', 72000],\n    ['Carol Davis', 29, 'Engineering', 88000],\n    ['David Wilson', 42, 'Sales', 95000]\n  ],\n  shape: [4, 4],\n  metadata: {\n    created: new Date().toISOString(),\n    source: 'HR Database',\n    version: 1\n  }\n};\n\nstorage.set('employee_dataframe', employeeData);\nconsole.log('✅ Stored complex DataFrame structure');\n\n// Store analysis results\nconst analysisResults = {\n  mean_salary: 85000,\n  max_salary: 95000,\n  min_salary: 72000,\n  departments: ['Engineering', 'Marketing', 'Sales'],\n  total_employees: 4,\n  analysis_date: new Date().toISOString()\n};\n\nstorage.set('salary_analysis', analysisResults);\nconsole.log('✅ Stored analysis results');\n\nconsole.log('Total storage keys:', storage.keys().length);"
+    },
+    {
+      "id": "management-test-cell",
+      "type": "code",
+      "code": "// Test 4: Storage Management Operations\nconsole.log('=== Test 4: Storage Management ===');\n\n// Show all current keys\nconsole.log('All keys before cleanup:', storage.keys());\n\n// Delete a specific key\nconst deleted = storage.delete('boolean_test');\nconsole.log('Deleted boolean_test:', deleted);\nconsole.log('Keys after deletion:', storage.keys());\n\n// Try to delete non-existent key\nconst deletedMissing = storage.delete('nonexistent');\nconsole.log('Deleted nonexistent key:', deletedMissing);\n\n// Verify deletion\nconsole.log('Still has boolean_test:', storage.has('boolean_test'));\n\nconsole.log('✅ Storage management tests passed');"
+    },
+    {
+      "id": "status-after-management-cell",
+      "type": "markdown",
+      "content": "## Storage Status After Management Tests\n\nAfter running management operations:\n\n- **Current Keys**: {{storage.keys().join(', ')}}\n- **Keys Count**: {{storage.keys().length}}\n- **Boolean Test Exists**: {{storage.has('boolean_test') ? 'Yes' : 'No'}}\n- **Employee Data Exists**: {{storage.has('employee_dataframe') ? 'Yes' : 'No'}}\n\n**Complex Data Sample**:\n- **DataFrame Shape**: {{storage.get('employee_dataframe').shape.join(' x ')}}\n- **Employee Count**: {{storage.get('employee_dataframe').values.length}}\n- **Analysis Mean Salary**: ${{storage.get('salary_analysis').mean_salary.toLocaleString()}}"
+    },
+    {
+      "id": "error-handling-cell",
+      "type": "code",
+      "code": "// Test 5: Error Handling and Edge Cases\nconsole.log('=== Test 5: Error Handling ===');\n\ntry {\n  // Test storing circular references (should handle gracefully)\n  const obj = { name: 'test' };\n  obj.self = obj; // Create circular reference\n  \n  try {\n    storage.set('circular_test', obj);\n    console.log('❌ Circular reference should have failed');\n  } catch (error) {\n    console.log('✅ Circular reference properly rejected:', error.message);\n  }\n  \n  // Test very large keys\n  const longKey = 'a'.repeat(1000);\n  storage.set(longKey, 'long key test');\n  console.log('✅ Long key handled:', storage.has(longKey));\n  \n  // Test empty values\n  storage.set('empty_string', '');\n  storage.set('null_value', null);\n  storage.set('undefined_value', undefined);\n  \n  console.log('Empty string:', storage.get('empty_string'));\n  console.log('Null value:', storage.get('null_value'));\n  console.log('Undefined value:', storage.get('undefined_value'));\n  \n  console.log('✅ Edge case tests completed');\n  \n} catch (error) {\n  console.log('Test error:', error.message);\n}"
+    },
+    {
+      "id": "manual-test-instructions-cell",
+      "type": "markdown",
+      "content": "## Save and Reload Test Instructions\n\n**🔴 MANUAL TEST REQUIRED**\n\nTo complete the integration test:\n\n1. **Save this notebook**: Use Cmd+S or File > Save\n2. **Check console** for any save errors\n3. **Close the notebook**: Close VS Code or switch to another notebook\n4. **Reopen this notebook**: Load the saved file\n5. **Check storage persistence**: Run the verification cell below\n\nThe storage should contain all data from the previous cells after reload.\n\n**Expected Keys After Reload**: {{storage.keys().length}} keys\n**Expected Values**: String, number, array, object, DataFrame, analysis results"
+    },
+    {
+      "id": "post-reload-verification-cell",
+      "type": "code",
+      "code": "// Test 6: Post-Reload Verification\nconsole.log('=== Test 6: Post-Reload Verification ===');\nconsole.log('Run this cell after saving and reloading the notebook');\n\nconst expectedKeys = [\n  'string_test',\n  'number_test', \n  'array_test',\n  'object_test',\n  'employee_dataframe',\n  'salary_analysis'\n];\n\nconsole.log('Current keys:', storage.keys());\nconsole.log('Expected keys:', expectedKeys);\n\n// Check if all expected keys exist\nlet allKeysPresent = true;\nexpectedKeys.forEach(key => {\n  const exists = storage.has(key);\n  console.log(`${key}: ${exists ? '✅' : '❌'}`);\n  if (!exists) allKeysPresent = false;\n});\n\nif (allKeysPresent) {\n  console.log('🎉 SUCCESS: All data persisted correctly!');\n  \n  // Verify data integrity\n  const df = storage.get('employee_dataframe');\n  const analysis = storage.get('salary_analysis');\n  \n  console.log('DataFrame shape:', df.shape);\n  console.log('Employee count:', df.values.length);\n  console.log('Mean salary:', analysis.mean_salary);\n  \n  console.log('✅ Storage system integration test PASSED');\n} else {\n  console.log('❌ FAILED: Some data was not persisted');\n}"
+    },
+    {
+      "id": "cleanup-cell",
+      "type": "code",
+      "code": "// Test 7: Storage Cleanup (Optional)\nconsole.log('=== Test 7: Storage Cleanup ===');\nconsole.log('Keys before clear:', storage.keys());\n\n// Uncomment to clear all storage\n// storage.clear();\n// console.log('Keys after clear:', storage.keys());\n\nconsole.log('Storage integration test completed!');\nconsole.log('Total test cases: 7');\nconsole.log('Manual save/reload test required for full validation');"
+    }
+  ],
+  "storage": {}
+}

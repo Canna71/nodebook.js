@@ -35,7 +35,7 @@ const md = new MarkdownIt({
 });
 
 export function MarkdownCell({ definition, initialized, isEditMode = false }: MarkdownCellProps) {
-  const { reactiveStore } = useReactiveSystem();
+  const { reactiveStore, codeCellEngine } = useReactiveSystem();
   const { updateCell } = useApplication();
   const [renderedContent, setRenderedContent] = React.useState('');
   
@@ -124,6 +124,16 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
           const value = reactiveStore.getValue(varName);
           calculatedValues[varName] = value;
         });
+        
+        // Add storage API to the evaluation context
+        if (codeCellEngine) {
+          calculatedValues.storage = {
+            get: (key: string) => codeCellEngine.getStorageValue(key),
+            has: (key: string) => codeCellEngine.hasStorageKey(key),
+            keys: () => codeCellEngine.getStorageKeys()
+          };
+        }
+        
         // First apply variable interpolation, then render with markdown-it
         const interpolatedContent = renderMarkdownWithValues(definition.content, calculatedValues);
         const rendered = md.render(interpolatedContent);

@@ -1,4 +1,4 @@
-import { NotebookModel, CellDefinition } from './NotebookModel';
+import { NotebookModel, CellDefinition, NotebookStorage } from './NotebookModel';
 import { ICommandManager } from './CommandTypes';
 import { NotebookStateManager } from '@/Engine/NotebookStateManager';
 
@@ -20,6 +20,7 @@ export interface ApplicationContextType extends ApplicationState {
     setDirty: (dirty: boolean) => void;
     clearError: () => void;
     setSelectedCellId: (cellId: string | null) => void;
+    setStorageExporter: (exporter: (() => NotebookStorage) | null) => void;
     
     // State manager for centralized operations
     stateManager: NotebookStateManager;

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import { NotebookModel, CellDefinition } from '@/Types/NotebookModel';
+import { NotebookModel, CellDefinition, NotebookStorage } from '@/Types/NotebookModel';
 import { ApplicationState, ApplicationContextType, ApplicationProviderProps } from '@/Types/ApplicationTypes';
 import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
 import { toast } from 'sonner';
@@ -20,6 +20,9 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         error: null,
         selectedCellId: null,
     });
+
+    // Storage exporter function from ReactiveProvider
+    const [storageExporter, setStorageExporter] = useState<(() => NotebookStorage) | null>(null);
 
     // Initialize state manager
     const stateManagerRef = useRef<NotebookStateManager | null>(null);
@@ -98,8 +101,30 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         setError(null);
 
         try {
+            // Export storage if available
+            let modelToSave = state.currentModel;
+            log.debug('Save: storageExporter type:', typeof storageExporter);
+            log.debug('Save: storageExporter value:', !!storageExporter);
+            
+            if (storageExporter && typeof storageExporter === 'function') {
+                try {
+                    const exportedStorage = storageExporter();
+                    modelToSave = {
+                        ...state.currentModel,
+                        storage: exportedStorage
+                    };
+                    log.debug('Storage exported for save:', exportedStorage);
+                } catch (exportError) {
+                    log.error('Error calling storage exporter:', exportError);
+                    // Don't throw here, continue with save without storage
+                    log.warn('Continuing save without storage export');
+                }
+            } else {
+                log.debug('No storage exporter available or not a function');
+            }
+
             const fs = getFileSystemHelpers();
-            await fs.saveNotebook(state.currentModel, targetPath);
+            await fs.saveNotebook(modelToSave, targetPath);
             
             // Use state manager for saving
             stateManager.saveNotebook(targetPath, `Save notebook: ${targetPath.split('/').pop()}`);
@@ -125,7 +150,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 duration: 5000,
             });
         }
-    }, [state.currentModel, state.currentFilePath, stateManager]);
+    }, [state.currentModel, state.currentFilePath, stateManager, storageExporter]);
 
     const newNotebook = useCallback(() => {
         // Use state manager for creating new notebook
@@ -548,6 +573,7 @@ Variables automatically update when their dependencies change, creating a live, 
         setDirty,
         clearError,
         setSelectedCellId,
+        setStorageExporter,
         
         // State manager for centralized operations
         stateManager,
