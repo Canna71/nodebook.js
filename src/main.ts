@@ -556,6 +556,15 @@ function registerHandlers() {
             buttons: ['OK']
         });
     });
+
+    // Environment variables handler for AI service
+    ipcMain.handle('get-environment-variables', async (event, variableNames: string[]) => {
+        const result: Record<string, string | undefined> = {};
+        variableNames.forEach(varName => {
+            result[varName] = process.env[varName];
+        });
+        return result;
+    });
 }
 
 async function loadExtensions() {

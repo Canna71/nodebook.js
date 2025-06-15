@@ -13,10 +13,12 @@ import {
   UndoIcon,
   RedoIcon,
   VariableIcon,
-  SparklesIcon
+  SparklesIcon,
+  SettingsIcon
 } from 'lucide-react';
 import { MarkdownIcon } from './icons/MarkdownIcon';
 import { JavascriptIcon } from './icons/JavascriptIcon';
+import { AISettings } from './AISettings';
 
 export function Toolbar() {
   const { commandManager } = useCommands();
@@ -259,6 +261,15 @@ export function Toolbar() {
             </TooltipContent>
           </Tooltip>
         </div>
+
+        <Separator orientation="vertical" className="mx-2 h-6" />
+
+        {/* AI Settings */}
+        <AISettings>
+          <Button variant="ghost" size="sm">
+            <SettingsIcon className="h-4 w-4" />
+          </Button>
+        </AISettings>
       </TooltipProvider>
     </div>
   );

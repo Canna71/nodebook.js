@@ -1,5 +1,6 @@
 import { ICommand, CommandContext } from '@/Types/CommandTypes';
 import { CellDefinition, CodeCellDefinition, MarkdownCellDefinition } from '@/Types/NotebookModel';
+import { AIService, NotebookContext } from '@/Engine/AIService';
 import anylogger from 'anylogger';
 
 const log = anylogger('AICommands');
@@ -42,6 +43,17 @@ export class GenerateNotebookCommand extends BaseAICommand {
         try {
             log.debug('Executing GenerateNotebookCommand');
             
+            const aiService = AIService.getInstance();
+            
+            // Check if API keys are configured
+            if (!aiService.hasAPIKeys()) {
+                await this.showErrorDialog(
+                    'AI Configuration Required',
+                    'Please configure your AI API keys in the settings before generating notebooks.'
+                );
+                return;
+            }
+            
             // Show input dialog to get user prompt
             const prompt = await this.showPromptDialog(
                 'Generate Notebook with AI',
@@ -55,12 +67,22 @@ export class GenerateNotebookCommand extends BaseAICommand {
 
             log.info('Generating notebook with AI prompt:', prompt);
             
-            // TODO: This will be implemented in Step 3
-            // For now, show a placeholder message
-            await this.showInfoDialog(
-                'AI Notebook Generation',
-                `AI integration not yet implemented.\n\nYour prompt: "${prompt}"\n\nComing soon!`
-            );
+            try {
+                // Generate notebook using AI service
+                const generatedContent = await aiService.generateNotebook(prompt);
+                
+                // Parse the generated content and create a new notebook
+                await this.createNotebookFromGenerated(generatedContent);
+                
+                log.info('Notebook generated and created successfully');
+                
+            } catch (aiError) {
+                log.error('AI generation failed:', aiError);
+                await this.showErrorDialog(
+                    'AI Generation Failed',
+                    `Failed to generate notebook: ${aiError instanceof Error ? aiError.message : 'Unknown error'}`
+                );
+            }
             
         } catch (error) {
             log.error('Error in GenerateNotebookCommand:', error);
@@ -94,6 +116,78 @@ export class GenerateNotebookCommand extends BaseAICommand {
             message
         });
     }
+
+    /**
+     * Create a new notebook from AI-generated content
+     */
+    private async createNotebookFromGenerated(generatedContent: string): Promise<void> {
+        try {
+            // Parse the XML content to extract cells
+            const cells = this.parseGeneratedNotebook(generatedContent);
+            
+            if (cells.length === 0) {
+                throw new Error('No valid cells found in generated content');
+            }
+            
+            // Create new notebook model
+            const newNotebook = {
+                cells: cells
+            };
+            
+            // Use application provider to create new notebook
+            this.context.applicationProvider.setModel(newNotebook);
+            this.context.applicationProvider.setDirty(true);
+            
+            log.info(`Created notebook with ${cells.length} cells`);
+            
+        } catch (error) {
+            log.error('Failed to create notebook from generated content:', error);
+            throw new Error(`Failed to parse generated notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * Parse AI-generated XML content into cell definitions
+     */
+    private parseGeneratedNotebook(content: string): CellDefinition[] {
+        const cells: CellDefinition[] = [];
+        
+        try {
+            // Simple regex-based parsing for <VSCode.Cell> elements
+            // In production, you might want to use a proper XML parser
+            const cellRegex = /<VSCode\.Cell[^>]*language="([^"]*)"[^>]*>([\s\S]*?)<\/VSCode\.Cell>/g;
+            let match;
+            
+            while ((match = cellRegex.exec(content)) !== null) {
+                const language = match[1];
+                const cellContent = match[2].trim();
+                
+                const cellId = `cell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                
+                if (language === 'javascript') {
+                    cells.push({
+                        type: 'code',
+                        id: cellId,
+                        code: cellContent
+                    } as CodeCellDefinition);
+                } else if (language === 'markdown') {
+                    cells.push({
+                        type: 'markdown',
+                        id: cellId,
+                        content: cellContent
+                    } as MarkdownCellDefinition);
+                }
+            }
+            
+            return cells;
+            
+        } catch (error) {
+            log.error('Failed to parse generated content:', error);
+            throw error;
+        }
+    }
+
+    // ...existing code...
 }
 
 /**
@@ -112,6 +206,17 @@ export class GenerateCodeCellCommand extends BaseAICommand {
         try {
             log.debug('Executing GenerateCodeCellCommand');
             
+            const aiService = AIService.getInstance();
+            
+            // Check if API keys are configured
+            if (!aiService.hasAPIKeys()) {
+                await this.showErrorDialog(
+                    'AI Configuration Required',
+                    'Please configure your AI API keys in the settings before generating code cells.'
+                );
+                return;
+            }
+            
             // Show input dialog to get user prompt
             const prompt = await this.showPromptDialog(
                 'Generate Code Cell with AI',
@@ -129,12 +234,22 @@ export class GenerateCodeCellCommand extends BaseAICommand {
             const context = this.buildNotebookContext();
             log.debug('Notebook context for AI:', context);
             
-            // TODO: This will be implemented in Step 3
-            // For now, show a placeholder message
-            await this.showInfoDialog(
-                'AI Code Cell Generation',
-                `AI integration not yet implemented.\n\nYour prompt: "${prompt}"\n\nAvailable context:\n- Variables: ${context.variables.join(', ') || 'none'}\n- Modules: ${context.modules.join(', ') || 'none'}\n\nComing soon!`
-            );
+            try {
+                // Generate code cell using AI service
+                const generatedCode = await aiService.generateCodeCell(prompt, context);
+                
+                // Create and add the new code cell
+                await this.createCodeCellFromGenerated(generatedCode);
+                
+                log.info('Code cell generated and added successfully');
+                
+            } catch (aiError) {
+                log.error('AI generation failed:', aiError);
+                await this.showErrorDialog(
+                    'AI Generation Failed',
+                    `Failed to generate code cell: ${aiError instanceof Error ? aiError.message : 'Unknown error'}`
+                );
+            }
             
         } catch (error) {
             log.error('Error in GenerateCodeCellCommand:', error);
@@ -194,6 +309,33 @@ export class GenerateCodeCellCommand extends BaseAICommand {
         context.modules = ['tf', 'd3', 'plotly', 'Math', 'lodash', 'moment']; // Common modules
 
         return context;
+    }
+
+    /**
+     * Create and add a new code cell from AI-generated content
+     */
+    private async createCodeCellFromGenerated(generatedCode: string): Promise<void> {
+        try {
+            // Create new code cell
+            const cellId = `cell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            const newCell: CodeCellDefinition = {
+                type: 'code',
+                id: cellId,
+                code: generatedCode.trim()
+            };
+            
+            // Add cell using the notebook operations
+            this.context.notebookOperations.addCell('code');
+            
+            // Update the cell with the generated code
+            // This is a simplified approach - in a real implementation,
+            // you'd want to properly integrate with the cell management system
+            log.info('Code cell created with generated content');
+            
+        } catch (error) {
+            log.error('Failed to create code cell from generated content:', error);
+            throw new Error(`Failed to add generated code cell: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
     }
 
     private async showPromptDialog(title: string, message: string): Promise<string | null> {

@@ -13,6 +13,7 @@ export interface ElectronApi {
     showErrorBox: (title: string, content: string) => Promise<boolean>;
     showInputDialog: (options: {title: string, message: string, placeholder?: string}) => Promise<{cancelled: boolean, value: string}>;
     showMessageDialog: (options: {type: 'info' | 'error' | 'warning', title: string, message: string}) => Promise<void>;
+    getEnvironmentVariables: (variableNames: string[]) => Promise<Record<string, string | undefined>>;
     getAppVersion: () => Promise<string>;
     getAppPath: () => Promise<string>;
     getAppName: () => Promise<string>;

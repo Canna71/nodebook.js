@@ -17,6 +17,7 @@ const api : ElectronApi = {
     showErrorBox: (title: string, content: string) => ipcRenderer.invoke('show-error-box', title, content),
     showInputDialog: (options) => ipcRenderer.invoke('show-input-dialog', options),
     showMessageDialog: (options) => ipcRenderer.invoke('show-message-dialog', options),
+    getEnvironmentVariables: (variableNames) => ipcRenderer.invoke('get-environment-variables', variableNames),
     getAppVersion: () => ipcRenderer.invoke('get-app-version'),
     getAppPath: () => ipcRenderer.invoke('get-app-path'),
     getAppName: () => ipcRenderer.invoke('get-app-name'),
