@@ -135,18 +135,16 @@ const layout = {
     yaxis: { title: 'Y Axis' }
 };
 
-// Render to DOM
-if (outEl) {
-    const plotDiv = document.createElement('div');
-    plotDiv.id = 'myPlot';
-    plotDiv.style.width = '100%';
-    plotDiv.style.height = '400px';
-    
-    outEl.appendChild(plotDiv);
-    plotly.newPlot('myPlot', [trace], layout);
-    
-    exports.plotElement = plotDiv;
-}
+// Render to DOM using best practices
+const plotDiv = createDiv({
+    style: 'width: 100%; height: 400px;'
+});
+
+plotly.newPlot(plotDiv.id, [trace], layout); // Use auto-generated ID
+
+// Use output() to display the plot
+output(plotDiv);
+exports.plotElement = plotDiv;
 ```
 
 ### Data I/O
