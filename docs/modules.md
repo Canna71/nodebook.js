@@ -4,199 +4,205 @@ NotebookJS provides a comprehensive module system that allows you to use Node.js
 
 ## Table of Contents
 
-- [Module Categories](#module-categories)
-- [Standard Node.js Modules](#standard-nodejs-modules)
+- [Module Availability](#module-availability)
+- [Injected Global Variables](#injected-global-variables)
+- [Require-Available Modules](#require-available-modules)
+- [Built-in Node.js Modules](#built-in-nodejs-modules)
 - [Pre-bundled Scientific Libraries](#pre-bundled-scientific-libraries)
 - [User-installed Modules](#user-installed-modules)
 - [Loading Modules](#loading-modules)
 - [Module Resolution](#module-resolution)
 - [Troubleshooting](#troubleshooting)
 
-## Module Categories
+## Module Availability
 
-NotebookJS supports three categories of modules:
+NotebookJS provides modules in two ways:
 
-### 1. Standard Node.js Modules
-All built-in Node.js modules are available automatically.
+### 1. **Injected Global Variables** 
+These modules are automatically available as global variables in all code cells - no `require()` needed.
 
-### 2. Pre-bundled Scientific Libraries
-Data science and visualization libraries shipped with the application.
+### 2. **Require-Available Modules**
+These modules are available via `require()` but are not injected as globals.
 
-### 3. User-installed Modules
-Custom modules you install in your user data directory.
+## Injected Global Variables
 
-## Standard Node.js Modules
+The following modules are automatically injected into the global scope of every code cell:
 
-All Node.js built-in modules are available without installation:
+### Built-in Node.js Modules (Injected as Globals)
+
+These Node.js built-in modules are available as global variables:
 
 ```javascript
-// File system operations
-const fs = require('fs');
-const path = require('path');
+// File system operations - fs is available globally
+const files = fs.readdirSync('.');
+exports.fileList = files;
 
-// Cryptography
-const crypto = require('crypto');
-exports.hash = crypto.createHash('sha256').update('hello').digest('hex');
+// Path utilities - path is available globally  
+exports.fullPath = path.join(__dirname, 'data.txt');
 
-// Operating system utilities
-const os = require('os');
+// Operating system info - os is available globally
 exports.platform = os.platform();
 exports.cpuCount = os.cpus().length;
 
-// URL and query string manipulation
-const url = require('url');
-const querystring = require('querystring');
+// Cryptography - crypto is available globally
+exports.hash = crypto.createHash('sha256').update('hello').digest('hex');
 
-// Events and streams
-const events = require('events');
-const stream = require('stream');
+// URL and query string manipulation - available globally
+exports.parsedUrl = url.parse('https://example.com/path?q=test');
+exports.queryObj = querystring.parse('name=value&other=data');
 
-// Utilities
-const util = require('util');
-exports.formattedData = util.inspect({ complex: { nested: 'data' } });
-
-// Process information
-exports.nodeVersion = process.version;
-exports.workingDirectory = process.cwd();
+// Other globals: util, zlib, stream, events, readline, etc.
+exports.formatted = util.inspect({ complex: 'data' });
 ```
 
-### Available Built-in Modules
-
+**Available Built-in Module Globals:**
 - `fs` - File system operations
-- `path` - File path utilities
+- `path` - File path utilities  
 - `os` - Operating system utilities
 - `crypto` - Cryptographic functionality
+- `util` - Utility functions
 - `url` - URL parsing
 - `querystring` - Query string utilities
-- `events` - Event emitter
+- `zlib` - Compression
 - `stream` - Stream utilities
-- `buffer` - Buffer manipulation
-- `util` - Utility functions
-- `process` - Process information and control
+- `events` - Event emitter (also `EventEmitter` constructor)
+- `buffer` - Buffer manipulation (also `Buffer` constructor)
+- `readline` - Readline interface
+- `worker_threads` - Worker threads
+- `child_process` - Child processes
+- `string_decoder` - String decoder (also `StringDecoder`)
+- `punycode` - Punycode encoding
+- `timers` - Timer functions
+- `async_hooks` - Async hooks
+- `assert` - Assertion functions
+- `constants` - Node.js constants
 
-## Pre-bundled Scientific Libraries
+### Pre-bundled Scientific Libraries (Injected as Globals)
 
-These modules are included with NotebookJS and available immediately:
-
-### Data Manipulation
+These scientific libraries are available as global variables:
 
 ```javascript
-// Danfo.js - DataFrame library (main data manipulation tool)
-const dfd = require('danfojs');
-
-// Create DataFrames
-exports.df = new dfd.DataFrame({
+// DataFrame operations - dfd (danfojs) is available globally
+const df = new dfd.DataFrame({
     name: ['Alice', 'Bob', 'Charlie'],
     age: [25, 30, 35],
     salary: [50000, 60000, 70000]
 });
 
-// Data operations
 exports.avgSalary = df['salary'].mean();
 exports.filteredData = df.query(df['age'].gt(28));
 
-// Lodash - Utility library
-const _ = require('lodash');
-exports.grouped = _.groupBy(data, 'category');
-exports.sorted = _.sortBy(data, 'timestamp');
+// TensorFlow.js - tf is available globally (from danfojs)
+const model = tf.sequential({
+    layers: [
+        tf.layers.dense({inputShape: [1], units: 1})
+    ]
+});
+
+exports.model = model;
 ```
 
-### Mathematical Computing
+**Available Pre-bundled Library Globals:**
+- `dfd` - Danfo.js DataFrame library (pre-loaded)
+- `tf` - TensorFlow.js machine learning (from danfojs, pre-loaded)
+
+## Pre-bundled Libraries (Require-Available)
+
+These scientific and data libraries are available via `require()` but are **not** automatically injected as globals:
 
 ```javascript
-// Math.js - Extended mathematical functions
+// Mathematical computing - need to require
 const math = require('mathjs');
-
-exports.matrix = math.matrix([[1, 2], [3, 4]]);
 exports.result = math.evaluate('sqrt(3^2 + 4^2)');
-exports.stats = math.std([1, 2, 3, 4, 5]);
+exports.matrix = math.matrix([[1, 2], [3, 4]]);
 
-// Complex number operations
-exports.complex = math.complex(2, 3);
-exports.result = math.multiply(complex, math.complex(1, -1));
-```
+// Data visualization - need to require
+const Plotly = require('plotly.js-dist-min');
+const d3 = require('d3');
 
-### Data Visualization
-
-```javascript
-// Plotly.js - Interactive plotting
-const plotly = require('plotly.js-dist-min');
-
-// Create interactive plots
 const trace = {
     x: [1, 2, 3, 4],
     y: [10, 11, 12, 13],
     type: 'scatter'
 };
 
-const layout = {
-    title: 'My Plot',
-    xaxis: { title: 'X Axis' },
-    yaxis: { title: 'Y Axis' }
-};
-
-// Render to DOM using best practices
-const plotDiv = createDiv({
-    style: 'width: 100%; height: 400px;'
-});
-
-plotly.newPlot(plotDiv.id, [trace], layout); // Use auto-generated ID
-
-// Use output() to display the plot
+const plotDiv = createDiv({ style: 'width: 100%; height: 400px;' });
+Plotly.newPlot(plotDiv.id, [trace], { title: 'My Plot' });
 output(plotDiv);
-exports.plotElement = plotDiv;
-```
 
-### Data I/O
+// D3 for advanced visualizations
+const svg = d3.create("svg")
+    .attr("width", 400)
+    .attr("height", 200);
 
-```javascript
-// Papa Parse - CSV parsing
+// Utility libraries - need to require
+const _ = require('lodash');
+exports.grouped = _.groupBy(data, 'category');
+exports.sorted = _.sortBy(data, 'timestamp');
+
+// CSV parsing - need to require
 const Papa = require('papaparse');
+exports.csvData = Papa.parse(csvString, { header: true });
 
-// Parse CSV data
-const csvData = `name,age,city
-Alice,25,New York
-Bob,30,San Francisco`;
-
-exports.parsedData = Papa.parse(csvData, { header: true });
-
-// XLSX - Excel file handling
+// Excel files - need to require
 const XLSX = require('xlsx');
+const workbook = XLSX.utils.book_new();
+const worksheet = XLSX.utils.json_to_sheet(data);
+XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
 
-// Create workbook
-const ws = XLSX.utils.json_to_sheet([
-    { Name: 'Alice', Age: 25 },
-    { Name: 'Bob', Age: 30 }
-]);
-const wb = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb, ws, 'People');
+// HTTP requests - need to require
+const axios = require('axios');
+const fetch = require('node-fetch');
+const response = await axios.get('https://api.example.com/data');
+exports.apiData = response.data;
 
-exports.workbook = wb;
+// Date/time - need to require
+const moment = require('moment');
+exports.now = moment().format('YYYY-MM-DD HH:mm:ss');
+exports.tomorrow = moment().add(1, 'day').toDate();
 ```
 
-### Complete List of Pre-bundled Modules
-
-#### Data Science Core
-- `danfojs` - Primary DataFrame library
+**Pre-bundled Libraries (Require-Available):**
 - `mathjs` - Mathematical functions and expressions
 - `lodash` - Utility functions
 - `moment` - Date/time manipulation
-
-#### Data I/O
+- `plotly.js-dist-min` - Interactive plotting
+- `d3` - Data visualization toolkit
 - `papaparse` - CSV parsing
 - `xlsx` - Excel file handling
 - `node-fetch` - HTTP requests
 - `axios` - HTTP client
 
-#### Visualization
-- `plotly.js-dist-min` - Interactive plotting
-- `d3` - Data visualization toolkit
+## Other Require-Available Modules
 
-#### TensorFlow (if available)
-- `@tensorflow/tfjs` - Machine learning
-- `@tensorflow/tfjs-node` - Node.js backend
+These modules are copied outside the ASAR archive and available via `require()`:
+- `long` - Long integer arithmetic
+- `seedrandom` - Seedable random number generator
+- `typed-function` - Typed function dispatcher
+- `decimal.js` - Decimal arithmetic
+- `complex.js` - Complex number arithmetic
+- `fraction.js` - Fraction arithmetic
+- `javascript-natural-sort` - Natural sorting
+- `escape-latex` - LaTeX escaping
+- `tiny-emitter` - Minimal event emitter
+- `@babel/runtime` - Babel runtime helpers
 
-## User-installed Modules
+These modules are copied outside the ASAR archive for compatibility but require explicit `require()` calls to use.
+
+## Built-in Node.js Modules
+
+**Note:** All Node.js built-in modules are now available as injected globals (see above), but can still be loaded with `require()` if needed:
+
+```javascript
+// These work but are unnecessary since globals are available:
+const fs = require('fs');        // Same as using global `fs`
+const path = require('path');    // Same as using global `path`
+const os = require('os');        // Same as using global `os`
+
+// Prefer using the injected globals:
+exports.platform = os.platform();    // ✅ Recommended
+exports.files = fs.readdirSync('.');  // ✅ Recommended
+```
 
 You can install additional modules in your user data directory for use in notebooks.
 
@@ -272,44 +278,59 @@ exports.stdDev = stats.standardDeviation([1, 2, 3, 4, 5]);
 
 ## Loading Modules
 
-### Basic Require
+### Using Injected Globals (Recommended)
+
+Node.js built-ins and some scientific libraries are available as global variables:
 
 ```javascript
-// Standard syntax
-const moduleName = require('module-name');
+// ✅ Use injected globals directly (Node.js built-ins + dfd/tf)
+const df = new dfd.DataFrame(data);           // danfojs (injected)
+const files = fs.readdirSync('.');             // fs (injected)
+const hash = crypto.createHash('md5');         // crypto (injected)
 
-// Destructuring
-const { specificFunction } = require('module-name');
-
-// Aliasing
-const alias = require('long-module-name');
+// Export computed results
+exports.processedData = df.head();
+exports.fileCount = files.length;
 ```
 
-### Module Aliases
+### Using require() for Scientific Libraries
 
-Some modules have convenient aliases:
+Most scientific libraries need explicit `require()`:
 
 ```javascript
-// These are equivalent
-const tf1 = require('@tensorflow/tfjs-node');
-const tf2 = require('tensorflow');  // Alias
+// ✅ Use require() for scientific libraries (not injected as globals)
+const math = require('mathjs');
+const _ = require('lodash');
+const d3 = require('d3');
+const Plotly = require('plotly.js-dist-min');
 
-// Export for use in other cells
-exports.tensorflow = tf1;
+const result = math.evaluate('2 + 3 * 4');
+const grouped = _.groupBy(items, 'category');
+
+// Export computed results
+exports.calculation = result;
+exports.groupedData = grouped;
 ```
 
-### Error Handling
+### Module Availability Check
 
 ```javascript
-// Handle missing modules gracefully
-let optionalModule;
-try {
-    optionalModule = require('optional-module');
-    exports.hasOptionalModule = true;
-} catch (error) {
-    console.warn('Optional module not available:', error.message);
-    exports.hasOptionalModule = false;
-    optionalModule = null;
+// Check if an injected global is available
+if (typeof dfd !== 'undefined') {
+    exports.dataframe = new dfd.DataFrame(data);
+} else {
+    console.warn('Danfojs not available');
+}
+
+// Check if a require module exists
+function hasModule(name) {
+    try {
+        require.resolve(name);
+        return true;
+    } catch {
+        return false;
+    }
+}
 }
 
 // Use fallback if module not available
@@ -456,11 +477,41 @@ exports.expensiveResult = getExpensiveModule().process(data);
 
 ## Best Practices
 
-1. **Import at the top**: Load modules at the beginning of cells
-2. **Handle errors**: Always wrap requires in try-catch for optional modules
-3. **Cache modules**: Store frequently used modules in variables
-4. **Check availability**: Verify modules exist before using advanced features
-5. **Export modules**: Make loaded modules available to other cells when needed
-6. **Use aliases**: Create convenient aliases for long module names
+1. **Use injected globals first**: Prefer the injected global variables over `require()` when available
+2. **Check global availability**: Use `typeof variable !== 'undefined'` to check if globals exist
+3. **Handle errors gracefully**: Wrap `require()` calls in try-catch for optional modules
+4. **Export for reuse**: Make computed results available to other cells via `exports`
+5. **Keep it simple**: Use the globals directly instead of reassigning them to constants
+6. **Document dependencies**: Comment which modules your cells depend on
 
-This comprehensive module system makes NotebookJS a powerful platform for data science, analysis, and general computation tasks.
+### Examples of Best Practices
+
+```javascript
+// ✅ Good: Use injected globals directly
+if (typeof dfd !== 'undefined') {
+    const df = new dfd.DataFrame(data);
+    exports.processedData = df.head(); // Export computed results, not the global
+}
+
+// ✅ Good: Mix globals with require for non-injected modules  
+const customLib = require('my-custom-library');
+const result = math.multiply(matrix1, matrix2);  // math is global
+exports.result = customLib.process(result);
+
+// ❌ Avoid: Unnecessary require for injected modules
+const fs = require('fs');  // fs is already global
+const _ = require('lodash'); // _ is already global
+
+// ❌ Avoid: Re-exporting globals unnecessarily  
+exports.dfd = dfd;       // dfd is already available globally
+exports.math = math;     // math is already available globally
+exports.fs = fs;         // fs is already available globally
+
+// ✅ Good: Direct global usage with meaningful exports
+const files = fs.readdirSync('.');
+const sorted = _.sortBy(data, 'timestamp');
+exports.fileList = files;        // Export the computed result
+exports.sortedData = sorted;     // Export the computed result
+```
+
+This comprehensive module system makes NotebookJS a powerful platform for data science, analysis, and general computation tasks. The combination of injected globals for common modules and require() for specialized modules provides both convenience and flexibility.

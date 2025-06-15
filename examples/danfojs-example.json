@@ -14,7 +14,7 @@
     {
       "type": "code",
       "id": "import-danfo",
-      "code": "// Import Danfo.js and create a small dataset\nexports.dfd = require('danfojs');\n\nexports.data = {\n  A: [1, 2, 5],\n  B: [10, 20, 40]\n};\nconsole.log('Danfo.js imported. Data:', exports.data);\n\n// Output module info\noutput({\n  module: 'danfojs',\n  version: exports.dfd.version || 'unknown',\n  dataShape: { rows: exports.data.A.length, columns: Object.keys(exports.data).length }\n});"
+      "code": "// Use injected danfojs module (no require needed)\n// dfd is automatically available as the danfojs module\nexports.dfd = dfd;\n\nexports.data = {\n  A: [1, 2, 5],\n  B: [10, 20, 40]\n};\nconsole.log('Danfo.js imported. Data:', exports.data);\n\n// Output module info\noutput({\n  module: 'danfojs',\n  version: exports.dfd.version || 'unknown',\n  dataShape: { rows: exports.data.A.length, columns: Object.keys(exports.data).length }\n});"
     },
     {
       "type": "code",

@@ -51,7 +51,7 @@
     {
       "type": "code",
       "id": "os-info",
-      "code": "// Import os module and export platform info using exports object\nconst os = require('os');\nexports.platform = os.platform();\nexports.homedir = os.homedir();\nconsole.log('Platform:', exports.platform);\nconsole.log('Home directory:', exports.homedir);\n\n// Output system summary object\noutput({\n  system: 'Node.js',\n  platform: exports.platform,\n  homeDirectory: exports.homedir,\n  processId: process.pid,\n  nodeVersion: process.version\n});"
+      "code": "// OS module is available as an injected global variable\nexports.platform = os.platform();\nexports.homedir = os.homedir();\nconsole.log('Platform:', exports.platform);\nconsole.log('Home directory:', exports.homedir);\n\n// Output system summary object\noutput({\n  system: 'Node.js',\n  platform: exports.platform,\n  homeDirectory: exports.homedir,\n  processId: process.pid,\n  nodeVersion: process.version\n});"
     },
     {
       "type": "code",

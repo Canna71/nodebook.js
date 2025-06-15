@@ -44,7 +44,7 @@
     {
       "type": "code",
       "id": "import-tensorflow",
-      "code": "// Import TensorFlow.js\nexports.tf = require('@tensorflow/tfjs');\nconsole.log('TensorFlow.js imported successfully');\nconsole.log('Backend:', exports.tf.getBackend());\n\n// Output TensorFlow info\noutput({\n  library: 'TensorFlow.js',\n  version: exports.tf.version_core || 'unknown',\n  backend: exports.tf.getBackend(),\n  memory: exports.tf.memory()\n});"
+      "code": "// Use injected TensorFlow.js module (no require needed)\n// tf is automatically available\nexports.tf = tf;\nconsole.log('TensorFlow.js imported successfully');\nconsole.log('Backend:', exports.tf.getBackend());\n\n// Output TensorFlow info\noutput({\n  library: 'TensorFlow.js',\n  version: exports.tf.version_core || 'unknown',\n  backend: exports.tf.getBackend(),\n  memory: exports.tf.memory()\n});"
     },
     {
       "type": "code",

@@ -8,7 +8,7 @@
     {
       "id": "code_01",
       "type": "code",
-      "code": "// Import TensorFlow.js\nconst tf = require('@tensorflow/tfjs-node');\n\nconsole.log('TensorFlow.js version:', tf.version.tfjs);\nconsole.log('Backend:', tf.getBackend());\n\n// Create sample training data\nconst xs = tf.tensor2d([\n    [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]\n]);\nconst ys = tf.tensor2d([\n    [3], [5], [7], [9], [11]  // y = 2x + 1\n]);\n\nconsole.log('Training data created');\nconsole.log('Input shape:', xs.shape);\nconsole.log('Output shape:', ys.shape);\n\nexports.trainingData = { xs, ys };"
+      "code": "// TensorFlow.js is available as an injected global variable (tf)\nconsole.log('TensorFlow.js version:', tf.version.tfjs);\nconsole.log('Backend:', tf.getBackend());\n\n// Create sample training data\nconst xs = tf.tensor2d([\n    [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]\n]);\nconst ys = tf.tensor2d([\n    [3], [5], [7], [9], [11]  // y = 2x + 1\n]);\n\nconsole.log('Training data created');\nconsole.log('Input shape:', xs.shape);\nconsole.log('Output shape:', ys.shape);\n\nexports.trainingData = { xs, ys };"
     },
     {
       "id": "code_02",

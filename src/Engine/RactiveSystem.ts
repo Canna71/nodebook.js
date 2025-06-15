@@ -573,6 +573,84 @@ export class CodeCellEngine {
     private moduleCache: Map<string, any>;
     private globalScope: { [key: string]: any };
 
+    /**
+     * Initialize all registered modules in global scope with conventional names
+     */
+    private initializeRegisteredModules(): void {
+        const availableModules = moduleRegistry.getAvailableModules();
+        
+        // Module name mappings to conventional variable names
+        const moduleNameMappings: Record<string, string> = {
+            // Scientific libraries
+            'danfojs': 'dfd',
+            '@tensorflow/tfjs': 'tf',
+            'tensorflow': 'tf',
+            
+            // Data visualization
+            'plotly.js-dist-min': 'Plotly',
+            'd3': 'd3',
+            
+            // Data processing
+            'lodash': '_',
+            'mathjs': 'math',
+            'papaparse': 'Papa',
+            'xlsx': 'XLSX',
+            
+            // HTTP clients
+            'axios': 'axios',
+            'node-fetch': 'fetch',
+            
+            // Date/time
+            'moment': 'moment',
+            
+            // Keep original names for Node.js built-ins
+            'fs': 'fs',
+            'path': 'path',
+            'os': 'os',
+            'crypto': 'crypto',
+            'util': 'util',
+            'url': 'url',
+            'querystring': 'querystring',
+            'zlib': 'zlib',
+            'stream': 'stream',
+            'buffer': 'Buffer',
+            'events': 'EventEmitter',
+            'readline': 'readline',
+            'worker_threads': 'worker_threads',
+            'child_process': 'child_process',
+            'string_decoder': 'StringDecoder',
+            'punycode': 'punycode',
+            'timers': 'timers',
+            'async_hooks': 'async_hooks',
+            'assert': 'assert',
+            'constants': 'constants'
+        };
+        
+        // Inject modules into global scope
+        for (const moduleName of availableModules) {
+            try {
+                const moduleExports = moduleRegistry.getModule(moduleName);
+                const variableName = moduleNameMappings[moduleName] || moduleName;
+                
+                this.globalScope[variableName] = moduleExports;
+                
+                // For Buffer, also expose the Buffer constructor
+                if (moduleName === 'buffer') {
+                    this.globalScope['Buffer'] = moduleExports.Buffer;
+                }
+                
+                // For events, expose EventEmitter constructor
+                if (moduleName === 'events') {
+                    this.globalScope['EventEmitter'] = moduleExports.EventEmitter;
+                }
+                
+                log.debug(`Injected module ${moduleName} as ${variableName}`);
+            } catch (error) {
+                log.warn(`Failed to inject module ${moduleName}:`, error);
+            }
+        }
+    }
+
     constructor(reactiveStore: ReactiveStore) {
         this.reactiveStore = reactiveStore;
         this.executedCells = new Map();
@@ -582,6 +660,9 @@ export class CodeCellEngine {
             // Add basic DOM helpers to global scope (non-auto-outputting versions)
             ...domHelpers
         };
+        
+        // Initialize all registered modules in global scope
+        this.initializeRegisteredModules();
     }
 
     /**
@@ -1167,8 +1248,14 @@ export class CodeCellEngine {
      * Clear global scope (reset persistent variables)
      */
     public clearGlobalScope(): void {
-        this.globalScope = {};
-        log.debug('Global scope cleared');
+        this.globalScope = {
+            // Add basic DOM helpers to global scope (non-auto-outputting versions)
+            ...domHelpers
+        };
+        
+        // Re-initialize all registered modules
+        this.initializeRegisteredModules();
+        log.debug('Global scope cleared and modules reinitialized');
     }
 
     /**

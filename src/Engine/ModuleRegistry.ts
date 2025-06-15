@@ -93,10 +93,20 @@ export class ModuleRegistry {
       return;
     }
 
-    // Built-in Node.js modules
+    // Built-in Node.js modules suitable for local processing
     const builtinModules = [
-      'os', 'path', 'fs', 'util'
-    //   'events', 'stream', 'buffer', 'process'
+      // Core utilities
+      'os', 'path', 'fs', 'util', 'url', 'querystring',
+      // Data processing
+      'crypto', 'zlib', 'stream', 'buffer', 'events',
+      // File and system
+      'readline', 'worker_threads', 'child_process',
+      // Text processing
+      'string_decoder', 'punycode',
+      // Timers and async
+      'timers', 'async_hooks',
+      // Utilities
+      'assert', 'constants'
     ];
 
     builtinModules.forEach(moduleName => {
@@ -151,10 +161,9 @@ const danfojs:any = this.nodeRequire('danfojs');
       log.warn('⚠️ danfojs not available');
     }
 
-    // Optional npm modules
-    const optionalModules:string[] = [
-    //   '@tensorflow/tfjs',
-    //   'lodash', 'moment', 'axios'
+    // Optional npm modules that might be available
+    const optionalModules: string[] = [
+      // These will be loaded on-demand when requested
     ];
 
     optionalModules.forEach(moduleName => {
