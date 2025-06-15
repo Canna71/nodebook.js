@@ -370,4 +370,78 @@ The code should:
             throw error;
         }
     }
+
+    /**
+     * Get API key for a specific provider
+     */
+    public getApiKey(provider: 'openai' | 'claude'): string | undefined {
+        const providerKey = provider === 'claude' ? 'anthropic' : provider;
+        return this.apiKeys[providerKey as keyof APIKeys];
+    }
+
+    /**
+     * Set API key for a specific provider
+     */
+    public setApiKey(provider: 'openai' | 'claude', key: string): void {
+        const providerKey = provider === 'claude' ? 'anthropic' : provider;
+        this.apiKeys[providerKey as keyof APIKeys] = key;
+    }
+
+    /**
+     * Get current provider
+     */
+    public getProvider(): LLMProvider {
+        return this.defaultConfig.provider;
+    }
+
+    /**
+     * Set current provider
+     */
+    public setProvider(provider: LLMProvider): void {
+        this.defaultConfig.provider = provider;
+    }
+
+    /**
+     * Get current model
+     */
+    public getModel(): string {
+        return this.defaultConfig.model;
+    }
+
+    /**
+     * Set current model
+     */
+    public setModel(model: string): void {
+        this.defaultConfig.model = model;
+    }
+
+    /**
+     * Test connection with current configuration
+     */
+    public async testConnection(): Promise<{ success: boolean; message: string }> {
+        try {
+            if (!this.hasAPIKeys()) {
+                return { success: false, message: 'No API keys configured' };
+            }
+
+            // Test with a simple prompt
+            const result = await this.generateTextInternal(
+                'You are a helpful assistant.',
+                'Respond with exactly: "Connection test successful"',
+                this.defaultConfig
+            );
+
+            if (result.includes('Connection test successful')) {
+                return { success: true, message: 'Connection test successful' };
+            } else {
+                return { success: true, message: 'Connection established but unexpected response' };
+            }
+        } catch (error) {
+            log.error('Connection test failed:', error);
+            return { 
+                success: false, 
+                message: error instanceof Error ? error.message : 'Unknown error occurred' 
+            };
+        }
+    }
 }

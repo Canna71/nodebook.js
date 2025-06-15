@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { ReactiveProvider } from '../Engine/ReactiveProvider';
 import { ApplicationProvider, useApplication } from '@/Engine/ApplicationProvider';
 import { CommandProvider } from '@/Engine/CommandProvider';
+import { ViewProvider, useView } from '@/Engine/ViewProvider';
 import { commandManagerSingleton } from '@/Engine/CommandManagerSingleton';
 import anylogger from "anylogger";
 import { moduleRegistry } from '../Engine/ModuleRegistry';
@@ -12,6 +13,7 @@ log.debug("Initializing App");
 
 import danfojsPlottingExample from "../../examples/danfojs-plotting-example.json";
 import { NotebookViewer } from './NotebookViewer';
+import { SettingsView } from './SettingsView';
 import { NotebookModel, CellDefinition } from 'src/Types/NotebookModel';
 import Layout from '@/app/layout';
 import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
@@ -20,6 +22,7 @@ import { Toolbar } from '@/components/Toolbar';
 
 function AppContent() {
     const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook } = useApplication();
+    const { currentView } = useView();
 
     useEffect(() => {
         log.debug("AppContent mounted, currentModel:", currentModel);
@@ -98,17 +101,23 @@ function AppContent() {
         <ReactiveProvider>
             <CommandProvider onAddCell={addCell}>
                 <MathJaxContext>
-                    <Toolbar />
-                    {currentModel ? (
-                        <NotebookViewer model={currentModel} />
+                    {currentView === 'settings' ? (
+                        <SettingsView />
                     ) : (
-                        <div className="flex items-center justify-center min-h-[calc(100vh-3rem)]">
-                            <div className="text-center">
-                                <div className="text-xl font-semibold mb-4">Welcome to NotebookJS</div>
-                                <div className="text-secondary-foreground mb-6">Create a new notebook or open an existing one to get started</div>
-                                <div className="text-sm text-secondary-foreground">Use the toolbar above to create or open a notebook</div>
-                            </div>
-                        </div>
+                        <>
+                            <Toolbar />
+                            {currentModel ? (
+                                <NotebookViewer model={currentModel} />
+                            ) : (
+                                <div className="flex items-center justify-center min-h-[calc(100vh-3rem)]">
+                                    <div className="text-center">
+                                        <div className="text-xl font-semibold mb-4">Welcome to NotebookJS</div>
+                                        <div className="text-secondary-foreground mb-6">Create a new notebook or open an existing one to get started</div>
+                                        <div className="text-sm text-secondary-foreground">Use the toolbar above to create or open a notebook</div>
+                                    </div>
+                                </div>
+                            )}
+                        </>
                     )}
                 </MathJaxContext>
             </CommandProvider>

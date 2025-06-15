@@ -10,37 +10,25 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { useView } from "@/Engine/ViewProvider"
 
 // Menu items.
 const items = [
   {
     title: "Home",
-    url: "#",
+    view: "notebook" as const,
     icon: Home,
   },
-  // {
-  //   title: "Inbox",
-  //   url: "#",
-  //   icon: Inbox,
-  // },
-  // {
-  //   title: "Calendar",
-  //   url: "#",
-  //   icon: Calendar,
-  // },
-  // {
-  //   title: "Search",
-  //   url: "#",
-  //   icon: Search,
-  // },
   {
     title: "Settings",
-    url: "#",
+    view: "settings" as const,
     icon: Settings,
   },
 ]
 
 export function AppSidebar() {
+  const { currentView, setCurrentView } = useView();
+
   return (
     <Sidebar variant="inset">
       <SidebarContent>
@@ -50,11 +38,12 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
+                  <SidebarMenuButton 
+                    isActive={currentView === item.view}
+                    onClick={() => setCurrentView(item.view)}
+                  >
+                    <item.icon />
+                    <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
