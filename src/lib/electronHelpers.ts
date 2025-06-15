@@ -11,6 +11,8 @@ export interface ElectronApi {
     saveFileDialog: (options?: Electron.SaveDialogOptions) => Promise<{canceled: boolean, filePath?: string}>;
     showMessageBox: (options?: Electron.MessageBoxOptions) => Promise<boolean>;
     showErrorBox: (title: string, content: string) => Promise<boolean>;
+    showInputDialog: (options: {title: string, message: string, placeholder?: string}) => Promise<{cancelled: boolean, value: string}>;
+    showMessageDialog: (options: {type: 'info' | 'error' | 'warning', title: string, message: string}) => Promise<void>;
     getAppVersion: () => Promise<string>;
     getAppPath: () => Promise<string>;
     getAppName: () => Promise<string>;

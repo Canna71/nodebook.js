@@ -371,6 +371,42 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                     // Fallback to application provider redo
                     stateManager.redo();
                 }
+            },
+            'menu-ai-generate-notebook': async () => {
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('ai.generateNotebook');
+                    } catch (error) {
+                        log.error('Error executing AI generate notebook command:', error);
+                        await window.api.showErrorBox('AI Generation Failed', 
+                            `Failed to generate notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    }
+                } else {
+                    // Fallback to direct dialog
+                    await window.api.showMessageDialog({
+                        type: 'info',
+                        title: 'AI Assistant',
+                        message: 'AI notebook generation is not available. Please try again later.'
+                    });
+                }
+            },
+            'menu-ai-generate-code-cell': async () => {
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('ai.generateCodeCell');
+                    } catch (error) {
+                        log.error('Error executing AI generate code cell command:', error);
+                        await window.api.showErrorBox('AI Generation Failed', 
+                            `Failed to generate code cell: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    }
+                } else {
+                    // Fallback to direct dialog
+                    await window.api.showMessageDialog({
+                        type: 'info',
+                        title: 'AI Assistant',
+                        message: 'AI code cell generation is not available. Please try again later.'
+                    });
+                }
             }
         };
 

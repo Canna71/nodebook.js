@@ -62,6 +62,14 @@ function createMenu(mainWindow: BrowserWindow) {
                 },
                 { type: 'separator' },
                 {
+                    label: 'Generate Notebook with AI',
+                    accelerator: 'CmdOrCtrl+Alt+G',
+                    click: () => {
+                        mainWindow.webContents.send('menu-ai-generate-notebook');
+                    }
+                },
+                { type: 'separator' },
+                {
                     label: 'Save',
                     accelerator: 'CmdOrCtrl+S',
                     click: () => {
@@ -157,6 +165,14 @@ function createMenu(mainWindow: BrowserWindow) {
                         mainWindow.webContents.send('menu-insert-cell', 'markdown');
                     }
                 },
+                {
+                    label: 'Generate Code Cell with AI',
+                    accelerator: 'CmdOrCtrl+Alt+C',
+                    click: () => {
+                        mainWindow.webContents.send('menu-ai-generate-code-cell');
+                    }
+                },
+                { type: 'separator' },
                 {
                     label: 'Formula Cell',
                     accelerator: 'CmdOrCtrl+Shift+F',
@@ -502,6 +518,43 @@ function registerHandlers() {
             window.setTitle(title);
         }
         return true;
+    });
+
+    // AI Assistant Dialog Handlers
+    ipcMain.handle('show-input-dialog', async (event, options: {title: string, message: string, placeholder?: string}) => {
+        const result = await dialog.showMessageBox({
+            type: 'question',
+            title: options.title,
+            message: options.message,
+            buttons: ['Cancel', 'OK'],
+            defaultId: 1,
+            cancelId: 0
+            // Note: Electron doesn't have a built-in input dialog
+            // In a production app, you'd create a proper input dialog window
+        });
+        
+        if (result.response === 1) {
+            // For demo purposes, return a sample prompt
+            // In a real implementation, you'd create a proper input dialog
+            return {
+                cancelled: false,
+                value: 'Create a data analysis notebook with sample data and visualizations'
+            };
+        } else {
+            return {
+                cancelled: true,
+                value: ''
+            };
+        }
+    });
+
+    ipcMain.handle('show-message-dialog', async (event, options: {type: 'info' | 'error' | 'warning', title: string, message: string}) => {
+        await dialog.showMessageBox({
+            type: options.type,
+            title: options.title,
+            message: options.message,
+            buttons: ['OK']
+        });
     });
 }
 

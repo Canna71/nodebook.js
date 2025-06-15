@@ -17,6 +17,10 @@ import {
     RedoCommand
 } from './Commands/NotebookCommands';
 import {
+    GenerateNotebookCommand,
+    GenerateCodeCellCommand
+} from './Commands/AICommands';
+import {
     DocumentArrowDownIcon as SaveIcon,
     DocumentArrowDownIcon as SaveAsIcon,
     DocumentPlusIcon,
@@ -25,7 +29,8 @@ import {
     PlayIcon,
     Bars3Icon,
     ArrowUturnLeftIcon,
-    ArrowUturnRightIcon
+    ArrowUturnRightIcon,
+    SparklesIcon // Add AI icon
 } from '@heroicons/react/24/outline';
 import { CellDefinition } from '@/Types/NotebookModel';
 import anylogger from 'anylogger';
@@ -204,6 +209,23 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
             tooltip: 'Redo (Shift+Cmd+Z)'
         });
 
+        // AI Commands
+        commandManager.registerCommand({
+            id: 'ai.generateNotebook',
+            command: new GenerateNotebookCommand(getContext),
+            shortcut: 'Cmd+Alt+G',
+            icon: SparklesIcon,
+            tooltip: 'Generate notebook with AI (Cmd+Alt+G)'
+        });
+
+        commandManager.registerCommand({
+            id: 'ai.generateCodeCell',
+            command: new GenerateCodeCellCommand(getContext),
+            shortcut: 'Cmd+Alt+C',
+            icon: SparklesIcon,
+            tooltip: 'Generate code cell with AI (Cmd+Alt+C)'
+        });
+
         log.debug('Commands registered successfully');
 
         // Cleanup function to unregister commands when component unmounts
@@ -221,7 +243,9 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
                 'cell.add.input',
                 'ui.toggleSidebar', 
                 'edit.undo', 
-                'edit.redo'
+                'edit.redo',
+                'ai.generateNotebook',
+                'ai.generateCodeCell'
             ];
             commandIds.forEach(id => {
                 if (commandManager.unregisterCommand) {
