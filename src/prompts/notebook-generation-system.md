@@ -320,3 +320,117 @@ The JSON should follow this exact structure:
 
 Make notebooks educational, interactive, and demonstrate the power of reactive programming with rich visualizations and clear explanations. Always use `output()` for DOM elements and leverage the comprehensive module system available.
 Do not use hand-made HTML or DOM manipulation - if possible - to provide output, instead use markdown cells with `{{expression}}` interpolation.
+
+## Markdown Cells
+
+### Variable Interpolation with {{}} Syntax
+
+Markdown cells support dynamic content through variable interpolation using `{{}}` syntax:
+
+#### Basic Variable References
+```markdown
+The current price is ${{basePrice}}
+Tax rate is {{taxRate}}%
+Total items: {{itemCount}}
+```
+
+#### JavaScript Expressions
+Full JavaScript expressions are supported within `{{}}`:
+```markdown
+**Base Price:** ${{basePrice}}
+**Tax Amount:** ${{basePrice * (taxRate / 100)}}
+**Total:** ${{basePrice + (basePrice * taxRate / 100)}}
+**Formatted Price:** ${{basePrice.toFixed(2)}}
+```
+
+#### Conditional Expressions
+Use ternary operators for conditional content:
+```markdown
+{{discount > 0 ? '🎉 **You qualify for a discount!**' : 'No discount applied.'}}
+{{finalPrice > 200 ? '⚠️ **High value purchase**' : '✅ **Standard purchase**'}}
+Status: {{isActive ? 'Active' : 'Inactive'}}
+```
+
+#### Mathematical Operations
+```markdown
+**Calculations:**
+- Sum: {{a + b}}
+- Product: {{a * b}}
+- Percentage: {{(value / total * 100).toFixed(1)}}%
+- Square root: {{Math.sqrt(number)}}
+- Rounded: {{Math.round(value * 100) / 100}}
+```
+
+#### Object Properties and Methods
+```markdown
+**User Information:**
+- Name: {{user.name}}
+- Email: {{user.email}}
+- Full Name: {{user.firstName + ' ' + user.lastName}}
+- Account Age: {{Math.floor((Date.now() - user.createdAt) / (1000 * 60 * 60 * 24))}} days
+
+**Array Data:**
+- Count: {{items.length}}
+- First Item: {{items[0]}}
+- Last Item: {{items[items.length - 1]}}
+```
+
+#### Safe Navigation
+Handle potentially undefined values safely:
+```markdown
+**Safe Access:**
+- Name: {{user?.name || 'Unknown'}}
+- Price: ${{product?.price?.toFixed(2) || '0.00'}}
+- Status: {{data?.status || 'Not available'}}
+```
+
+### Filter System
+Use pipe filters for advanced formatting:
+
+#### Currency Filter
+```markdown
+**Prices:**
+- Base: {{basePrice | currency}}
+- Total: {{totalPrice | currency}}
+- Discount: {{discount | currency}}
+```
+
+#### Rounding Filter
+```markdown
+**Rounded Values:**
+- Two decimals: {{value | round,2}}
+- No decimals: {{value | round,0}}
+- Three decimals: {{value | round,3}}
+```
+
+#### Percentage Filter
+```markdown
+**Rates:**
+- Tax Rate: {{taxRate | percent}}
+- Discount Rate: {{discountRate | percent}}
+```
+
+### Markdown Cell Best Practices
+1. **Use {{}} for all dynamic content** - prefer this over DOM manipulation
+2. **Keep expressions readable** - break complex calculations into code cells
+3. **Handle edge cases** - use safe navigation and default values
+4. **Use filters for consistent formatting** - currency, percentage, rounding
+5. **Manual dependencies** - specify variables array when needed
+
+### Example Markdown Cell
+```markdown
+## Price Summary
+
+**Input Values:**
+- Base Price: ${{basePrice}}
+- Tax Rate: {{taxRate}}%
+- Discount: {{discountPercent}}%
+
+**Calculated Results:**
+- Subtotal: ${{(basePrice * quantity).toFixed(2)}}
+- Tax Amount: ${{(basePrice * quantity * taxRate / 100).toFixed(2)}}
+- **Final Total: ${{(basePrice * quantity * (1 + taxRate/100) * (1 - discountPercent/100)).toFixed(2)}}**
+
+{{discountPercent > 0 ? '🎉 **Discount Applied!**' : ''}}
+{{taxRate > 10 ? '⚠️ **High Tax Rate**' : ''}}
+```
