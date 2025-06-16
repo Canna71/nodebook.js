@@ -101,11 +101,12 @@ export class OpenNotebookCommand extends BaseCommand {
                 await this.context.applicationProvider.loadNotebook(result.filePaths[0]);
             }
             
-            log.debug('Open notebook command executed');
-        } catch (error) {
+            log.debug('Open notebook command executed');        } catch (error) {
             log.error('Error opening notebook:', error);
-            await window.api.showErrorBox('Open Failed', 
-                `Failed to open notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            const { appDialogHelper } = await import('@/lib/AppDialogHelper');
+            await appDialogHelper.showError('Open Failed', 
+                `Failed to open notebook: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                error instanceof Error ? error.stack : undefined);
             throw error;
         }
     }
@@ -128,11 +129,12 @@ export class SaveAsNotebookCommand extends BaseCommand {
             // Use the existing showSaveAsDialog implementation
             await this.context.applicationProvider.showSaveAsDialog();
             
-            log.debug('Save As notebook command executed');
-        } catch (error) {
+            log.debug('Save As notebook command executed');        } catch (error) {
             log.error('Error in Save As notebook:', error);
-            await window.api.showErrorBox('Save As Failed', 
-                `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            const { appDialogHelper } = await import('@/lib/AppDialogHelper');
+            await appDialogHelper.showError('Save As Failed', 
+                `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                error instanceof Error ? error.stack : undefined);
             throw error;
         }
     }

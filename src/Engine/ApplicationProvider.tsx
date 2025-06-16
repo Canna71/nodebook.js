@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import anylogger from 'anylogger';
 import { commandManagerSingleton } from './CommandManagerSingleton';
 import { NotebookStateManager } from './NotebookStateManager';
+import { appDialogHelper } from '@/lib/AppDialogHelper';
 
 const log = anylogger('ApplicationProvider');
 
@@ -196,9 +197,9 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                     try {
                         await currentCommandManager.executeCommand('notebook.new');
                     } catch (error) {
-                        log.error('Error executing new notebook command:', error);
-                        await window.api.showErrorBox('New Notebook Failed', 
-                            `Failed to create new notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        log.error('Error executing new notebook command:', error);                        await appDialogHelper.showError('New Notebook Failed', 
+                            `Failed to create new notebook: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                            error instanceof Error ? error.stack : undefined);
                     }
                 } else {
                     // Fallback to direct call if no command manager or command not found
@@ -208,11 +209,11 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             'menu-open-notebook': async () => {
                 if (currentCommandManager && currentCommandManager.getCommand('notebook.open')) {
                     try {
-                        await currentCommandManager.executeCommand('notebook.open');
-                    } catch (error) {
+                        await currentCommandManager.executeCommand('notebook.open');                    } catch (error) {
                         log.error('Error executing open notebook command:', error);
-                        await window.api.showErrorBox('Open Failed', 
-                            `Failed to open notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        await appDialogHelper.showError('Open Failed', 
+                            `Failed to open notebook: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                            error instanceof Error ? error.stack : undefined);
                     }
                 } else {
                     // Fallback to direct implementation if no command manager or command not found
@@ -227,11 +228,11 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
 
                         if (!result.canceled && result.filePaths.length > 0) {
                             await loadNotebook(result.filePaths[0]);
-                        }
-                    } catch (error) {
+                        }                    } catch (error) {
                         console.error('Error opening notebook:', error);
-                        await window.api.showErrorBox('Open Failed', 
-                            `Failed to open notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        await appDialogHelper.showError('Open Failed', 
+                            `Failed to open notebook: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                            error instanceof Error ? error.stack : undefined);
                     }
                 }
             },
@@ -240,13 +241,13 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                     try {
                         await currentCommandManager.executeCommand('notebook.save');
                     } catch (error) {
-                        log.error('Error executing save notebook command:', error);
-                        // If save command fails and no current path, show save dialog
+                        log.error('Error executing save notebook command:', error);                        // If save command fails and no current path, show save dialog
                         if (!state.currentFilePath) {
                             await showSaveAsDialog();
                         } else {
-                            await window.api.showErrorBox('Save Failed', 
-                                `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            await appDialogHelper.showError('Save Failed', 
+                                `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                                error instanceof Error ? error.stack : undefined);
                         }
                     }
                 } else {
@@ -256,11 +257,11 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                             await saveNotebook();
                         } else {
                             await showSaveAsDialog();
-                        }
-                    } catch (error) {
+                        }                    } catch (error) {
                         console.error('Save failed:', error);
-                        await window.api.showErrorBox('Save Failed', 
-                            `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        await appDialogHelper.showError('Save Failed', 
+                            `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                            error instanceof Error ? error.stack : undefined);
                     }
                 }
             },
@@ -269,18 +270,18 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                     try {
                         await currentCommandManager.executeCommand('notebook.saveAs');
                     } catch (error) {
-                        log.error('Error executing save as notebook command:', error);
-                        await window.api.showErrorBox('Save As Failed', 
-                            `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        log.error('Error executing save as notebook command:', error);                        await appDialogHelper.showError('Save As Failed', 
+                            `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                            error instanceof Error ? error.stack : undefined);
                     }
                 } else {
                     // Fallback to direct implementation if no command manager or command not found
-                    try {
-                        await showSaveAsDialog();
+                    try {                        await showSaveAsDialog();
                     } catch (error) {
                         console.error('Save As failed:', error);
-                        await window.api.showErrorBox('Save Failed', 
-                            `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        await appDialogHelper.showError('Save Failed', 
+                            `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                            error instanceof Error ? error.stack : undefined);
                     }
                 }
             },
@@ -375,11 +376,11 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             'menu-ai-generate-notebook': async () => {
                 if (currentCommandManager) {
                     try {
-                        await currentCommandManager.executeCommand('ai.generateNotebook');
-                    } catch (error) {
+                        await currentCommandManager.executeCommand('ai.generateNotebook');                    } catch (error) {
                         log.error('Error executing AI generate notebook command:', error);
-                        await window.api.showErrorBox('AI Generation Failed', 
-                            `Failed to generate notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        await appDialogHelper.showError('AI Generation Failed', 
+                            `Failed to generate notebook: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                            error instanceof Error ? error.stack : undefined);
                     }
                 } else {
                     // Fallback to direct dialog
@@ -393,11 +394,11 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             'menu-ai-generate-code-cell': async () => {
                 if (currentCommandManager) {
                     try {
-                        await currentCommandManager.executeCommand('ai.generateCodeCell');
-                    } catch (error) {
+                        await currentCommandManager.executeCommand('ai.generateCodeCell');                    } catch (error) {
                         log.error('Error executing AI generate code cell command:', error);
-                        await window.api.showErrorBox('AI Generation Failed', 
-                            `Failed to generate code cell: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        await appDialogHelper.showError('AI Generation Failed', 
+                            `Failed to generate code cell: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                            error instanceof Error ? error.stack : undefined);
                     }
                 } else {
                     // Fallback to direct dialog
@@ -440,23 +441,20 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
 
             if (!result.canceled && result.filePath) {
                 await saveNotebook(result.filePath);
-            }
-        } catch (error) {
+            }        } catch (error) {
             console.error('Save As failed:', error);
-            await window.api.showErrorBox('Save Failed', 
-                `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            await appDialogHelper.showError('Save Failed', 
+                `Failed to save notebook: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                error instanceof Error ? error.stack : undefined);
         }
-    };
-
-    // Menu dialog functions
+    };    // Menu dialog functions
     const showAboutDialog = async () => {
         const version = await window.api.getAppVersion();
-        await window.api.showMessageBox({
-            type: 'info',
-            title: 'About NotebookJS',
-            message: 'NotebookJS',
-            detail: `Version: ${version}\n\nA reactive notebook application for interactive computing and data analysis.`
-        });
+        await appDialogHelper.showInfo(
+            'About NotebookJS',
+            'NotebookJS',
+            `Version: ${version}\n\nA reactive notebook application for interactive computing and data analysis.`
+        );
     };
 
     const showWelcomeDialog = () => {
@@ -495,14 +493,11 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         
         setModel(welcomeNotebook);
         setState(prev => ({ ...prev, currentFilePath: null, isDirty: false }));
-    };
-
-    const showShortcutsDialog = async () => {
-        await window.api.showMessageBox({
-            type: 'info',
-            title: 'Keyboard Shortcuts',
-            message: 'NotebookJS Shortcuts',
-            detail: `File Operations:
+    };    const showShortcutsDialog = async () => {
+        await appDialogHelper.showInfo(
+            'Keyboard Shortcuts',
+            'NotebookJS Shortcuts',
+            `File Operations:
 • Ctrl/Cmd+N - New Notebook
 • Ctrl/Cmd+O - Open Notebook
 • Ctrl/Cmd+S - Save
@@ -521,15 +516,12 @@ View:
 • Ctrl/Cmd+R - Reload
 • F11/Ctrl+Cmd+F - Toggle Fullscreen
 • Ctrl/Cmd+0 - Reset Zoom`
-        });
-    };
-
-    const showDocumentationDialog = async () => {
-        await window.api.showMessageBox({
-            type: 'info',
-            title: 'Documentation',
-            message: 'NotebookJS Documentation',
-            detail: `Cell Types:
+        );
+    };    const showDocumentationDialog = async () => {
+        await appDialogHelper.showInfo(
+            'Documentation',
+            'NotebookJS Documentation',
+            `Cell Types:
 • Code Cells: Write JavaScript code with reactive variables
 • Formula Cells: Create calculated values using $variable syntax
 • Input Cells: Interactive controls (sliders, inputs, checkboxes)
@@ -537,7 +529,7 @@ View:
 
 Reactive System:
 Variables automatically update when their dependencies change, creating a live, interactive document.`
-        });
+        );
     };
 
     const exportAsJson = async () => {
@@ -567,29 +559,25 @@ Variables automatically update when their dependencies change, creating a live, 
                             description: result.filePath,
                             duration: 3000,
                         });
-                        
-                        await window.api.showMessageBox({
-                            type: 'info',
-                            title: 'Export Successful',
-                            message: 'Notebook exported successfully!',
-                            detail: `Saved to: ${result.filePath}`
-                        });
+                          await appDialogHelper.showInfo(
+                            'Export Successful',
+                            'Notebook exported successfully!',
+                            `Saved to: ${result.filePath}`
+                        );
                     } else {
                         toast.error('Export failed', {
                             description: saveResult.error,
                             duration: 5000,
-                        });
-                        await window.api.showErrorBox('Export Failed', 
+                        });                        await appDialogHelper.showError('Export Failed', 
                             `Failed to export notebook: ${saveResult.error}`);
                     }
                 } catch (writeError) {
-                    console.error('Export failed:', writeError);
-                    const errorMessage = writeError instanceof Error ? writeError.message : 'Unknown error';
+                    console.error('Export failed:', writeError);                    const errorMessage = writeError instanceof Error ? writeError.message : 'Unknown error';
                     toast.error('Export failed', {
                         description: errorMessage,
                         duration: 5000,
                     });
-                    await window.api.showErrorBox('Export Failed', 
+                    await appDialogHelper.showError('Export Failed', 
                         `Failed to export notebook: ${errorMessage}`);
                 }
             }
@@ -599,8 +587,7 @@ Variables automatically update when their dependencies change, creating a live, 
             toast.error('Export failed', {
                 description: errorMessage,
                 duration: 5000,
-            });
-            await window.api.showErrorBox('Export Failed', 
+            });            await appDialogHelper.showError('Export Failed', 
                 `Failed to export notebook: ${errorMessage}`);
         }
     };

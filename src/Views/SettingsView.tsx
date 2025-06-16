@@ -311,10 +311,16 @@ export function SettingsView() {
                     <CardContent>
                         <Button 
                             onClick={async () => {
-                                try {
-                                    const info = await window.api.getApiKeyStorageInfo();
+                                try {                                    const info = await window.api.getApiKeyStorageInfo();
                                     console.log('API Key Storage Info:', info);
-                                    alert(JSON.stringify(info, null, 2));
+                                    
+                                    // Show the info in a proper dialog instead of alert
+                                    const { appDialogHelper } = await import('@/lib/AppDialogHelper');
+                                    await appDialogHelper.showInfo(
+                                        'API Key Storage Info',
+                                        'Storage information for debugging:',
+                                        JSON.stringify(info, null, 2)
+                                    );
                                 } catch (error) {
                                     console.error('Failed to get storage info:', error);
                                 }

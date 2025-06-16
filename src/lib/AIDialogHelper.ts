@@ -44,12 +44,9 @@ export class AIDialogHelper {
      */
     async showPrompt(title: string, message: string, placeholder?: string): Promise<string | null> {
         log.debug('Showing prompt dialog', { title, message, placeholder });
-        
-        if (!this.dialogHandlers.showPrompt) {
-            log.warn('Prompt dialog handler not registered, falling back to window.prompt');
-            const result = window.prompt(message) || null;
-            log.debug('Window.prompt result:', { hasResult: !!result, length: result?.length });
-            return result;
+          if (!this.dialogHandlers.showPrompt) {
+            log.error('Prompt dialog handler not registered');
+            throw new Error('AI dialog system not initialized - prompt handler missing');
         }
         
         const result = await this.dialogHandlers.showPrompt(title, message, placeholder);
@@ -62,11 +59,9 @@ export class AIDialogHelper {
      */
     async showError(title: string, message: string): Promise<void> {
         log.debug('Showing error dialog', { title, message });
-        
-        if (!this.dialogHandlers.showError) {
-            log.warn('Error dialog handler not registered, falling back to alert');
-            alert(`${title}: ${message}`);
-            return;
+          if (!this.dialogHandlers.showError) {
+            log.error('Error dialog handler not registered');
+            throw new Error('AI dialog system not initialized - error handler missing');
         }
         
         await this.dialogHandlers.showError(title, message);
@@ -78,11 +73,9 @@ export class AIDialogHelper {
      */
     async showSuccess(title: string, message: string): Promise<void> {
         log.debug('Showing success dialog', { title, message });
-        
-        if (!this.dialogHandlers.showSuccess) {
-            log.warn('Success dialog handler not registered, falling back to alert');
-            alert(`${title}: ${message}`);
-            return;
+          if (!this.dialogHandlers.showSuccess) {
+            log.error('Success dialog handler not registered');
+            throw new Error('AI dialog system not initialized - success handler missing');
         }
         
         await this.dialogHandlers.showSuccess(title, message);

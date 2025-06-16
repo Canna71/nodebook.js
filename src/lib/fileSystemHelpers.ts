@@ -276,11 +276,20 @@ export class FileSystemHelpers {
             return {
                 success: true,
                 data: notebook
-            };
-        } catch (error) {
+            };        } catch (error) {
             const errorMsg = `Failed to load notebook ${filePath}: ${error instanceof Error ? error.message : String(error)}`;
             log.error(errorMsg, error);
-            await window.api.showErrorBox('Load Notebook Error', errorMsg);
+            
+            // Show error dialog using the app dialog system
+            try {
+                const { appDialogHelper } = await import('@/lib/AppDialogHelper');
+                await appDialogHelper.showError('Load Notebook Error', errorMsg, 
+                    error instanceof Error ? error.stack : undefined);
+            } catch (dialogError) {
+                // Fallback if dialog system isn't available
+                log.error('Failed to show error dialog:', dialogError);
+            }
+            
             return {
                 success: false,
                 error: errorMsg

@@ -21,6 +21,7 @@ import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
 import { MathJaxContext } from 'better-react-mathjax';
 import { Toolbar } from '@/components/Toolbar';
 import { AIDialogProvider } from '@/components/AIDialogProvider';
+import { AppDialogProvider } from '@/components/AppDialogProvider';
 
 function AppContent() {
     const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook } = useApplication();
@@ -160,13 +161,13 @@ export default function App() {
                 </div>
             </div>
         );
-    }
-
-    return (
+    }    return (
         <Layout>
             <ApplicationProvider commandManager={commandManagerSingleton}>
                 <AIDialogProvider>
-                    <AppContent />
+                    <AppDialogProvider>
+                        <AppContent />
+                    </AppDialogProvider>
                 </AIDialogProvider>
             </ApplicationProvider>
         </Layout>
