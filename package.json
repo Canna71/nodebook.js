@@ -21,10 +21,10 @@
     "onlyBuiltDependencies": [
       "@tensorflow/tfjs-node",
       "electron",
-      "lzma-native"
+      "lzma-native",
+      "electron-winstaller"
     ],
     "ignoredBuiltDependencies": [
-      "electron-winstaller",
       "esbuild"
     ]
   },
