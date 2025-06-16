@@ -46,7 +46,6 @@ import fs from 'fs-extra';
     'd3',
     // 'ansi-regex',
     // 'emoji-regex'
-    'plotly.js-dist-min',
 ];
 
 const config: ForgeConfig = {
