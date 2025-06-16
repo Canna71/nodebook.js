@@ -164,11 +164,11 @@ export default function App() {
     }    return (
         <Layout>
             <ApplicationProvider commandManager={commandManagerSingleton}>
-                <AIDialogProvider>
-                    <AppDialogProvider>
+                <AppDialogProvider>
+                    <AIDialogProvider>
                         <AppContent />
-                    </AppDialogProvider>
-                </AIDialogProvider>
+                    </AIDialogProvider>
+                </AppDialogProvider>
             </ApplicationProvider>
         </Layout>
     );
