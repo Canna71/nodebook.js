@@ -1,5 +1,5 @@
 import anylogger from 'anylogger';
-import { AppErrorDialogConfig, AppConfirmDialogConfig, AppInfoDialogConfig, AppPromptDialogConfig } from '@/components/AppDialogProvider';
+import { AppErrorDialogConfig, AppConfirmDialogConfig, AppInfoDialogConfig, AppPromptDialogConfig, AppProgressDialogConfig } from '@/components/AppDialogProvider';
 
 const log = anylogger('AppDialogHelper');
 
@@ -8,6 +8,7 @@ interface AppDialogHandlers {
   showConfirm?: (config: AppConfirmDialogConfig) => Promise<boolean>;
   showInfo?: (config: AppInfoDialogConfig) => Promise<void>;
   showPrompt?: (config: AppPromptDialogConfig) => Promise<string | null>;
+  showProgress?: (config: AppProgressDialogConfig) => Promise<void>;
 }
 
 /**
@@ -131,6 +132,33 @@ export class AppDialogHelper {
   }
 
   /**
+   * Show a progress dialog
+   */
+  async showProgress(
+    title: string,
+    message: string,
+    options?: {
+      progressValue?: number;
+      onCancel?: () => void;
+      canCancel?: boolean;
+    }
+  ): Promise<void> {
+    log.debug('Showing progress dialog', { title, message, options });
+    
+    if (!this.dialogHandlers.showProgress) {
+      log.error('Progress dialog handler not registered');
+      throw new Error('App dialog system not initialized');
+    }
+    
+    await this.dialogHandlers.showProgress({
+      title,
+      message,
+      ...options,
+    });
+    log.debug('Progress dialog completed');
+  }
+
+  /**
    * Check if dialog handlers are registered
    */
   isInitialized(): boolean {
@@ -138,7 +166,8 @@ export class AppDialogHelper {
       this.dialogHandlers.showError &&
       this.dialogHandlers.showConfirm &&
       this.dialogHandlers.showInfo &&
-      this.dialogHandlers.showPrompt
+      this.dialogHandlers.showPrompt &&
+      this.dialogHandlers.showProgress
     );
   }
 

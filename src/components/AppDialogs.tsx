@@ -345,3 +345,41 @@ export function AppPromptDialog({
     </AppDialog>
   );
 }
+
+// Progress Dialog
+export interface AppProgressDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  message: string;
+  progressValue?: number; // 0-100 for determinate progress, undefined for indeterminate
+  onCancel?: () => void; // Optional cancel button
+  size?: AppDialogProps['size'];
+}
+
+export function AppProgressDialog({
+  open,
+  onOpenChange,
+  title,
+  message,
+  progressValue,
+  onCancel,
+  size = 'md'
+}: AppProgressDialogProps) {
+  return (
+    <AppDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      description={message}
+      variant="progress"
+      size={size}
+      persistent={true} // Progress dialogs are persistent by default
+      showCloseButton={false}
+      isProgress={true}
+      progressMessage={message}
+      progressValue={progressValue}
+      onCancel={onCancel}
+    />
+  );
+}

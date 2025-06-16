@@ -4,6 +4,7 @@ import {
   AppConfirmDialog,
   AppInfoDialog,
   AppPromptDialog,
+  AppProgressDialog,
   AppErrorDialogProps,
   AppConfirmDialogProps,
   AppInfoDialogProps,
@@ -48,6 +49,14 @@ export interface AppPromptDialogConfig {
   size?: AppDialogProps['size'];
 }
 
+export interface AppProgressDialogConfig {
+  title: string;
+  message: string;
+  progressValue?: number; // 0-100 for determinate progress
+  onCancel?: () => void;
+  size?: AppDialogProps['size'];
+}
+
 // Dialog state interfaces
 interface ErrorDialogState extends AppErrorDialogConfig {
   open: boolean;
@@ -73,11 +82,17 @@ interface PromptDialogState extends AppPromptDialogConfig {
   onCancel?: () => void;
 }
 
+interface ProgressDialogState extends AppProgressDialogConfig {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
 interface AppDialogState {
   errorDialog: ErrorDialogState;
   confirmDialog: ConfirmDialogState;
   infoDialog: InfoDialogState;
   promptDialog: PromptDialogState;
+  progressDialog: ProgressDialogState;
 }
 
 interface AppDialogContextType {
@@ -86,12 +101,16 @@ interface AppDialogContextType {
   showConfirmDialog: (config: AppConfirmDialogConfig & { onConfirm: () => void; onCancel?: () => void }) => void;
   showInfoDialog: (config: AppInfoDialogConfig) => void;
   showPromptDialog: (config: AppPromptDialogConfig & { onSubmit: (value: string) => void; onCancel?: () => void }) => void;
+  showProgressDialog: (config: AppProgressDialogConfig) => void;
+  updateProgress: (progressValue?: number, message?: string) => void;
+  hideProgress: () => void;
   
   // Promise-based methods (for use with the helper)
   showError: (config: AppErrorDialogConfig) => Promise<void>;
   showConfirm: (config: AppConfirmDialogConfig) => Promise<boolean>;
   showInfo: (config: AppInfoDialogConfig) => Promise<void>;
   showPrompt: (config: AppPromptDialogConfig) => Promise<string | null>;
+  showProgress: (config: AppProgressDialogConfig) => Promise<void>;
   
   closeAllDialogs: () => void;
 }
@@ -137,6 +156,12 @@ export function AppDialogProvider({ children }: AppDialogProviderProps) {
       message: '',
       onOpenChange: () => {},
       onSubmit: () => {},
+    },
+    progressDialog: {
+      open: false,
+      title: '',
+      message: '',
+      onOpenChange: () => {},
     },
   });
 
@@ -289,6 +314,57 @@ export function AppDialogProvider({ children }: AppDialogProviderProps) {
     });
   }, [showPromptDialog]);
 
+  // Progress dialog methods
+  const showProgressDialog = useCallback((config: AppProgressDialogConfig) => {
+    setState(prev => ({
+      ...prev,
+      progressDialog: {
+        ...config,
+        open: true,
+        onOpenChange: (open: boolean) => {
+          if (!open) {
+            setState(prev => ({
+              ...prev,
+              progressDialog: { ...prev.progressDialog, open: false },
+            }));
+          }
+        },
+      },
+    }));
+  }, []);
+
+  const updateProgress = useCallback((progressValue?: number, message?: string) => {
+    setState(prev => ({
+      ...prev,
+      progressDialog: {
+        ...prev.progressDialog,
+        ...(progressValue !== undefined && { progressValue }),
+        ...(message !== undefined && { message }),
+      },
+    }));
+  }, []);
+
+  const hideProgress = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      progressDialog: { ...prev.progressDialog, open: false },
+    }));
+  }, []);
+
+  const showProgress = useCallback((config: AppProgressDialogConfig): Promise<void> => {
+    return new Promise((resolve) => {
+      showProgressDialog({
+        ...config,
+        onCancel: config.onCancel ? () => {
+          config.onCancel!();
+          resolve();
+        } : undefined,
+      });
+      // Progress dialogs resolve immediately as they are controlled externally
+      resolve();
+    });
+  }, [showProgressDialog]);
+
   const closeAllDialogs = useCallback(() => {
     setState(prev => ({
       ...prev,
@@ -296,6 +372,7 @@ export function AppDialogProvider({ children }: AppDialogProviderProps) {
       confirmDialog: { ...prev.confirmDialog, open: false },
       infoDialog: { ...prev.infoDialog, open: false },
       promptDialog: { ...prev.promptDialog, open: false },
+      progressDialog: { ...prev.progressDialog, open: false },
     }));
   }, []);
   // Register handlers with the helper on mount
@@ -307,22 +384,27 @@ export function AppDialogProvider({ children }: AppDialogProviderProps) {
         showConfirm,
         showInfo,
         showPrompt,
+        showProgress,
       });
       log.debug('App dialog handlers registered with helper');
     }).catch((error) => {
       log.error('Failed to register app dialog handlers:', error);
     });
-  }, [showError, showConfirm, showInfo, showPrompt]);
+  }, [showError, showConfirm, showInfo, showPrompt, showProgress]);
 
   const contextValue: AppDialogContextType = {
     showErrorDialog,
     showConfirmDialog,
     showInfoDialog,
     showPromptDialog,
+    showProgressDialog,
+    updateProgress,
+    hideProgress,
     showError,
     showConfirm,
     showInfo,
     showPrompt,
+    showProgress,
     closeAllDialogs,
   };
 
@@ -374,6 +456,16 @@ export function AppDialogProvider({ children }: AppDialogProviderProps) {
         onSubmit={state.promptDialog.onSubmit}
         onCancel={state.promptDialog.onCancel}
         size={state.promptDialog.size}
+      />
+      
+      <AppProgressDialog
+        open={state.progressDialog.open}
+        onOpenChange={state.progressDialog.onOpenChange}
+        title={state.progressDialog.title}
+        message={state.progressDialog.message}
+        progressValue={state.progressDialog.progressValue}
+        onCancel={state.progressDialog.onCancel}
+        size={state.progressDialog.size}
       />
     </AppDialogContext.Provider>
   );

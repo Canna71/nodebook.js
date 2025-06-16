@@ -8,14 +8,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { AlertCircleIcon, CheckIcon, InfoIcon, AlertTriangleIcon } from 'lucide-react';
+import { AlertCircleIcon, CheckIcon, InfoIcon, AlertTriangleIcon, LoaderIcon } from 'lucide-react';
 
 export interface AppDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string | React.ReactNode;
   description?: string;
-  variant?: 'default' | 'destructive' | 'warning' | 'success' | 'info';
+  variant?: 'default' | 'destructive' | 'warning' | 'success' | 'info' | 'progress';
   size?: 'sm' | 'md' | 'lg' | 'xl';
   maxWidth?: string; // Custom max width
   persistent?: boolean; // Prevents closing with Escape or backdrop click
@@ -23,6 +23,11 @@ export interface AppDialogProps {
   children?: React.ReactNode;
   footer?: React.ReactNode;
   className?: string;
+  // Progress tracking properties
+  isProgress?: boolean;
+  progressMessage?: string;
+  progressValue?: number; // 0-100 for determinate progress
+  onCancel?: () => void; // For cancellable operations
 }
 
 const sizeClasses = {
@@ -58,6 +63,11 @@ const variantStyles = {
     titleClass: 'text-blue-600',
     iconClass: 'text-blue-600',
   },
+  progress: {
+    icon: LoaderIcon,
+    titleClass: 'text-blue-600',
+    iconClass: 'text-blue-600 animate-spin',
+  },
 };
 
 export function AppDialog({
@@ -73,6 +83,11 @@ export function AppDialog({
   children,
   footer,
   className,
+  // Progress properties
+  isProgress = false,
+  progressMessage,
+  progressValue,
+  onCancel,
 }: AppDialogProps) {
   const variantConfig = variantStyles[variant];
   const IconComponent = variantConfig.icon;
@@ -133,7 +148,50 @@ export function AppDialog({
           )}
         </DialogHeader>
 
-        {children && (
+        {/* Progress section for progress dialogs */}
+        {isProgress && (
+          <div className="py-4 space-y-4">
+            {progressMessage && (
+              <p className="text-sm text-muted-foreground">{progressMessage}</p>
+            )}
+            
+            {typeof progressValue === 'number' ? (
+              // Determinate progress bar
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Progress</span>
+                  <span>{Math.round(progressValue)}%</span>
+                </div>
+                <div className="w-full bg-secondary rounded-full h-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all duration-300 ease-out" 
+                    style={{ width: `${progressValue}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              // Indeterminate progress bar
+              <div className="space-y-2">
+                <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+                  <div className="bg-primary h-2 rounded-full animate-pulse w-full" />
+                </div>
+              </div>
+            )}
+
+            {onCancel && (
+              <div className="flex justify-end">
+                <button
+                  onClick={onCancel}
+                  className="px-4 py-2 text-sm bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {children && !isProgress && (
           <div className="py-4">
             {children}
           </div>
