@@ -1,8 +1,9 @@
 /**
  * Export all AI system prompts using Vite's raw imports
  */
-
+// @ts-ignore
 import notebookGenerationSystemPrompt from './notebook-generation-system.md?raw';
+// @ts-ignore
 import codeCellGenerationSystemPrompt from './code-cell-generation-system.md?raw';
 
 // Export individual prompts

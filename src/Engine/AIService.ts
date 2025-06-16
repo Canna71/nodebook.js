@@ -2,7 +2,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText } from 'ai';
 import anylogger from 'anylogger';
-import { PromptLoader } from './PromptLoader';
+import { notebookGenerationSystemPrompt, codeCellGenerationSystemPrompt } from '../prompts/index-raw';
 
 const log = anylogger('AIService');
 
@@ -346,30 +346,14 @@ export class AIService {
      * Build system prompt for notebook generation
      */
     private buildNotebookSystemPrompt(): string {
-        try {
-            return PromptLoader.loadNotebookGenerationPrompt();
-        } catch (error) {
-            log.error('Failed to load notebook generation prompt, using fallback:', error);
-            // Fallback to a minimal prompt if file loading fails
-            return `You are an AI assistant that generates interactive notebooks for NotebookJS. 
-Return a valid JSON object with a "cells" array containing notebook cells. 
-Each cell should have a "type" (markdown, code, input, formula), "id", and appropriate content fields.`;
-        }
+        return notebookGenerationSystemPrompt;
     }
 
     /**
      * Build system prompt for code cell generation
      */
     private buildCodeCellSystemPrompt(): string {
-        try {
-            return PromptLoader.loadCodeCellGenerationPrompt();
-        } catch (error) {
-            log.error('Failed to load code cell generation prompt, using fallback:', error);
-            // Fallback to a minimal prompt if file loading fails
-            return `You are an AI assistant that generates JavaScript code for NotebookJS code cells.
-Return only the JavaScript code content that should go in the code cell, without any additional formatting or structure.
-Use exports.variableName = value to create reactive variables.`;
-        }
+        return codeCellGenerationSystemPrompt;
     }
 
     /**
