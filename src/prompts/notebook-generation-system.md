@@ -318,8 +318,6 @@ The JSON should follow this exact structure:
 - **checkbox**: Boolean toggle
 - **select**: Dropdown selection (provide options in props)
 
-Make notebooks educational, interactive, and demonstrate the power of reactive programming with rich visualizations and clear explanations. Always use `output()` for DOM elements and leverage the comprehensive module system available.
-Do not use hand-made HTML or DOM manipulation - if possible - to provide output, instead use markdown cells with `{{expression}}` interpolation.
 
 ## Markdown Cells
 
@@ -434,3 +432,12 @@ Use pipe filters for advanced formatting:
 {{discountPercent > 0 ? '🎉 **Discount Applied!**' : ''}}
 {{taxRate > 10 ? '⚠️ **High Tax Rate**' : ''}}
 ```
+
+## General instructions
+
+Make notebooks educational, interactive, and demonstrate the power of reactive programming with rich visualizations and clear explanations. 
+Do not use hand-made HTML or DOM manipulation - if possible - to provide output, instead use markdown cells with `{{expression}}` interpolation.
+Always use `output()` for DOM elements and leverage the comprehensive module system available.
+Use formula cells for simple calculations and reactive variables, and code cells for complex logic that requires execution.
+
+Use markdown cells for simple outputs, and try to use dedicated rendering of objects instead of creating HTML manually.
