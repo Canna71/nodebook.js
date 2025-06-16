@@ -1,5 +1,5 @@
 import { ICommand, CommandContext } from '@/Types/CommandTypes';
-import { CellDefinition, CodeCellDefinition, MarkdownCellDefinition } from '@/Types/NotebookModel';
+import { CellDefinition, CodeCellDefinition, MarkdownCellDefinition, InputCellDefinition, FormulaCellDefinition } from '@/Types/NotebookModel';
 import { AIService, NotebookContext } from '@/Engine/AIService';
 import { aiDialogHelper } from '@/lib/AIDialogHelper';
 import anylogger from 'anylogger';
@@ -172,56 +172,83 @@ export class GenerateNotebookCommand extends BaseAICommand {
     }
 
     /**
-     * Parse AI-generated XML content into cell definitions
+     * Parse AI-generated JSON content into cell definitions
      */
     private parseGeneratedNotebook(content: string): CellDefinition[] {
         const parseId = Date.now().toString(36);
         const cells: CellDefinition[] = [];
         
         try {
-            log.debug(`[${parseId}] Starting to parse XML content`, {
-                contentLength: content.length
+            log.debug(`[${parseId}] Starting to parse JSON content`, {
+                contentLength: content.length,
+                contentPreview: content.substring(0, 200) + (content.length > 200 ? '...' : '')
             });
             
-            // Simple regex-based parsing for <VSCode.Cell> elements
-            // In production, you might want to use a proper XML parser
-            const cellRegex = /<VSCode\.Cell[^>]*language="([^"]*)"[^>]*>([\s\S]*?)<\/VSCode\.Cell>/g;
-            let match;
-            let cellCount = 0;
-            
-            while ((match = cellRegex.exec(content)) !== null) {
-                cellCount++;
-                const language = match[1];
-                const cellContent = match[2].trim();
-                
-                log.debug(`[${parseId}] Found cell ${cellCount}`, {
-                    language,
-                    contentLength: cellContent.length,
-                    contentPreview: cellContent.substring(0, 100) + (cellContent.length > 100 ? '...' : '')
-                });
-                
-                const cellId = `cell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                
-                if (language === 'javascript') {
-                    cells.push({
-                        type: 'code',
-                        id: cellId,
-                        code: cellContent
-                    } as CodeCellDefinition);
-                    log.debug(`[${parseId}] Added code cell with id: ${cellId}`);
-                } else if (language === 'markdown') {
-                    cells.push({
-                        type: 'markdown',
-                        id: cellId,
-                        content: cellContent
-                    } as MarkdownCellDefinition);
-                    log.debug(`[${parseId}] Added markdown cell with id: ${cellId}`);
-                } else {
-                    log.warn(`[${parseId}] Skipping unsupported cell language: ${language}`);
-                }
+            // Clean the content - remove any markdown code blocks if present
+            let cleanContent = content.trim();
+            if (cleanContent.startsWith('```json')) {
+                cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+            } else if (cleanContent.startsWith('```')) {
+                cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
             }
             
-            log.info(`[${parseId}] Successfully parsed ${cells.length} cells from ${cellCount} found cell blocks`);
+            log.debug(`[${parseId}] Cleaned content`, {
+                originalLength: content.length,
+                cleanedLength: cleanContent.length,
+                cleanedPreview: cleanContent.substring(0, 200) + (cleanContent.length > 200 ? '...' : '')
+            });
+            
+            // Parse the JSON
+            let notebookData;
+            try {
+                notebookData = JSON.parse(cleanContent);
+            } catch (jsonError) {
+                log.error(`[${parseId}] JSON parsing failed:`, {
+                    error: jsonError instanceof Error ? jsonError.message : 'Unknown JSON error',
+                    contentPreview: cleanContent.substring(0, 500)
+                });
+                throw new Error(`Invalid JSON format: ${jsonError instanceof Error ? jsonError.message : 'Unknown JSON error'}`);
+            }
+            
+            // Validate the notebook structure
+            if (!notebookData || typeof notebookData !== 'object') {
+                throw new Error('Invalid notebook format: not an object');
+            }
+            
+            if (!Array.isArray(notebookData.cells)) {
+                throw new Error('Invalid notebook format: cells must be an array');
+            }
+            
+            log.info(`[${parseId}] Successfully parsed JSON with ${notebookData.cells.length} cells`);
+            
+            // Process each cell
+            notebookData.cells.forEach((cellData: any, index: number) => {
+                log.debug(`[${parseId}] Processing cell ${index + 1}`, {
+                    type: cellData.type,
+                    id: cellData.id,
+                    hasContent: !!(cellData.content || cellData.code || cellData.formula)
+                });
+                
+                try {
+                    const processedCell = this.processCellData(cellData, parseId, index);
+                    if (processedCell) {
+                        cells.push(processedCell);
+                        log.debug(`[${parseId}] Successfully added ${processedCell.type} cell: ${processedCell.id}`);
+                    }
+                } catch (cellError) {
+                    log.error(`[${parseId}] Failed to process cell ${index + 1}:`, {
+                        error: cellError instanceof Error ? cellError.message : 'Unknown cell error',
+                        cellData: cellData
+                    });
+                    // Continue processing other cells instead of failing completely
+                }
+            });
+            
+            if (cells.length === 0) {
+                throw new Error('No valid cells were processed from the generated content');
+            }
+            
+            log.info(`[${parseId}] Successfully processed ${cells.length} cells`);
             return cells;
             
         } catch (error) {
@@ -231,6 +258,83 @@ export class GenerateNotebookCommand extends BaseAICommand {
                 contentLength: content.length
             });
             throw error;
+        }
+    }
+
+    /**
+     * Process individual cell data from JSON into CellDefinition
+     */
+    private processCellData(cellData: any, parseId: string, index: number): CellDefinition | null {
+        if (!cellData || typeof cellData !== 'object') {
+            log.warn(`[${parseId}] Skipping invalid cell data at index ${index}`);
+            return null;
+        }
+
+        const cellType = cellData.type;
+        const cellId = cellData.id || `cell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        switch (cellType) {
+            case 'markdown':
+                if (!cellData.content) {
+                    log.warn(`[${parseId}] Markdown cell missing content at index ${index}`);
+                    return null;
+                }
+                return {
+                    type: 'markdown',
+                    id: cellId,
+                    content: cellData.content,
+                    variables: cellData.variables || []
+                } as MarkdownCellDefinition;
+
+            case 'code':
+                if (cellData.code === undefined) {
+                    log.warn(`[${parseId}] Code cell missing code at index ${index}`);
+                    return null;
+                }
+                return {
+                    type: 'code',
+                    id: cellId,
+                    code: cellData.code,
+                    language: cellData.language || 'javascript',
+                    exports: cellData.exports || []
+                } as CodeCellDefinition;
+
+            case 'input':
+                if (!cellData.inputType || !cellData.variableName) {
+                    log.warn(`[${parseId}] Input cell missing required fields at index ${index}:`, {
+                        hasInputType: !!cellData.inputType,
+                        hasVariableName: !!cellData.variableName
+                    });
+                    return null;
+                }
+                return {
+                    type: 'input',
+                    id: cellId,
+                    label: cellData.label || cellData.variableName,
+                    inputType: cellData.inputType,
+                    variableName: cellData.variableName,
+                    value: cellData.value !== undefined ? cellData.value : '',
+                    props: cellData.props || {}
+                } as InputCellDefinition;
+
+            case 'formula':
+                if (!cellData.variableName || !cellData.formula) {
+                    log.warn(`[${parseId}] Formula cell missing required fields at index ${index}:`, {
+                        hasVariableName: !!cellData.variableName,
+                        hasFormula: !!cellData.formula
+                    });
+                    return null;
+                }
+                return {
+                    type: 'formula',
+                    id: cellId,
+                    variableName: cellData.variableName,
+                    formula: cellData.formula
+                } as FormulaCellDefinition;
+
+            default:
+                log.warn(`[${parseId}] Unsupported cell type at index ${index}: ${cellType}`);
+                return null;
         }
     }
 
