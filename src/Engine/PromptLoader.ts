@@ -1,6 +1,6 @@
 import anylogger from 'anylogger';
-import { notebookGenerationSystemPrompt } from '../prompts/notebook-generation-system';
-import { codeCellGenerationSystemPrompt } from '../prompts/code-cell-generation-system';
+import notebookGenerationSystemPrompt from '../prompts/notebook-generation-system.md?raw';
+import codeCellGenerationSystemPrompt from '../prompts/code-cell-generation-system.md?raw';
 
 const log = anylogger('PromptLoader');
 
