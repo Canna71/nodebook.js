@@ -3,6 +3,7 @@ import ReactJson, { ThemeKeys, ThemeObject } from 'react-json-view';
 
 import SeriesRenderer from './SeriesRenderer';
 import DataFrameRenderer from './DataFrameRenderer';
+import { TabularRenderer } from './TabularRenderer';
 import { useReactiveSystem } from '../Engine/ReactiveProvider';
 import { LatexRenderer, isLatexContent, renderMixedContent } from './LatexRenderer';
 
@@ -35,7 +36,26 @@ const isDanfoSeries = (obj: any): boolean => {
          typeof obj.values !== 'undefined';
 };
 
+// Check if data is an array of objects suitable for tabular display
+const isTabularData = (obj: any): boolean => {
+  if (!Array.isArray(obj) || obj.length === 0) {
+    return false;
+  }
+  
+  // Check if at least some items are objects (not null)
+  const objectItems = obj.filter(item => item && typeof item === 'object' && !Array.isArray(item));
+  
+  // Require at least 70% of items to be objects for tabular display
+  return objectItems.length >= Math.max(1, Math.floor(obj.length * 0.7));
+};
 
+// Check if data is marked as forced tabular output
+const isForcedTabularOutput = (obj: any): boolean => {
+  return obj && 
+         typeof obj === 'object' && 
+         obj.__isTabularOutput === true &&
+         Array.isArray(obj.data);
+};
 
 
 // Main ObjectDisplay component
@@ -110,6 +130,16 @@ export function ObjectDisplay({
 
   if (isDanfoSeries(data)) {
     return <SeriesRenderer data={data} name={effectiveName} />;
+  }
+
+  // Check for forced tabular output first (from output.table())
+  if (isForcedTabularOutput(data)) {
+    return <TabularRenderer data={data.data} name={effectiveName} />;
+  }
+
+  // Check for tabular data (array of objects)
+  if (isTabularData(data)) {
+    return <TabularRenderer data={data} name={effectiveName} />;
   }
 
   // TODO: Add more specific renderers here for other object types

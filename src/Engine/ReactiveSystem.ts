@@ -895,7 +895,7 @@ export class CodeCellEngine {
 
                             // Enhanced output function (Scenario 1)
                             if (prop === 'output') {
-                                return (...values: any[]) => {
+                                const outputFunction = (...values: any[]) => {
                                     values.forEach(value => {
                                         // Check if value is a DOM element
                                         if (value instanceof HTMLElement) {
@@ -912,6 +912,19 @@ export class CodeCellEngine {
                                     });
                                     return values.length === 1 ? values[0] : values;
                                 };
+
+                                // Add table method to output function
+                                outputFunction.table = (data: any[]) => {
+                                    // Mark the data with a special flag to force tabular rendering
+                                    const tabularData = {
+                                        __isTabularOutput: true,
+                                        data: data
+                                    };
+                                    outputValues.push(tabularData);
+                                    return tabularData;
+                                };
+
+                                return outputFunction;
                             }
 
                             // Node.js globals
