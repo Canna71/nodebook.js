@@ -646,15 +646,65 @@ export class GenerateCellCommand extends BaseAICommand {
                 promptPreview: prompt.substring(0, 100) + (prompt.length > 100 ? '...' : '')
             });
             
+            // Enhanced logging for debugging context issues
+            log.info(`[${commandId}] Starting AI cell generation with enhanced context logging`);
+            
+            // Log the user request
+            log.info(`[${commandId}] User request: "${prompt}"`);
+            
+            // Log current model state
+            const model = this.context.applicationProvider.currentModel;
+            if (model) {
+                log.info(`[${commandId}] Current notebook has ${model.cells.length} cells`);
+                model.cells.forEach((cell: CellDefinition, idx: number) => {
+                    log.info(`[${commandId}] Cell ${idx + 1}: ${cell.type} (ID: ${cell.id})`);
+                    if (cell.type === 'input') {
+                        const inputCell = cell as InputCellDefinition;
+                        log.info(`[${commandId}]   Input cell: ${inputCell.variableName} = ${inputCell.value} (${inputCell.inputType})`);
+                    } else if (cell.type === 'formula') {
+                        const formulaCell = cell as FormulaCellDefinition;
+                        log.info(`[${commandId}]   Formula cell: ${formulaCell.variableName} = ${formulaCell.formula}`);
+                    }
+                });
+            }
+            
+            // Log reactive system state
+            const reactiveSystem = this.context.reactiveSystem;
+            if (reactiveSystem && reactiveSystem.reactiveStore) {
+                try {
+                    const allVars = reactiveSystem.reactiveStore.getAllVariables();
+                    log.info(`[${commandId}] Reactive system has ${Object.keys(allVars).length} variables:`, Object.keys(allVars));
+                    
+                    // Log a sample of variable values
+                    const sampleVars = Object.keys(allVars).slice(0, 5);
+                    const sampleValues: Record<string, any> = {};
+                    sampleVars.forEach(varName => {
+                        const value = allVars[varName];
+                        sampleValues[varName] = typeof value === 'object' ? '[Object]' : value;
+                    });
+                    log.info(`[${commandId}] Sample variable values:`, sampleValues);
+                } catch (error) {
+                    log.warn(`[${commandId}] Could not access reactive system variables:`, error);
+                }
+            }
+            
             // Get current notebook context for AI
             log.debug(`[${commandId}] Building notebook context for AI`);
             const context = this.buildNotebookContext();
-            log.debug(`[${commandId}] Notebook context built`, {
+            
+            // Log the complete context that will be sent to AI
+            log.info(`[${commandId}] Complete notebook context for AI generation:`, {
                 variableCount: context.variables.length,
                 moduleCount: context.modules.length,
                 cellCount: context.cellContents.length,
                 variables: context.variables,
-                modules: context.modules
+                modules: context.modules,
+                cellContents: context.cellContents.map((cell, idx) => ({
+                    index: idx,
+                    type: cell.type,
+                    contentPreview: cell.content.substring(0, 100) + (cell.content.length > 100 ? '...' : ''),
+                    contentLength: cell.content.length
+                }))
             });
             
             // Show progress dialog
