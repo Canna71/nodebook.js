@@ -44,10 +44,16 @@ export function CellSeparator({ insertIndex, isFirst = false, isLast = false, on
             label: 'Markdown',
             description: 'Add markdown content',
             commandId: 'cell.add.markdown'
+        },
+        {
+            type: 'ai' as const,
+            label: 'AI Cell',
+            description: 'Let AI choose the best cell type',
+            commandId: 'cell.add.ai'
         }
     ];
 
-    const handleAddCell = async (cellType: CellDefinition['type'], commandId: string) => {
+    const handleAddCell = async (cellType: CellDefinition['type'] | 'ai', commandId: string) => {
         log.debug(`CellSeparator: Adding ${cellType} cell at index ${insertIndex}`);
         try {
             // Use command system first
@@ -60,11 +66,11 @@ export function CellSeparator({ insertIndex, isFirst = false, isLast = false, on
         } catch (error) {
             log.error(`Error adding cell via command system:`, error);
             
-            // Fallback to direct function call if provided
-            if (onAddCell) {
+            // Fallback to direct function call if provided (only for non-AI cell types)
+            if (onAddCell && cellType !== 'ai') {
                 log.debug(`Falling back to direct function call for ${cellType} cell`);
                 try {
-                    onAddCell(cellType, insertIndex);
+                    onAddCell(cellType as CellDefinition['type'], insertIndex);
                 } catch (fallbackError) {
                     log.error('Error in fallback cell addition:', fallbackError);
                 }

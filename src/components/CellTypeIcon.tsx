@@ -1,7 +1,7 @@
 import React from 'react';
 import { MarkdownIcon } from './icons/MarkdownIcon';
 import { JavascriptIcon } from './icons/JavascriptIcon';
-import { VariableIcon } from '@heroicons/react/24/outline';
+import { VariableIcon, SparklesIcon } from '@heroicons/react/24/outline';
 
 interface CellTypeIconProps {
   type: string;
@@ -18,6 +18,8 @@ export function CellTypeIcon({ type, className = "w-4 h-4" }: CellTypeIconProps)
       return <span className={`font-bold text-current ${className.includes('w-') ? '' : 'text-base'}`}>𝒇𝑥</span>;
     case 'input':
       return <VariableIcon className={className} />;
+    case 'ai':
+      return <SparklesIcon className={className} />;
     default:
       return <span className="font-semibold text-current">{type.toUpperCase()}</span>;
   }

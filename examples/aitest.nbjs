@@ -1,0 +1,23 @@
+{
+  "cells": [
+    {
+      "type": "input",
+      "id": "var_01",
+      "inputType": "number",
+      "variableName": "number1",
+      "value": 0
+    },
+    {
+      "type": "input",
+      "id": "var_02",
+      "inputType": "number",
+      "variableName": "number2",
+      "value": 0
+    },
+    {
+      "type": "markdown",
+      "id": "md_01",
+      "content": "# End of Document\n\nTODO"
+    }
+  ]
+}
