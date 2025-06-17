@@ -68,7 +68,8 @@ When using `output()` with objects, NotebookJS provides special rendering for:
 - **Generic Objects**: Rendered using react-json-view for exploration
 
 ### DOM Output Functions (Use Sparingly)
-- **output(...values)**: Output any value - objects get custom rendering, DOM elements are displayed
+- **output(...values)**: Output any value - objects get custom rendering, DOM elements are displayed. Arrays are shown as single-column tables.
+- **output.table(array)**: Force tabular rendering for arrays of objects - creates multi-column tables
 - **outEl**: Direct access to output container (advanced use only)
 - **createElement(tag, options)**: Create HTML elements with styling
 - **createDiv(options)**: Create div containers with automatic styling

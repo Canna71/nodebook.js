@@ -71,7 +71,8 @@ You are an AI assistant that generates JavaScript code cells for NotebookJS, a r
 ### DOM Output & Visualization Functions
 **CRITICAL: Always use `output()` for DOM elements - this is the recommended approach**
 
-- **output(...values)**: **RECOMMENDED** - Output either a DOM element or any value. Some objects have special rendering. For example DataFrames will render as editable tables. If the dataframe is a reactive variable (that is, it is exported using `exports.variableName = value`), it will automatically update when the data changes.
+- **output(...values)**: **RECOMMENDED** - Output either a DOM element or any value. Some objects have special rendering. For example DataFrames will render as editable tables. If the dataframe is a reactive variable (that is, it is exported using `exports.variableName = value`), it will automatically update when the data changes. Arrays are displayed as single-column tables.
+- **output.table(array)**: Force tabular rendering for arrays of objects - creates multi-column tables with object properties as columns
 - **outEl**: Direct access to output container (advanced use only)
 - **createElement(tag, options)**: Create HTML elements with styling
 - **createDiv(options)**: Create div containers with automatic styling

@@ -9,6 +9,7 @@ Code cells in NotebookJS provide a powerful JavaScript execution environment wit
 - [Reactive Values and Exports](#reactive-values-and-exports)
 - [Accessing Other Variables](#accessing-other-variables)
 - [Console Output](#console-output)
+- [Tabular Output](#tabular-output)
 - [DOM Output and Visualization](#dom-output-and-visualization)
 - [Module System](#module-system)
 - [Available Functions and Globals](#available-functions-and-globals)
@@ -316,6 +317,72 @@ console.log("✓ Analysis complete");
 // Export for other cells
 exports.dataset = df;
 exports.statistics = stats;
+```
+
+## Tabular Output
+
+NotebookJS provides special tabular rendering for arrays and structured data using `output.table()`:
+
+### Array Display
+
+Arrays are automatically rendered as single-column tables when using regular `output()`:
+
+```javascript
+const fruits = ['apple', 'banana', 'cherry', 'date'];
+
+// Arrays are displayed as single-column tables
+output(fruits);
+
+// Complex array with objects
+const users = [
+    { name: 'Alice', active: true },
+    { name: 'Bob', active: false },
+    'Guest User',
+    { name: 'Charlie', age: 30 }
+];
+
+output(users); // Each item rendered in its own row
+```
+
+### Multi-Column Tables with `output.table()`
+
+Use `output.table()` to force tabular rendering of arrays of objects:
+
+```javascript
+const salesData = [
+    { product: 'Laptop', price: 999, quantity: 5, total: 4995 },
+    { product: 'Mouse', price: 25, quantity: 10, total: 250 },
+    { product: 'Keyboard', price: 75, quantity: 3, total: 225 }
+];
+
+// Force tabular display with columns for each property
+output.table(salesData);
+```
+
+**Key differences:**
+- `output(array)` → Single-column table with each array item in its own row
+- `output.table(array)` → Multi-column table with object properties as columns
+
+### Tabular Output Features
+
+- **Automatic column detection**: Finds all unique properties across objects
+- **Mixed data support**: Handles objects with different properties
+- **Rich cell rendering**: Each cell uses ObjectDisplay for proper formatting
+- **Index column**: Shows row numbers for easy reference
+- **Responsive**: Scrollable for large datasets
+- **Consistent styling**: Follows application theme
+
+```javascript
+// Example with mixed object structures
+const mixedData = [
+    { name: 'Alice', age: 25, department: 'Engineering' },
+    { name: 'Bob', age: 30, location: 'New York' },
+    { name: 'Charlie', department: 'Sales', salary: 75000 }
+];
+
+output.table(mixedData);
+// Creates columns: name, age, department, location, salary
+// Missing properties show as "undefined"
 ```
 
 ## DOM Output and Visualization
@@ -677,6 +744,7 @@ exports.myVar = 42;
 
 // DOM output functions
 output(element);        // Output DOM elements or data
+output.table(array);    // Force tabular display for arrays of objects
 outEl;                 // Direct access to output container
 
 // Node.js globals

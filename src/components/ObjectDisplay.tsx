@@ -36,19 +36,6 @@ const isDanfoSeries = (obj: any): boolean => {
          typeof obj.values !== 'undefined';
 };
 
-// Check if data is an array of objects suitable for tabular display
-const isTabularData = (obj: any): boolean => {
-  if (!Array.isArray(obj) || obj.length === 0) {
-    return false;
-  }
-  
-  // Check if at least some items are objects (not null)
-  const objectItems = obj.filter(item => item && typeof item === 'object' && !Array.isArray(item));
-  
-  // Require at least 70% of items to be objects for tabular display
-  return objectItems.length >= Math.max(1, Math.floor(obj.length * 0.7));
-};
-
 // Check if data is marked as forced tabular output
 const isForcedTabularOutput = (obj: any): boolean => {
   return obj && 
@@ -134,12 +121,12 @@ export function ObjectDisplay({
 
   // Check for forced tabular output first (from output.table())
   if (isForcedTabularOutput(data)) {
-    return <TabularRenderer data={data.data} name={effectiveName} />;
+    return <TabularRenderer data={data.data} name={effectiveName} mode="table" />;
   }
 
-  // Check for tabular data (array of objects)
-  if (isTabularData(data)) {
-    return <TabularRenderer data={data} name={effectiveName} />;
+  // Check for arrays - render as single column table
+  if (Array.isArray(data)) {
+    return <TabularRenderer data={data} name={effectiveName} mode="array" />;
   }
 
   // TODO: Add more specific renderers here for other object types

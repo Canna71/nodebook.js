@@ -1,0 +1,51 @@
+{
+  "cells": [
+    {
+      "id": "intro-cell",
+      "type": "markdown",
+      "content": "# Tabular Output Examples\n\nThis notebook demonstrates the different ways to display arrays and tabular data in NotebookJS.\n\n## Features\n- `output(array)` → Single-column table\n- `output.table(array)` → Multi-column table for objects"
+    },
+    {
+      "id": "simple-array",
+      "type": "code",
+      "code": "// Simple array - displayed as single-column table\nconst fruits = ['apple', 'banana', 'cherry', 'date', 'elderberry'];\n\nconsole.log('Displaying simple array:');\noutput(fruits);\n\n// Export for other cells\nexports.fruits = fruits;"
+    },
+    {
+      "id": "mixed-array",
+      "type": "code",
+      "code": "// Mixed array with different data types\nconst mixedData = [\n  'String item',\n  42,\n  { name: 'Alice', age: 25 },\n  [1, 2, 3],\n  null,\n  { product: 'Laptop', price: 999 }\n];\n\nconsole.log('Displaying mixed array:');\noutput(mixedData);\n\nexports.mixedData = mixedData;"
+    },
+    {
+      "id": "object-array-simple",
+      "type": "code",
+      "code": "// Array of objects - still displayed as single-column with output()\nconst users = [\n  { name: 'Alice', age: 25, department: 'Engineering' },\n  { name: 'Bob', age: 30, department: 'Sales' },\n  { name: 'Charlie', age: 35, department: 'Marketing' }\n];\n\nconsole.log('Array of objects with regular output():');\noutput(users);\n\nexports.users = users;"
+    },
+    {
+      "id": "table-output-demo",
+      "type": "code",
+      "code": "// Same data but with output.table() - multi-column table\nconsole.log('Same data with output.table():');\noutput.table(users);\n\n// More complex example with mixed object structures\nconst salesData = [\n  { product: 'Laptop', price: 999, quantity: 5, total: 4995, category: 'Electronics' },\n  { product: 'Mouse', price: 25, quantity: 10, total: 250, category: 'Accessories' },\n  { product: 'Keyboard', price: 75, quantity: 3, total: 225, category: 'Accessories' },\n  { product: 'Monitor', price: 300, quantity: 2, total: 600, category: 'Electronics', warranty: '2 years' }\n];\n\nconsole.log('Sales data with output.table():');\noutput.table(salesData);\n\nexports.salesData = salesData;"
+    },
+    {
+      "id": "mixed-objects",
+      "type": "code",
+      "code": "// Mixed object structures - demonstrates how missing properties are handled\nconst mixedObjects = [\n  { name: 'Alice', age: 25, department: 'Engineering', location: 'New York' },\n  { name: 'Bob', age: 30, skills: ['JavaScript', 'Python'] },\n  { name: 'Charlie', department: 'Marketing', salary: 75000 },\n  { id: 4, active: true, metadata: { created: '2024-01-01', updated: '2024-06-01' } },\n  'Not an object - but included in the array'\n];\n\nconsole.log('Mixed object structures:');\noutput.table(mixedObjects);\n\nexports.mixedObjects = mixedObjects;"
+    },
+    {
+      "id": "comparison",
+      "type": "markdown",
+      "content": "## Comparison Summary\n\n| Method | Use Case | Result |\n|--------|----------|--------|\n| `output(array)` | General array display | Single-column table with each item in its own row |\n| `output.table(array)` | Structured data analysis | Multi-column table with object properties as columns |\n\n### When to use which?\n\n- **`output(array)`**: When you want to see each array item individually, especially for mixed data types\n- **`output.table(array)`**: When you have structured data (objects) and want to compare properties across items\n\n### Features of tabular output:\n\n- ✅ Automatic column detection\n- ✅ Handles missing properties\n- ✅ Rich cell rendering using ObjectDisplay\n- ✅ Row indexing\n- ✅ Responsive scrolling\n- ✅ Consistent theming"
+    },
+    {
+      "id": "practical-example",
+      "type": "code",
+      "code": "// Practical example: analyzing user activity data\nconst activityData = [\n  { user: 'alice@example.com', logins: 45, lastActive: '2024-06-15', premium: true, score: 892 },\n  { user: 'bob@example.com', logins: 23, lastActive: '2024-06-10', premium: false, score: 634 },\n  { user: 'charlie@example.com', logins: 67, lastActive: '2024-06-16', premium: true, score: 1205, referrals: 3 },\n  { user: 'diana@example.com', logins: 12, lastActive: '2024-06-08', premium: false, score: 421 },\n  { user: 'eve@example.com', logins: 89, lastActive: '2024-06-17', premium: true, score: 1456, referrals: 7, beta_tester: true }\n];\n\nconsole.log('User activity analysis:');\noutput.table(activityData);\n\n// Calculate some statistics\nconst totalLogins = activityData.reduce((sum, user) => sum + user.logins, 0);\nconst premiumUsers = activityData.filter(user => user.premium).length;\nconst avgScore = activityData.reduce((sum, user) => sum + user.score, 0) / activityData.length;\n\nconst stats = {\n  totalUsers: activityData.length,\n  totalLogins,\n  premiumUsers,\n  freeUsers: activityData.length - premiumUsers,\n  averageScore: Math.round(avgScore),\n  topUser: activityData.reduce((top, user) => user.score > top.score ? user : top).user\n};\n\nconsole.log('Statistics:');\noutput(stats);\n\nexports.activityData = activityData;\nexports.stats = stats;"
+    }
+  ],
+  "storage": {},
+  "metadata": {
+    "title": "Tabular Output Examples",
+    "description": "Demonstrates array and tabular data rendering in NotebookJS",
+    "tags": ["arrays", "tables", "output", "data-display"],
+    "created": "2025-06-18"
+  }
+}
