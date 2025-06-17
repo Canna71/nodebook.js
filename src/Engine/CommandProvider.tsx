@@ -16,10 +16,11 @@ import {
     UndoCommand,
     RedoCommand
 } from './Commands/NotebookCommands';
-import {
-    GenerateNotebookCommand,
-    GenerateCodeCellCommand
-} from './Commands/AICommands';
+import { 
+    GenerateNotebookCommand, 
+    GenerateCodeCellCommand,
+    GenerateCellCommand 
+} from '@/Engine/Commands/AICommands';
 import {
     DocumentArrowDownIcon as SaveIcon,
     DocumentArrowDownIcon as SaveAsIcon,
@@ -226,6 +227,13 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
             tooltip: 'Generate code cell with AI (Cmd+Alt+C)'
         });
 
+        commandManager.registerCommand({
+            id: 'cell.add.ai',
+            command: new GenerateCellCommand(getContext),
+            icon: SparklesIcon,
+            tooltip: 'Generate cell with AI'
+        });
+
         log.debug('Commands registered successfully');
 
         // Cleanup function to unregister commands when component unmounts
@@ -241,6 +249,7 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
                 'cell.add.markdown',
                 'cell.add.formula',
                 'cell.add.input',
+                'cell.add.ai',
                 'ui.toggleSidebar', 
                 'edit.undo', 
                 'edit.redo',

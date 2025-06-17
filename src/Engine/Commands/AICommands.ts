@@ -598,3 +598,340 @@ export class GenerateCodeCellCommand extends BaseAICommand {
         }
     }
 }
+
+/**
+ * Generate any type of cell from AI prompt command
+ */
+export class GenerateCellCommand extends BaseAICommand {
+    getDescription(): string {
+        return 'Generate a cell using AI';
+    }
+
+    canExecute(): boolean {
+        return !!this.context.applicationProvider.currentModel;
+    }
+
+    async execute(): Promise<void> {
+        const commandId = Date.now().toString(36);
+        try {
+            log.info(`[${commandId}] Starting GenerateCellCommand execution`);
+            
+            const aiService = AIService.getInstance();
+            
+            // Check if API keys are configured
+            if (!aiService.hasAPIKeys()) {
+                log.warn(`[${commandId}] No API keys configured, showing configuration dialog`);
+                await aiDialogHelper.showError(
+                    'AI Configuration Required',
+                    'Please configure your AI API keys in the settings before generating cells.'
+                );
+                return;
+            }
+            
+            log.debug(`[${commandId}] API keys available, showing prompt dialog`);
+            
+            // Show input dialog to get user prompt
+            const prompt = await aiDialogHelper.showPrompt(
+                'Generate Cell with AI',
+                'Describe what you want to create (e.g., "Calculate compound interest", "Show sales data in a chart", "Add markdown explaining the analysis")'
+            );
+            
+            if (!prompt) {
+                log.info(`[${commandId}] User cancelled AI cell generation`);
+                return;
+            }
+
+            log.info(`[${commandId}] User provided prompt for cell generation`, {
+                promptLength: prompt.length,
+                promptPreview: prompt.substring(0, 100) + (prompt.length > 100 ? '...' : '')
+            });
+            
+            // Get current notebook context for AI
+            log.debug(`[${commandId}] Building notebook context for AI`);
+            const context = this.buildNotebookContext();
+            log.debug(`[${commandId}] Notebook context built`, {
+                variableCount: context.variables.length,
+                moduleCount: context.modules.length,
+                cellCount: context.cellContents.length,
+                variables: context.variables,
+                modules: context.modules
+            });
+            
+            // Show progress dialog
+            log.debug(`[${commandId}] Showing progress dialog`);
+            await aiDialogHelper.showProgress(
+                'Generating Cell',
+                'AI is analyzing your request and choosing the best cell type... This may take a few moments.'
+            );
+            
+            try {
+                log.debug(`[${commandId}] Calling AI service to generate cell`);
+                // Generate cell using AI service
+                const cellDefinition = await aiService.generateCell(prompt, context);
+                
+                log.debug(`[${commandId}] AI generation completed, hiding progress dialog`);
+                aiDialogHelper.hideProgress();
+                
+                log.debug(`[${commandId}] Creating and adding new cell`, {
+                    cellType: cellDefinition.type,
+                    cellId: cellDefinition.id
+                });
+                
+                // Create and add the new cell
+                await this.createCellFromDefinition(cellDefinition);
+                
+                log.info(`[${commandId}] Cell generated and added successfully`, {
+                    cellType: cellDefinition.type,
+                    cellId: cellDefinition.id
+                });
+                
+                await aiDialogHelper.showSuccess(
+                    'Cell Generated',
+                    `Your AI-generated ${cellDefinition.type} cell has been added to the notebook!`
+                );
+                
+            } catch (aiError) {
+                log.error(`[${commandId}] AI generation failed:`, {
+                    error: aiError instanceof Error ? aiError.message : 'Unknown error',
+                    stack: aiError instanceof Error ? aiError.stack : undefined,
+                    prompt: prompt.substring(0, 100) + '...',
+                    context: {
+                        variables: context.variables.length,
+                        modules: context.modules.length,
+                        cells: context.cellContents.length
+                    }
+                });
+                
+                aiDialogHelper.hideProgress();
+                await aiDialogHelper.showError(
+                    'AI Generation Failed',
+                    `Failed to generate cell: ${aiError instanceof Error ? aiError.message : 'Unknown error'}`
+                );
+            }
+            
+        } catch (error) {
+            log.error(`[${commandId}] Error in GenerateCellCommand:`, {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                stack: error instanceof Error ? error.stack : undefined
+            });
+            
+            aiDialogHelper.hideProgress();
+            await aiDialogHelper.showError('Error generating cell', error instanceof Error ? error.message : 'Unknown error');
+        }
+    }
+
+    private buildNotebookContext(): NotebookContext {
+        const contextId = Date.now().toString(36);
+        const model = this.context.applicationProvider.currentModel;
+        
+        log.debug(`[${contextId}] Building notebook context`, {
+            hasModel: !!model,
+            cellCount: model?.cells?.length || 0
+        });
+        
+        const context: NotebookContext = {
+            variables: [] as string[],
+            modules: [] as string[],
+            cellContents: [] as Array<{type: string, content: string}>
+        };
+
+        if (!model) {
+            log.debug(`[${contextId}] No model available, returning empty context`);
+            return context;
+        }
+
+        // Extract variables from reactive system
+        const reactiveSystem = this.context.reactiveSystem;
+        if (reactiveSystem && reactiveSystem.reactiveStore) {
+            try {
+                const allVariables = reactiveSystem.reactiveStore.getAllVariables();
+                context.variables = Object.keys(allVariables);
+                log.debug(`[${contextId}] Extracted reactive variables`, {
+                    variableCount: context.variables.length,
+                    variables: context.variables
+                });
+            } catch (error) {
+                log.warn(`[${contextId}] Error getting reactive variables:`, error);
+            }
+        }
+
+        // Extract content from existing cells for context
+        model.cells.forEach((cell: CellDefinition, index: number) => {
+            log.debug(`[${contextId}] Processing cell ${index}`, {
+                type: cell.type,
+                id: cell.id
+            });
+            
+            switch (cell.type) {
+                case 'code':
+                    const codeCell = cell as CodeCellDefinition;
+                    context.cellContents.push({
+                        type: 'code',
+                        content: codeCell.code
+                    });
+                    log.debug(`[${contextId}] Added code cell to context`, {
+                        codeLength: codeCell.code.length
+                    });
+                    break;
+                case 'markdown':
+                    const markdownCell = cell as MarkdownCellDefinition;
+                    context.cellContents.push({
+                        type: 'markdown',
+                        content: markdownCell.content
+                    });
+                    log.debug(`[${contextId}] Added markdown cell to context`, {
+                        contentLength: markdownCell.content.length
+                    });
+                    break;
+                case 'formula':
+                    context.variables.push(cell.variableName);
+                    log.debug(`[${contextId}] Added formula variable to context`, {
+                        variableName: cell.variableName
+                    });
+                    break;
+                case 'input':
+                    context.variables.push(cell.variableName);
+                    log.debug(`[${contextId}] Added input variable to context`, {
+                        variableName: cell.variableName
+                    });
+                    break;
+            }
+        });
+
+        // TODO: Add available modules from module registry
+        // This will be implemented when we have access to the module registry
+        context.modules = ['tf', 'd3', 'plotly', 'Math', 'lodash', 'moment']; // Common modules
+
+        log.info(`[${contextId}] Notebook context built successfully`, {
+            variableCount: context.variables.length,
+            moduleCount: context.modules.length,
+            cellContentCount: context.cellContents.length,
+            variables: context.variables,
+            modules: context.modules
+        });
+
+        return context;
+    }
+
+    /**
+     * Create and add a new cell from AI-generated definition
+     */
+    private async createCellFromDefinition(cellDefinition: CellDefinition): Promise<void> {
+        const createId = Date.now().toString(36);
+        try {
+            log.debug(`[${createId}] Creating cell from definition`, {
+                cellType: cellDefinition.type,
+                cellId: cellDefinition.id
+            });
+            
+            // Calculate where to insert the cell (after selected cell or at end)
+            const model = this.context.applicationProvider.currentModel;
+            if (!model) {
+                throw new Error('No notebook model available');
+            }
+
+            // Find the index where to insert the new cell
+            let insertIndex = model.cells.length; // Default to end
+            
+            // Try to get the selected cell from the reactive system
+            const reactiveSystem = this.context.reactiveSystem;
+            if (reactiveSystem && reactiveSystem.reactiveStore) {
+                try {
+                    const selectedCellId = reactiveSystem.reactiveStore.getValue('selectedCellId');
+                    if (selectedCellId) {
+                        const selectedIndex = model.cells.findIndex((cell: CellDefinition) => cell.id === selectedCellId);
+                        if (selectedIndex !== -1) {
+                            insertIndex = selectedIndex + 1; // Insert after selected cell
+                            log.debug(`[${createId}] Will insert after selected cell`, {
+                                selectedCellId,
+                                selectedIndex,
+                                insertIndex
+                            });
+                        }
+                    }
+                } catch (error) {
+                    log.warn(`[${createId}] Could not get selected cell ID:`, error);
+                }
+            }
+            
+            // First, add a default cell using the applicationProvider directly
+            const applicationProvider = this.context.applicationProvider;
+            const newCellId = applicationProvider.addCell(cellDefinition.type, insertIndex);
+            if (!newCellId) {
+                throw new Error('Failed to create new cell');
+            }
+            
+            // Then update the cell with the generated content
+            await this.updateCellWithGeneratedContent(newCellId, cellDefinition);
+            
+            log.info(`[${createId}] Cell created and inserted successfully`, {
+                cellType: cellDefinition.type,
+                cellId: newCellId,
+                insertIndex
+            });
+            
+        } catch (error) {
+            log.error(`[${createId}] Failed to create cell from definition:`, {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                stack: error instanceof Error ? error.stack : undefined,
+                cellType: cellDefinition.type,
+                cellId: cellDefinition.id
+            });
+            throw new Error(`Failed to add generated cell: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    /**
+     * Update the newly created cell with the AI-generated content
+     */
+    private async updateCellWithGeneratedContent(cellId: string, cellDefinition: CellDefinition): Promise<void> {
+        const updateId = Date.now().toString(36);
+        try {
+            log.debug(`[${updateId}] Updating cell with generated content`, {
+                cellId,
+                cellType: cellDefinition.type
+            });
+            
+            // Get the current model to find and update the cell
+            const model = this.context.applicationProvider.currentModel;
+            if (!model) {
+                throw new Error('No notebook model available');
+            }
+            
+            const cellIndex = model.cells.findIndex((cell: CellDefinition) => cell.id === cellId);
+            if (cellIndex === -1) {
+                throw new Error(`Cell with ID ${cellId} not found`);
+            }
+            
+            // Update the cell with the AI-generated content
+            const newCells = [...model.cells];
+            newCells[cellIndex] = {
+                ...newCells[cellIndex],
+                ...cellDefinition,
+                id: cellId // Keep the original ID
+            };
+            
+            // Update the model
+            this.context.applicationProvider.setModel({
+                ...model,
+                cells: newCells
+            });
+            
+            // Mark as dirty
+            this.context.applicationProvider.setDirty(true);
+            
+            log.info(`[${updateId}] Cell content updated successfully`, {
+                cellId,
+                cellType: cellDefinition.type
+            });
+            
+        } catch (error) {
+            log.error(`[${updateId}] Failed to update cell content:`, {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                cellId,
+                cellType: cellDefinition.type
+            });
+            throw error;
+        }
+    }
+}

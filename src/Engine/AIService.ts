@@ -3,6 +3,7 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText } from 'ai';
 import anylogger from 'anylogger';
 import { notebookGenerationSystemPrompt, codeCellGenerationSystemPrompt } from '../prompts/index-raw';
+import { CellDefinition, validateCellDefinition } from '../Types/NotebookModel';
 
 const log = anylogger('AIService');
 
@@ -236,6 +237,56 @@ export class AIService {
                     modules: context.modules.length,
                     cells: context.cellContents.length
                 }
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Generate any type of cell from prompt with context
+     */
+    public async generateCell(
+        prompt: string, 
+        context: NotebookContext, 
+        config?: Partial<AIConfiguration>
+    ): Promise<CellDefinition> {
+        const requestId = Date.now().toString(36);
+        
+        try {
+            log.info(`[${requestId}] Generating cell with AI`, {
+                promptLength: prompt.length,
+                promptPreview: prompt.substring(0, 100) + (prompt.length > 100 ? '...' : ''),
+                contextVariables: context.variables.length,
+                contextModules: context.modules.length,
+                contextCells: context.cellContents.length
+            });
+
+            const finalConfig = { ...this.defaultConfig, ...config };
+            
+            // Load the single cell generation system prompt
+            const systemPrompt = await this.loadSystemPrompt('single-cell-generation-system.md');
+            
+            // Build user prompt with context
+            const userPrompt = this.buildSingleCellUserPrompt(prompt, context);
+            
+            log.debug(`[${requestId}] Calling AI with single cell generation prompt`);
+            const result = await this.generateText(systemPrompt, userPrompt, finalConfig);
+            log.info('Cell generated successfully', {
+                resultLength: result.length,
+                resultPreview: result.substring(0, 200) + (result.length > 200 ? '...' : '')
+            });
+            
+            // Parse the result as JSON to get the cell definition
+            const cellDefinition = this.parseSingleCellResponse(result);
+            
+            return cellDefinition;
+            
+        } catch (error) {
+            log.error('Failed to generate cell:', {
+                requestId,
+                error: error instanceof Error ? error.message : 'Unknown error',
+                stack: error instanceof Error ? error.stack : undefined,
+                prompt: prompt.substring(0, 100) + '...'
             });
             throw error;
         }
@@ -484,6 +535,235 @@ Generate a JavaScript code cell for this request:
 - Export processed results for use in other cells
 
 Generate only the JavaScript code content - no XML tags or additional formatting.`;
+    }
+
+    /**
+     * Load a system prompt from a markdown file
+     */
+    private async loadSystemPrompt(filename: string): Promise<string> {
+        try {
+            // In the browser environment, we need to load these as static assets
+            // For now, let's use the hardcoded prompt and later make this dynamic
+            if (filename === 'single-cell-generation-system.md') {
+                return this.getSingleCellSystemPrompt();
+            }
+            throw new Error(`Unknown system prompt: ${filename}`);
+        } catch (error) {
+            log.error(`Failed to load system prompt ${filename}:`, error);
+            throw new Error(`Failed to load system prompt: ${filename}`);
+        }
+    }
+
+    /**
+     * Build user prompt for single cell generation
+     */
+    private buildSingleCellUserPrompt(prompt: string, context: NotebookContext): string {
+        let contextInfo = '';
+        
+        if (context.variables.length > 0) {
+            contextInfo += `## Available Variables\n${context.variables.join(', ')}\n\n`;
+        }
+        
+        if (context.modules.length > 0) {
+            contextInfo += `## Available Modules\n${context.modules.join(', ')}\n\n`;
+        }
+        
+        if (context.cellContents.length > 0) {
+            contextInfo += `## Existing Cells\n`;
+            context.cellContents.forEach((cell, index) => {
+                contextInfo += `### Cell ${index + 1} (${cell.type})\n`;
+                contextInfo += `${cell.content.substring(0, 200)}${cell.content.length > 200 ? '...' : ''}\n\n`;
+            });
+        }
+        
+        return `${contextInfo}## User Request\n${prompt}`;
+    }
+
+    /**
+     * Parse single cell response from AI
+     */
+    private parseSingleCellResponse(response: string): CellDefinition {
+        const parseId = Date.now().toString(36);
+        
+        try {
+            log.debug(`[${parseId}] Parsing single cell response`, {
+                responseLength: response.length,
+                responsePreview: response.substring(0, 200) + (response.length > 200 ? '...' : '')
+            });
+            
+            // Clean the response - remove any markdown code blocks if present
+            let cleanResponse = response.trim();
+            if (cleanResponse.startsWith('```json')) {
+                cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+            } else if (cleanResponse.startsWith('```')) {
+                cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+            }
+            
+            log.debug(`[${parseId}] Cleaned response`, {
+                originalLength: response.length,
+                cleanedLength: cleanResponse.length,
+                cleanedPreview: cleanResponse.substring(0, 200) + (cleanResponse.length > 200 ? '...' : '')
+            });
+            
+            // Parse as JSON
+            let cellData;
+            try {
+                cellData = JSON.parse(cleanResponse);
+            } catch (jsonError) {
+                log.error(`[${parseId}] JSON parsing failed:`, {
+                    error: jsonError instanceof Error ? jsonError.message : 'Unknown JSON error',
+                    responsePreview: cleanResponse.substring(0, 500)
+                });
+                throw new Error(`AI returned invalid JSON: ${jsonError instanceof Error ? jsonError.message : 'Unknown JSON error'}`);
+            }
+            
+            // Generate an ID if not provided
+            if (!cellData.id) {
+                cellData.id = `cell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            }
+            
+            // Validate the cell definition
+            if (!validateCellDefinition(cellData)) {
+                log.error(`[${parseId}] Invalid cell definition:`, {
+                    cellData,
+                    missingFields: this.getMissingFields(cellData)
+                });
+                throw new Error('AI returned invalid cell definition');
+            }
+            
+            log.info(`[${parseId}] Successfully parsed ${cellData.type} cell`, {
+                cellId: cellData.id,
+                cellType: cellData.type
+            });
+            
+            return cellData as CellDefinition;
+            
+        } catch (error) {
+            log.error(`[${parseId}] Failed to parse single cell response:`, {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                responseLength: response.length,
+                responsePreview: response.substring(0, 500)
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Get missing fields for debugging cell validation
+     */
+    private getMissingFields(cellData: any): string[] {
+        const missing: string[] = [];
+        
+        if (!cellData.type) missing.push('type');
+        if (!cellData.id) missing.push('id');
+        
+        switch (cellData.type) {
+            case 'input':
+                if (!cellData.inputType) missing.push('inputType');
+                if (!cellData.variableName) missing.push('variableName');
+                break;
+            case 'markdown':
+                if (!cellData.content) missing.push('content');
+                break;
+            case 'formula':
+                if (!cellData.variableName) missing.push('variableName');
+                if (!cellData.formula) missing.push('formula');
+                break;
+            case 'code':
+                if (cellData.code === undefined) missing.push('code');
+                break;
+        }
+        
+        return missing;
+    }
+
+    /**
+     * Get the single cell generation system prompt
+     */
+    private getSingleCellSystemPrompt(): string {
+        return `# Single Cell Generation System
+
+You are an intelligent assistant that generates individual notebook cells based on user requests. Your job is to analyze the user's intent and create the most appropriate cell type with proper content.
+
+## Cell Type Decision Logic
+
+Choose the cell type based on these guidelines:
+
+### Formula Cells (PREFERRED for simple calculations)
+- **Use for**: Basic math, simple calculations, variable assignments
+- **Examples**: "Calculate 15% tip", "Find the area of a circle", "Convert units"
+- **Pattern**: When user wants a single mathematical result
+
+### Input Cells
+- **Use for**: Interactive controls, user parameters, settings
+- **Examples**: "Add a slider for interest rate", "Create a dropdown for categories"
+- **Pattern**: When user needs to provide input or control parameters
+
+### Code Cells
+- **Use for**: Complex logic, data processing, visualizations, API calls
+- **Examples**: "Create a chart", "Process this data", "Make API call"
+- **Pattern**: When user needs advanced programming functionality
+
+### Markdown Cells
+- **Use for**: Documentation, explanations, formatted text
+- **Examples**: "Explain the analysis", "Add documentation", "Create a heading"
+- **Pattern**: When user wants to document or explain something
+
+## Critical Rules
+
+1. **Output ONLY valid JSON** - No markdown code blocks, no explanations
+2. **Always include required properties** for the chosen cell type
+3. **Generate unique IDs** using timestamp + random string
+4. **Consider existing context** - reference available variables and data
+5. **Prefer formula cells** for simple math over code cells
+6. **Use descriptive labels** for input cells and meaningful content for markdown
+
+## Output Format
+
+Return ONLY a JSON object matching one of these structures:
+
+**Formula Cell:**
+\`\`\`json
+{
+  "type": "formula",
+  "id": "cell_12345_abc",
+  "variableName": "result",
+  "formula": "price * 1.15"
+}
+\`\`\`
+
+**Input Cell:**
+\`\`\`json
+{
+  "type": "input",
+  "id": "cell_12345_abc", 
+  "label": "Interest Rate",
+  "inputType": "range",
+  "variableName": "interestRate",
+  "value": 0.05,
+  "props": {"min": 0, "max": 1, "step": 0.01}
+}
+\`\`\`
+
+**Code Cell:**
+\`\`\`json
+{
+  "type": "code",
+  "id": "cell_12345_abc",
+  "code": "const data = [1,2,3];\nconsole.log(data);"
+}
+\`\`\`
+
+**Markdown Cell:**
+\`\`\`json
+{
+  "type": "markdown",
+  "id": "cell_12345_abc",
+  "content": "# Analysis Results\n\nThis section explains..."
+}
+\`\`\`
+
+Analyze the user's request, choose the appropriate cell type, and return the JSON definition.`;
     }
 
     /**

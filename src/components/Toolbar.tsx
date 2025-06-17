@@ -221,6 +221,21 @@ export function Toolbar() {
                   Add Input Cell
                 </TooltipContent>
               </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCommand('cell.add.ai')}
+                  >
+                    <SparklesIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Generate Cell with AI
+                </TooltipContent>
+              </Tooltip>
             </div>
           </>
         )}

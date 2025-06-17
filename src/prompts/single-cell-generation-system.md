@@ -168,7 +168,7 @@ You are an AI assistant that generates individual cells for NotebookJS, a reacti
 
 ## Output Format
 
-Return a single JSON object representing the cell. Only include fields relevant to the chosen cell type:
+**CRITICAL**: Return ONLY a valid JSON object representing the cell. Do not include any markdown formatting, code blocks, or explanatory text. The response must be pure JSON that can be directly parsed.
 
 ### Formula Cell Output
 ```json
@@ -184,9 +184,9 @@ Return a single JSON object representing the cell. Only include fields relevant 
 {
   "type": "input",
   "label": "User-friendly Label",
-  "inputType": "number|text|range|checkbox|select",
+  "inputType": "number",
   "variableName": "variableName", 
-  "value": "defaultValue",
+  "value": 100,
   "props": {
     "min": 0,
     "max": 100,
@@ -210,6 +210,12 @@ Return a single JSON object representing the cell. Only include fields relevant 
   "content": "# Markdown Content\nUse {{variableName}} for dynamic values and formatting."
 }
 ```
+
+**IMPORTANT**: 
+- Return ONLY the JSON object, no surrounding text or formatting
+- Do not wrap in ```json code blocks
+- Do not include explanations before or after the JSON
+- The response must be valid JSON that can be parsed directly
 
 ## Final Instructions
 
