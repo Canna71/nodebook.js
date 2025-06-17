@@ -667,26 +667,29 @@ export class GenerateCellCommand extends BaseAICommand {
                     }
                 });
             }
-            
-            // Log reactive system state
-            const reactiveSystem = this.context.reactiveSystem;
-            if (reactiveSystem && reactiveSystem.reactiveStore) {
-                try {
-                    const allVars = reactiveSystem.reactiveStore.getAllVariables();
-                    log.info(`[${commandId}] Reactive system has ${Object.keys(allVars).length} variables:`, Object.keys(allVars));
-                    
-                    // Log a sample of variable values
-                    const sampleVars = Object.keys(allVars).slice(0, 5);
-                    const sampleValues: Record<string, any> = {};
-                    sampleVars.forEach(varName => {
-                        const value = allVars[varName];
+                 // Log reactive system state
+        const reactiveSystem = this.context.reactiveSystem;
+        if (reactiveSystem && reactiveSystem.reactiveStore) {
+            try {
+                const allVarNames = reactiveSystem.reactiveStore.getAllVariableNames();
+                log.info(`[${commandId}] Reactive system has ${allVarNames.length} variables:`, allVarNames);
+                
+                // Log a sample of variable values
+                const sampleVars = allVarNames.slice(0, 5);
+                const sampleValues: Record<string, any> = {};
+                sampleVars.forEach((varName: string) => {
+                    try {
+                        const value = reactiveSystem.reactiveStore.getValue(varName);
                         sampleValues[varName] = typeof value === 'object' ? '[Object]' : value;
-                    });
-                    log.info(`[${commandId}] Sample variable values:`, sampleValues);
-                } catch (error) {
-                    log.warn(`[${commandId}] Could not access reactive system variables:`, error);
-                }
+                    } catch (e) {
+                        sampleValues[varName] = '[Error getting value]';
+                    }
+                });
+                log.info(`[${commandId}] Sample variable values:`, sampleValues);
+            } catch (error) {
+                log.warn(`[${commandId}] Could not access reactive system variables:`, error);
             }
+        }
             
             // Get current notebook context for AI
             log.debug(`[${commandId}] Building notebook context for AI`);
@@ -790,24 +793,34 @@ export class GenerateCellCommand extends BaseAICommand {
             return context;
         }
 
-        // Extract variables from reactive system
+        // Set to avoid duplicate variables
+        const variableSet = new Set<string>();
+
+        // Extract variables from reactive system first
         const reactiveSystem = this.context.reactiveSystem;
         if (reactiveSystem && reactiveSystem.reactiveStore) {
             try {
-                const allVariables = reactiveSystem.reactiveStore.getAllVariables();
-                context.variables = Object.keys(allVariables);
-                log.debug(`[${contextId}] Extracted reactive variables`, {
-                    variableCount: context.variables.length,
-                    variables: context.variables
+                const allVariableNames = reactiveSystem.reactiveStore.getAllVariableNames();
+                allVariableNames.forEach((varName: string) => {
+                    // Skip internal/system variables
+                    if (!varName.startsWith('__') && !varName.startsWith('_cell_')) {
+                        variableSet.add(varName);
+                    }
+                });
+                log.debug(`[${contextId}] Extracted reactive variables from store`, {
+                    totalVariables: allVariableNames.length,
+                    filteredVariables: variableSet.size,
+                    allVariableNames: allVariableNames,
+                    filteredVariableNames: Array.from(variableSet)
                 });
             } catch (error) {
                 log.warn(`[${contextId}] Error getting reactive variables:`, error);
             }
         }
 
-        // Extract content from existing cells for context
+        // Extract content from existing cells for context and add their variables
         model.cells.forEach((cell: CellDefinition, index: number) => {
-            log.debug(`[${contextId}] Processing cell ${index}`, {
+            log.debug(`[${contextId}] Processing cell ${index + 1}`, {
                 type: cell.type,
                 id: cell.id
             });
@@ -820,7 +833,8 @@ export class GenerateCellCommand extends BaseAICommand {
                         content: codeCell.code
                     });
                     log.debug(`[${contextId}] Added code cell to context`, {
-                        codeLength: codeCell.code.length
+                        codeLength: codeCell.code.length,
+                        codePreview: codeCell.code.substring(0, 100) + (codeCell.code.length > 100 ? '...' : '')
                     });
                     break;
                 case 'markdown':
@@ -830,23 +844,41 @@ export class GenerateCellCommand extends BaseAICommand {
                         content: markdownCell.content
                     });
                     log.debug(`[${contextId}] Added markdown cell to context`, {
-                        contentLength: markdownCell.content.length
+                        contentLength: markdownCell.content.length,
+                        contentPreview: markdownCell.content.substring(0, 100) + (markdownCell.content.length > 100 ? '...' : '')
                     });
                     break;
                 case 'formula':
-                    context.variables.push(cell.variableName);
+                    const formulaCell = cell as FormulaCellDefinition;
+                    variableSet.add(formulaCell.variableName);
+                    context.cellContents.push({
+                        type: 'formula',
+                        content: `${formulaCell.variableName} = ${formulaCell.formula}`
+                    });
                     log.debug(`[${contextId}] Added formula variable to context`, {
-                        variableName: cell.variableName
+                        variableName: formulaCell.variableName,
+                        formula: formulaCell.formula
                     });
                     break;
                 case 'input':
-                    context.variables.push(cell.variableName);
+                    const inputCell = cell as InputCellDefinition;
+                    variableSet.add(inputCell.variableName);
+                    context.cellContents.push({
+                        type: 'input',
+                        content: `${inputCell.variableName} = ${JSON.stringify(inputCell.value)} (${inputCell.inputType} input: "${inputCell.label || inputCell.variableName}")`
+                    });
                     log.debug(`[${contextId}] Added input variable to context`, {
-                        variableName: cell.variableName
+                        variableName: inputCell.variableName,
+                        inputType: inputCell.inputType,
+                        value: inputCell.value,
+                        label: inputCell.label
                     });
                     break;
             }
         });
+
+        // Convert set to array
+        context.variables = Array.from(variableSet);
 
         // TODO: Add available modules from module registry
         // This will be implemented when we have access to the module registry
