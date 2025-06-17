@@ -49,7 +49,6 @@ export function Toolbar() {
   const undoInfo = getCommandInfo('edit.undo');
   const redoInfo = getCommandInfo('edit.redo');
   const aiGenerateNotebookInfo = getCommandInfo('ai.generateNotebook');
-  const aiGenerateCodeCellInfo = getCommandInfo('ai.generateCodeCell');
 
   return (
     <div className="sticky top-0 left-0 right-0 z-40 flex items-center h-12 px-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -159,21 +158,6 @@ export function Toolbar() {
                 </TooltipTrigger>
                 <TooltipContent>
                   Add Code Cell
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleCommand('ai.generateCodeCell')}
-                  >
-                    <SparklesIcon className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {aiGenerateCodeCellInfo?.tooltip}
                 </TooltipContent>
               </Tooltip>
 
