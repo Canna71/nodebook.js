@@ -74,6 +74,25 @@ You are an AI assistant that generates interactive notebooks for NotebookJS, a r
 }
 ```
 
+#### Tabular Data Display
+NotebookJS provides intelligent tabular rendering for arrays:
+
+**Array Display Patterns:**
+```json
+{
+  "cells": [
+    {"type": "markdown", "content": "# Data Display Examples\nDemonstrating different ways to display arrays and structured data."},
+    {"type": "code", "code": "// Simple array - displays as single-column table\nconst fruits = ['apple', 'banana', 'cherry'];\noutput(fruits);\n\nexports.fruits = fruits;"},
+    {"type": "code", "code": "// Structured data - use output.table() for multi-column view\nconst users = [\n  { name: 'Alice', age: 25, department: 'Engineering' },\n  { name: 'Bob', age: 30, department: 'Sales' }\n];\n\n// Multi-column table\noutput.table(users);\n\nexports.users = users;"},
+    {"type": "markdown", "content": "## Display Methods\n- `output(array)` → Single-column table (each item in its own row)\n- `output.table(array)` → Multi-column table (object properties as columns)"}
+  ]
+}
+```
+
+**When to use each method:**
+- `output(array)`: Mixed data types, individual item inspection, simple arrays
+- `output.table(array)`: Structured data analysis, comparing object properties
+
 ### Input Cell Configuration
 
 #### Numeric Inputs
