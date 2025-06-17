@@ -1,0 +1,30 @@
+{
+  "type": "notebook",
+  "version": "1.0.0",
+  "cells": [
+    {
+      "type": "input",
+      "id": "input_1",
+      "variableName": "basePrice",
+      "inputType": "number",
+      "label": "Base Price",
+      "value": 100
+    },
+    {
+      "type": "input", 
+      "id": "input_2",
+      "variableName": "taxRate",
+      "inputType": "range",
+      "label": "Tax Rate (%)",
+      "value": 8.5,
+      "min": 0,
+      "max": 20
+    },
+    {
+      "type": "formula",
+      "id": "formula_1", 
+      "variableName": "taxAmount",
+      "formula": "basePrice * (taxRate / 100)"
+    }
+  ]
+}

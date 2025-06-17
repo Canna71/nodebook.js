@@ -26,6 +26,7 @@ export interface NotebookContext {
     modules: string[];
     cellContents: Array<{type: string, content: string}>;
     notebookType?: 'new' | 'existing';
+    notebookModel?: any; // Complete notebook model for full context
 }
 
 /**
@@ -569,15 +570,44 @@ Generate only the JavaScript code content - no XML tags or additional formatting
 
         let contextInfo = '';
         
-        if (context.variables.length > 0) {
-            contextInfo += `## Available Variables\n`;
-            contextInfo += `The following variables are currently available in the notebook:\n`;
-            context.variables.forEach(varName => {
-                contextInfo += `- ${varName}\n`;
-            });
-            contextInfo += `\nWhen creating formulas, use these exact variable names.\n\n`;
+        // Include the complete notebook structure as JSON for precise context
+        if (context.notebookModel) {
+            contextInfo += `## Current Notebook Structure\n`;
+            contextInfo += `Here is the complete current notebook as JSON:\n\n`;
+            contextInfo += `\`\`\`json\n${JSON.stringify(context.notebookModel, null, 2)}\n\`\`\`\n\n`;
+            
+            // Also provide a summary for quick reference
+            if (context.variables.length > 0) {
+                contextInfo += `## Quick Variable Reference\n`;
+                contextInfo += `Variables available from the notebook above:\n`;
+                context.variables.forEach(varName => {
+                    contextInfo += `- \`${varName}\`\n`;
+                });
+                contextInfo += `\n**IMPORTANT**: Use these exact variable names (case-sensitive) when creating formulas.\n\n`;
+            }
         } else {
-            contextInfo += `## Available Variables\nNo variables are currently defined in the notebook.\n\n`;
+            // Fallback to old method if notebook model not available
+            if (context.variables.length > 0) {
+                contextInfo += `## Available Variables\n`;
+                contextInfo += `The following variables are currently available in the notebook:\n`;
+                context.variables.forEach(varName => {
+                    contextInfo += `- ${varName}\n`;
+                });
+                contextInfo += `\nWhen creating formulas, use these exact variable names.\n\n`;
+            } else {
+                contextInfo += `## Available Variables\nNo variables are currently defined in the notebook.\n\n`;
+            }
+            
+            if (context.cellContents.length > 0) {
+                contextInfo += `## Existing Notebook Content\n`;
+                contextInfo += `The notebook currently contains ${context.cellContents.length} cell(s):\n\n`;
+                context.cellContents.forEach((cell, index) => {
+                    contextInfo += `### Cell ${index + 1} (${cell.type})\n`;
+                    contextInfo += `\`\`\`\n${cell.content.substring(0, 300)}${cell.content.length > 300 ? '...' : ''}\n\`\`\`\n\n`;
+                });
+            } else {
+                contextInfo += `## Existing Notebook Content\nThis is a new notebook with no existing cells.\n\n`;
+            }
         }
         
         if (context.modules.length > 0) {
@@ -589,24 +619,13 @@ Generate only the JavaScript code content - no XML tags or additional formatting
             contextInfo += `\n`;
         }
         
-        if (context.cellContents.length > 0) {
-            contextInfo += `## Existing Notebook Content\n`;
-            contextInfo += `The notebook currently contains ${context.cellContents.length} cell(s):\n\n`;
-            context.cellContents.forEach((cell, index) => {
-                contextInfo += `### Cell ${index + 1} (${cell.type})\n`;
-                contextInfo += `\`\`\`\n${cell.content.substring(0, 300)}${cell.content.length > 300 ? '...' : ''}\n\`\`\`\n\n`;
-            });
-        } else {
-            contextInfo += `## Existing Notebook Content\nThis is a new notebook with no existing cells.\n\n`;
-        }
-        
-        const fullPrompt = `${contextInfo}## User Request\n${prompt}\n\nBased on the available variables and existing content above, generate the most appropriate cell type. If creating a formula that uses existing variables, reference them by their exact names as shown in the "Available Variables" section.`;
+        const fullPrompt = `${contextInfo}## User Request\n${prompt}\n\nBased on the notebook structure above, generate the most appropriate cell type. If creating a formula that uses existing variables, reference them by their exact names as shown in the notebook JSON.`;
         
         log.info(`[${promptId}] Final user prompt for AI:`, {
             promptLength: fullPrompt.length,
             contextVariablesIncluded: context.variables,
             contextModulesIncluded: context.modules,
-            contextCellsIncluded: context.cellContents.length,
+            hasNotebookModel: !!context.notebookModel,
             fullPrompt: fullPrompt.length < 1000 ? fullPrompt : fullPrompt.substring(0, 1000) + '...'
         });
         
