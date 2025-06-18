@@ -1,0 +1,22 @@
+{
+  "cells": [
+    {
+      "type": "input",
+      "id": "var_01",
+      "inputType": "number",
+      "variableName": "var_01",
+      "value": 4
+    },
+    {
+      "type": "code",
+      "id": "code_01",
+      "code": "// Write your code here\nconsole.log(\"Reactive \", var_01);\noutput(\"var: \", var_01);\noutput(\"var_01=\"+var_01);"
+    },
+    {
+      "type": "code",
+      "id": "code_02",
+      "code": "// Write your code here\nconsole.log(\"Static \", var_01);\noutput(\"var: \", var_01);",
+      "isStatic": true
+    }
+  ]
+}
