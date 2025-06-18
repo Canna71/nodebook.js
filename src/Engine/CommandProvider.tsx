@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { CommandManager } from './CommandManager';
 import { ICommandManager, CommandContext } from '@/Types/CommandTypes';
+import { CodeCellDefinition } from '@/Types/NotebookModel';
 import { useApplication } from './ApplicationProvider';
 import { useReactiveSystem } from './ReactiveProvider';
 import { commandManagerSingleton } from './CommandManagerSingleton';
@@ -82,10 +83,10 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
         try {
             // Execute all code cells in order
             for (const cell of codeCells) {
-                const codeCell = cell as any; // CodeCellDefinition
+                const codeCell = cell as CodeCellDefinition;
                 try {
-                    log.debug(`Executing code cell: ${cell.id}`);
-                    await codeCellEngine.executeCodeCell(cell.id, codeCell.code);
+                    log.debug(`Executing code cell: ${cell.id} (static: ${codeCell.isStatic || false})`);
+                    await codeCellEngine.executeCodeCell(cell.id, codeCell.code, undefined, codeCell.isStatic || false);
                 } catch (cellError) {
                     log.error(`Error executing code cell ${cell.id}:`, cellError);
                     // Continue with other cells even if one fails

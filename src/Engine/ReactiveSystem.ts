@@ -849,7 +849,7 @@ export class CodeCellEngine {
     /**
      * Execute code cell and handle exports (async version)
      */
-    public async executeCodeCell(cellId: string, code: string, outputContainer?: HTMLElement): Promise<string[]> {
+    public async executeCodeCell(cellId: string, code: string, outputContainer?: HTMLElement, isStatic: boolean = false): Promise<string[]> {
         // Prevent circular execution
         if (this.executingCells.has(cellId)) {
             log.debug(`Code cell ${cellId} is already executing, skipping to prevent circular reference`);
@@ -1067,12 +1067,14 @@ export class CodeCellEngine {
                 }
             }
 
-            // Only update reactive values if there are actual changes
-            if (hasChanges || !previousCellInfo) {
+            // Only update reactive values if there are actual changes AND cell is not static
+            if ((hasChanges || !previousCellInfo) && !isStatic) {
                 exportValues.forEach((value, name) => {
                     this.reactiveStore.define(name, value);
                 });
                 log.debug(`Code cell ${cellId} exported changed values:`, Array.from(exportValues.entries()));
+            } else if (isStatic) {
+                log.debug(`Code cell ${cellId} is static, skipping reactive value updates`);
             } else {
                 log.debug(`Code cell ${cellId} exports unchanged, skipping reactive value updates`);
             }
@@ -1095,9 +1097,11 @@ export class CodeCellEngine {
             // Create a reactive value for this cell's execution state
             this.reactiveStore.define(`__cell_${cellId}_execution`, executionCount);
 
-            // Set up reactive execution for dependencies (only if not already set up)
-            if (!previousCellInfo || JSON.stringify(previousCellInfo.dependencies) !== JSON.stringify(dependencyArray)) {
+            // Set up reactive execution for dependencies (only if not static and not already set up)
+            if (!isStatic && (!previousCellInfo || JSON.stringify(previousCellInfo.dependencies) !== JSON.stringify(dependencyArray))) {
                 this.setupReactiveExecution(cellId, code, dependencyArray);
+            } else if (isStatic) {
+                log.debug(`Code cell ${cellId} is static, skipping reactive execution setup`);
             }
 
             log.debug(`Code cell ${cellId} executed successfully, exported:`, exportsArray, 'dependencies:', dependencyArray, 'output lines:', lastOutput.length, 'output values:', outputValues);
@@ -1165,8 +1169,8 @@ export class CodeCellEngine {
                         lastContainer.innerHTML = '';
                     }
                     
-                    // Re-execute with the saved code
-                    await this.executeCodeCell(cellId, savedCode, lastContainer);
+                    // Re-execute with the saved code (reactive execution always uses isStatic=false)
+                    await this.executeCodeCell(cellId, savedCode, lastContainer, false);
                 } catch (error) {
                     log.error(`Error re-executing code cell ${cellId}:`, error);
                 }
@@ -1177,7 +1181,7 @@ export class CodeCellEngine {
     /**
      * Re-execute a code cell
      */
-    public async reExecuteCodeCell(cellId: string): Promise<string[]> {
+    public async reExecuteCodeCell(cellId: string, isStatic: boolean = false): Promise<string[]> {
         const cellInfo = this.executedCells.get(cellId);
         if (!cellInfo) {
             throw new Error(`Code cell ${cellId} has not been executed before`);
@@ -1192,7 +1196,7 @@ export class CodeCellEngine {
         }
         
         // Re-execute with the same container that was last used
-        return await this.executeCodeCell(cellId, cellInfo.code, lastContainer);
+        return await this.executeCodeCell(cellId, cellInfo.code, lastContainer, isStatic);
     }
 
     /**
@@ -1579,8 +1583,9 @@ exports.${variableName} = __result;
 `;
 
         // Execute using the code cell engine - it will handle dependency tracking automatically
+        // Formulas are always reactive (isStatic=false)
         try {
-            const exports = await this.codeCellEngine.executeCodeCell(cellId, wrappedCode);
+            const exports = await this.codeCellEngine.executeCodeCell(cellId, wrappedCode, undefined, false);
             log.debug(`Formula "${variableName}" executed successfully:`, exports);
             
             // Get dependencies from the executed cell (tracked by the proxy)

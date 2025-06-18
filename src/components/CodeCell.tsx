@@ -42,6 +42,10 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     // Local state for the code being edited
     const [currentCode, setCurrentCode] = useState(definition.code || '');
     const [isDirty, setIsDirty] = useState(false);
+    
+    // Static mode state management
+    const [isStatic, setIsStatic] = useState(definition.isStatic || false);
+    const [isStaticDirty, setIsStaticDirty] = useState(false);
 
     // Add ref for DOM output container
     const outputContainerRef = React.useRef<HTMLDivElement>(null);
@@ -56,7 +60,9 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     useEffect(() => {
         setCurrentCode(definition.code || '');
         setIsDirty(false);
-    }, [definition.code]);
+        setIsStatic(definition.isStatic || false);
+        setIsStaticDirty(false);
+    }, [definition.code, definition.isStatic]);
 
     // Separate effect for initial setup - only runs once when initialized
     useEffect(() => {
@@ -112,31 +118,51 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         log.debug(`Code cell ${definition.id} code editing (dirty: ${hasChanges})`);
     };
 
+    // Handle static mode toggle
+    const onStaticToggle = (newIsStatic: boolean) => {
+        setIsStatic(newIsStatic);
+        setIsStaticDirty(newIsStatic !== (definition.isStatic || false));
+        log.debug(`Code cell ${definition.id} static mode toggle (static: ${newIsStatic})`);
+    };
+
     // Commit changes to the cell definition and engine
     const commitChanges = useCallback(() => {
-        if (!isDirty) return;
+        if (!isDirty && !isStaticDirty) return;
 
-        // Update the engine's internal tracking
-        codeCellEngine.updateCodeCell(definition.id, currentCode);
+        // Update the engine's internal tracking if code changed
+        if (isDirty) {
+            codeCellEngine.updateCodeCell(definition.id, currentCode);
+        }
         
         // Update the notebook model through state manager
-        updateCell(definition.id, { code: currentCode }, 'Update code cell');
+        const updates: Partial<CodeCellDefinition> = {};
+        if (isDirty) {
+            updates.code = currentCode;
+        }
+        if (isStaticDirty) {
+            updates.isStatic = isStatic;
+        }
+        
+        updateCell(definition.id, updates, 'Update code cell');
         
         setIsDirty(false);
-        log.debug(`Code cell ${definition.id} changes committed`);
-    }, [isDirty, currentCode, definition.id, definition.code, codeCellEngine, updateCell]);
+        setIsStaticDirty(false);
+        log.debug(`Code cell ${definition.id} changes committed`, updates);
+    }, [isDirty, isStaticDirty, currentCode, isStatic, definition.id, codeCellEngine, updateCell]);
 
     // Discard changes and revert to saved state
     const discardChanges = useCallback(() => {
         setCurrentCode(definition.code);
+        setIsStatic(definition.isStatic || false);
         setIsDirty(false);
+        setIsStaticDirty(false);
         log.debug(`Code cell ${definition.id} changes discarded`);
-    }, [definition.code, definition.id]);
+    }, [definition.code, definition.isStatic, definition.id]);
 
     // Keyboard shortcuts for edit mode
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (!isEditMode || !isDirty) return;
+            if (!isEditMode || (!isDirty && !isStaticDirty)) return;
             
             // Ctrl+Enter or Cmd+Enter to apply changes
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -155,11 +181,11 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
             document.addEventListener('keydown', handleKeyDown);
             return () => document.removeEventListener('keydown', handleKeyDown);
         }
-    }, [isEditMode, isDirty, commitChanges, discardChanges]);
+    }, [isEditMode, isDirty, isStaticDirty, commitChanges, discardChanges]);
 
     const onExecute = async () => {
         // Commit any unsaved changes before executing
-        if (isDirty) {
+        if (isDirty || isStaticDirty) {
             commitChanges();
         }
         
@@ -168,17 +194,21 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
             outputContainerRef.current.innerHTML = '';
         }
         
-        // Execute with the current code (which should now be committed)
+        // Execute with the current code and static flag
         try {
-            await codeCellEngine.executeCodeCell(definition.id, currentCode, outputContainerRef.current || undefined);
-            log.debug(`Code cell ${definition.id} executed`);
+            await codeCellEngine.executeCodeCell(definition.id, currentCode, outputContainerRef.current || undefined, isStatic);
+            log.debug(`Code cell ${definition.id} executed (static: ${isStatic})`);
         } catch (error) {
             log.error(`Error executing code cell ${definition.id}:`, error);
         }
     };
 
     return (
-        <div className="cell code-cell border border-border rounded-lg mb-4 bg-background overflow-hidden">
+        <div className={`cell code-cell border rounded-lg mb-4 overflow-hidden ${
+            isStatic 
+                ? 'border-orange-400 bg-orange-50/50 dark:bg-orange-950/20' 
+                : 'border-border bg-background'
+        }`}>
             {/* Code Summary - styled like code comments */}
             <div className="flex items-center justify-between">
                 <CodeSummary 
@@ -186,7 +216,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                     exports={exports}
                     dependencies={dependencies}
                 />
-                {isDirty && isEditMode && (
+                {(isDirty || isStaticDirty) && isEditMode && (
                     <div className="px-4 py-2">
                         <span className="text-orange-500 text-xs font-medium">
                             • Unsaved changes
@@ -214,8 +244,30 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                         }}
                     />
                     
+                    {/* Static Mode Toggle - visible in edit mode */}
+                    {isEditMode && (
+                        <div className="mt-3 pt-2 border-t border-border">
+                            <label className="flex items-center gap-2 text-sm">
+                                <input
+                                    type="checkbox"
+                                    checked={isStatic}
+                                    onChange={(e) => onStaticToggle(e.target.checked)}
+                                    className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                                />
+                                <span className="text-secondary-foreground">
+                                    Static mode (manual execution only)
+                                </span>
+                                {isStatic && (
+                                    <span className="text-xs text-orange-600 bg-orange-100 dark:bg-orange-900/30 px-1.5 py-0.5 rounded">
+                                        Static
+                                    </span>
+                                )}
+                            </label>
+                        </div>
+                    )}
+                    
                     {/* Action buttons - only show when there are changes */}
-                    {isDirty && (
+                    {(isDirty || isStaticDirty) && (
                         <div className="flex items-center gap-2 mt-3 pt-2 border-t border-border">
                             <Button
                                 onClick={commitChanges}

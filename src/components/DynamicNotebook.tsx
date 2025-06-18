@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { NotebookModel, CellDefinition, InputCellDefinition, FormulaCellDefinition, NotebookEditingState } from '../Types/NotebookModel';
+import { NotebookModel, CellDefinition, InputCellDefinition, FormulaCellDefinition, CodeCellDefinition, NotebookEditingState } from '../Types/NotebookModel';
 import { useReactiveSystem, useCodeCellModules } from '../Engine/ReactiveProvider';
 import { useApplication } from '@/Engine/ApplicationProvider';
 import anylogger from 'anylogger';
@@ -55,14 +55,21 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
           }
         } else if (cell.type === 'code') {
           // Execute code cells during initialization
-          // Try to find existing DOM container by ID
-          const outputContainer = document.getElementById(`${cell.id}-outEl`) as HTMLDivElement | null;
+          const codeCell = cell as CodeCellDefinition;
           
-          try {
-            const exports = await codeCellEngine.executeCodeCell(cell.id, cell.code, outputContainer || undefined);
-            log.debug(`Executed code cell during initialization: ${cell.id}, exports:`, exports, `container: ${outputContainer ? 'found' : 'not found'}`);
-          } catch (error) {
-            log.error(`Error executing code cell ${cell.id} during initialization:`, error);
+          // Skip initialization execution for static cells
+          if (codeCell.isStatic) {
+            log.debug(`Skipping initialization execution for static code cell: ${cell.id}`);
+          } else {
+            // Try to find existing DOM container by ID
+            const outputContainer = document.getElementById(`${cell.id}-outEl`) as HTMLDivElement | null;
+            
+            try {
+              const exports = await codeCellEngine.executeCodeCell(cell.id, codeCell.code, outputContainer || undefined, false);
+              log.debug(`Executed code cell during initialization: ${cell.id}, exports:`, exports, `container: ${outputContainer ? 'found' : 'not found'}`);
+            } catch (error) {
+              log.error(`Error executing code cell ${cell.id} during initialization:`, error);
+            }
           }
         } else if (cell.type === 'formula') {
           const formulaCell = cell as FormulaCellDefinition;
@@ -221,10 +228,11 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
 
     // Create execute callback for code cells
     const handleExecuteCode = cell.type === 'code' ? async () => {
-      const currentCode = codeCellEngine.getCurrentCode(cell.id) || cell.code;
+      const codeCell = cell as CodeCellDefinition;
+      const currentCode = codeCellEngine.getCurrentCode(cell.id) || codeCell.code;
       try {
-        await codeCellEngine.executeCodeCell(cell.id, currentCode);
-        log.debug(`Code cell ${cell.id} executed from header button`);
+        await codeCellEngine.executeCodeCell(cell.id, currentCode, undefined, codeCell.isStatic || false);
+        log.debug(`Code cell ${cell.id} executed from header button (static: ${codeCell.isStatic || false})`);
       } catch (error) {
         log.error(`Error executing code cell ${cell.id} from header button:`, error);
       }
