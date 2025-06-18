@@ -1,0 +1,43 @@
+{
+  "cells": [
+    {
+      "id": "test-reactive-1",
+      "type": "code", 
+      "code": "// Reactive cell - should export to reactive system\nexports.x = 10;\nconsole.log('Reactive cell executed, x =', 10);",
+      "metadata": {
+        "createdAt": "2025-06-18T12:00:00.000Z"
+      }
+    },
+    {
+      "id": "test-static-1", 
+      "type": "code",
+      "code": "// Static cell - should NOT export to reactive system\nconst y = 20;\nconsole.log('Static cell executed, y =', y);",
+      "isStatic": true,
+      "metadata": {
+        "createdAt": "2025-06-18T12:01:00.000Z"
+      }
+    },
+    {
+      "id": "test-reactive-2",
+      "type": "code",
+      "code": "// Reactive cell that depends on x - should work\nconsole.log('x from reactive system:', x);\nexports.z = x * 2;\nconsole.log('z =', z);",
+      "metadata": {
+        "createdAt": "2025-06-18T12:02:00.000Z"
+      }
+    },
+    {
+      "id": "test-formula-1",
+      "type": "formula",
+      "variableName": "calculated",
+      "formula": "x + z",
+      "metadata": {
+        "createdAt": "2025-06-18T12:03:00.000Z"
+      }
+    }
+  ],
+  "metadata": {
+    "title": "Static Cells Test",
+    "description": "Test notebook for static cell functionality",
+    "createdAt": "2025-06-18T12:00:00.000Z"
+  }
+}

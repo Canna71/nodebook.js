@@ -78,14 +78,13 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
         }
 
         log.info(`Executing ${codeCells.length} code cells`);
-        
-        try {
+          try {
             // Execute all code cells in order
             for (const cell of codeCells) {
                 const codeCell = cell as any; // CodeCellDefinition
                 try {
                     log.debug(`Executing code cell: ${cell.id}`);
-                    await codeCellEngine.executeCodeCell(cell.id, codeCell.code);
+                    await codeCellEngine.executeCodeCell(cell.id, codeCell.code, undefined, codeCell.isStatic);
                 } catch (cellError) {
                     log.error(`Error executing code cell ${cell.id}:`, cellError);
                     // Continue with other cells even if one fails

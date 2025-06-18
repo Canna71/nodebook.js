@@ -51,6 +51,7 @@ export interface CodeCellDefinition extends BaseCellDefinition {
   code: string;
   language?: 'javascript'; // For future extensibility
   exports?: string[]; // Names of variables this cell exports
+  isStatic?: boolean; // Optional flag to disable reactive behavior
 }
 
 export type CellDefinition = InputCellDefinition | MarkdownCellDefinition | FormulaCellDefinition | CodeCellDefinition;

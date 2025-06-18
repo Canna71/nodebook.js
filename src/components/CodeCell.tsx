@@ -34,6 +34,28 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     // Subscribe to execution count to know when cell re-executes
     const [executionCount] = useReactiveValue(`__cell_${definition.id}_execution`, 0);
     
+    // Static mode state
+    const [isStatic, setIsStatic] = useState(definition.isStatic || false);
+    
+    // Handle static mode toggle
+    const handleStaticToggle = useCallback(() => {
+        const newIsStatic = !isStatic;
+        setIsStatic(newIsStatic);
+        
+        // Update the cell definition
+        updateCell(definition.id, { isStatic: newIsStatic }, 'Toggle static mode');
+        
+        log.debug(`Code cell ${definition.id} toggled to ${newIsStatic ? 'static' : 'reactive'} mode`);
+        
+        // If switching from static to reactive, we may want to re-execute to join reactive system
+        if (!newIsStatic && initialized) {
+            // Re-execute in reactive mode to establish dependencies and exports
+            setTimeout(() => {
+                onExecute();
+            }, 100); // Small delay to allow state update
+        }
+    }, [isStatic, definition.id, updateCell, initialized]);
+    
     // Debug log execution count changes
     useEffect(() => {
         console.log('🎯 CodeCell execution count changed for', definition.id, ':', executionCount);
@@ -57,6 +79,11 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         setCurrentCode(definition.code || '');
         setIsDirty(false);
     }, [definition.code]);
+    
+    // Update static mode when definition changes
+    useEffect(() => {
+        setIsStatic(definition.isStatic || false);
+    }, [definition.isStatic]);
 
     // Separate effect for initial setup - only runs once when initialized
     useEffect(() => {
@@ -155,9 +182,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
             document.addEventListener('keydown', handleKeyDown);
             return () => document.removeEventListener('keydown', handleKeyDown);
         }
-    }, [isEditMode, isDirty, commitChanges, discardChanges]);
-
-    const onExecute = async () => {
+    }, [isEditMode, isDirty, commitChanges, discardChanges]);    const onExecute = async () => {
         // Commit any unsaved changes before executing
         if (isDirty) {
             commitChanges();
@@ -168,17 +193,17 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
             outputContainerRef.current.innerHTML = '';
         }
         
-        // Execute with the current code (which should now be committed)
+        // Execute with the current code and static flag
         try {
-            await codeCellEngine.executeCodeCell(definition.id, currentCode, outputContainerRef.current || undefined);
-            log.debug(`Code cell ${definition.id} executed`);
+            await codeCellEngine.executeCodeCell(definition.id, currentCode, outputContainerRef.current || undefined, isStatic);
+            log.debug(`Code cell ${definition.id} executed in ${isStatic ? 'static' : 'reactive'} mode`);
         } catch (error) {
             log.error(`Error executing code cell ${definition.id}:`, error);
         }
-    };
-
-    return (
-        <div className="cell code-cell border border-border rounded-lg mb-4 bg-background overflow-hidden">
+    };    return (
+        <div className={`cell code-cell border rounded-lg mb-4 bg-background overflow-hidden ${
+            isStatic ? 'border-orange-400 bg-orange-50/5' : 'border-border'
+        }`}>
             {/* Code Summary - styled like code comments */}
             <div className="flex items-center justify-between">
                 <CodeSummary 
@@ -186,13 +211,28 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                     exports={exports}
                     dependencies={dependencies}
                 />
-                {isDirty && isEditMode && (
-                    <div className="px-4 py-2">
+                <div className="flex items-center gap-2 px-4 py-2">
+                    {/* Static Mode Toggle */}
+                    <Button
+                        onClick={handleStaticToggle}
+                        variant={isStatic ? "default" : "outline"}
+                        size="sm"
+                        className={`h-7 px-3 text-xs ${
+                            isStatic 
+                                ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500' 
+                                : 'border-border hover:bg-background-secondary'
+                        }`}
+                        title={isStatic ? "Switch to reactive mode" : "Switch to static mode"}
+                    >
+                        {isStatic ? "Static" : "Reactive"}
+                    </Button>
+                    
+                    {isDirty && isEditMode && (
                         <span className="text-orange-500 text-xs font-medium">
                             • Unsaved changes
                         </span>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
 
             {/* Code Editor (Edit Mode) */}

@@ -52,14 +52,13 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
           if (!reactiveStore.get(inputCell.variableName)) {
             reactiveStore.define(inputCell.variableName, inputCell.value);
             log.debug(`Initialized reactive value from input cell: ${inputCell.variableName} = ${inputCell.value}`);
-          }
-        } else if (cell.type === 'code') {
+          }        } else if (cell.type === 'code') {
           // Execute code cells during initialization
           // Try to find existing DOM container by ID
           const outputContainer = document.getElementById(`${cell.id}-outEl`) as HTMLDivElement | null;
           
           try {
-            const exports = await codeCellEngine.executeCodeCell(cell.id, cell.code, outputContainer || undefined);
+            const exports = await codeCellEngine.executeCodeCell(cell.id, cell.code, outputContainer || undefined, cell.isStatic);
             log.debug(`Executed code cell during initialization: ${cell.id}, exports:`, exports, `container: ${outputContainer ? 'found' : 'not found'}`);
           } catch (error) {
             log.error(`Error executing code cell ${cell.id} during initialization:`, error);
@@ -217,13 +216,11 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     const isEditMode = editingState.editModeCells.has(cell.id);
 
     // Get exports for code cells
-    const exports = cell.type === 'code' ? codeCellEngine.getCellExports(cell.id) : undefined;
-
-    // Create execute callback for code cells
+    const exports = cell.type === 'code' ? codeCellEngine.getCellExports(cell.id) : undefined;    // Create execute callback for code cells
     const handleExecuteCode = cell.type === 'code' ? async () => {
       const currentCode = codeCellEngine.getCurrentCode(cell.id) || cell.code;
       try {
-        await codeCellEngine.executeCodeCell(cell.id, currentCode);
+        await codeCellEngine.executeCodeCell(cell.id, currentCode, undefined, cell.isStatic);
         log.debug(`Code cell ${cell.id} executed from header button`);
       } catch (error) {
         log.error(`Error executing code cell ${cell.id} from header button:`, error);
