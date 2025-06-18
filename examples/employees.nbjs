@@ -3,7 +3,7 @@
     {
       "type": "code",
       "id": "cell_1750200381611_3peuytwst",
-      "code": "const employees = [{ name: 'John Doe', position: 'Developer' }, { name: 'Jane Smith', position: 'Designer' }, { name: 'Mike Johnson', position: 'Manager' }];\noutput(employees);"
+      "code": "// sample data\nconst employees = [{ name: 'John Doe', position: 'Developer' }, { name: 'Jane Smith', position: 'Designer' }, { name: 'Mike Johnson', position: 'Manager' }];\noutput(employees);"
     }
   ]
 }

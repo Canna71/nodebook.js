@@ -10,15 +10,16 @@ This document specifies the implementation of static code cells in NotebookJS. S
 1. **Toggle Mode**: Any code cell can be switched between "reactive" and "static" modes
 2. **Default Behavior**: New code cells are reactive by default
 3. **Manual Execution**: Static cells only execute when manually triggered (not through reactive dependencies)
-4. **No Exports**: Static cells do not export variables to the reactive store
-5. **No Dependencies**: Static cells do not track dependencies or trigger reactive updates
-6. **Preserved Output**: Static cells still capture and display console output and results
+4. **Can Read/Write Reactive Store**: Static cells CAN read and write from the reactive store, but don't automatically execute
+5. **Track Dependencies**: Static cells track dependencies but ignore dependency changes
+6. **No Automatic Initialization**: Static cells don't run during notebook initialization
+7. **Preserved Output**: Static cells still capture and display console output and results
 
 ### UI Requirements
-1. **Toggle Button**: Clear visual toggle in the code cell header/toolbar
-2. **Visual Feedback**: Static cells should have distinct visual styling
+1. **Toggle Checkbox**: Checkbox with label below the editor in edit mode
+2. **Visual Feedback**: Static cells have orange border and background tint
 3. **No Static Cell Creation**: Remove any "Add Static Code Cell" buttons or commands
-4. **Consistent UX**: Toggle should be easily discoverable and intuitive
+4. **Edit Mode Only**: Toggle only visible when cell is in edit mode
 
 ### Backward Compatibility
 1. **Existing Notebooks**: All existing code cells remain reactive
