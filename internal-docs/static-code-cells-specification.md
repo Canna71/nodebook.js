@@ -212,29 +212,48 @@ Remove any existing "static code cell" functionality:
 
 ## Implementation Status
 
-**IN PROGRESS**: Implementation rolled back, starting fresh implementation as of June 18, 2025.
+**COMPLETED**: Implementation of static code cells completed as of June 18, 2025.
 
-### Updated Requirements Based on Clarification:
+### Features Implemented:
 
-1. **Static Cell Behavior**: 
-   - Static cells CAN read and write from reactive store
-   - Static cells track dependencies but don't execute when dependencies change
-   - No automatic execution during initialization
-   - Used for cells with side effects or runbook-style operations
+1. **Type System** ✅
+   - Added `isStatic?: boolean` flag to `CodeCellDefinition` in `src/Types/NotebookModel.ts`
 
-2. **UI Design**:
-   - Toggle checkbox with label below the editor
-   - Only visible in edit mode
-   - Default: reactive (not static)
+2. **Reactive System** ✅  
+   - Updated `executeCodeCell` method to accept `isStatic` parameter
+   - Added logic to prevent dependency tracking for static cells
+   - Added logic to prevent exports to reactive store for static cells  
+   - Added logic to prevent reactive execution setup for static cells
+   - Updated `reExecuteCodeCell` to also accept `isStatic` parameter
 
-3. **Mode Switching**:
-   - Manual execution required when switching from static to reactive
-   - If dependencies exist, cell can run reactively after manual switch
+3. **UI Components** ✅
+   - Added static mode toggle checkbox to `CodeCell.tsx` component (visible only in edit mode)
+   - Added visual styling (orange border/background) for static cells
+   - Added state management for static mode with automatic syncing
+   - Updated dirty state tracking for both code and static mode changes
 
-4. **Test Data**:
-   - `examples/static-code-test.nbjs` exists as starting point
+4. **Integration** ✅
+   - Updated all calls to `executeCodeCell` throughout the codebase to pass static flag
+   - Updated `DynamicNotebook.tsx` initialization and execution (skip init for static cells)
+   - Updated `CommandProvider.tsx` for "Execute All" functionality
+   - Ensured formula execution remains reactive (static=false)
 
-**Ready for implementation.**
+5. **Bug Fix** ✅
+   - **Fixed reactive dependency cleanup issue**: Code cells now properly clean up old dependency subscriptions when dependencies change
+   - Added `unsubscribeFunctions` tracking to prevent memory leaks and incorrect reactive behavior
+   - Added `cleanupCell` method for proper disposal when cells are deleted
+
+### Files Modified:
+- `src/Types/NotebookModel.ts` - Added isStatic flag
+- `src/Engine/ReactiveSystem.ts` - Core static cell logic + dependency cleanup fix
+- `src/Components/CodeCell.tsx` - UI toggle and styling
+- `src/components/DynamicNotebook.tsx` - Initialization and execution
+- `src/Engine/CommandProvider.tsx` - Execute all functionality
+
+### Test Data:
+- `examples/static-code-test.nbjs` - Test notebook with mixed reactive/static cells
+
+**Ready for production use.**
 
 ## Notes
 

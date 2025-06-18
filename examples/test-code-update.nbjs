@@ -10,7 +10,7 @@
     {
       "type": "code",
       "id": "code_01",
-      "code": "// Write your code here\nconsole.log(\"Hello, world!\");"
+      "code": "// Write your code here\nconsole.log(\"var_01\");"
     }
   ]
 }

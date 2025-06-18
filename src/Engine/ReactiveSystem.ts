@@ -582,6 +582,7 @@ export class CodeCellEngine {
         outputValues: any[];
         executionCount: number;
         lastOutputContainer?: HTMLElement; // Add this to remember the container
+        unsubscribeFunctions?: (() => void)[]; // Track unsubscribe functions for cleanup
     }>;
     private executingCells: Set<string>;
     private moduleCache: Map<string, any>;
@@ -706,7 +707,8 @@ export class CodeCellEngine {
                 lastExportValues: new Map(),
                 lastOutput: [],
                 outputValues: [],
-                executionCount: 0
+                executionCount: 0,
+                unsubscribeFunctions: []
             });
         }
     }
@@ -718,6 +720,17 @@ export class CodeCellEngine {
         return this.executedCells.get(cellId)?.code;
     }
 
+    /**
+     * Clean up all subscriptions for a cell (useful when deleting cells)
+     */
+    public cleanupCell(cellId: string): void {
+        const cellInfo = this.executedCells.get(cellId);
+        if (cellInfo?.unsubscribeFunctions) {
+            log.debug(`Cleaning up all subscriptions for deleted cell ${cellId}`);
+            cellInfo.unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+            this.executedCells.delete(cellId);
+        }
+    }
     /**
      * Create a secure require function for code cells with Electron support
      */
@@ -1091,7 +1104,8 @@ export class CodeCellEngine {
                 lastOutput,
                 outputValues: [...outputValues],
                 executionCount,
-                lastOutputContainer: outputContainer // Store the container for reactive execution
+                lastOutputContainer: outputContainer, // Store the container for reactive execution
+                unsubscribeFunctions: previousCellInfo?.unsubscribeFunctions || [] // Preserve existing subscriptions
             });
 
             // Create a reactive value for this cell's execution state
@@ -1131,7 +1145,8 @@ export class CodeCellEngine {
                 lastOutput,
                 outputValues: [], // Empty output values on error
                 executionCount,
-                lastOutputContainer: outputContainer // Store container even on error
+                lastOutputContainer: outputContainer, // Store container even on error
+                unsubscribeFunctions: previousCellInfo?.unsubscribeFunctions || [] // Preserve existing subscriptions
             });
 
             log.error(`Error executing code cell ${cellId}:`, error);
@@ -1145,9 +1160,20 @@ export class CodeCellEngine {
      * Set up reactive execution for a code cell
      */
     private setupReactiveExecution(cellId: string, code: string, dependencies: string[]): void {
+        // Clean up previous subscriptions if they exist
+        const cellInfo = this.executedCells.get(cellId);
+        if (cellInfo?.unsubscribeFunctions) {
+            log.debug(`Cleaning up ${cellInfo.unsubscribeFunctions.length} old subscriptions for cell ${cellId}`);
+            cellInfo.unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+            cellInfo.unsubscribeFunctions = [];
+        }
+
+        // Set up new subscriptions and track unsubscribe functions
+        const unsubscribeFunctions: (() => void)[] = [];
+        
         // Subscribe to all dependencies
         dependencies.forEach(depName => {
-            this.reactiveStore.subscribe(depName, async () => {
+            const unsubscribe = this.reactiveStore.subscribe(depName, async () => {
                 log.debug(`Dependency ${depName} changed, re-executing code cell ${cellId}`);
                 // Re-execute the code cell when dependency changes
                 try {
@@ -1175,7 +1201,15 @@ export class CodeCellEngine {
                     log.error(`Error re-executing code cell ${cellId}:`, error);
                 }
             });
+            
+            unsubscribeFunctions.push(unsubscribe);
         });
+
+        // Store the unsubscribe functions in the cell info
+        if (cellInfo) {
+            cellInfo.unsubscribeFunctions = unsubscribeFunctions;
+            log.debug(`Set up ${unsubscribeFunctions.length} new subscriptions for cell ${cellId} with dependencies:`, dependencies);
+        }
     }
 
     /**
