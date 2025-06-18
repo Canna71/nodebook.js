@@ -1,0 +1,16 @@
+{
+  "cells": [
+    {
+      "type": "input",
+      "id": "var_01",
+      "inputType": "number",
+      "variableName": "var_01",
+      "value": 0
+    },
+    {
+      "type": "code",
+      "id": "code_01",
+      "code": "// Write your code here\nconsole.log(\"Hello, world!\");"
+    }
+  ]
+}

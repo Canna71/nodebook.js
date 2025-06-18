@@ -694,11 +694,11 @@ export class CodeCellEngine {
     updateCodeCell(id: string, newCode: string) {
         const cellInfo = this.executedCells.get(id);
         if (cellInfo) {
-            log.debug(`Updating code cell ${id} internal code`);
+            log.debug(`Updating code cell ${id} internal code (${newCode.length} chars)`);
             cellInfo.code = newCode;
         } else {
             // Create new cell info if it doesn't exist
-            log.debug(`Creating new code cell info for ${id}`);
+            log.debug(`Creating new code cell info for ${id} with code (${newCode.length} chars)`);
             this.executedCells.set(id, {
                 code: newCode,
                 exports: [],
@@ -1147,17 +1147,26 @@ export class CodeCellEngine {
                 log.debug(`Dependency ${depName} changed, re-executing code cell ${cellId}`);
                 // Re-execute the code cell when dependency changes
                 try {
-                    // Get the last used container from cell info
+                    // Get the current cell info
                     const cellInfo = this.executedCells.get(cellId);
-                    const lastContainer = cellInfo?.lastOutputContainer;
+                    if (!cellInfo) {
+                        log.warn(`No cell info found for ${cellId}, skipping reactive execution`);
+                        return;
+                    }
+                    
+                    const lastContainer = cellInfo.lastOutputContainer;
+                    // Use the committed/saved code only (not unsaved edits)
+                    const savedCode = cellInfo.code;
+                    
+                    log.debug(`Re-executing code cell ${cellId} with saved code (${savedCode.length} chars)`);
                     
                     // Clear previous DOM output if container is available
                     if (lastContainer) {
                         lastContainer.innerHTML = '';
                     }
                     
-                    // Re-execute with the same container that was last used
-                    await this.executeCodeCell(cellId, code, lastContainer);
+                    // Re-execute with the saved code
+                    await this.executeCodeCell(cellId, savedCode, lastContainer);
                 } catch (error) {
                     log.error(`Error re-executing code cell ${cellId}:`, error);
                 }
@@ -1507,6 +1516,7 @@ export class CodeCellEngine {
         this.storageChangeHandler = handler;
         log.debug('Storage change handler set:', !!handler);
     }
+
 }
 
 /**
