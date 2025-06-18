@@ -10,6 +10,102 @@ NotebookJS is a reactive notebook application built with React, TypeScript, and 
 - **Components**: Located in `/src/components/` - React components for UI
 - **Types**: Located in `/src/Types/` - TypeScript type definitions
 
+## Reactive System Architecture
+
+NotebookJS uses a custom reactive system that automatically manages dependencies and updates between notebook cells.
+
+### Core Components
+
+#### ReactiveStore
+- **Central state manager**: Manages all reactive values by name
+- **Automatic dependency tracking**: Tracks relationships between values
+- **Subscription system**: Notifies subscribers when values change
+- **Computed values**: Supports reactive formulas and derived values
+
+#### ReactiveValue<T>
+- **Individual reactive variable**: Wraps any value type with reactive capabilities
+- **Subscribers**: Maintains list of callbacks that run when value changes
+- **Dependencies**: Tracks other ReactiveValues this depends on
+- **Lazy computation**: Only computes when accessed (for computed values)
+
+#### Key Engines
+- **CodeCellEngine**: Executes JavaScript code cells and manages exports/dependencies
+- **FormulaEngine**: Processes formula cells with enhanced JavaScript expressions
+- **ReactiveFormulaEngine**: Legacy formula engine with $variable syntax
+
+### State Management Flow
+
+1. **Value Definition**: `reactiveStore.define(name, value)` creates/updates reactive values
+2. **Dependency Tracking**: Code execution automatically tracks variable access
+3. **Propagation**: Value changes trigger subscription callbacks in dependent cells
+4. **Re-execution**: Dependent code cells automatically re-execute with new values
+
+### Reactive Value Lifecycle
+
+```typescript
+// 1. Creation - Value is defined in the store
+reactiveStore.define('myVar', 42);
+
+// 2. Subscription - Components/cells subscribe to changes
+const unsubscribe = reactiveStore.subscribe('myVar', (newValue) => {
+    console.log('myVar changed to:', newValue);
+});
+
+// 3. Access - Value is read (triggers computation if needed)
+const currentValue = reactiveStore.getValue('myVar');
+
+// 4. Update - Value changes, subscribers are notified
+reactiveStore.define('myVar', 100); // Triggers all subscribers
+
+// 5. Cleanup - Unsubscribe to prevent memory leaks
+unsubscribe();
+```
+
+### Dependency Tracking
+
+The system automatically tracks dependencies during code execution:
+
+```javascript
+// Cell 1: Exports a value
+exports.basePrice = 100;
+
+// Cell 2: Depends on basePrice (tracked automatically)
+exports.totalPrice = basePrice * 1.08; // System knows this depends on basePrice
+
+// When basePrice changes, Cell 2 automatically re-executes
+```
+
+### Memory Management
+
+- **Subscription cleanup**: Unsubscribe functions prevent memory leaks
+- **Dependency cleanup**: Old dependencies are removed when cells change
+- **Weak references**: Prevent circular dependency memory issues
+
+### React Integration
+
+#### useReactiveValue Hook
+```typescript
+// Subscribe to reactive value in React components
+const [value, setValue] = useReactiveValue('variableName', initialValue);
+
+// Automatically updates component when value changes
+// setValue updates the reactive store and triggers re-renders
+```
+
+#### useReactiveSystem Hook
+```typescript
+// Access reactive engines in components
+const { reactiveStore, codeCellEngine, formulaEngine } = useReactiveSystem();
+```
+
+### Execution Model
+
+1. **Manual Trigger**: User executes a code cell (clicks run or commits changes)
+2. **Dependency Detection**: System tracks which variables the cell reads
+3. **Export Processing**: Cell exports are stored in reactive store
+4. **Propagation**: Dependent cells automatically re-execute in correct order
+5. **UI Updates**: Components re-render with new reactive values
+
 ### Coding Standards
 
 #### TypeScript
@@ -65,11 +161,35 @@ NotebookJS is a reactive notebook application built with React, TypeScript, and 
 - Use the `anylogger` system for consistent logging
 - If you need to isolate your specific log messages, use a unique logger name for your component or system
 
+#### Reactive System Debugging
+- **Dependency tracking**: Use `codeCellEngine.getCellDependencies(cellId)` to see what a cell depends on
+- **Export inspection**: Use `codeCellEngine.getCellExports(cellId)` to see what a cell exports
+- **Reactive store state**: Use `reactiveStore.getValue(name)` to check current reactive values
+- **Execution count tracking**: Use `__cell_${cellId}_execution` reactive value to track cell executions
+- **Subscription leaks**: Watch for cells re-executing on old dependencies (indicates cleanup issues)
+- **Circular dependencies**: Look for infinite execution loops between cells
+
 #### Code Cell Engine
-- Use `executeCodeCell` for initial execution
-- Use `reExecuteCodeCell` for re-running existing cells
+- Use `executeCodeCell` for initial execution (with optional `isStatic` parameter)
+- Use `reExecuteCodeCell` for re-running existing cells (with optional `isStatic` parameter)
 - Use `updateCodeCell` for code changes without execution
 - Handle exports, dependencies, and console output properly
+
+#### Static Code Cells
+- **Static code cells**: Toggle mode where cells execute manually only
+- **Implementation**: `isStatic?: boolean` flag in `CodeCellDefinition`
+- **Behavior**: Can read/write reactive store but don't auto-execute on dependency changes
+- **Use cases**: Side effects, expensive operations, debugging, runbooks
+- **UI**: Checkbox toggle below editor (edit mode only), orange border/background styling
+- **Default**: New cells are reactive (not static) by default
+- **Initialization**: Static cells skip automatic execution during notebook load
+- **Dependencies**: Static cells track dependencies but ignore dependency changes
+
+#### Reactive Dependency Management
+- **Subscription cleanup**: Code cells properly clean up old dependency subscriptions when dependencies change
+- **Implementation**: `unsubscribeFunctions` array tracks active subscriptions for cleanup
+- **Bug prevention**: Prevents cells from re-executing on old dependencies they no longer use
+- **Memory management**: Prevents memory leaks from accumulated subscriptions
 
 #### Module System
 - Register modules using `moduleRegistry.registerModule`
@@ -114,13 +234,55 @@ src/
 
 ## Specific Patterns
 
-### Reactive Values
+### Reactive Store Management
 ```typescript
-// Define reactive value
+// Direct reactive store access
+const { reactiveStore } = useReactiveSystem();
+
+// Define a new reactive value
+reactiveStore.define('variableName', initialValue);
+
+// Get current value (no subscription)
+const currentValue = reactiveStore.getValue('variableName');
+
+// Subscribe to changes (manual subscription)
+const unsubscribe = reactiveStore.subscribe('variableName', (newValue) => {
+    console.log('Value changed:', newValue);
+});
+
+// Always clean up subscriptions
+useEffect(() => {
+    return unsubscribe;
+}, []);
+```
+
+### Reactive Values in Components
+```typescript
+// Define reactive value with automatic React integration
 const [value, setValue] = useReactiveValue('variableName', initialValue);
 
-// Subscribe to execution count
+// Subscribe to execution count for tracking cell execution
 const [executionCount] = useReactiveValue(`__cell_${cellId}_execution`, 0);
+
+// Track cell state changes
+const [cellState, setCellState] = useReactiveValue(`__cell_${cellId}_state`, 'idle');
+```
+
+### Dependency Tracking Patterns
+```typescript
+// Code cells automatically track dependencies during execution
+// Proxy object captures variable access in the with() statement
+
+// Example: This cell will track dependencies on 'basePrice' and 'taxRate'
+const code = `
+    exports.totalPrice = basePrice * (1 + taxRate);
+    exports.discountPrice = totalPrice * 0.9;
+`;
+
+// The system automatically:
+// 1. Detects basePrice and taxRate as dependencies
+// 2. Sets up subscriptions to re-execute when they change
+// 3. Exports totalPrice and discountPrice to reactive store
 ```
 
 ### Code Cell Execution
@@ -128,10 +290,41 @@ const [executionCount] = useReactiveValue(`__cell_${cellId}_execution`, 0);
 // Update code
 codeCellEngine.updateCodeCell(cellId, newCode);
 
-// Execute cell
-codeCellEngine.reExecuteCodeCell(cellId);
+// Execute cell (pass isStatic flag from cell definition)
+const codeCell = cell as CodeCellDefinition;
+codeCellEngine.executeCodeCell(cellId, code, outputContainer, codeCell.isStatic || false);
+codeCellEngine.reExecuteCodeCell(cellId, codeCell.isStatic || false);
 
 // Get results
+const exports = codeCellEngine.getCellExports(cellId);
+const dependencies = codeCellEngine.getCellDependencies(cellId);
+```
+
+### Static Code Cell Patterns
+```typescript
+// Check if cell is static in components
+const isStatic = definition.isStatic || false;
+
+// Static cell styling
+const cellClassName = `cell code-cell border rounded-lg mb-4 overflow-hidden ${
+    isStatic 
+        ? 'border-orange-400 bg-orange-50/50 dark:bg-orange-950/20' 
+        : 'border-border bg-background'
+}`;
+
+// Handle static toggle in UI
+const onStaticToggle = (newIsStatic: boolean) => {
+    setIsStatic(newIsStatic);
+    updateCell(cellId, { isStatic: newIsStatic }, 'Toggle static mode');
+};
+
+// Skip initialization for static cells
+if (cell.type === 'code') {
+    const codeCell = cell as CodeCellDefinition;
+    if (!codeCell.isStatic) {
+        await codeCellEngine.executeCodeCell(cellId, code, container, false);
+    }
+}
 const exports = codeCellEngine.getCellExports(cellId);
 const dependencies = codeCellEngine.getCellDependencies(cellId);
 ```
@@ -161,6 +354,15 @@ export function ComponentName({ prop1, prop2 }: ComponentProps) {
 1. Always handle initialization states in components
 2. Use proper TypeScript types for all function parameters
 3. Implement proper cleanup in useEffect hooks
+4. Handle async operations with proper error boundaries
+5. Use consistent logging with appropriate log levels
+6. Follow the established reactive patterns for state management
+7. **Always pass isStatic flag** when calling executeCodeCell/reExecuteCodeCell
+8. **Check cell.isStatic** before auto-executing cells during initialization
+9. **Use static cells** for side effects, expensive operations, or manual control
+10. **Clean up subscriptions** when cell dependencies change to prevent memory leaks
+4. Handle async operations with proper error boundaries
+5. Use consistent logging with appropriate log levels
 4. Handle async operations with proper error boundaries
 5. Use consistent logging with appropriate log levels
 6. Follow the established reactive patterns for state management
