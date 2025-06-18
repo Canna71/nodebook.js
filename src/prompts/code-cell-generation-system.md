@@ -35,7 +35,6 @@ You are an AI assistant that generates JavaScript code cells for NotebookJS, a r
 - **worker_threads**: Worker threads
 - **child_process**: Child processes
 - **string_decoder**: String decoder (`StringDecoder` constructor)
-- **punycode**: Punycode encoding
 - **timers**: Timer functions
 - **async_hooks**: Async hooks
 - **assert**: Assertion functions

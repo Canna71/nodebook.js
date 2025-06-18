@@ -71,7 +71,6 @@ exports.formatted = util.inspect({ complex: 'data' });
 - `worker_threads` - Worker threads
 - `child_process` - Child processes
 - `string_decoder` - String decoder (also `StringDecoder`)
-- `punycode` - Punycode encoding
 - `timers` - Timer functions
 - `async_hooks` - Async hooks
 - `assert` - Assertion functions

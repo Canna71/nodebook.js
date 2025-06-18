@@ -102,7 +102,7 @@ export class ModuleRegistry {
       // File and system
       'readline', 'worker_threads', 'child_process',
       // Text processing
-      'string_decoder', 'punycode',
+      'string_decoder', 
       // Timers and async
       'timers', 'async_hooks',
       // Utilities

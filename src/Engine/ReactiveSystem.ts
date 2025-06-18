@@ -620,7 +620,6 @@ export class CodeCellEngine {
             'worker_threads': 'worker_threads',
             'child_process': 'child_process',
             'string_decoder': 'StringDecoder',
-            'punycode': 'punycode',
             'timers': 'timers',
             'async_hooks': 'async_hooks',
             'assert': 'assert',

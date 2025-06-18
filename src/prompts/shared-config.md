@@ -27,7 +27,6 @@ This document contains technical specifications shared between notebook generati
 - **worker_threads**: Worker threads
 - **child_process**: Child processes
 - **string_decoder**: String decoder (`StringDecoder` constructor)
-- **punycode**: Punycode encoding
 - **timers**: Timer functions
 - **async_hooks**: Async hooks
 - **assert**: Assertion functions
