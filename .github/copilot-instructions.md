@@ -197,6 +197,78 @@ const { reactiveStore, codeCellEngine, formulaEngine } = useReactiveSystem();
 - Cache modules appropriately
 - Handle module loading errors gracefully
 
+#### DOM Helper System (Critical - Do Not Modify)
+- **Container ID Pattern**: All DOM output containers use predictable ID `${cellId}-outEl`
+- **ID-based Lookup**: Always use `document.getElementById()` to find containers, never rely on React refs
+- **Container Clearing**: Always clear container with `container.innerHTML = ''` before execution
+- **Three Access Patterns**:
+  1. `outEl` - Direct access to DOM container (finds by ID)
+  2. `output(element)` - Manual output function (finds container by ID)
+  3. `createContainer()` - Auto-outputting helpers (finds container by ID via bound functions)
+- **Timing Independence**: ID-based approach avoids React ref timing issues
+- **Consistent Clearing**: Container is cleared at start of every execution path
+- **Bound Helpers**: `createBoundDomHelpers()` creates auto-outputting versions for code cells
+
+**Critical Implementation Notes**:
+- Never use React refs for DOM output container access during code execution
+- Always use `${cellId}-outEl` pattern for container IDs
+- Clear containers in: CodeCell component, executeCodeCell, reExecuteCodeCell, reactive execution
+- Bound helpers must use the output function parameter, not direct container access
+
+### DOM Helper Patterns (Critical System)
+```javascript
+// ✅ CORRECT: Use outEl for direct DOM access
+if (outEl) {
+    outEl.innerHTML = '<div>Direct content</div>';
+    outEl.appendChild(someElement);
+}
+
+// ✅ CORRECT: Use output() for manual DOM output
+const element = createDiv({ innerHTML: '<p>Content</p>' });
+output(element);
+
+// ✅ CORRECT: Use auto-outputting helpers for containers
+const container = createContainer(); // Automatically appears in DOM
+container.appendChild(createTitle('My Title'));
+
+// ✅ CORRECT: Access containers by ID in implementation code
+const containerId = `${cellId}-outEl`;
+const container = document.getElementById(containerId);
+if (container) {
+    container.innerHTML = ''; // Clear before execution
+    container.appendChild(newContent);
+}
+
+// ❌ WRONG: Don't use React refs during code execution
+if (outputContainerRef.current) { // This can be null due to timing
+    outputContainerRef.current.innerHTML = '';
+}
+
+// ❌ WRONG: Don't skip container clearing
+container.appendChild(newContent); // Will accumulate with previous content
+
+// ❌ WRONG: Don't hardcode container access
+const container = document.querySelector('.output-container'); // Not reliable
+```
+
+### DOM Container Lifecycle
+```javascript
+// 1. Container created with predictable ID in React component
+<div id={`${definition.id}-outEl`} ref={outputContainerRef} />
+
+// 2. Container found and cleared before execution
+const containerId = `${cellId}-outEl`;
+const container = document.getElementById(containerId);
+if (container) container.innerHTML = '';
+
+// 3. DOM helpers use same ID pattern for access
+// - outEl: Direct container access
+// - output(): Manual element output
+// - createContainer(): Auto-outputting helpers
+
+// 4. Container cleared again on next execution (prevents accumulation)
+```
+
 ### File Organization
 ```
 src/
@@ -361,19 +433,19 @@ export function ComponentName({ prop1, prop2 }: ComponentProps) {
 8. **Check cell.isStatic** before auto-executing cells during initialization
 9. **Use static cells** for side effects, expensive operations, or manual control
 10. **Clean up subscriptions** when cell dependencies change to prevent memory leaks
-4. Handle async operations with proper error boundaries
-5. Use consistent logging with appropriate log levels
-4. Handle async operations with proper error boundaries
-5. Use consistent logging with appropriate log levels
-6. Follow the established reactive patterns for state management
+11. **Use ID-based DOM access** for code cell containers (`${cellId}-outEl`) to avoid timing issues
+12. **Clear DOM containers** before every execution to prevent content accumulation
 
 ## Avoid These Patterns
 - Don't use `any` type unless absolutely necessary
 - Don't mutate props directly
 - Don't forget to handle loading and error states
-- Don't use direct DOM manipulation
+- Don't use direct DOM manipulation outside the established DOM helper system
 - Don't bypass the reactive system for state management
 - Don't forget to clean up subscriptions and event listeners
+- **Don't use React refs for DOM output access during code execution** (timing issues)
+- **Don't modify the DOM container ID pattern** (`${cellId}-outEl`) without updating all access points
+- **Don't skip container clearing** before code execution (causes content accumulation)
 
 ### Building
 The solution is using pnpm as the package manager. To build the project, run:

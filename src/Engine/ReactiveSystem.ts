@@ -873,6 +873,15 @@ export class CodeCellEngine {
         }
 
         this.executingCells.add(cellId);
+        
+        // Clear previous DOM output using predictable ID to ensure clean state
+        const containerId = `${cellId}-outEl`;
+        const domContainer = document.getElementById(containerId);
+        if (domContainer) {
+            domContainer.innerHTML = '';
+            log.debug(`Cleared DOM output container ${containerId} for cell ${cellId}`);
+        }
+        
         const dependencies = new Set<string>();
         const exportedVars = new Set<string>();
 
@@ -1204,13 +1213,15 @@ export class CodeCellEngine {
                     
                     log.debug(`Re-executing code cell ${cellId} with saved code (${savedCode.length} chars)`);
                     
-                    // Clear previous DOM output if container is available
-                    if (lastContainer) {
-                        lastContainer.innerHTML = '';
+                    // Clear previous DOM output using predictable ID
+                    const containerId = `${cellId}-outEl`;
+                    const container = document.getElementById(containerId);
+                    if (container) {
+                        container.innerHTML = '';
                     }
                     
                     // Re-execute with the saved code (reactive execution always uses isStatic=false)
-                    await this.executeCodeCell(cellId, savedCode, lastContainer, false);
+                    await this.executeCodeCell(cellId, savedCode, container, false);
                 } catch (error) {
                     log.error(`Error re-executing code cell ${cellId}:`, error);
                 }
@@ -1238,13 +1249,15 @@ export class CodeCellEngine {
         // Get the last used container from cell info
         const lastContainer = cellInfo.lastOutputContainer;
         
-        // Clear previous DOM output if container is available
-        if (lastContainer) {
-            lastContainer.innerHTML = '';
+        // Clear previous DOM output using predictable ID
+        const containerId = `${cellId}-outEl`;
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = '';
         }
         
-        // Re-execute with the same container that was last used
-        return await this.executeCodeCell(cellId, cellInfo.code, lastContainer, isStatic);
+        // Re-execute with the same container found by ID
+        return await this.executeCodeCell(cellId, cellInfo.code, container, isStatic);
     }
 
     /**

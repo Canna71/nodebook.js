@@ -189,8 +189,13 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
             commitChanges();
         }
         
-        // Clear previous DOM output
-        if (outputContainerRef.current) {
+        // Clear previous DOM output using predictable ID to avoid timing issues
+        const outputContainerId = `${definition.id}-outEl`;
+        const outputContainer = document.getElementById(outputContainerId);
+        if (outputContainer) {
+            outputContainer.innerHTML = '';
+        } else if (outputContainerRef.current) {
+            // Fallback to ref if ID lookup fails
             outputContainerRef.current.innerHTML = '';
         }
         
