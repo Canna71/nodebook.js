@@ -33,7 +33,7 @@ import fs from 'fs-extra';
     'tiny-emitter',
     // 'table',
     'papaparse',
-    'plotly.js-dist-min',
+    // 'plotly.js-dist-min',
     'xlsx',
     // 'string-width',
     // 'strip-ansi',

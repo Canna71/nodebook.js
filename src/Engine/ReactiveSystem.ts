@@ -307,6 +307,8 @@ interface ReactiveFormulaEngineOptions {
     customFunctions?: { [key: string]: Function };
 }
 
+
+
 /**
  * Reactive formula engine using JavaScript evaluation
  */
@@ -603,7 +605,7 @@ export class CodeCellEngine {
             'danfojs': 'dfd',
             '@tensorflow/tfjs': 'tf',
             'tensorflow': 'tf',
-            
+            "plotly.js-dist-min": 'Plotly',
             // Node.js built-ins (always available)
             'fs': 'fs',
             'path': 'path',
@@ -668,6 +670,8 @@ export class CodeCellEngine {
         this.initializePreloadedModules();
     }
 
+
+
     /**
      * Register a module for use in code cells
      * Only preloaded modules are injected into global scope automatically
@@ -677,7 +681,7 @@ export class CodeCellEngine {
         this.moduleCache.set(name, moduleExports);
         
         // Only inject preloaded modules into global scope
-        const preloadedModules = ['danfojs', '@tensorflow/tfjs', 'tensorflow'];
+        const preloadedModules = ['danfojs', '@tensorflow/tfjs', 'tensorflow', 'plotly.js-dist-min'];
         if (preloadedModules.includes(name)) {
             const globalName = name === 'danfojs' ? 'dfd' : name === '@tensorflow/tfjs' || name === 'tensorflow' ? 'tf' : name;
             this.globalScope[globalName] = moduleExports;

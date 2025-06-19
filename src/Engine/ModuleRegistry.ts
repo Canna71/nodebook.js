@@ -3,7 +3,7 @@ import anylogger from 'anylogger';
 // import { ipcRenderer } from 'electron';
 // const { app, remote } = require('electron');
 const path = require('node:path');
-
+import * as Plotly from 'plotly.js-dist-min';
 // preloaded modules
 
 // case 2)
@@ -156,9 +156,18 @@ const danfojs:any = this.nodeRequire('danfojs');
       if (danfojs.tensorflow) {
         this.modules.set('@tensorflow/tfjs', danfojs.tensorflow);
       }
+
+      if(danfojs)
       log.info('✓ Successfully loaded danfojs');
     } else {
       log.warn('⚠️ danfojs not available');
+    }
+
+    if( Plotly ) {
+        this.modules.set('plotly.js-dist-min', Plotly); 
+        log.info('✓ Successfully loaded Plotly');
+    } else {
+        log.warn('⚠️ Plotly not available');
     }
 
     // Optional npm modules that might be available
