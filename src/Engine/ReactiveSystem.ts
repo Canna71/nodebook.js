@@ -675,21 +675,23 @@ export class CodeCellEngine {
     /**
      * Register a module for use in code cells
      * Only preloaded modules are injected into global scope automatically
+     * 
+     * NOTE: Currently unused infrastructure for future extensibility
      */
-    public registerModule(name: string, moduleExports: any): void {
-        moduleRegistry.registerModule(name, moduleExports);
-        this.moduleCache.set(name, moduleExports);
-        
-        // Only inject preloaded modules into global scope
-        const preloadedModules = ['danfojs', '@tensorflow/tfjs', 'tensorflow', 'plotly.js-dist-min'];
-        if (preloadedModules.includes(name)) {
-            const globalName = name === 'danfojs' ? 'dfd' : name === '@tensorflow/tfjs' || name === 'tensorflow' ? 'tf' : name;
-            this.globalScope[globalName] = moduleExports;
-            log.debug(`Registered and injected preloaded module ${name} as ${globalName}`);
-        } else {
-            log.debug(`Registered module ${name} (require-only)`);
-        }
-    }
+    // public registerModule(name: string, moduleExports: any): void {
+    //     moduleRegistry.registerModule(name, moduleExports);
+    //     this.moduleCache.set(name, moduleExports);
+    //     
+    //     // Only inject preloaded modules into global scope
+    //     const preloadedModules = ['danfojs', '@tensorflow/tfjs', 'tensorflow', 'plotly.js-dist-min'];
+    //     if (preloadedModules.includes(name)) {
+    //         const globalName = name === 'danfojs' ? 'dfd' : name === '@tensorflow/tfjs' || name === 'tensorflow' ? 'tf' : name;
+    //         this.globalScope[globalName] = moduleExports;
+    //         log.debug(`Registered and injected preloaded module ${name} as ${globalName}`);
+    //     } else {
+    //         log.debug(`Registered module ${name} (require-only)`);
+    //     }
+    // }
 
     /**
      * Update the stored code for a cell (internal tracking only)

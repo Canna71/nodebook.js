@@ -156,7 +156,7 @@ export function useCodeCellModules() {
         getGlobalVariables: () => codeCellEngine.getGlobalVariables(),
         getAvailableModules: () => codeCellEngine.getAvailableModules(),
         hasModule: (name: string) => codeCellEngine.hasModule(name),
-        registerModule: (name: string, moduleExports: any) => codeCellEngine.registerModule(name, moduleExports),
+        // registerModule: (name: string, moduleExports: any) => codeCellEngine.registerModule(name, moduleExports), // Commented out - unused infrastructure
         preloadModules: (moduleNames: string[]) => codeCellEngine.preloadModules(moduleNames),
         clearModuleCache: () => codeCellEngine.clearModuleCache(),
         clearGlobalScope: () => codeCellEngine.clearGlobalScope()
