@@ -99,11 +99,23 @@ const model = tf.sequential({
 });
 
 exports.model = model;
+
+// Plotly.js - Plotly is available globally
+const trace = {
+    x: [1, 2, 3, 4],
+    y: [10, 11, 12, 13],
+    type: 'scatter'
+};
+
+const plotDiv = createDiv({ style: 'width: 100%; height: 400px;' });
+Plotly.newPlot(plotDiv.id, [trace], { title: 'My Plot' });
+output(plotDiv);
 ```
 
 **Available Pre-bundled Library Globals:**
 - `dfd` - Danfo.js DataFrame library (pre-loaded)
 - `tf` - TensorFlow.js machine learning (from danfojs, pre-loaded)
+- `Plotly` - Interactive plotting library (pre-loaded)
 
 ## Pre-bundled Libraries (Require-Available)
 
@@ -115,19 +127,8 @@ const math = require('mathjs');
 exports.result = math.evaluate('sqrt(3^2 + 4^2)');
 exports.matrix = math.matrix([[1, 2], [3, 4]]);
 
-// Data visualization - need to require
-const Plotly = require('plotly.js-dist-min');
+// Data visualization with D3 - need to require
 const d3 = require('d3');
-
-const trace = {
-    x: [1, 2, 3, 4],
-    y: [10, 11, 12, 13],
-    type: 'scatter'
-};
-
-const plotDiv = createDiv({ style: 'width: 100%; height: 400px;' });
-Plotly.newPlot(plotDiv.id, [trace], { title: 'My Plot' });
-output(plotDiv);
 
 // D3 for advanced visualizations
 const svg = d3.create("svg")
@@ -165,7 +166,6 @@ exports.tomorrow = moment().add(1, 'day').toDate();
 - `mathjs` - Mathematical functions and expressions
 - `lodash` - Utility functions
 - `moment` - Date/time manipulation
-- `plotly.js-dist-min` - Interactive plotting
 - `d3` - Data visualization toolkit
 - `papaparse` - CSV parsing
 - `xlsx` - Excel file handling
@@ -282,26 +282,35 @@ exports.stdDev = stats.standardDeviation([1, 2, 3, 4, 5]);
 Node.js built-ins and some scientific libraries are available as global variables:
 
 ```javascript
-// ✅ Use injected globals directly (Node.js built-ins + dfd/tf)
+// ✅ Use injected globals directly (Node.js built-ins + scientific libraries)
 const df = new dfd.DataFrame(data);           // danfojs (injected)
-const files = fs.readdirSync('.');             // fs (injected)
+const files = fs.readdirSync('.');             // fs (injected)  
 const hash = crypto.createHash('md5');         // crypto (injected)
 
-// Export computed results
+// Create a plot using the global Plotly
+const trace = {
+    x: [1, 2, 3, 4],
+    y: [2, 4, 6, 8],
+    type: 'scatter'
+};
+const plotDiv = createDiv({ style: 'width: 100%; height: 400px;' });
+Plotly.newPlot(plotDiv.id, [trace], { title: 'Sample Plot' });
+output(plotDiv);
+
+// Export computed results  
 exports.processedData = df.head();
 exports.fileCount = files.length;
 ```
 
-### Using require() for Scientific Libraries
+### Using require() for Other Scientific Libraries
 
-Most scientific libraries need explicit `require()`:
+Some scientific libraries still need explicit `require()`:
 
 ```javascript
-// ✅ Use require() for scientific libraries (not injected as globals)
+// ✅ Use require() for libraries not injected as globals
 const math = require('mathjs');
 const _ = require('lodash');
 const d3 = require('d3');
-const Plotly = require('plotly.js-dist-min');
 
 const result = math.evaluate('2 + 3 * 4');
 const grouped = _.groupBy(items, 'category');
@@ -314,11 +323,19 @@ exports.groupedData = grouped;
 ### Module Availability Check
 
 ```javascript
-// Check if an injected global is available
+// Check if injected globals are available
 if (typeof dfd !== 'undefined') {
     exports.dataframe = new dfd.DataFrame(data);
 } else {
     console.warn('Danfojs not available');
+}
+
+if (typeof Plotly !== 'undefined') {
+    const plotDiv = createDiv();
+    Plotly.newPlot(plotDiv.id, [{x: [1,2,3], y: [1,4,9], type: 'scatter'}]);
+    output(plotDiv);
+} else {
+    console.warn('Plotly not available');
 }
 
 // Check if a require module exists
