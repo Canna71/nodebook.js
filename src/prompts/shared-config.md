@@ -78,7 +78,6 @@ When using `output()` with objects, NotebookJS provides special rendering for:
 - **createList(items, options)**: Create ul/ol lists with styling
 - **createKeyValueGrid(data, options)**: Create responsive metric grids
 - **createContainer(options)**: Create styled containers (auto-outputs to DOM)
-- **createGradientContainer(title, options)**: Create styled containers with titles
 
 ### Storage System
 - **storage**: Notebook-level persistent storage

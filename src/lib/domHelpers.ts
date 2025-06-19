@@ -253,34 +253,6 @@ export function createKeyValueGrid(
 }
 
 /**
- * Create a gradient background container that auto-outputs itself
- */
-export function createGradientContainer(
-    title: string,
-    options: Parameters<typeof createElement>[1] = {}
-): HTMLDivElement {
-    const defaultStyle = 'margin: 20px 0; padding: 20px; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);';
-    const container = createDiv({
-        ...options,
-        style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
-    });
-    
-    const titleEl = createTitle(title, 3, {
-        style: 'margin: 0 0 16px 0; color: var(--color-primary); font-size: 20px;'
-    });
-    
-    container.appendChild(titleEl);
-    
-    // Auto-output the container to ensure it's in the DOM
-    // This will be overridden by the bound version in code cells
-    if (typeof window !== 'undefined' && typeof (globalThis as any).output === 'function') {
-        (globalThis as any).output(container);
-    }
-    
-    return container;
-}
-
-/**
  * Create a container specifically for outEl usage (doesn't auto-output)
  */
 export function createOutElContainer(options: Parameters<typeof createElement>[1] = {}): HTMLDivElement {
@@ -409,27 +381,6 @@ export function createBoundDomHelpers(outputFn: (value: any) => any) {
         return container;
     };
 
-    const boundCreateGradientContainer = (
-        title: string,
-        options: Parameters<typeof createElement>[1] = {}
-    ) => {
-        const defaultStyle = 'margin: 20px 0; padding: 20px; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);';
-        const container = createDiv({
-            ...options,
-            style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
-        });
-        
-        const titleEl = createTitle(title, 3, {
-            style: 'margin: 0 0 16px 0; color: var(--color-primary); font-size: 20px;'
-        });
-        
-        container.appendChild(titleEl);
-        
-        // Auto-output the container
-        outputFn(container);
-        return container;
-    };
-
     return {
         createElement,
         createDiv,
@@ -439,7 +390,6 @@ export function createBoundDomHelpers(outputFn: (value: any) => any) {
         createButton,
         createList,
         createKeyValueGrid,
-        createGradientContainer: boundCreateGradientContainer,
         createOutElContainer,
         createOutElGradientContainer,
         build,
@@ -457,7 +407,6 @@ export const domHelpers = {
     createButton,
     createList,
     createKeyValueGrid, // Renamed from createStatsGrid
-    createGradientContainer: createOutElGradientContainer, // Use non-auto-outputting version by default
     createOutElContainer,
     createOutElGradientContainer,
     build,

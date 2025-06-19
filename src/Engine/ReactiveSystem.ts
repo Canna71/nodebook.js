@@ -969,7 +969,7 @@ export class CodeCellEngine {
                             if (prop === '__filename') return `${cellId}.js`;
 
                             // Check for DOM helper functions that need output binding
-                            if (prop === 'createContainer' || prop === 'createGradientContainer') {
+                            if (prop === 'createContainer') {
                                 // Create bound version with output function that finds container by ID
                                 const outputFn = (...values: any[]) => {
                                     values.forEach(value => {

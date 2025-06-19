@@ -188,12 +188,6 @@ export function useCodeCompletions() {
                 detail: "DOM Helper"
             },
             {
-                label: "createGradientContainer",
-                type: "function", 
-                info: "Create a gradient container with title",
-                detail: "DOM Helper"
-            },
-            {
                 label: "createElement",
                 type: "function",
                 info: "Create any HTML element with options",

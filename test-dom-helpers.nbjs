@@ -18,7 +18,7 @@
     {
       "type": "code",
       "id": "code_03", 
-      "code": "// Test 3: createGradientContainer should also auto-output\nconsole.log('Testing createGradientContainer...');\n\nconst gradientContainer = createGradientContainer('Auto-Output Test');\ngradientContainer.appendChild(createDiv({\n    innerHTML: '<p>This gradient container should also appear automatically.</p>',\n    style: 'margin-top: 10px;'\n}));\n\nexports.gradientTest = 'CREATED';"
+      "code": "// Test 3: createOutElGradientContainer for manual output\nconsole.log('Testing createOutElGradientContainer...');\n\nconst gradientContainer = createOutElGradientContainer('Manual Gradient Test');\ngradientContainer.appendChild(createDiv({\n    innerHTML: '<p>This gradient container needs manual output() call.</p>',\n    style: 'margin-top: 10px;'\n}));\n\n// Manual output required for non-auto-outputting version\noutput(gradientContainer);\n\nexports.gradientTest = 'CREATED';"
     },
     {
       "type": "code",
@@ -28,7 +28,7 @@
     {
       "type": "code",
       "id": "code_05",
-      "code": "// Summary of all tests\nconsole.log('=== DOM Helper Test Results ===');\nconsole.log('outEl test:', outElTest);\nconsole.log('createContainer test:', containerTest);\nconsole.log('createGradientContainer test:', gradientTest);\nconsole.log('manual output test:', manualTest);\n\nconst summary = {\n    'outEl': outElTest,\n    'createContainer': containerTest, \n    'createGradientContainer': gradientTest,\n    'manual output': manualTest\n};\n\nexports.testSummary = summary;\nconsole.log('All tests completed!');"
+      "code": "// Summary of all tests\nconsole.log('=== DOM Helper Test Results ===');\nconsole.log('outEl test:', outElTest);\nconsole.log('createContainer test:', containerTest);\nconsole.log('createOutElGradientContainer test:', gradientTest);\nconsole.log('manual output test:', manualTest);\n\nconst summary = {\n    'outEl': outElTest,\n    'createContainer': containerTest, \n    'createOutElGradientContainer': gradientTest,\n    'manual output': manualTest\n};\n\nexports.testSummary = summary;\nconsole.log('All tests completed!');"
     }
   ]
 }
