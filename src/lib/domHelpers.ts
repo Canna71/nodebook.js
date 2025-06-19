@@ -80,9 +80,9 @@ export function createContainer(options: Parameters<typeof createElement>[1] = {
     });
     
     // Auto-output the container to ensure it's in the DOM
-    // Use the bound output function if available
-    if (typeof (createContainer as any)._boundOutput === 'function') {
-        (createContainer as any)._boundOutput(container);
+    // This will be overridden by the bound version in code cells
+    if (typeof window !== 'undefined' && typeof (globalThis as any).output === 'function') {
+        (globalThis as any).output(container);
     }
     
     return container;
@@ -272,9 +272,9 @@ export function createGradientContainer(
     container.appendChild(titleEl);
     
     // Auto-output the container to ensure it's in the DOM
-    // Use the bound output function if available
-    if (typeof (createGradientContainer as any)._boundOutput === 'function') {
-        (createGradientContainer as any)._boundOutput(container);
+    // This will be overridden by the bound version in code cells
+    if (typeof window !== 'undefined' && typeof (globalThis as any).output === 'function') {
+        (globalThis as any).output(container);
     }
     
     return container;
@@ -284,7 +284,7 @@ export function createGradientContainer(
  * Create a container specifically for outEl usage (doesn't auto-output)
  */
 export function createOutElContainer(options: Parameters<typeof createElement>[1] = {}): HTMLDivElement {
-    const defaultStyle = 'margin: 20px 0; padding: 20px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-background); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);';
+    const defaultStyle = 'margin: 20px 0; padding: 15px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-background);';
     return createDiv({
         ...options,
         style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle
@@ -398,7 +398,7 @@ export function build(element: HTMLElement): ElementBuilder {
 export function createBoundDomHelpers(outputFn: (value: any) => any) {
     // Create bound versions of auto-outputting functions
     const boundCreateContainer = (options: Parameters<typeof createElement>[1] = {}) => {
-        const defaultStyle = 'margin: 20px 0; padding: 20px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-background); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);';
+        const defaultStyle = 'margin: 20px 0; padding: 15px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-background);';
         const container = createDiv({
             ...options,
             style: options.style ? `${defaultStyle} ${options.style}` : defaultStyle

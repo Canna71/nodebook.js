@@ -901,12 +901,16 @@ export class CodeCellEngine {
 
                             // Generic DOM output container (Scenario 2)
                             if (prop === 'outEl') {
-                                if (outputContainer) {
-                                    log.debug(`outEl accessed in cell ${cellId} - container available`);
+                                // Use predictable ID instead of passed container to avoid timing issues
+                                const containerId = `${cellId}-outEl`;
+                                const container = document.getElementById(containerId);
+                                if (container) {
+                                    log.debug(`outEl accessed in cell ${cellId} - container found by ID: ${containerId}`);
+                                    return container;
                                 } else {
-                                    log.debug(`outEl accessed in cell ${cellId} - no container available, returning null`);
+                                    log.warn(`outEl accessed in cell ${cellId} - container not found with ID: ${containerId}`);
+                                    return null;
                                 }
-                                return outputContainer || null;
                             }
 
                             // Enhanced output function (Scenario 1)
@@ -915,11 +919,14 @@ export class CodeCellEngine {
                                     values.forEach(value => {
                                         // Check if value is a DOM element
                                         if (value instanceof HTMLElement) {
-                                            if (outputContainer) {
-                                                // Append DOM element to container
-                                                outputContainer.appendChild(value);
+                                            // Use predictable ID instead of passed container to avoid timing issues
+                                            const containerId = `${cellId}-outEl`;
+                                            const container = document.getElementById(containerId);
+                                            if (container) {
+                                                container.appendChild(value);
+                                                log.debug(`DOM element output to container ${containerId} for cell ${cellId}`);
                                             } else {
-                                                console.warn('DOM element output attempted but no container available for cell', cellId);
+                                                log.warn(`DOM element output attempted but container not found with ID: ${containerId} for cell ${cellId}`);
                                             }
                                         } else {
                                             // Handle as regular output value
@@ -952,15 +959,18 @@ export class CodeCellEngine {
 
                             // Check for DOM helper functions that need output binding
                             if (prop === 'createContainer' || prop === 'createGradientContainer') {
-                                // Create bound version with output function
+                                // Create bound version with output function that finds container by ID
                                 const outputFn = (...values: any[]) => {
                                     values.forEach(value => {
                                         if (value instanceof HTMLElement) {
-                                            if (outputContainer) {
-                                                outputContainer.appendChild(value);
-                                                log.debug(`DOM element auto-output to container for cell ${cellId}`);
+                                            // Use predictable ID instead of passed container to avoid timing issues
+                                            const containerId = `${cellId}-outEl`;
+                                            const container = document.getElementById(containerId);
+                                            if (container) {
+                                                container.appendChild(value);
+                                                log.debug(`DOM element auto-output to container ${containerId} for cell ${cellId}:`, value.tagName, value.id);
                                             } else {
-                                                log.warn(`DOM element auto-output attempted but no container available for cell ${cellId}`);
+                                                log.warn(`DOM element auto-output attempted but container not found with ID: ${containerId} for cell ${cellId}`);
                                             }
                                         } else {
                                             outputValues.push(value);
@@ -969,6 +979,7 @@ export class CodeCellEngine {
                                 };
                                 
                                 const boundHelpers = createBoundDomHelpers(outputFn);
+                                log.debug(`Creating bound DOM helper ${prop} for cell ${cellId}, will use container ID: ${cellId}-outEl`);
                                 return boundHelpers[prop as keyof typeof boundHelpers];
                             }
 

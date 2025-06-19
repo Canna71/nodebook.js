@@ -1,0 +1,34 @@
+{
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "md_01",
+      "content": "# DOM Helper Test\n\nTesting `outEl` and `createContainer` functionality."
+    },
+    {
+      "type": "code",
+      "id": "code_01",
+      "code": "// Test 1: outEl should be the output container for this cell\nconsole.log('Testing outEl:', outEl);\nconsole.log('outEl type:', typeof outEl);\nconsole.log('outEl is HTMLElement:', outEl instanceof HTMLElement);\n\nif (outEl) {\n    outEl.innerHTML = '<div style=\"padding: 20px; background: lightgreen; border-radius: 8px;\">✅ outEl is working! This div was added directly to outEl.</div>';\n} else {\n    console.error('❌ outEl is null or undefined');\n}\n\nexports.outElTest = outEl ? 'SUCCESS' : 'FAILED';"
+    },
+    {
+      "type": "code", 
+      "id": "code_02",
+      "code": "// Test 2: createContainer should auto-output itself\nconsole.log('Testing createContainer...');\n\nconst container = createContainer({\n    style: 'background: lightblue; padding: 20px;'\n});\n\ncontainer.innerHTML = '<h3>✅ createContainer Test</h3><p>This container should appear automatically in the output.</p>';\n\nconsole.log('Container created:', container);\nconsole.log('Container ID:', container.id);\n\nexports.containerTest = 'CREATED';"
+    },
+    {
+      "type": "code",
+      "id": "code_03", 
+      "code": "// Test 3: createGradientContainer should also auto-output\nconsole.log('Testing createGradientContainer...');\n\nconst gradientContainer = createGradientContainer('Auto-Output Test');\ngradientContainer.appendChild(createDiv({\n    innerHTML: '<p>This gradient container should also appear automatically.</p>',\n    style: 'margin-top: 10px;'\n}));\n\nexports.gradientTest = 'CREATED';"
+    },
+    {
+      "type": "code",
+      "id": "code_04",
+      "code": "// Test 4: Manual output() function\nconsole.log('Testing manual output() function...');\n\nconst manualDiv = createDiv({\n    innerHTML: '<div style=\"padding: 15px; background: lightyellow; border: 2px solid orange; border-radius: 8px;\"><strong>Manual Output Test</strong><br>This was created with createDiv() and output manually.</div>'\n});\n\noutput(manualDiv);\nexports.manualTest = 'OUTPUTTED';"
+    },
+    {
+      "type": "code",
+      "id": "code_05",
+      "code": "// Summary of all tests\nconsole.log('=== DOM Helper Test Results ===');\nconsole.log('outEl test:', outElTest);\nconsole.log('createContainer test:', containerTest);\nconsole.log('createGradientContainer test:', gradientTest);\nconsole.log('manual output test:', manualTest);\n\nconst summary = {\n    'outEl': outElTest,\n    'createContainer': containerTest, \n    'createGradientContainer': gradientTest,\n    'manual output': manualTest\n};\n\nexports.testSummary = summary;\nconsole.log('All tests completed!');"
+    }
+  ]
+}
