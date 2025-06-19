@@ -123,7 +123,47 @@ const { reactiveStore, codeCellEngine, formulaEngine } = useReactiveSystem();
 #### UI Components
 - Do not modify files in `src/components/ui/` as these come from shadcn/ui
 - Use existing shadcn components as-is for consistency
-- If needed, lookup which conponents are available in the shadcn/ui documentation
+- If needed, lookup which components are available in the shadcn/ui documentation
+
+#### Output Methods (Critical for Code Cells)
+**NEVER create DOM elements for data display!** Use proper output methods:
+
+- **For objects/arrays/complex data**: Use `output(data)` - renders with interactive JSON viewer
+- **For tabular data**: Use `output.table(data)` - creates sortable, searchable tables  
+- **For DataFrames/Series**: Use `output(dataframe)` - renders interactive grid
+- **For formatted text**: Use markdown cells with interpolations like `{{variableName}}`
+- **DOM helpers (createDiv, createElement)**: ONLY for visualization library integration (Plotly, D3, Chart.js)
+
+**Examples of correct usage**:
+```javascript
+// ✅ Correct: Direct output for data
+const results = { revenue: 50000, growth: 12.5 };
+output(results); // Interactive JSON viewer
+
+// ✅ Correct: Table output for arrays
+const salesData = [{ product: 'A', sales: 1000 }];
+output.table(salesData); // Sortable table
+
+// ✅ Correct: DOM elements only for library integration
+const plotDiv = createDiv({ id: 'plot', style: 'height: 400px;' });
+output(plotDiv);
+Plotly.newPlot('plot', data, layout);
+
+// ❌ WRONG: Don't create HTML for data display
+const htmlDiv = createDiv({ innerHTML: `<h3>Results</h3><p>Revenue: $${revenue}</p>` });
+```
+
+**Always encourage users to**:
+1. Use `output()` for objects and complex data
+2. Use `output.table()` for tabular data  
+3. Use markdown cells with interpolations for formatted reports
+4. Only use DOM helpers when integrating with visualization libraries
+
+**Strongly discourage**:
+1. Creating HTML elements for data display
+2. Using DOM manipulation for tables, lists, or text content
+3. Building complex HTML structures manually
+4. Using auto-outputting containers like `createContainer()` for data
 
 #### Styling
 - Use Tailwind CSS classes for styling
@@ -215,41 +255,38 @@ const { reactiveStore, codeCellEngine, formulaEngine } = useReactiveSystem();
 - Clear containers in: CodeCell component, executeCodeCell, reExecuteCodeCell, reactive execution
 - Bound helpers must use the output function parameter, not direct container access
 
-### DOM Helper Patterns (Critical System)
+### DOM Helper Patterns (Critical System - Library Integration Only)
 ```javascript
-// ✅ CORRECT: Use outEl for direct DOM access
-if (outEl) {
-    outEl.innerHTML = '<div>Direct content</div>';
-    outEl.appendChild(someElement);
-}
+// ✅ CORRECT: Use DOM helpers only for library integration
+const plotContainer = createDiv({ id: 'plot', style: 'height: 400px;' });
+output(plotContainer);
+Plotly.newPlot('plot', data, layout);
 
-// ✅ CORRECT: Use output() for manual DOM output
-const element = createDiv({ innerHTML: '<p>Content</p>' });
-output(element);
+// ✅ CORRECT: Use proper output methods for data
+const analysisResults = { revenue: 50000, trends: [...] };
+output(analysisResults); // Interactive JSON viewer
 
-// ✅ CORRECT: Use auto-outputting helpers for containers
-const container = createContainer(); // Automatically appears in DOM
-container.appendChild(createTitle('My Title'));
+const tableData = [{ product: 'A', sales: 1000 }];
+output.table(tableData); // Sortable table
 
-// ✅ CORRECT: Access containers by ID in implementation code
-const containerId = `${cellId}-outEl`;
-const container = document.getElementById(containerId);
-if (container) {
-    container.innerHTML = ''; // Clear before execution
-    container.appendChild(newContent);
-}
+// ❌ WRONG: Don't create DOM elements for data display
+const dataDiv = createDiv({
+    innerHTML: `<h3>Results</h3><p>Revenue: $${revenue}</p>`
+});
 
-// ❌ WRONG: Don't use React refs during code execution
-if (outputContainerRef.current) { // This can be null due to timing
-    outputContainerRef.current.innerHTML = '';
-}
+// ❌ WRONG: Don't create manual tables
+const table = createTable(data, options);
 
-// ❌ WRONG: Don't skip container clearing
-container.appendChild(newContent); // Will accumulate with previous content
-
-// ❌ WRONG: Don't hardcode container access
-const container = document.querySelector('.output-container'); // Not reliable
+// ❌ WRONG: Don't use auto-outputting containers for data
+const dashboard = createContainer();
+dashboard.appendChild(createTitle('Data Dashboard'));
 ```
+
+**Critical Rules for Output**:
+1. **Data display**: Always use `output()`, `output.table()`, or markdown interpolation
+2. **DOM elements**: Only for visualization library containers (Plotly, D3, Chart.js)
+3. **Never create HTML**: For tables, lists, cards, or any data presentation
+4. **Encourage proper methods**: Guide users toward appropriate output functions
 
 ### DOM Container Lifecycle
 ```javascript
