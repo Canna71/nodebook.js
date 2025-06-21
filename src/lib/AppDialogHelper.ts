@@ -1,4 +1,3 @@
-import React from 'react';
 import anylogger from 'anylogger';
 import { AppErrorDialogConfig, AppConfirmDialogConfig, AppInfoDialogConfig, AppPromptDialogConfig, AppProgressDialogConfig } from '@/components/AppDialogProvider';
 
@@ -88,7 +87,7 @@ export class AppDialogHelper {
   /**
    * Show an info dialog
    */
-  async showInfo(title: string | React.ReactNode, message: string, details?: string): Promise<void> {
+  async showInfo(title: string, message: string, details?: string): Promise<void> {
     log.debug('Showing info dialog', { title, message, hasDetails: !!details });
     
     if (!this.dialogHandlers.showInfo) {
@@ -157,6 +156,46 @@ export class AppDialogHelper {
       ...options,
     });
     log.debug('Progress dialog completed');
+  }
+
+  /**
+   * Show the About dialog
+   */
+  async showAbout(appName: string, version: string, author: string, license: string): Promise<void> {
+    return new Promise((resolve) => {
+      // Import AboutDialog dynamically to avoid circular dependencies
+      import('@/components/AboutDialog').then(({ AboutDialog }) => {
+        // Create a temporary container for the dialog
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+        
+        const cleanup = () => {
+          document.body.removeChild(container);
+          resolve();
+        };
+        
+        // Use React to render the dialog
+        const React = require('react');
+        const { createRoot } = require('react-dom/client');
+        
+        const root = createRoot(container);
+        root.render(
+          React.createElement(AboutDialog, {
+            open: true,
+            onOpenChange: (open: boolean) => {
+              if (!open) {
+                root.unmount();
+                cleanup();
+              }
+            },
+            appName,
+            version,
+            author,
+            license
+          })
+        );
+      });
+    });
   }
 
   /**

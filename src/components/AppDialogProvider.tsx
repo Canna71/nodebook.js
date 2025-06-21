@@ -34,7 +34,7 @@ export interface AppConfirmDialogConfig {
 }
 
 export interface AppInfoDialogConfig {
-  title: string | React.ReactNode;
+  title: string;
   message: string;
   details?: string;
   size?: AppDialogProps['size'];

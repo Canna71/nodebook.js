@@ -9,6 +9,9 @@ import { commandManagerSingleton } from '@/Engine/CommandManagerSingleton';
 import { NotebookStateManager } from './NotebookStateManager';
 import { appDialogHelper } from '@/lib/AppDialogHelper';
 import NotebookCellsStack from '@/components/icons/NotebookCellsStack';
+import { AboutDialog } from '@/components/AboutDialog';
+
+// State interface
 
 const log = anylogger('ApplicationProvider');
 
@@ -26,6 +29,15 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
 
     // Storage exporter function from ReactiveProvider
     const [storageExporter, setStorageExporter] = useState<(() => NotebookStorage) | null>(null);
+
+    // About dialog state
+    const [aboutDialogOpen, setAboutDialogOpen] = useState(false);
+    const [aboutDialogData, setAboutDialogData] = useState({
+        appName: 'Nodebook.js',
+        version: '0.8.0',
+        author: 'Nodebook.js Project',
+        license: 'MIT'
+    });
 
     // Initialize state manager
     const stateManagerRef = useRef<NotebookStateManager | null>(null);
@@ -517,40 +529,23 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     const showAboutDialog = async () => {
         try {
             const appInfo = await window.api.getAppInfo();
-            const aboutTitle = React.createElement('div', {
-                className: 'flex items-center space-x-3'
-            }, [
-                React.createElement(NotebookCellsStack, { 
-                    key: 'icon',
-                    size: 32,
-                    className: 'text-primary flex-shrink-0'
-                }),
-                React.createElement('span', { key: 'text' }, appInfo.name)
-            ]);
-            
-            await appDialogHelper.showInfo(
-                aboutTitle,
-                `Version ${appInfo.version}\n\n© 2025 ${appInfo.author}\n\nLicense: ${appInfo.license}`
-            );
+            setAboutDialogData({
+                appName: appInfo.name,
+                version: appInfo.version,
+                author: appInfo.author,
+                license: appInfo.license
+            });
         } catch (error) {
             // Fallback if getAppInfo fails
             const version = await window.api.getAppVersion();
-            const aboutTitle = React.createElement('div', {
-                className: 'flex items-center space-x-3'
-            }, [
-                React.createElement(NotebookCellsStack, { 
-                    key: 'icon',
-                    size: 32,
-                    className: 'text-primary flex-shrink-0'
-                }),
-                React.createElement('span', { key: 'text' }, 'Nodebook.js')
-            ]);
-            
-            await appDialogHelper.showInfo(
-                aboutTitle,
-                `Version ${version}\n\n© 2025 Nodebook.js Project\n\nLicense: MIT`
-            );
+            setAboutDialogData({
+                appName: 'Nodebook.js',
+                version,
+                author: 'Nodebook.js Project',
+                license: 'MIT'
+            });
         }
+        setAboutDialogOpen(true);
     };
 
     const showWelcomeDialog = () => {
@@ -690,6 +685,14 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     return (
         <ApplicationContext.Provider value={contextValue}>
             {children}
+            <AboutDialog
+                open={aboutDialogOpen}
+                onOpenChange={setAboutDialogOpen}
+                appName={aboutDialogData.appName}
+                version={aboutDialogData.version}
+                author={aboutDialogData.author}
+                license={aboutDialogData.license}
+            />
         </ApplicationContext.Provider>
     );
 }

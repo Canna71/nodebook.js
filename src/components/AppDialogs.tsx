@@ -164,7 +164,7 @@ export function AppConfirmDialog({
 export interface AppInfoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  title: string | React.ReactNode;
+  title: string;
   message: string;
   details?: string; // Optional expandable details
   size?: AppDialogProps['size'];
