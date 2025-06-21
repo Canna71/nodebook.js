@@ -422,6 +422,7 @@ const createWindow = async () => {
             nodeIntegration: true,
             contextIsolation: false
         },
+        icon: '/build-resources/icons/icon.ico'
     });
     mainWindowStateKeeper.track(mainWindow);
 

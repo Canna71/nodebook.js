@@ -51,6 +51,7 @@ import fs from 'fs-extra';
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
+    icon: './build-resources/icons/icon', // no file extension required - Forge auto-detects
     extraResource: [
     //   "./node_modules/danfojs/",
     //   "./node_modules/danfojs-node/",
@@ -61,10 +62,22 @@ const config: ForgeConfig = {
   },
   rebuildConfig: {},
   makers: [
-    new MakerSquirrel({}), 
+    new MakerSquirrel({
+      // Windows installer icons
+      iconUrl: 'https://raw.githubusercontent.com/your-username/notebookjs/main/build-resources/icons/icon.png', // Change this URL
+      setupIcon: './build-resources/icon.ico'
+    }), 
     new MakerZIP({}, ['darwin']), 
-    new MakerRpm({}), 
-    new MakerDeb({})
+    new MakerRpm({
+      options: {
+        icon: './build-resources/icon.png'
+      }
+    }), 
+    new MakerDeb({
+      options: {
+        icon: './build-resources/icon.png'
+      }
+    })
     ],
   plugins: [
     new VitePlugin({
