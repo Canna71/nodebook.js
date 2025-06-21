@@ -142,7 +142,7 @@ export function AppDialog({
             {titleContent}
           </DialogTitle>
           {description && (
-            <DialogDescription>
+            <DialogDescription className="whitespace-pre-line">
               {description}
             </DialogDescription>
           )}
