@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, session, dialog, Menu } from 'electron';
 import path from 'node:path';
+import fs from 'node:fs';
 import started from 'electron-squirrel-startup';
 import "anylogger-loglevel";
 import loglevel from "loglevel";
@@ -512,8 +513,29 @@ function registerHandlers() {
     
     ipcMain.handle('get-app-version', () => {
         return app.getVersion();
-    }
-    );
+    });
+    
+    ipcMain.handle('get-app-info', () => {
+        // Read package.json to get app info
+        const packageJsonPath = path.join(__dirname, '../../package.json');
+        try {
+            const packageData = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+            return {
+                name: packageData.productName || packageData.name,
+                version: packageData.version,
+                author: packageData.author?.name || packageData.author,
+                license: packageData.license
+            };
+        } catch (error) {
+            console.error('Failed to read package.json:', error);
+            return {
+                name: 'Nodebook.js',
+                version: app.getVersion(),
+                author: 'Unknown',
+                license: 'MIT'
+            };
+        }
+    });
     ipcMain.handle('get-app-path', () => {
         return app.getAppPath();
     }

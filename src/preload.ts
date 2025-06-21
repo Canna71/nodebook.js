@@ -19,6 +19,7 @@ const api : ElectronApi = {
     showMessageDialog: (options) => ipcRenderer.invoke('show-message-dialog', options),
     getEnvironmentVariables: (variableNames) => ipcRenderer.invoke('get-environment-variables', variableNames),
     getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+    getAppInfo: () => ipcRenderer.invoke('get-app-info'),
     getAppPath: () => ipcRenderer.invoke('get-app-path'),
     getAppName: () => ipcRenderer.invoke('get-app-name'),
     getAppLocale: () => ipcRenderer.invoke('get-app-locale'),

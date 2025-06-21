@@ -15,6 +15,7 @@ export interface ElectronApi {
     showMessageDialog: (options: {type: 'info' | 'error' | 'warning', title: string, message: string}) => Promise<void>;
     getEnvironmentVariables: (variableNames: string[]) => Promise<Record<string, string | undefined>>;
     getAppVersion: () => Promise<string>;
+    getAppInfo: () => Promise<{name: string, version: string, author: string, license: string}>;
     getAppPath: () => Promise<string>;
     getAppName: () => Promise<string>;
     getAppLocale: () => Promise<string>;

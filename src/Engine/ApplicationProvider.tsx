@@ -514,12 +514,20 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         }
     };    // Menu dialog functions
     const showAboutDialog = async () => {
-        const version = await window.api.getAppVersion();
-        await appDialogHelper.showInfo(
-            'About Nodebook.js',
-            `Nodebook.js v${version}`,
-            `A reactive notebook application for interactive computing and data analysis.\n\nBuilt with React, TypeScript, and Electron.\n\n© 2025 Nodebook.js Project`
-        );
+        try {
+            const appInfo = await window.api.getAppInfo();
+            await appDialogHelper.showInfo(
+                'About',
+                `${appInfo.name}\n\nVersion ${appInfo.version}\n\n© 2025 ${appInfo.author}\n\nLicense: ${appInfo.license}`
+            );
+        } catch (error) {
+            // Fallback if getAppInfo fails
+            const version = await window.api.getAppVersion();
+            await appDialogHelper.showInfo(
+                'About',
+                `Nodebook.js\n\nVersion ${version}\n\n© 2025 Nodebook.js Project\n\nLicense: MIT`
+            );
+        }
     };
 
     const showWelcomeDialog = () => {

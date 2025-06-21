@@ -1,7 +1,7 @@
 {
   "name": "nodebookjs",
   "productName": "Nodebook.js",
-  "version": "1.0.0",
+  "version": "0.8.0",
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
   "scripts": {
@@ -15,7 +15,7 @@
   },
   "keywords": [],
   "author": {
-    "name": "gcannata",
+    "name": "Gabriele Cannata",
     "email": "gcannata@gmail.com"
   },
   "license": "MIT",
