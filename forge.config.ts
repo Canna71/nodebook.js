@@ -55,7 +55,8 @@ const config: ForgeConfig = {
     //   "./node_modules/danfojs/",
     //   "./node_modules/danfojs-node/",
     //   "./node_modules/@tensorflow/",
-    "./examples/"
+    "./examples/",
+    "./docs/"
     ]
   },
   rebuildConfig: {},
