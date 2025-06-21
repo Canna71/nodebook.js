@@ -37,12 +37,27 @@ function AppContent() {
             // Ctrl+` (backtick) to toggle stdout viewer
             if (event.ctrlKey && event.key === '`') {
                 event.preventDefault();
-                setStdoutVisible(prev => !prev);
+                setStdoutVisible(prev => {
+                    log.debug('Toggling stdout viewer via keyboard:', !prev);
+                    return !prev;
+                });
             }
         };
 
+        const handleToggleEvent = () => {
+            setStdoutVisible(prev => {
+                log.debug('Toggling stdout viewer via toolbar button:', !prev);
+                return !prev;
+            });
+        };
+
         document.addEventListener('keydown', handleKeyDown);
-        return () => document.removeEventListener('keydown', handleKeyDown);
+        window.addEventListener('toggleOutputPanel', handleToggleEvent);
+        
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('toggleOutputPanel', handleToggleEvent);
+        };
     }, []);
 
     useEffect(() => {

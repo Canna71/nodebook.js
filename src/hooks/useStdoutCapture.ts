@@ -25,6 +25,8 @@ export function useStdoutCapture() {
             return;
         }
 
+        log.debug('Setting up stdout capture...');
+
         // Store original methods
         originalStdoutRef.current = process.stdout.write.bind(process.stdout);
         originalStderrRef.current = process.stderr.write.bind(process.stderr);
@@ -36,6 +38,7 @@ export function useStdoutCapture() {
             
             // Capture the output
             const content = typeof chunk === 'string' ? chunk : String(chunk);
+            log.debug('Captured stdout:', content);
             addLine('stdout', content);
             
             return result;
@@ -48,12 +51,13 @@ export function useStdoutCapture() {
             
             // Capture the output
             const content = typeof chunk === 'string' ? chunk : String(chunk);
+            log.debug('Captured stderr:', content);
             addLine('stderr', content);
             
             return result;
         };
 
-        log.debug('Stdout capture initialized');
+        log.debug('Stdout capture initialized successfully');
 
         // Cleanup on unmount
         return () => {

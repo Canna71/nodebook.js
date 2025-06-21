@@ -24,6 +24,7 @@ import { AISettings } from './AISettings';
 export function Toolbar() {
   const { commandManager } = useCommands();
   const { currentModel } = useApplication();
+  const [outputPanelVisible, setOutputPanelVisible] = React.useState(false);
 
   const handleCommand = (commandId: string) => {
     commandManager.executeCommand(commandId);
@@ -276,13 +277,21 @@ export function Toolbar() {
         {/* Output Panel Indicator */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="flex items-center text-xs text-muted-foreground">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => {
+                setOutputPanelVisible(!outputPanelVisible);
+                // Also dispatch a custom event that the App component can listen to
+                window.dispatchEvent(new CustomEvent('toggleOutputPanel'));
+              }}
+            >
               <TerminalIcon className="h-3 w-3 mr-1" />
-              <span>Ctrl+`</span>
-            </div>
+              <span className="text-xs">Output</span>
+            </Button>
           </TooltipTrigger>
           <TooltipContent>
-            Press Ctrl+` to toggle global output panel
+            Toggle global output panel (Ctrl+`)
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
