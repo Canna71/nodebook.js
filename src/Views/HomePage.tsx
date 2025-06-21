@@ -3,13 +3,15 @@ import { useApplication } from '@/Engine/ApplicationProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, FolderOpen, Sparkles, Clock, Monitor, Brain, Zap, Database } from 'lucide-react';
+import { FileText, FolderOpen, Sparkles, Clock, Monitor, Brain, Zap, Database, BookOpen } from 'lucide-react';
 import { RecentNotebooksManager, RecentNotebook } from '@/lib/recentNotebooks';
 import { moduleRegistry } from '@/Engine/ModuleRegistry';
+import { getFileSystemHelpers, NotebookFileInfo } from '@/lib/fileSystemHelpers';
 
 export function HomePage() {
   const { createNewNotebook, loadNotebook } = useApplication();
   const [recentNotebooks, setRecentNotebooks] = useState<RecentNotebook[]>([]);
+  const [exampleNotebooks, setExampleNotebooks] = useState<NotebookFileInfo[]>([]);
   const [systemInfo, setSystemInfo] = useState({
     appVersion: '1.0.0',
     moduleCount: 0,
@@ -20,6 +22,7 @@ export function HomePage() {
 
   useEffect(() => {
     loadRecentNotebooks();
+    loadExampleNotebooks();
   }, []);
 
   // Update system info when recent notebooks change
@@ -53,6 +56,22 @@ export function HomePage() {
     }
   };
 
+  const loadExampleNotebooks = async () => {
+    try {
+      const fileSystemHelpers = await getFileSystemHelpers();
+      const result = await fileSystemHelpers.listExamples();
+      if (result.success && result.data) {
+        setExampleNotebooks(result.data);
+      } else {
+        console.warn('Failed to load examples:', result.error);
+        setExampleNotebooks([]);
+      }
+    } catch (error) {
+      console.warn('Could not load example notebooks:', error);
+      setExampleNotebooks([]);
+    }
+  };
+
   const handleOpenRecent = async (notebook: RecentNotebook) => {
     try {
       await loadNotebook(notebook.path);
@@ -60,6 +79,18 @@ export function HomePage() {
       loadRecentNotebooks(); // Refresh the list
     } catch (error) {
       console.error('Failed to open recent notebook:', error);
+    }
+  };
+
+  const handleOpenExample = async (example: NotebookFileInfo) => {
+    try {
+      await loadNotebook(example.filepath);
+      // Add to recent notebooks for easy access
+      const fileName = example.filepath.split('/').pop() || example.filepath.split('\\').pop() || 'Unknown';
+      await RecentNotebooksManager.addRecentNotebook(example.filepath, fileName);
+      loadRecentNotebooks(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to open example notebook:', error);
     }
   };
 
@@ -166,56 +197,95 @@ export function HomePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Notebooks - VSCode Style */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Recent</h2>
-            {recentNotebooks.length > 0 && (
-              <button
-                onClick={() => RecentNotebooksManager.clearRecentNotebooks().then(loadRecentNotebooks)}
-                className="text-sm text-primary hover:text-primary/80 transition-colors"
-              >
-                Clear all
-              </button>
-            )}
-          </div>
-          
-          {recentNotebooks.length > 0 ? (
-            <div className="space-y-1">
-              {recentNotebooks.map((notebook, index) => (
-                <div
-                  key={notebook.path}
-                  className="flex items-center justify-between p-2 cursor-pointer hover:bg-accent/50 rounded transition-colors"
-                  onClick={() => handleOpenRecent(notebook)}
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        {/* Left Section: Recent + Examples (stacked on mobile, side by side on large screens) */}
+        <div className="xl:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Recent Notebooks - VSCode Style */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">Recent</h2>
+              {recentNotebooks.length > 0 && (
+                <button
+                  onClick={() => RecentNotebooksManager.clearRecentNotebooks().then(loadRecentNotebooks)}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors"
                 >
-                  <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    <FileText className="w-4 h-4 text-primary flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <span className="text-sm text-primary hover:text-primary/80">
-                        {extractFileName(notebook.path)}
-                      </span>
-                      <span className="text-xs text-secondary-foreground ml-2">
-                        {extractDirectory(notebook.path)}
-                      </span>
+                  Clear all
+                </button>
+              )}
+            </div>
+            
+            {recentNotebooks.length > 0 ? (
+              <div className="space-y-1">
+                {recentNotebooks.map((notebook, index) => (
+                  <div
+                    key={notebook.path}
+                    className="flex items-center justify-between p-2 cursor-pointer hover:bg-accent/50 rounded transition-colors"
+                    onClick={() => handleOpenRecent(notebook)}
+                  >
+                    <div className="flex items-center space-x-3 min-w-0 flex-1">
+                      <FileText className="w-4 h-4 text-primary flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-sm text-primary hover:text-primary/80">
+                          {extractFileName(notebook.path)}
+                        </span>
+                        <span className="text-xs text-secondary-foreground ml-2">
+                          {extractDirectory(notebook.path)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-xs text-secondary-foreground flex-shrink-0">
+                      {formatTimeAgo(notebook.lastOpened)}
                     </div>
                   </div>
-                  <div className="text-xs text-secondary-foreground flex-shrink-0">
-                    {formatTimeAgo(notebook.lastOpened)}
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-secondary-foreground">
+                <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No recent files</p>
+                <p className="text-xs">Files you've worked on will appear here</p>
+              </div>
+            )}
+          </div>
+
+          {/* Examples Section */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-foreground">Examples</h2>
+            
+            {exampleNotebooks.length > 0 ? (
+              <div className="space-y-1 max-h-80 overflow-y-auto">
+                {exampleNotebooks.map((example, index) => (
+                  <div
+                    key={example.filepath}
+                    className="flex items-center space-x-3 p-2 cursor-pointer hover:bg-accent/50 rounded transition-colors"
+                    onClick={() => handleOpenExample(example)}
+                  >
+                    <BookOpen className="w-4 h-4 text-primary flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm text-primary hover:text-primary/80 truncate">
+                        {extractFileName(example.filepath)}
+                      </div>
+                      {example.description && (
+                        <div className="text-xs text-secondary-foreground mt-1 line-clamp-1">
+                          {example.description}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-secondary-foreground">
-              <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No recent files</p>
-              <p className="text-xs">Files you've worked on will appear here</p>
-            </div>
-          )}
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-secondary-foreground">
+                <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No example notebooks found</p>
+                <p className="text-xs">Example notebooks will appear here</p>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* System Information */}
+        {/* Right Section: System Information & Modules */}
         <div className="space-y-6">
           <Card>
             <CardHeader>
