@@ -206,17 +206,58 @@ output(`Integral: $$\\int ${latexExpr.replace('integrate', '')} dx = ${latexResu
 
 #### Best Practices for Mathematical Notebooks
 
-1. **Use LaTeX for formulas**: Always present mathematical expressions in proper notation
-2. **Combine computation with theory**: Show both the mathematical formula and computed results  
-3. **Progressive complexity**: Start with simple concepts and build up
-4. **Interactive parameters**: Use input cells to make mathematical exploration interactive
-5. **Clear explanations**: Use markdown cells to explain mathematical concepts
+1. **Use LaTeX for formulas**: Present mathematical expressions in proper notation
+2. **Prefer markdown cells for math**: Use markdown cells with native LaTeX over code cell output for mathematical content
+3. **Combine computation with theory**: Show both the mathematical formula and computed results  
+4. **Progressive complexity**: Start with simple concepts and build up
+5. **Interactive parameters**: Use input cells to make mathematical exploration interactive
+6. **Clear explanations**: Use markdown cells to explain mathematical concepts
+7. **Leverage natural syntax**: In markdown cells, use `$` and `$$` naturally (no escaping needed)
+
+#### Markdown vs Code Cell LaTeX Usage
+
+**✅ Preferred: Markdown cells for mathematical content**
+```json
+{
+  "type": "markdown",
+  "content": "# Quadratic Formula\n\nFor equations of the form $ax^2 + bx + c = 0$, the solutions are:\n\n$$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$\n\nWith our values $a = {{a}}$, $b = {{b}}$, $c = {{c}}$:\n$$x = \\frac{-{{b}} \\pm \\sqrt{{{b}}^2-4({{a}})({{c}})}}{2({{a}})}$$"
+}
+```
+
+**✅ Also good: Code cells for dynamic LaTeX generation**
+```json
+{
+  "type": "code",
+  "code": "// Generate LaTeX using MathJS\nconst expr = 'derivative(x^3 + 2*x^2 + x, x)';\nconst derivative = mathjs.derivative(expr, 'x');\nconst latexResult = derivative.toTex();\n\noutput(`Derivative: $$${latexResult}$$`);\nexports.derivativeLatex = latexResult;"
+}
+```
+
+**❌ Less preferred: Code cells for static LaTeX**
+```json
+{
+  "type": "code", 
+  "code": "output('$$x = \\\\frac{-b \\\\pm \\\\sqrt{b^2-4ac}}{2a}$$');"
+}
+```
+
+**Mathematical Notebook with Markdown LaTeX:**
+```json
+{
+  "cells": [
+    {"type": "markdown", "content": "# Calculus: Derivatives\n\n## The Power Rule\n\nFor any function $f(x) = x^n$ where $n$ is a real number:\n\n$$\\frac{d}{dx}[x^n] = nx^{n-1}$$"},
+    {"type": "input", "label": "Exponent (n)", "inputType": "number", "variableName": "n", "value": 3, "props": {"min": 1, "max": 10}},
+    {"type": "formula", "variableName": "coefficient", "formula": "n"},
+    {"type": "formula", "variableName": "newExponent", "formula": "n - 1"},
+    {"type": "markdown", "content": "## Example\n\nFor $f(x) = x^{{{n}}}$:\n\n$$f'(x) = {{coefficient}} \\cdot x^{{{newExponent}}}$$\n\n### Verification\nLet's verify with a specific value. If $x = 2$:\n- $f(2) = 2^{{{n}}} = {{Math.pow(2, n)}}$\n- $f'(2) = {{coefficient}} \\cdot 2^{{{newExponent}}} = {{coefficient * Math.pow(2, newExponent)}}$"}
+  ]
+}
+```
 
 **Example Mathematical Notebook Structure:**
 ```json
 {
   "cells": [
-    {"type": "markdown", "content": "# Topic Introduction\nMathematical concept explanation..."},
+    {"type": "markdown", "content": "# Topic Introduction\nMathematical concept with LaTeX: $f(x) = ax^2 + bx + c$..."},
     {"type": "input", "label": "Parameter", "inputType": "range", "variableName": "param", "value": 1},
     {"type": "code", "code": "// Mathematical computation\nconst result = mathjs.evaluate('...');\noutput('$$formula$$');"},
     {"type": "markdown", "content": "## Analysis\nExplanation of results with {{param}} value..."},

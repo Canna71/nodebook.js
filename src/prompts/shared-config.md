@@ -117,6 +117,39 @@ const node = mathjs.parse(expr);
 output("$$" + node.toTex() + "$$"); // Renders: $$3 x^{2}+4 x+1$$
 ```
 
+### LaTeX in Markdown Cells
+**NEW**: Markdown cells now support native LaTeX rendering using `markdown-it-mathjax3`:
+
+**Key Benefits:**
+- **Natural syntax**: Use `$` and `$$` without escaping (unlike code cells which need `\\`)
+- **Variable integration**: Seamlessly combine LaTeX with `{{variable}}` interpolation
+- **Better performance**: Renders during markdown processing, not code execution
+- **Semantic clarity**: Mathematical content belongs in markdown, not code
+
+**Inline Math:**
+```markdown
+The quadratic formula $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$ solves $ax^2 + bx + c = 0$.
+```
+
+**Display Math:**
+```markdown
+$$\int_0^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}$$
+```
+
+**LaTeX with Variable Interpolation:**
+```markdown
+For our sample of **{{sampleSize}}** observations:
+- Mean: $\bar{x} = {{mean.toFixed(3)}}$
+- Standard deviation: $s = {{stdDev.toFixed(3)}}$
+
+The coefficient of variation is:
+$$CV = \frac{s}{\bar{x}} = {{(stdDev/mean*100).toFixed(1)}}\%$$
+```
+
+**When to Use Each Approach:**
+- **Markdown cells**: Static mathematical content, explanations, formulas with variable values
+- **Code cells**: Dynamic LaTeX generation (MathJS integration), computed mathematical results
+
 ### DOM Output Functions (Use Sparingly)
 - **output(...values)**: Output any value - objects get custom rendering, DOM elements are displayed. Arrays are shown as single-column tables.
 - **output.table(array)**: Force tabular rendering for arrays of objects - creates multi-column tables

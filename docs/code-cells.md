@@ -422,10 +422,10 @@ const salesData = [{ product: 'A', sales: 1000 }, ...];
 output.table(salesData); // Sortable, searchable table
 
 // For formatted reports - use markdown cells with interpolation
-exports.revenue = 50000;
-exports.growth = 12.5;
+exports.totalRevenue = 50000;
+exports.growthRate = 12.5;
 exports.topProduct = 'Widget C';
-// Then create markdown cell: "## Report\nRevenue: ${{revenue.toLocaleString()}}"
+// Then create markdown cell: "## Report\nRevenue: ${{totalRevenue.toLocaleString()}}"
 
 // For charts requiring DOM containers
 const chartDiv = createDiv({ id: 'chart', style: 'height: 400px;' });
@@ -1162,8 +1162,6 @@ function processUserData(users) {
 }
 ```
 
-This comprehensive guide covers all the essential features and best practices for working with code cells in NotebookJS. Remember to always test your code, handle errors gracefully, and use the reactive system effectively to build powerful data analysis and visualization notebooks.
-
 ## Shell Integration
 
 NotebookJS includes comprehensive shell integration powered by the `zx` library, with all zx globals automatically available in code cells. This provides a powerful shell scripting environment directly in your notebooks.
@@ -1670,10 +1668,47 @@ output("The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$ for s
 console.log("Value of π is approximately $\\pi \\approx 3.14159$");
 ```
 
+#### LaTeX in Markdown Cells
+**NEW**: Markdown cells now support native LaTeX rendering using `markdown-it-mathjax3`:
+
+```markdown
+# Mathematical Analysis
+
+## Inline Math
+The quadratic formula $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$ solves equations of the form $ax^2 + bx + c = 0$.
+
+## Display Math (Block)
+Maxwell's equations in their differential form:
+
+$$\begin{array}{c}
+\nabla \times \vec{\mathbf{B}} -\, \frac1c\, \frac{\partial\vec{\mathbf{E}}}{\partial t} &
+= \frac{4\pi}{c}\vec{\mathbf{j}} \\
+\nabla \cdot \vec{\mathbf{E}} & = 4 \pi \rho \\
+\nabla \times \vec{\mathbf{E}}\, +\, \frac1c\, \frac{\partial\vec{\mathbf{B}}}{\partial t} & = \vec{\mathbf{0}} \\
+\nabla \cdot \vec{\mathbf{B}} & = 0
+\end{array}$$
+
+## Mixed Content with Variable Interpolation
+The area under the curve $f(x) = x^2$ from $0$ to ${{upperLimit}}$ is:
+$$\int_0^{{{upperLimit}}} x^2 dx = \frac{{{upperLimit}}^3}{3} = {{(Math.pow(upperLimit, 3) / 3).toFixed(2)}}$$
+```
+
+**Key advantages of LaTeX in markdown cells:**
+- **Native rendering**: No need to wrap LaTeX in `$$` strings for code cell output
+- **Variable interpolation**: Combine LaTeX with reactive variables using `{{variable}}`
+- **Cleaner syntax**: Use natural LaTeX delimiters (`$` and `$$`) without escaping
+- **Better for static content**: Ideal for mathematical explanations and formulas
+
+**Best practices:**
+- Use markdown cells for static mathematical content and explanations
+- Use code cells for dynamic LaTeX generation (e.g., with MathJS)
+- Combine both approaches for rich mathematical notebooks
+
 ### Automatic LaTeX Detection
 
 NotebookJS automatically detects and renders LaTeX content in:
 
+- **Markdown cells**: Native LaTeX support with `markdown-it-mathjax3` plugin
 - **Code cell outputs**: String values containing `$$..$$` or `$...$`
 - **Console output**: `console.log()` messages with LaTeX syntax
 - **Object displays**: String properties containing mathematical expressions
@@ -1736,7 +1771,7 @@ output("$$\\frac{\\partial f}{\\partial x} = \\lim_{h \\to 0} \\frac{f(x+h) - f(
 
 // ✅ Good: Using template literals for complex expressions
 const a = 2, b = 3, c = 1;
-output(`$$x = \\frac{-${b} \\pm \\sqrt{${b}^2-4 \\cdot ${a} \\cdot ${c}}}{2 \\cdot ${a}}$$`);
+output(`$$x = \\frac{-${b} \\pm \\sqrt{b^2-4ac}}{2a}$$`);
 
 // ✅ Good: MathJS for automatic LaTeX generation
 const expression = 'integrate(sin(x), x)';
@@ -1824,9 +1859,3 @@ Object.entries(stats).forEach(([name, formula]) => {
     output(`**${name.charAt(0).toUpperCase() + name.slice(1)}**: $$${formula}$$`);
 });
 ```
-
-Both panels support:
-- Auto-scroll to bottom (with manual disable when scrolling up)
-- Manual clearing of all entries
-- Configurable maximum entry limits (100 for console, 1000 for output)
-- Real-time updates as output is generated

@@ -43,12 +43,17 @@
     {
       "type": "markdown",
       "id": "md_mbtik8lm_f6fwo",
-      "content": "## Latex output\n"
+      "content": "## Latex output\n\nIf you need to display latex as output from a code cell: return\na string comprised between '$$'"
     },
     {
       "type": "code",
       "id": "code_mbtikuc4_1sv43",
       "code": "const expr = 'sqrt(75 / 3) + det([[-1, 2], [3, 1]]) - sin(pi / 4)^2';\nconst node = mathjs.parse(expr);\noutput(\"$$\"+node.toTex()+\"$$\");\n\n\n"
+    },
+    {
+      "type": "markdown",
+      "id": "md_01",
+      "content": "# Latex inside Markdown\n\n## Inline\nSurround your LaTeX with a single `$` on each side for inline rendering.\n\n```\n$\\sqrt{3x-1}+(1+x)^2$\n```\n\n$\\sqrt{3x-1}+(1+x)^2$\n\n## Block\nUse two (`$$`) for block rendering. This mode uses bigger symbols and centers the result.\n\n```\n$$\\begin{array}{c}\n\n\\nabla \\times \\vec{\\mathbf{B}} -\\, \\frac1c\\, \\frac{\\partial\\vec{\\mathbf{E}}}{\\partial t} &\n= \\frac{4\\pi}{c}\\vec{\\mathbf{j}}    \\nabla \\cdot \\vec{\\mathbf{E}} & = 4 \\pi \\rho \\\\\n\n\\nabla \\times \\vec{\\mathbf{E}}\\, +\\, \\frac1c\\, \\frac{\\partial\\vec{\\mathbf{B}}}{\\partial t} & = \\vec{\\mathbf{0}} \\\\\n\n\\nabla \\cdot \\vec{\\mathbf{B}} & = 0\n\n\\end{array}$$\n\n```\n\n$$\\begin{array}{c}\n\n\\nabla \\times \\vec{\\mathbf{B}} -\\, \\frac1c\\, \\frac{\\partial\\vec{\\mathbf{E}}}{\\partial t} &\n= \\frac{4\\pi}{c}\\vec{\\mathbf{j}}    \\nabla \\cdot \\vec{\\mathbf{E}} & = 4 \\pi \\rho \\\\\n\n\\nabla \\times \\vec{\\mathbf{E}}\\, +\\, \\frac1c\\, \\frac{\\partial\\vec{\\mathbf{B}}}{\\partial t} & = \\vec{\\mathbf{0}} \\\\\n\n\\nabla \\cdot \\vec{\\mathbf{B}} & = 0\n\n\\end{array}$$\n"
     }
   ]
 }

@@ -326,17 +326,61 @@ Remember: The goal is to create a single, well-designed cell that integrates sea
 
 When generating cells with mathematical content:
 
-#### Use LaTeX for Mathematical Expressions
-- **Always use proper mathematical notation** for formulas, equations, and mathematical symbols
-- **Display math** (`$$..$$`) for standalone equations and formulas
-- **Inline math** (`$...$`) for mathematical expressions within explanatory text
-- **Escape backslashes** properly in JavaScript strings (`\\\\` becomes `\\` in output)
+#### Prefer Markdown Cells for Mathematical Content
+- **Use markdown cells for static mathematical content**: Educational explanations, formula presentations, and documentation
+- **Native LaTeX support**: Markdown cells now support LaTeX natively via `markdown-it-mathjax3`
+- **Better readability**: No need to escape backslashes in markdown cells
+- **Combined content**: Mix mathematical expressions with text naturally
+- **Variable integration**: Seamlessly combine LaTeX with `{{variable}}` interpolation
+- **Performance**: Faster rendering without code execution
 
-#### MathJS Integration for Dynamic LaTeX
+#### LaTeX Syntax Differences
+**In Markdown Cells (preferred for static math):**
+```markdown
+<!-- ✅ Natural LaTeX syntax -->
+$x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$
+$$\int_0^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}$$
+
+<!-- ✅ With variable interpolation -->
+For $n = {{n}}$, the derivative is $f'(x) = {{n}}x^{{{n-1}}}$
+```
+
+**In Code Cell Outputs (for dynamic generation):**
+```javascript
+// ✅ Dynamic LaTeX generation with MathJS
+const expr = 'derivative(x^3, x)';
+const result = mathjs.derivative(expr, 'x');
+output("$$" + result.toTex() + "$$");
+
+// ❌ Static LaTeX (prefer markdown cells)
+output("$$x = \\\\frac{-b \\\\pm \\\\sqrt{b^2-4ac}}{2a}$$");
+```
+
+#### When to Use Each Approach
+**✅ Use Markdown Cells for:**
+- Educational content with mathematical formulas
+- Static mathematical explanations
+- Formula presentations with context
+- Mixed mathematical and explanatory text
+
+**✅ Use Code Cells for:**
+- Dynamic LaTeX generation with MathJS
+- Complex computations that output mathematical results
+- Interactive mathematical calculations
+
+#### MathJS Integration Pattern
 ```json
 {
   "type": "code",
-  "code": "// Parse mathematical expression\nconst expr = 'integrate(sin(x), x)';\nconst node = mathjs.parse(expr);\nconst result = node.evaluate();\n\n// Generate LaTeX automatically\nconst latexExpr = node.toTex();\noutput(`Expression: $$${latexExpr}$$`);\noutput(`Result: $$${result.toTex()} + C$$`);"
+  "code": "// Compute mathematical result\nconst expr = 'derivative(x^3 + 2*x^2, x)';\nconst result = mathjs.derivative(expr, 'x');\n\n// Export for markdown display\nexports.originalExpr = expr;\nexports.derivativeLatex = result.toTex();\nexports.derivativeValue = result.toString();"
+}
+```
+
+**Follow with markdown cell:**
+```json
+{
+  "type": "markdown", 
+  "content": "## Derivative Result\n\n**Original:** $f(x) = {{originalExpr}}$\n\n**Derivative:** $f'(x) = {{derivativeLatex}}$\n\n**Simplified:** $f'(x) = {{derivativeValue}}$"
 }
 ```
 
@@ -344,36 +388,45 @@ When generating cells with mathematical content:
 - **Combine theory with computation**: Show both the mathematical formula and the calculated result
 - **Progressive explanation**: Build from simple concepts to complex ones
 - **Interactive examples**: Use input cells to make mathematical exploration engaging
+- **Use proper mathematical typography**: Always present formulas in LaTeX notation
 
 ## Context-Aware LaTeX Examples
 
 ### User Request: "Show the quadratic formula"
 **Context**: Mathematical formula presentation
-**Decision**: Code cell with LaTeX output
+**Decision**: Markdown cell with native LaTeX (preferred for static mathematical content)
 ```json
 {
-  "type": "code",
-  "code": "// Display the quadratic formula with explanation\noutput('The quadratic formula for solving $ax^2 + bx + c = 0$:');\noutput('$$x = \\\\frac{-b \\\\pm \\\\sqrt{b^2-4ac}}{2a}$$');\noutput('This gives us the two solutions (roots) of any quadratic equation.');"
+  "type": "markdown",
+  "content": "# Quadratic Formula\n\nFor equations of the form $ax^2 + bx + c = 0$, the solutions are:\n\n$$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$\n\nThis formula gives us the two solutions (roots) of any quadratic equation."
 }
 ```
 
 ### User Request: "Calculate the derivative of x^3"
 **Context**: Mathematical computation with formula display
-**Decision**: Code cell using MathJS for LaTeX generation
+**Decision**: Code cell for computation + Markdown cell for presentation
 ```json
 {
   "type": "code", 
-  "code": "// Calculate derivative using MathJS\nconst expr = 'x^3';\nconst derivative = mathjs.derivative(expr, 'x');\n\n// Display both symbolic and LaTeX representations\noutput(`Original function: $$f(x) = ${expr}$$`);\noutput(`Derivative: $$f'(x) = ${derivative.toTex()}$$`);\n\n// Export for other cells\nexports.originalFunction = expr;\nexports.derivativeLatex = derivative.toTex();"
+  "code": "// Calculate derivative using MathJS\nconst expr = 'x^3';\nconst derivative = mathjs.derivative(expr, 'x');\nconst derivativeLatex = derivative.toTex();\n\n// Export for markdown display\nexports.originalFunction = expr;\nexports.derivativeLatex = derivativeLatex;\nexports.derivativeExpression = derivative.toString();"
+}
+```
+
+**Follow-up markdown cell for presentation:**
+```json
+{
+  "type": "markdown",
+  "content": "## Derivative Calculation\n\n**Original function:** $f(x) = {{originalFunction}}$\n\n**Derivative:** $f'(x) = {{derivativeLatex}}$\n\n**Simplified:** $f'(x) = {{derivativeExpression}}$"
 }
 ```
 
 ### User Request: "Explain the mean formula"
 **Context**: Educational content with mathematical notation
-**Decision**: Markdown cell with LaTeX and interpolation
+**Decision**: Markdown cell with LaTeX and interpolation (preferred)
 ```json
 {
   "type": "markdown",
-  "content": "## Sample Mean Formula\n\nThe sample mean is calculated as:\n\n$$\\\\bar{x} = \\\\frac{1}{n}\\\\sum_{i=1}^{n} x_i$$\n\nWhere:\n- $\\\\bar{x}$ is the sample mean\n- $n$ is the number of observations ({{sampleSize}})\n- $x_i$ represents each individual observation\n\nFor our current dataset, the mean is **{{mean.toFixed(3)}}**."
+  "content": "## Sample Mean Formula\n\nThe sample mean is calculated as:\n\n$$\\bar{x} = \\frac{1}{n}\\sum_{i=1}^{n} x_i$$\n\nWhere:\n- $\\bar{x}$ is the sample mean\n- $n$ is the number of observations ({{sampleSize}})\n- $x_i$ represents each individual observation\n\nFor our current dataset, the mean is **{{mean.toFixed(3)}}**."
 }
 ```
 

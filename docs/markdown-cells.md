@@ -319,3 +319,158 @@ When expressions fail to evaluate, they will display `[Error: expression]`. Comm
 - Complex expressions in many cells can impact performance
 - Consider computing complex values in code cells and referencing the results
 - Use explicit `variables` arrays for better dependency tracking
+
+## LaTeX Mathematical Expressions
+
+**NEW**: Markdown cells now support native LaTeX rendering using the `markdown-it-mathjax3` plugin. You can include mathematical expressions directly in your markdown content without needing to wrap them in code cells.
+
+**Configuration**: The plugin is integrated with default settings, supporting:
+- Inline math: `$...$` syntax
+- Display math: `$$...$$` syntax  
+- Standard LaTeX mathematical notation
+- Automatic escaping and processing
+- Dark mode compatibility
+
+**Key Benefits**:
+- **Cleaner syntax**: No need to escape backslashes like in code cells
+- **Variable integration**: Combine LaTeX with `{{variable}}` interpolation
+- **Better performance**: Renders during markdown processing
+- **Semantic clarity**: Mathematical content belongs in markdown, not code
+
+### LaTeX Syntax in Markdown
+
+#### Inline Math
+Use single dollar signs `$...$` for inline mathematical expressions:
+
+```markdown
+The quadratic formula $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$ is used to solve equations of the form $ax^2 + bx + c = 0$.
+
+The value of π is approximately $\pi \approx 3.14159$.
+```
+
+#### Display Math (Block)
+Use double dollar signs `$$...$$` for centered, block-level equations:
+
+```markdown
+## Maxwell's Equations
+
+Maxwell's equations in differential form:
+
+$$\begin{array}{c}
+\nabla \times \vec{\mathbf{B}} -\, \frac1c\, \frac{\partial\vec{\mathbf{E}}}{\partial t} &
+= \frac{4\pi}{c}\vec{\mathbf{j}} \\
+\nabla \cdot \vec{\mathbf{E}} & = 4 \pi \rho \\
+\nabla \times \vec{\mathbf{E}}\, +\, \frac1c\, \frac{\partial\vec{\mathbf{B}}}{\partial t} & = \vec{\mathbf{0}} \\
+\nabla \cdot \vec{\mathbf{B}} & = 0
+\end{array}$$
+```
+
+#### Complex Mathematical Expressions
+LaTeX supports a wide range of mathematical notation:
+
+```markdown
+## Calculus Examples
+
+### Derivatives
+The derivative of $f(x) = x^n$ is:
+$$\frac{d}{dx}[x^n] = nx^{n-1}$$
+
+### Integrals
+The fundamental theorem of calculus:
+$$\int_a^b f'(x) dx = f(b) - f(a)$$
+
+### Matrices
+A 2x2 matrix multiplication:
+$$\begin{pmatrix} a & b \\ c & d \end{pmatrix} \begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} ax + by \\ cx + dy \end{pmatrix}$$
+
+### Statistics
+Sample standard deviation:
+$$s = \sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(x_i - \bar{x})^2}$$
+```
+
+### LaTeX with Variable Interpolation
+
+You can combine LaTeX expressions with reactive variables using `{{}}` interpolation:
+
+```markdown
+## Dynamic Mathematical Results
+
+For a sample size of **{{sampleSize}}** observations:
+
+- Sample mean: $\bar{x} = {{mean.toFixed(3)}}$
+- Sample variance: $s^2 = {{variance.toFixed(3)}}$
+- Standard deviation: $s = {{standardDeviation.toFixed(3)}}$
+
+The **coefficient of variation** is:
+$$CV = \frac{s}{\bar{x}} = \frac{{{standardDeviation.toFixed(3)}}}{{{mean.toFixed(3)}}} = {{(standardDeviation/mean*100).toFixed(1)}}\%$$
+```
+
+### Mathematical Documentation Patterns
+
+#### Educational Content
+```markdown
+# Quadratic Functions
+
+A quadratic function has the form $f(x) = ax^2 + bx + c$ where $a \neq 0$.
+
+## Vertex Form
+We can rewrite this in vertex form:
+$$f(x) = a(x - h)^2 + k$$
+
+Where $(h, k)$ is the vertex of the parabola.
+
+## Finding the Vertex
+The x-coordinate of the vertex is:
+$$h = -\frac{b}{2a}$$
+
+For our function with $a = {{a}}$, $b = {{b}}$, and $c = {{c}}$:
+$$h = -\frac{{{b}}}{2 \cdot {{a}}} = {{(-b/(2*a)).toFixed(3)}}$$
+```
+
+#### Scientific Analysis
+```markdown
+# Statistical Analysis Results
+
+## Sample Statistics
+For our dataset of {{data.length}} observations:
+
+| Statistic | Symbol | Value |
+|-----------|--------|--------|
+| Mean | $\bar{x}$ | {{mean.toFixed(3)}} |
+| Median | $\tilde{x}$ | {{median.toFixed(3)}} |
+| Std Dev | $s$ | {{stdDev.toFixed(3)}} |
+
+## Confidence Interval
+The 95% confidence interval for the population mean is:
+$$\bar{x} \pm t_{0.025, {{data.length-1}}} \cdot \frac{s}{\sqrt{n}}$$
+$${{mean.toFixed(3)}} \pm {{tValue.toFixed(3)}} \cdot \frac{{{stdDev.toFixed(3)}}}{\sqrt{{{data.length}}}}$$
+$$[{{lowerBound.toFixed(3)}}, {{upperBound.toFixed(3)}}]$$
+```
+
+### Troubleshooting LaTeX in Markdown
+
+**Common Issues:**
+1. **Escaping**: In markdown cells, use natural LaTeX syntax (`\frac{1}{2}`, not `\\frac{1}{2}`)
+2. **Variable conflicts**: If `$` conflicts with variable interpolation, use `\$` to escape dollar signs
+3. **Complex expressions**: For dynamically generated LaTeX, consider using code cells with MathJS
+
+**LaTeX vs Code Cell Comparison:**
+
+| Aspect | Markdown Cells | Code Cells |
+|--------|---------------|------------|
+| **Syntax** | Natural LaTeX: `$\frac{1}{2}$` | Escaped: `"$$\\frac{1}{2}$$"` |
+| **Best for** | Static math, explanations | Dynamic generation, MathJS |
+| **Interpolation** | `{{variable}}` within LaTeX | Generate complete LaTeX strings |
+| **Performance** | Faster rendering | Slower (requires code execution) |
+| **Editing** | WYSIWYG in edit mode | Requires execution to see output |
+
+**Example comparison:**
+```markdown
+<!-- Markdown cell (preferred for static math) -->
+The derivative of $f(x) = x^{{n}}$ is $f'(x) = {{n}}x^{{{n-1}}}$
+
+<!-- Code cell (preferred for dynamic math) -->
+const n = 3;
+const derivative = mathjs.derivative(`x^${n}`, 'x');
+output(`Derivative: $$${derivative.toTex()}$$`);
+```
