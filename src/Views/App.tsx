@@ -22,10 +22,28 @@ import { MathJaxContext } from 'better-react-mathjax';
 import { Toolbar } from '@/components/Toolbar';
 import { AIDialogProvider } from '@/components/AIDialogProvider';
 import { AppDialogProvider } from '@/components/AppDialogProvider';
+import { StdoutViewer } from '@/components/StdoutViewer';
+import { useStdoutCapture } from '@/hooks/useStdoutCapture';
 
 function AppContent() {
     const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook } = useApplication();
     const { currentView } = useView();
+    const { lines, clearLines, isSupported } = useStdoutCapture();
+    const [stdoutVisible, setStdoutVisible] = useState(false);
+
+    // Keyboard shortcut handler
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            // Ctrl+` (backtick) to toggle stdout viewer
+            if (event.ctrlKey && event.key === '`') {
+                event.preventDefault();
+                setStdoutVisible(prev => !prev);
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     useEffect(() => {
         log.debug("AppContent mounted, currentModel:", currentModel);
@@ -121,6 +139,16 @@ function AppContent() {
                                 </div>
                             )}
                         </>
+                    )}
+                    
+                    {/* Global stdout viewer */}
+                    {isSupported && (
+                        <StdoutViewer
+                            isVisible={stdoutVisible}
+                            onToggle={() => setStdoutVisible(!stdoutVisible)}
+                            lines={lines}
+                            onClear={clearLines}
+                        />
                     )}
                 </MathJaxContext>
             </CommandProvider>

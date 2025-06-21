@@ -14,7 +14,8 @@ import {
   RedoIcon,
   VariableIcon,
   SparklesIcon,
-  SettingsIcon
+  SettingsIcon,
+  TerminalIcon
 } from 'lucide-react';
 import { MarkdownIcon } from './icons/MarkdownIcon';
 import { JavascriptIcon } from './icons/JavascriptIcon';
@@ -269,6 +270,21 @@ export function Toolbar() {
             <SettingsIcon className="h-4 w-4" />
           </Button>
         </AISettings>
+
+        <Separator orientation="vertical" className="mx-2 h-6" />
+
+        {/* Output Panel Indicator */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center text-xs text-muted-foreground">
+              <TerminalIcon className="h-3 w-3 mr-1" />
+              <span>Ctrl+`</span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            Press Ctrl+` to toggle global output panel
+          </TooltipContent>
+        </Tooltip>
       </TooltipProvider>
     </div>
   );
