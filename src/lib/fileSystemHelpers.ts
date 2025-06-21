@@ -51,14 +51,27 @@ export class FileSystemHelpers {
     constructor(userDataPath = '', isPackaged = true) {
         // Get application user data directory
         this.userDataPath = userDataPath;
-        const resourcesPath = isPackaged ? process.resourcesPath : process.cwd();
+        this.isPackaged = isPackaged;
+        
+        // Determine examples path based on environment
+        let resourcesPath: string;
+        if (isPackaged) {
+            // In production, examples are copied to process.resourcesPath by forge.config.ts
+            resourcesPath = process.resourcesPath;
+        } else {
+            // In development, examples are in the project root
+            resourcesPath = process.cwd();
+        }
+        
         this.examplesPath = path.join(resourcesPath, 'examples');
         this.userNotebooksPath = path.join(this.userDataPath, 'notebooks');
 
         log.debug('FileSystemHelpers initialized:', {
             userDataPath: this.userDataPath,
             examplesPath: this.examplesPath,
-            userNotebooksPath: this.userNotebooksPath
+            userNotebooksPath: this.userNotebooksPath,
+            isPackaged: this.isPackaged,
+            resourcesPath: resourcesPath
         });
 
         // Ensure directories exist
@@ -101,6 +114,34 @@ export class FileSystemHelpers {
      */
     public getUserDataPath(): string {
         return this.userDataPath;
+    }
+
+    /**
+     * Debug method to check paths and existence
+     */
+    public async debugPaths(): Promise<{
+        examplesPath: string;
+        examplesExists: boolean;
+        userDataPath: string;
+        userNotebooksPath: string;
+        userNotebooksExists: boolean;
+        isPackaged: boolean;
+        resourcesPath: string;
+        processResourcesPath: string;
+        processCwd: string;
+    }> {
+        const resourcesPath = this.isPackaged ? process.resourcesPath : process.cwd();
+        return {
+            examplesPath: this.examplesPath,
+            examplesExists: fs.existsSync(this.examplesPath),
+            userDataPath: this.userDataPath,
+            userNotebooksPath: this.userNotebooksPath,
+            userNotebooksExists: fs.existsSync(this.userNotebooksPath),
+            isPackaged: this.isPackaged,
+            resourcesPath: resourcesPath,
+            processResourcesPath: process.resourcesPath || 'undefined',
+            processCwd: process.cwd()
+        };
     }
 
     /**
@@ -171,8 +212,19 @@ export class FileSystemHelpers {
      */
     public async listExamples(): Promise<FileSystemResult<NotebookFileInfo[]>> {
         try {
+            // Check if examples directory exists
+            if (!fs.existsSync(this.examplesPath)) {
+                log.warn(`Examples directory does not exist: ${this.examplesPath}`);
+                return {
+                    success: false,
+                    error: `Examples directory not found: ${this.examplesPath}`
+                };
+            }
+            
             const files = await fs.promises.readdir(this.examplesPath);
             const jsonFiles = files.filter(file => file.endsWith('.json'));
+            
+            log.debug(`Found ${jsonFiles.length} JSON files in examples directory: ${this.examplesPath}`);
 
             const examples: NotebookFileInfo[] = [];
 
