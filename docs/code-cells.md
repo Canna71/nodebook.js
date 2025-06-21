@@ -1032,10 +1032,10 @@ const salesReport = [
 ];
 output.table(salesReport); // Sortable table
 
-// For formatted reports - use markdown with interpolation
+// For formatted reports - use markdown cells with interpolation
 exports.totalRevenue = 87500;
 exports.growthRate = 12.5;
-exports.topProduct = 'Widget A';
+exports.topProduct = 'Widget C';
 // Then create markdown cell: "## Report\nRevenue: ${{totalRevenue.toLocaleString()}}"
 
 // For charts requiring DOM containers
@@ -1634,6 +1634,195 @@ console.log("Object:", { name: "test", values: [1, 2, 3] });
 console.warn("Warning message");
 console.error("Error message");
 console.info("Info message");
+```
+
+Both panels support:
+- Auto-scroll to bottom (with manual disable when scrolling up)
+- Manual clearing of all entries
+- Configurable maximum entry limits (100 for console, 1000 for output)
+- Real-time updates as output is generated
+
+## LaTeX Mathematical Expressions
+
+NotebookJS provides automatic LaTeX rendering for mathematical expressions in code cell outputs, console output, and object displays.
+
+### LaTeX Syntax Support
+
+#### Display Math (Block Equations)
+Use `$$..$$` for centered, block-level mathematical expressions:
+
+```javascript
+// Generate LaTeX from MathJS
+const expr = 'sqrt(75 / 3) + det([[-1, 2], [3, 1]]) - sin(pi / 4)^2';
+const node = mathjs.parse(expr);
+output("$$" + node.toTex() + "$$");
+
+// Direct LaTeX strings
+output("$$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$");
+output("$$\\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}$$");
+```
+
+#### Inline Math
+Use `$...$` for inline mathematical expressions within text:
+
+```javascript
+output("The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$ for solving $ax^2 + bx + c = 0$.");
+console.log("Value of π is approximately $\\pi \\approx 3.14159$");
+```
+
+### Automatic LaTeX Detection
+
+NotebookJS automatically detects and renders LaTeX content in:
+
+- **Code cell outputs**: String values containing `$$..$$` or `$...$`
+- **Console output**: `console.log()` messages with LaTeX syntax
+- **Object displays**: String properties containing mathematical expressions
+- **Mixed content**: Text with embedded LaTeX expressions
+
+### LaTeX Rendering Features
+
+#### MathJax Integration
+- Uses `better-react-mathjax` library for high-quality rendering
+- Supports standard LaTeX mathematical notation
+- Handles both inline and display math contexts
+- Automatic font scaling and responsive design
+
+#### Mixed Content Support
+```javascript
+// LaTeX mixed with regular text is automatically handled
+output("The solution to $x^2 + 2x + 1 = 0$ is $x = -1$, which gives us the factored form $(x+1)^2 = 0$.");
+
+// Works in console output too
+console.log("Computing $\\sum_{i=1}^{n} i^2 = \\frac{n(n+1)(2n+1)}{6}$ for n=10:");
+```
+
+#### Complex Mathematical Expressions
+```javascript
+// Matrices and advanced notation
+output("$$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix} \\begin{pmatrix} x \\\\ y \\end{pmatrix} = \\begin{pmatrix} ax + by \\\\ cx + dy \\end{pmatrix}$$");
+
+// Integrals and limits
+output("$$\\lim_{n \\to \\infty} \\sum_{i=1}^{n} \\frac{1}{n} f\\left(\\frac{i}{n}\\right) = \\int_{0}^{1} f(x) dx$$");
+
+// Statistical formulas
+output("$$\\sigma = \\sqrt{\\frac{1}{N}\\sum_{i=1}^{N}(x_i - \\mu)^2}$$");
+```
+
+### Integration with MathJS
+
+MathJS provides excellent LaTeX generation capabilities:
+
+```javascript
+// Parse mathematical expressions
+const expr = 'derivative(x^3 + 2*x^2 + x + 1, x)';
+const node = mathjs.parse(expr);
+
+// Convert to LaTeX and render
+const latexExpr = node.toTex();
+output("Original: " + expr);
+output("LaTeX: $$" + latexExpr + "$$");
+
+// Evaluate and show result
+const result = node.evaluate();
+output("Result: $$" + mathjs.parse(result.toString()).toTex() + "$$");
+```
+
+### Best Practices
+
+#### LaTeX String Construction
+```javascript
+// ✅ Good: Properly escaped LaTeX
+output("$$\\frac{\\partial f}{\\partial x} = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}$$");
+
+// ✅ Good: Using template literals for complex expressions
+const a = 2, b = 3, c = 1;
+output(`$$x = \\frac{-${b} \\pm \\sqrt{${b}^2-4 \\cdot ${a} \\cdot ${c}}}{2 \\cdot ${a}}$$`);
+
+// ✅ Good: MathJS for automatic LaTeX generation
+const expression = 'integrate(sin(x), x)';
+const latex = mathjs.parse(expression).toTex();
+output("$$" + latex + "$$");
+```
+
+#### Performance Considerations
+```javascript
+// ✅ Good: Output LaTeX directly
+output("$$E = mc^2$$");
+
+// ❌ Avoid: Unnecessary DOM manipulation for LaTeX
+const latexDiv = createDiv({
+    innerHTML: "$$E = mc^2$$"
+});
+```
+
+### Styling and Appearance
+
+LaTeX expressions are automatically styled with:
+- Proper mathematical fonts and sizing
+- Centered alignment for display math (`$$..$$`)
+- Inline flow for inline math (`$...$`)
+- Responsive scaling for different screen sizes
+- Dark mode compatibility
+
+### Troubleshooting LaTeX
+
+#### Common Issues
+```javascript
+// ❌ Problem: Single backslash gets escaped
+output("$$\frac{1}{2}$$"); // Won't render correctly
+
+// ✅ Solution: Use double backslashes
+output("$$\\frac{1}{2}$$"); // Renders correctly
+
+// ❌ Problem: Unmatched delimiters
+output("$$x = 2$"); // Missing closing $$
+
+// ✅ Solution: Properly matched delimiters
+output("$$x = 2$$"); // Correct
+```
+
+#### Debugging LaTeX Content
+```javascript
+// Check if string contains LaTeX
+import { isLatexContent } from './LatexRenderer';
+
+const mathString = "$$x^2 + y^2 = r^2$$";
+console.log("Contains LaTeX:", isLatexContent(mathString)); // true
+
+// Preview LaTeX before rendering
+const formula = "\\frac{d}{dx}[x^n] = nx^{n-1}";
+console.log("LaTeX formula:", formula);
+output("$$" + formula + "$$");
+```
+
+### Examples
+
+#### Mathematical Analysis
+```javascript
+// Calculus example
+const functions = [
+    "f(x) = x^2",
+    "f'(x) = 2x", 
+    "\\int f(x) dx = \\frac{x^3}{3} + C"
+];
+
+functions.forEach((func, i) => {
+    output(`Step ${i + 1}: $$${func}$$`);
+});
+```
+
+#### Statistical Formulas
+```javascript
+// Statistics example
+const stats = {
+    mean: "\\bar{x} = \\frac{1}{n}\\sum_{i=1}^{n} x_i",
+    variance: "s^2 = \\frac{1}{n-1}\\sum_{i=1}^{n}(x_i - \\bar{x})^2",
+    correlation: "r = \\frac{\\sum_{i=1}^{n}(x_i - \\bar{x})(y_i - \\bar{y})}{\\sqrt{\\sum_{i=1}^{n}(x_i - \\bar{x})^2\\sum_{i=1}^{n}(y_i - \\bar{y})^2}}"
+};
+
+Object.entries(stats).forEach(([name, formula]) => {
+    output(`**${name.charAt(0).toUpperCase() + name.slice(1)}**: $$${formula}$$`);
+});
 ```
 
 Both panels support:

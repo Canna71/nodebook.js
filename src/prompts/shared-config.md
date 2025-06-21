@@ -84,10 +84,38 @@ const files = await $`ls *.nbjs`;  // Lists notebook files
 
 ### Custom Object Rendering
 When using `output()` with objects, NotebookJS provides special rendering for:
-- **LaTeX**: Strings starting and ending with "$$" (e.g., `"$$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$"`)
+- **LaTeX**: Strings containing LaTeX syntax (e.g., `"$$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$"`)
+  - Display math: `$$..$$` for centered, block-level equations
+  - Inline math: `$...$` for inline mathematical expressions
+  - Mixed content: Regular text with embedded LaTeX expressions
+  - Automatic detection and rendering using MathJax
 - **DataFrames**: Rendered as interactive, editable tables using react-table
 - **DataSeries**: Rendered as structured data displays
 - **Generic Objects**: Rendered using react-json-view for exploration
+
+### LaTeX Mathematical Expression Support
+NotebookJS automatically detects and renders LaTeX content in:
+- Code cell outputs (return values and `output()` calls)
+- Console output (`console.log()`, `console.error()`, etc.)
+- Object property values when displayed
+- Mixed text content with embedded math expressions
+
+**LaTeX Examples:**
+```javascript
+// Display math (block-level, centered)
+output("$$\\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}$$");
+
+// Inline math within text
+output("The quadratic formula $x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$ solves $ax^2 + bx + c = 0$.");
+
+// Console output with LaTeX
+console.log("Computing $\\sum_{i=1}^{n} i^2 = \\frac{n(n+1)(2n+1)}{6}$ for n=10");
+
+// MathJS integration for automatic LaTeX generation
+const expr = 'derivative(x^3 + 2*x^2 + x + 1, x)';
+const node = mathjs.parse(expr);
+output("$$" + node.toTex() + "$$"); // Renders: $$3 x^{2}+4 x+1$$
+```
 
 ### DOM Output Functions (Use Sparingly)
 - **output(...values)**: Output any value - objects get custom rendering, DOM elements are displayed. Arrays are shown as single-column tables.

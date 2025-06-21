@@ -145,6 +145,87 @@ NotebookJS provides intelligent tabular rendering for arrays:
 }
 ```
 
+### LaTeX Mathematical Expressions
+
+NotebookJS automatically renders LaTeX mathematical expressions in code cell outputs, console output, and object displays. This makes it perfect for educational content, scientific computing, and mathematical documentation.
+
+#### LaTeX in Notebooks
+
+**Mathematical Analysis Example:**
+```json
+{
+  "cells": [
+    {"type": "markdown", "content": "# Calculus Fundamentals\nExploring derivatives and integrals with interactive examples."},
+    {"type": "input", "label": "Polynomial Degree", "inputType": "number", "variableName": "n", "value": 3, "props": {"min": 1, "max": 10}},
+    {"type": "formula", "variableName": "coefficient", "formula": "Math.pow(-1, n) / (n + 1)"},
+    {"type": "code", "code": "// Generate polynomial and its derivative using MathJS\nconst polynomial = `x^${n}`;\nconst derivative = mathjs.derivative(polynomial, 'x').toString();\n\n// Output LaTeX representations\noutput(`Original function: $$f(x) = ${polynomial}$$`);\noutput(`Derivative: $$f'(x) = ${derivative}$$`);\noutput(`Coefficient: $$a_${n} = ${coefficient.toFixed(4)}$$`);\n\nexports.polynomial = polynomial;\nexports.derivative = derivative;"},
+    {"type": "markdown", "content": "## Analysis\nThe derivative of **{{polynomial}}** is **{{derivative}}**, demonstrating the power rule: $\\frac{d}{dx}[x^n] = nx^{n-1}$."}
+  ]
+}
+```
+
+**Statistical Formulas Example:**
+```json
+{
+  "cells": [
+    {"type": "markdown", "content": "# Statistical Analysis\nComputing descriptive statistics with mathematical notation."},
+    {"type": "input", "label": "Sample Size", "inputType": "range", "variableName": "sampleSize", "value": 50, "props": {"min": 10, "max": 200}},
+    {"type": "code", "code": "// Generate random sample data\nconst data = Array.from({length: sampleSize}, () => Math.random() * 100);\n\n// Calculate statistics\nconst mean = data.reduce((a, b) => a + b) / data.length;\nconst variance = data.reduce((sum, x) => sum + Math.pow(x - mean, 2), 0) / (data.length - 1);\nconst stdDev = Math.sqrt(variance);\n\n// Display formulas with results\noutput(`Sample mean: $$\\\\bar{x} = \\\\frac{1}{n}\\\\sum_{i=1}^{n} x_i = ${mean.toFixed(2)}$$`);\noutput(`Sample variance: $$s^2 = \\\\frac{1}{n-1}\\\\sum_{i=1}^{n}(x_i - \\\\bar{x})^2 = ${variance.toFixed(2)}$$`);\noutput(`Standard deviation: $$s = \\\\sqrt{s^2} = ${stdDev.toFixed(2)}$$`);\n\nexports.data = data;\nexports.mean = mean;\nexports.stdDev = stdDev;"},
+    {"type": "markdown", "content": "## Summary\nFor our sample of **{{sampleSize}}** observations:\n- Mean: **{{mean.toFixed(2)}}**\n- Standard Deviation: **{{stdDev.toFixed(2)}}**\n\nThe coefficient of variation is $CV = \\frac{s}{\\bar{x}} = {{(stdDev/mean*100).toFixed(1)}}\\%$."}
+  ]
+}
+```
+
+#### LaTeX Syntax Patterns
+
+**Display Math (Block Equations):**
+```javascript
+// Centered, block-level mathematical expressions
+output("$$\\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}$$");
+output("$$\\sum_{k=1}^{n} k^2 = \\frac{n(n+1)(2n+1)}{6}$$");
+```
+
+**Inline Math:**
+```javascript
+// Mathematical expressions within text
+output("The solution to $ax^2 + bx + c = 0$ is given by the quadratic formula $x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$.");
+console.log("Computing $\\pi \\approx 3.14159$ to high precision...");
+```
+
+**MathJS Integration:**
+```javascript
+// Automatic LaTeX generation from mathematical expressions
+const expr = 'integrate(sin(x) * cos(x), x)';
+const node = mathjs.parse(expr);
+const result = node.evaluate();
+const latexExpr = node.toTex();
+const latexResult = mathjs.parse(result.toString()).toTex();
+
+output(`Integral: $$\\int ${latexExpr.replace('integrate', '')} dx = ${latexResult} + C$$`);
+```
+
+#### Best Practices for Mathematical Notebooks
+
+1. **Use LaTeX for formulas**: Always present mathematical expressions in proper notation
+2. **Combine computation with theory**: Show both the mathematical formula and computed results  
+3. **Progressive complexity**: Start with simple concepts and build up
+4. **Interactive parameters**: Use input cells to make mathematical exploration interactive
+5. **Clear explanations**: Use markdown cells to explain mathematical concepts
+
+**Example Mathematical Notebook Structure:**
+```json
+{
+  "cells": [
+    {"type": "markdown", "content": "# Topic Introduction\nMathematical concept explanation..."},
+    {"type": "input", "label": "Parameter", "inputType": "range", "variableName": "param", "value": 1},
+    {"type": "code", "code": "// Mathematical computation\nconst result = mathjs.evaluate('...');\noutput('$$formula$$');"},
+    {"type": "markdown", "content": "## Analysis\nExplanation of results with {{param}} value..."},
+    {"type": "formula", "variableName": "derived", "formula": "mathematical expression"},
+    {"type": "markdown", "content": "The final result is $${{derived}}$$."}
+  ]
+}
+```
+
 ### Error Handling in Notebooks
 - Wrap potentially failing operations in try-catch blocks in code cells
 - Provide meaningful error messages and fallback values
