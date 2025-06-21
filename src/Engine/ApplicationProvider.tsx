@@ -174,6 +174,19 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         log.info('New notebook created');
     }, [stateManager]);
 
+    const clearNotebook = useCallback(() => {
+        // Clear the current notebook model to return to homepage
+        stateManager.clearNotebook('Clear notebook');
+        
+        // Clear global notebook path
+        if (typeof window !== 'undefined') {
+            (window as any).__notebookCurrentPath = null;
+            log.debug('Cleared global notebook path');
+        }
+        
+        log.info('Notebook cleared, returning to homepage');
+    }, [stateManager]);
+
     const setModel = useCallback((model: NotebookModel) => {
         // Use state manager for model updates
         stateManager.setNotebookModel(model, 'Update notebook model');
@@ -644,6 +657,7 @@ Variables automatically update when their dependencies change, creating a live, 
         showSaveAsDialog,
         newNotebook,
         createNewNotebook: newNotebook, // Alias for consistency
+        clearNotebook,
         setModel,
         setDirty,
         clearError,

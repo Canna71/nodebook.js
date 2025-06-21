@@ -444,9 +444,9 @@ export class CloseNotebookCommand extends BaseCommand {
                 log.warn('Closing notebook with unsaved changes');
             }
             
-            // Create a new notebook to replace the current one
-            this.context.applicationProvider.newNotebook();
-            log.debug('Notebook closed by creating new notebook');
+            // Clear the current notebook to return to homepage
+            this.context.applicationProvider.clearNotebook();
+            log.debug('Notebook closed, returned to homepage');
         } catch (error) {
             log.error('Error closing notebook:', error);
             throw error;

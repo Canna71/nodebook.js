@@ -307,6 +307,7 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
                 saveNotebook: applicationProvider.saveNotebook,
                 showSaveAsDialog: applicationProvider.showSaveAsDialog,
                 newNotebook: applicationProvider.newNotebook,
+                clearNotebook: applicationProvider.clearNotebook,
                 loadNotebook: applicationProvider.loadNotebook,
                 currentModel: applicationProvider.currentModel,
                 currentFilePath: applicationProvider.currentFilePath,

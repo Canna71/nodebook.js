@@ -17,6 +17,7 @@ export interface ApplicationContextType extends ApplicationState {
     showSaveAsDialog: () => Promise<void>;
     newNotebook: () => void;
     createNewNotebook: () => void; // Alias for consistency
+    clearNotebook: () => void;
     setModel: (model: NotebookModel) => void;
     setDirty: (dirty: boolean) => void;
     clearError: () => void;

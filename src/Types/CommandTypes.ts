@@ -33,6 +33,7 @@ export interface CommandContext {
         saveNotebook: (filePath?: string) => Promise<void>;
         showSaveAsDialog: () => Promise<void>;
         newNotebook: () => void;
+        clearNotebook: () => void;
         loadNotebook: (filePath: string) => Promise<void>;
         currentModel: any;
         currentFilePath: string | null;

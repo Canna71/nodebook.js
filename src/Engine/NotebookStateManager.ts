@@ -165,6 +165,16 @@ export class NotebookStateManager {
         }, description);
     }
 
+    clearNotebook(description: string = 'Clear notebook'): void {
+        this.updateState({
+            currentFilePath: null,
+            currentModel: null,
+            isDirty: false,
+            error: null,
+            selectedCellId: null
+        }, description);
+    }
+
     saveNotebook(filePath?: string, description: string = 'Save notebook'): void {
         this.updateState({
             currentFilePath: filePath || this.currentState.currentFilePath,
