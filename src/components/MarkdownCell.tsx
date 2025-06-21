@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { renderMarkdownWithValues } from '@/Engine/markdown';
 import { useReactiveSystem } from '@/Engine/ReactiveProvider';
 import { useApplication } from '@/Engine/ApplicationProvider';
@@ -53,6 +53,9 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
   
   // Local state for content being edited
   const [currentContent, setCurrentContent] = useState(definition.content);
+  
+  // Debounce timeout ref
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get markdown completion source for reactive variables
   const markdownCompletionSource = useMarkdownCompletions();
@@ -61,6 +64,15 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
   useEffect(() => {
     setCurrentContent(definition.content);
   }, [definition.content]);
+
+  // Cleanup debounce timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Utility to extract variable names from {{expressions}} in markdown content
   function extractVariablesFromContent(content: string): string[] {
@@ -174,13 +186,36 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
     }
   }, [definition.content, definition.variables, reactiveStore, initialized]);
 
-  const onContentChange = (newContent: string) => {
+  const onContentChange = useCallback((newContent: string) => {
     // Update local state immediately for responsive editing
     setCurrentContent(newContent);
     
-    // Update the notebook model through state manager
-    updateCell(definition.id, { content: newContent }, 'Update markdown cell');
-  };
+    // Clear existing timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    // Debounce the model update to avoid excessive state changes
+    debounceTimeoutRef.current = setTimeout(() => {
+      // Only update if content actually changed from the definition
+      if (newContent !== definition.content) {
+        updateCell(definition.id, { content: newContent }, 'Update markdown cell');
+      }
+    }, 300); // 300ms debounce
+  }, [definition.id, definition.content, updateCell]);
+
+  // Force save any pending changes when switching out of edit mode
+  useEffect(() => {
+    if (!isEditMode && debounceTimeoutRef.current) {
+      // Clear the timeout and immediately save any pending changes
+      clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = null;
+      
+      if (currentContent !== definition.content) {
+        updateCell(definition.id, { content: currentContent }, 'Update markdown cell');
+      }
+    }
+  }, [isEditMode, currentContent, definition.content, definition.id, updateCell]);
 
   if (isEditMode) {
     // Edit mode: show markdown editor
