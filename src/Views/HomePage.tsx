@@ -59,11 +59,6 @@ export function HomePage() {
   const loadExampleNotebooks = async () => {
     try {
       const fileSystemHelpers = await getFileSystemHelpers();
-      
-      // Debug path information
-      const debugInfo = await fileSystemHelpers.debugPaths();
-      console.log('FileSystemHelpers debug info:', debugInfo);
-      
       const result = await fileSystemHelpers.listExamples();
       if (result.success && result.data) {
         setExampleNotebooks(result.data);
