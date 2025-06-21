@@ -1,3 +1,4 @@
+import React from 'react';
 import anylogger from 'anylogger';
 import { AppErrorDialogConfig, AppConfirmDialogConfig, AppInfoDialogConfig, AppPromptDialogConfig, AppProgressDialogConfig } from '@/components/AppDialogProvider';
 
@@ -87,7 +88,7 @@ export class AppDialogHelper {
   /**
    * Show an info dialog
    */
-  async showInfo(title: string, message: string, details?: string): Promise<void> {
+  async showInfo(title: string | React.ReactNode, message: string, details?: string): Promise<void> {
     log.debug('Showing info dialog', { title, message, hasDetails: !!details });
     
     if (!this.dialogHandlers.showInfo) {

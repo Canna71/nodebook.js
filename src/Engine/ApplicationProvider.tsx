@@ -5,9 +5,10 @@ import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
 import { RecentNotebooksManager } from '@/lib/recentNotebooks';
 import { toast } from 'sonner';
 import anylogger from 'anylogger';
-import { commandManagerSingleton } from './CommandManagerSingleton';
+import { commandManagerSingleton } from '@/Engine/CommandManagerSingleton';
 import { NotebookStateManager } from './NotebookStateManager';
 import { appDialogHelper } from '@/lib/AppDialogHelper';
+import NotebookCellsStack from '@/components/icons/NotebookCellsStack';
 
 const log = anylogger('ApplicationProvider');
 
@@ -516,16 +517,38 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     const showAboutDialog = async () => {
         try {
             const appInfo = await window.api.getAppInfo();
+            const aboutTitle = React.createElement('div', {
+                className: 'flex items-center space-x-3'
+            }, [
+                React.createElement(NotebookCellsStack, { 
+                    key: 'icon',
+                    size: 32,
+                    className: 'text-primary flex-shrink-0'
+                }),
+                React.createElement('span', { key: 'text' }, appInfo.name)
+            ]);
+            
             await appDialogHelper.showInfo(
-                'About',
-                `${appInfo.name}\n\nVersion ${appInfo.version}\n\n© 2025 ${appInfo.author}\n\nLicense: ${appInfo.license}`
+                aboutTitle,
+                `Version ${appInfo.version}\n\n© 2025 ${appInfo.author}\n\nLicense: ${appInfo.license}`
             );
         } catch (error) {
             // Fallback if getAppInfo fails
             const version = await window.api.getAppVersion();
+            const aboutTitle = React.createElement('div', {
+                className: 'flex items-center space-x-3'
+            }, [
+                React.createElement(NotebookCellsStack, { 
+                    key: 'icon',
+                    size: 32,
+                    className: 'text-primary flex-shrink-0'
+                }),
+                React.createElement('span', { key: 'text' }, 'Nodebook.js')
+            ]);
+            
             await appDialogHelper.showInfo(
-                'About',
-                `Nodebook.js\n\nVersion ${version}\n\n© 2025 Nodebook.js Project\n\nLicense: MIT`
+                aboutTitle,
+                `Version ${version}\n\n© 2025 Nodebook.js Project\n\nLicense: MIT`
             );
         }
     };

@@ -7,6 +7,7 @@ import { FileText, FolderOpen, Sparkles, Clock, Monitor, Brain, Zap, Database, B
 import { RecentNotebooksManager, RecentNotebook } from '@/lib/recentNotebooks';
 import { moduleRegistry } from '@/Engine/ModuleRegistry';
 import { getFileSystemHelpers, NotebookFileInfo } from '@/lib/fileSystemHelpers';
+import NotebookCellsStack from '@/components/icons/NotebookCellsStack';
 
 export function HomePage() {
   const { createNewNotebook, loadNotebook } = useApplication();
@@ -151,7 +152,7 @@ export function HomePage() {
       {/* Header */}
       <div className="text-center space-y-6">
         <div className="flex items-center justify-center space-x-4">
-          <div className="text-5xl">🔬</div>
+          <NotebookCellsStack size={64} className="text-primary" />
           <div className="space-y-1">
             <h1 className="text-5xl font-bold text-foreground tracking-tight">Nodebook.js</h1>
             <p className="text-xl text-secondary-foreground">Interactive Reactive Notebooks</p>

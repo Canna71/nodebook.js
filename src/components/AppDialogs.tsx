@@ -164,7 +164,7 @@ export function AppConfirmDialog({
 export interface AppInfoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  title: string;
+  title: string | React.ReactNode;
   message: string;
   details?: string; // Optional expandable details
   size?: AppDialogProps['size'];
@@ -194,7 +194,8 @@ export function AppInfoDialog({
       description={message}
       variant="info"
       size={size}
-      footer={footer}    >
+      footer={footer}
+    >
       {details && (
         <div className="space-y-2">
           <Button 
