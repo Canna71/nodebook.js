@@ -6,6 +6,7 @@ import { MarkdownCellDefinition } from '@/Types/NotebookModel';
 import Editor from './Editor';
 import { oneDark } from '@codemirror/theme-one-dark';
 import MarkdownIt from 'markdown-it';
+import mathjax3 from 'markdown-it-mathjax3';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/vs2015.css'; // Import highlight.js theme
 import { useMarkdownCompletions } from '@/hooks/useMarkdownCompletions';
@@ -33,7 +34,18 @@ const md = new MarkdownIt({
     return ''; // use external default escaping
   }
 });
-
+md.use(mathjax3, {
+//   tex: {
+//     inlineMath: [['$', '$'], ['\\(', '\\)']],
+//     displayMath: [['$$', '$$'], ['\\[', '\\]']],
+//     processEscapes: true,
+//     processEnvironments: true
+//   },
+//   html: true,
+//   svg: {
+//     fontCache: 'global'
+//   }
+});
 export function MarkdownCell({ definition, initialized, isEditMode = false }: MarkdownCellProps) {
   const { reactiveStore, codeCellEngine } = useReactiveSystem();
   const { updateCell } = useApplication();
