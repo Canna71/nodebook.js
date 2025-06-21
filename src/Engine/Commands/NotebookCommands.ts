@@ -1,5 +1,6 @@
 import { ICommand, IParameterizedCommand, CommandContext } from '@/Types/CommandTypes';
 import { CellDefinition } from '@/Types/NotebookModel';
+import { appDialogHelper } from '@/lib/AppDialogHelper';
 import anylogger from 'anylogger';
 
 const log = anylogger('NotebookCommands');
@@ -437,11 +438,42 @@ export class CloseNotebookCommand extends BaseCommand {
         try {
             // Check if the notebook has unsaved changes
             const isDirty = this.context.applicationProvider.isDirty;
+            const currentFilePath = this.context.applicationProvider.currentFilePath;
             
             if (isDirty) {
-                // TODO: Show confirmation dialog for unsaved changes
-                // For now, we'll just proceed with closing
-                log.warn('Closing notebook with unsaved changes');
+                log.debug('Notebook has unsaved changes, showing confirmation dialog');
+                
+                // Extract filename for display
+                const filename = currentFilePath ? 
+                    currentFilePath.split('/').pop() || 'Untitled' : 
+                    'Untitled';
+                
+                // Show confirmation dialog using the app dialog system
+                const userChoice = await appDialogHelper.showUnsavedChangesConfirm(filename);
+                
+                if (userChoice === 'cancel') {
+                    log.debug('User cancelled closing notebook');
+                    return; // User cancelled, don't close
+                } else if (userChoice === 'save') {
+                    log.debug('User chose to save before closing');
+                    try {
+                        // Save the notebook before closing
+                        await this.context.applicationProvider.saveNotebook();
+                        log.debug('Notebook saved successfully');
+                    } catch (error) {
+                        log.error('Error saving notebook before closing:', error);
+                        // Show error and don't close
+                        await appDialogHelper.showError(
+                            'Save Failed',
+                            'Failed to save the notebook. The notebook was not closed.',
+                            error instanceof Error ? error.message : String(error)
+                        );
+                        return;
+                    }
+                } else {
+                    log.debug('User chose to discard changes');
+                    // userChoice === 'discard', proceed with closing without saving
+                }
             }
             
             // Clear the current notebook to return to homepage
