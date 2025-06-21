@@ -1,6 +1,6 @@
 # Module System Guide
 
-NotebookJS provides a comprehensive module system that allows you to use Node.js modules, scientific computing libraries, and custom modules in your code cells. This guide explains what modules are available and how to use them.
+Nodebook.js provides a comprehensive module system that allows you to use Node.js modules, scientific computing libraries, and custom modules in your code cells. This guide explains what modules are available and how to use them.
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@ NotebookJS provides a comprehensive module system that allows you to use Node.js
 
 ## Module Availability
 
-NotebookJS provides modules in two ways:
+Nodebook.js provides modules in two ways:
 
 ### 1. **Injected Global Variables** 
 These modules are automatically available as global variables in all code cells - no `require()` needed.
@@ -447,9 +447,9 @@ console.log('User data directory:', userDataPath);
 
 1. **Navigate to user data directory**:
    ```bash
-   cd "~/Library/Application Support/NotebookJS/node_modules"  # macOS
-   cd "%APPDATA%/NotebookJS/node_modules"                      # Windows
-   cd "~/.config/NotebookJS/node_modules"                      # Linux
+   cd "~/Library/Application Support/Nodebook.js/node_modules"  # macOS
+   cd "%APPDATA%/Nodebook.js/node_modules"                      # Windows
+   cd "~/.config/Nodebook.js/node_modules"                      # Linux
    ```
 
 2. **Install modules with npm**:
@@ -580,7 +580,7 @@ if (optionalModule) {
 
 ## Module Resolution
 
-NotebookJS resolves modules in this order:
+Nodebook.js resolves modules in this order:
 
 1. **Cache check**: Previously loaded modules
 2. **Built-in modules**: Node.js standard library
@@ -751,4 +751,4 @@ exports.fileList = files;        // Export the computed result
 exports.sortedData = sorted;     // Export the computed result
 ```
 
-This comprehensive module system makes NotebookJS a powerful platform for data science, analysis, and general computation tasks. The combination of injected globals for common modules and require() for specialized modules provides both convenience and flexibility.
+This comprehensive module system makes Nodebook.js a powerful platform for data science, analysis, and general computation tasks. The combination of injected globals for common modules and require() for specialized modules provides both convenience and flexibility.

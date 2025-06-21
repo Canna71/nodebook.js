@@ -208,10 +208,10 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             if (state.currentFilePath) {
                 const fileName = state.currentFilePath.split('/').pop() || 'Untitled';
                 const dirtyIndicator = state.isDirty ? '● ' : '';
-                window.api.setWindowTitle(`${dirtyIndicator}${fileName} - NotebookJS`);
+                window.api.setWindowTitle(`${dirtyIndicator}${fileName} - Nodebook.js`);
             } else {
                 const dirtyIndicator = state.isDirty ? '● ' : '';
-                window.api.setWindowTitle(`${dirtyIndicator}Untitled - NotebookJS`);
+                window.api.setWindowTitle(`${dirtyIndicator}Untitled - Nodebook.js`);
             }
         };
 
@@ -509,8 +509,8 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     const showAboutDialog = async () => {
         const version = await window.api.getAppVersion();
         await appDialogHelper.showInfo(
-            'About NotebookJS',
-            'NotebookJS',
+            'About Nodebook.js',
+            'Nodebook.js',
             `Version: ${version}\n\nA reactive notebook application for interactive computing and data analysis.`
         );
     };
@@ -525,7 +525,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 {
                     type: 'markdown',
                     id: generateId(),
-                    content: '# Welcome to NotebookJS!\n\nThis is a reactive notebook that lets you create interactive documents with code, formulas, and rich content.'
+                    content: '# Welcome to Nodebook.js!\n\nThis is a reactive notebook that lets you create interactive documents with code, formulas, and rich content.'
                 },
                 {
                     type: 'input',
@@ -554,7 +554,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     };    const showShortcutsDialog = async () => {
         await appDialogHelper.showInfo(
             'Keyboard Shortcuts',
-            'NotebookJS Shortcuts',
+            'Nodebook.js Shortcuts',
             `File Operations:
 • Ctrl/Cmd+N - New Notebook
 • Ctrl/Cmd+O - Open Notebook
@@ -578,7 +578,7 @@ View:
     };    const showDocumentationDialog = async () => {
         await appDialogHelper.showInfo(
             'Documentation',
-            'NotebookJS Documentation',
+            'Nodebook.js Documentation',
             `Cell Types:
 • Code Cells: Write JavaScript code with reactive variables
 • Formula Cells: Create calculated values using $variable syntax

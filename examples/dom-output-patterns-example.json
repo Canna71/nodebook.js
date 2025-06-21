@@ -8,7 +8,7 @@
     {
       "type": "markdown",
       "id": "intro",
-      "content": "# DOM Output Patterns Example\n\nThis notebook demonstrates the recommended approaches for DOM output in NotebookJS:\n\n1. **`output(element)`** - Recommended for all DOM elements\n2. **`outEl.appendChild()`** - Advanced cases requiring direct DOM manipulation\n3. **Auto-outputting helpers** - Containers that output themselves\n\n**Key Recommendation**: Always use `output()` for DOM elements unless you specifically need direct DOM manipulation."
+      "content": "# DOM Output Patterns Example\n\nThis notebook demonstrates the recommended approaches for DOM output in Nodebook.js:\n\n1. **`output(element)`** - Recommended for all DOM elements\n2. **`outEl.appendChild()`** - Advanced cases requiring direct DOM manipulation\n3. **Auto-outputting helpers** - Containers that output themselves\n\n**Key Recommendation**: Always use `output()` for DOM elements unless you specifically need direct DOM manipulation."
     },
     {
       "type": "code",

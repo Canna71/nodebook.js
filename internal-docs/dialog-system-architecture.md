@@ -2,7 +2,7 @@
 
 ## Overview
 
-The NotebookJS dialog system is built on a unified architecture that provides consistent dialog experiences across the application. This document describes the technical architecture, design decisions, and implementation details.
+The Nodebook.js dialog system is built on a unified architecture that provides consistent dialog experiences across the application. This document describes the technical architecture, design decisions, and implementation details.
 
 ## System Components
 

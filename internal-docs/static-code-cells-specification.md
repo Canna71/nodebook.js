@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document specifies the implementation of static code cells in NotebookJS. Static code cells are regular code cells that can be toggled to not participate in the reactive system, allowing for manual execution without affecting the reactive store or triggering formula updates.
+This document specifies the implementation of static code cells in Nodebook.js. Static code cells are regular code cells that can be toggled to not participate in the reactive system, allowing for manual execution without affecting the reactive store or triggering formula updates.
 
 ## Requirements
 

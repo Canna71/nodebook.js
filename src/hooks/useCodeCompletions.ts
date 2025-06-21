@@ -124,7 +124,7 @@ export function useCodeCompletions() {
             {
                 label: "require",
                 type: "function",
-                info: "Load modules (Node.js/NotebookJS module system)",
+                info: "Load modules (Node.js/Nodebook.js module system)",
                 detail: "Module System"
             },
             {

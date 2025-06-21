@@ -1,11 +1,11 @@
 {
   "title": "D3.js Visualization Example",
-  "description": "Demonstrates creating interactive charts with D3.js in NotebookJS",
+  "description": "Demonstrates creating interactive charts with D3.js in Nodebook.js",
   "cells": [
     {
       "type": "markdown",
       "id": "intro-md",
-      "content": "# D3.js Visualization Example\n\nThis notebook demonstrates how to create interactive visualizations using D3.js within NotebookJS. D3 is a powerful JavaScript library for creating data-driven documents and interactive visualizations.\n\n## Basic Line Chart\n\nThe following code cell creates a simple time-series chart using D3.js:"
+      "content": "# D3.js Visualization Example\n\nThis notebook demonstrates how to create interactive visualizations using D3.js within Nodebook.js. D3 is a powerful JavaScript library for creating data-driven documents and interactive visualizations.\n\n## Basic Line Chart\n\nThe following code cell creates a simple time-series chart using D3.js:"
     },
     {
       "type": "code",

@@ -1,6 +1,6 @@
 # Internal Documentation Index
 
-This folder contains internal technical documentation for NotebookJS developers and contributors.
+This folder contains internal technical documentation for Nodebook.js developers and contributors.
 
 ## Documents
 
@@ -12,7 +12,7 @@ This folder contains internal technical documentation for NotebookJS developers 
 ## Document Purpose
 
 These documents are intended for:
-- **Developers** working on NotebookJS features
+- **Developers** working on Nodebook.js features
 - **Contributors** understanding the codebase
 - **Maintainers** making architectural decisions
 - **Code reviewers** understanding system design

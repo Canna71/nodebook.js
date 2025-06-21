@@ -1,6 +1,6 @@
 # Markdown Cells
 
-Markdown cells in NotebookJS provide rich text formatting with the ability to dynamically include variables and expressions from your reactive system. They support standard Markdown syntax enhanced with reactive variable interpolation.
+Markdown cells in Nodebook.js provide rich text formatting with the ability to dynamically include variables and expressions from your reactive system. They support standard Markdown syntax enhanced with reactive variable interpolation.
 
 ## Basic Markdown Syntax
 
@@ -35,7 +35,7 @@ Markdown cells support all standard Markdown features:
 
 ## Variable Interpolation
 
-The key feature of NotebookJS markdown cells is the ability to include dynamic variables using the `{{}}` syntax.
+The key feature of Nodebook.js markdown cells is the ability to include dynamic variables using the `{{}}` syntax.
 
 ### Basic Variable References
 

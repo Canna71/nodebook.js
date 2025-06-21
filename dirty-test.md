@@ -7,7 +7,7 @@
 
 2. **Run the code cell below** 
    - This should mark the notebook as dirty
-   - Window title should show "• filename.nbjs - NotebookJS" 
+   - Window title should show "• filename.nbjs - Nodebook.js" 
    - Toolbar should show "• filename" or "• Untitled"
 
 3. **Save the notebook (Ctrl/Cmd+S)**

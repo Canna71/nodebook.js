@@ -3,7 +3,7 @@
     {
       "type": "markdown",
       "id": "md_intro",
-      "content": "# Shell Integration Test\n\nTesting zx integration and working directory handling in NotebookJS."
+      "content": "# Shell Integration Test\n\nTesting zx integration and working directory handling in Nodebook.js."
     },
     {
       "type": "code",

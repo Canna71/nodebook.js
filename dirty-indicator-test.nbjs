@@ -3,7 +3,7 @@
     {
       "id": "instructions-cell",
       "type": "markdown",
-      "content": "# Testing Storage Dirty Indicator\n\n## Test Steps:\n\n1. **Load this notebook** \n   - Window title should show just the filename without the dirty indicator \"•\"\n\n2. **Run the code cell below** \n   - This should mark the notebook as dirty\n   - Window title should show \"• filename.nbjs - NotebookJS\" \n   - Toolbar should show \"• filename\" or \"• Untitled\"\n\n3. **Save the notebook (Ctrl/Cmd+S)**\n   - Window title should remove the dirty indicator\n   - Toolbar should show just the filename without \"•\"\n\n4. **Reload the notebook**\n   - Storage data should persist\n   - No dirty indicator should be shown\n\n---\n\nRun the code below to test storage persistence and dirty state:"
+      "content": "# Testing Storage Dirty Indicator\n\n## Test Steps:\n\n1. **Load this notebook** \n   - Window title should show just the filename without the dirty indicator \"•\"\n\n2. **Run the code cell below** \n   - This should mark the notebook as dirty\n   - Window title should show \"• filename.nbjs - Nodebook.js\" \n   - Toolbar should show \"• filename\" or \"• Untitled\"\n\n3. **Save the notebook (Ctrl/Cmd+S)**\n   - Window title should remove the dirty indicator\n   - Toolbar should show just the filename without \"•\"\n\n4. **Reload the notebook**\n   - Storage data should persist\n   - No dirty indicator should be shown\n\n---\n\nRun the code below to test storage persistence and dirty state:"
     },
     {
       "id": "test-storage-dirty-cell",

@@ -1,7 +1,7 @@
-# GitHub Copilot Instructions for NotebookJS
+# GitHub Copilot Instructions for Nodebook.js
 
 ## Project Overview
-NotebookJS is a reactive notebook application built with React, TypeScript, and Electron. It features a reactive programming system with code cells, formulas, and data visualization capabilities.
+Nodebook.js is a reactive notebook application built with React, TypeScript, and Electron. It features a reactive programming system with code cells, formulas, and data visualization capabilities.
 
 ## Architecture Guidelines
 
@@ -12,7 +12,7 @@ NotebookJS is a reactive notebook application built with React, TypeScript, and 
 
 ## Reactive System Architecture
 
-NotebookJS uses a custom reactive system that automatically manages dependencies and updates between notebook cells.
+Nodebook.js uses a custom reactive system that automatically manages dependencies and updates between notebook cells.
 
 ### Core Components
 

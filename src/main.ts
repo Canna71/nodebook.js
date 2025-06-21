@@ -311,7 +311,7 @@ function createMenu(mainWindow: BrowserWindow) {
             label: 'Help',
             submenu: [
                 {
-                    label: 'About NotebookJS',
+                    label: 'About Nodebook.js',
                     click: () => {
                         mainWindow.webContents.send('menu-about');
                     }

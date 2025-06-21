@@ -1,4 +1,4 @@
-# NotebookJS Shared Configuration - Technical Specifications
+# Nodebook.js Shared Configuration - Technical Specifications
 
 This document contains technical specifications shared between notebook generation and single cell generation systems.
 
@@ -83,7 +83,7 @@ const files = await $`ls *.nbjs`;  // Lists notebook files
 - **axios**: HTTP client (`const axios = require('axios')`)
 
 ### Custom Object Rendering
-When using `output()` with objects, NotebookJS provides special rendering for:
+When using `output()` with objects, Nodebook.js provides special rendering for:
 - **LaTeX**: Strings containing LaTeX syntax (e.g., `"$$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$"`)
   - Display math: `$$..$$` for centered, block-level equations
   - Inline math: `$...$` for inline mathematical expressions
@@ -94,7 +94,7 @@ When using `output()` with objects, NotebookJS provides special rendering for:
 - **Generic Objects**: Rendered using react-json-view for exploration
 
 ### LaTeX Mathematical Expression Support
-NotebookJS automatically detects and renders LaTeX content in:
+Nodebook.js automatically detects and renders LaTeX content in:
 - Code cell outputs (return values and `output()` calls)
 - Console output (`console.log()`, `console.error()`, etc.)
 - Object property values when displayed
@@ -187,7 +187,7 @@ $$CV = \frac{s}{\bar{x}} = {{(stdDev/mean*100).toFixed(1)}}\%$$
 2. **NEVER create HTML strings** - Use markdown interpolation instead  
 3. **NEVER use `createElement` for simple outputs** - Use markdown cells
 4. **NEVER use `createDiv` with content** - Just export data and use markdown
-5. **NEVER output HTML directly** - Let NotebookJS handle rendering
+5. **NEVER output HTML directly** - Let Nodebook.js handle rendering
 
 ### Formula Cells Are Mandatory For:
 - Basic arithmetic: `a + b`, `price * quantity`, `total - discount`
@@ -326,7 +326,7 @@ Status: {{isActive ? 'Active' : 'Inactive'}}
 - **Export meaningful variables**: Use descriptive names for reactive variables
 - **Handle errors gracefully**: Wrap risky operations in try-catch
 - **Use reactive patterns**: Let variables automatically update dependent cells
-- **Avoid manual HTML**: Let NotebookJS handle rendering
+- **Avoid manual HTML**: Let Nodebook.js handle rendering
 
 ### Code Cell Patterns
 ```javascript
@@ -357,4 +357,4 @@ price > 100 ? price * 0.1 : 0
 - **Status**: {{total > 1000 ? 'High' : 'Normal'}}
 ```
 
-This shared configuration ensures consistency across all NotebookJS AI assistants while avoiding duplication of technical specifications.
+This shared configuration ensures consistency across all Nodebook.js AI assistants while avoiding duplication of technical specifications.

@@ -1,6 +1,6 @@
 # Value Formatting System
 
-NotebookJS uses a unified formatting system that provides consistent value formatting across markdown cells and formula cells. The shared formatting utilities are located in `src/lib/formatters.ts`.
+Nodebook.js uses a unified formatting system that provides consistent value formatting across markdown cells and formula cells. The shared formatting utilities are located in `src/lib/formatters.ts`.
 
 ## Overview
 

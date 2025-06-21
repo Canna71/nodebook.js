@@ -3,7 +3,7 @@
     {
       "type": "markdown",
       "id": "md_mbthsdfa_hv9vy",
-      "content": "# Mathjs Example\n\n\nThis Notebook shows how to do math with **Notebook.js**\n\n"
+      "content": "# Mathjs Example\n\n\nThis Notebook shows how to do math with **Nodebook.js**\n\n"
     },
     {
       "type": "code",

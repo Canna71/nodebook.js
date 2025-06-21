@@ -164,7 +164,7 @@ export function SettingsView() {
             <div>
                 <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
                 <p className="text-muted-foreground">
-                    Configure your NotebookJS preferences and integrations.
+                    Configure your Nodebook.js preferences and integrations.
                 </p>
             </div>
             

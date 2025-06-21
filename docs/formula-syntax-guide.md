@@ -1,6 +1,6 @@
 # Formula Syntax Guide
 
-NotebookJS supports two formula syntaxes that can be used interchangeably:
+Nodebook.js supports two formula syntaxes that can be used interchangeably:
 
 ## Legacy `$variable` Syntax
 

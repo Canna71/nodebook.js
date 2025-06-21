@@ -1,4 +1,4 @@
-# Async/Await Usage Guide for NotebookJS
+# Async/Await Usage Guide for Nodebook.js
 
 ## ✅ Proper Async/Await Patterns
 
@@ -142,7 +142,7 @@ exports.insights = insights;
 
 ## 🔧 Technical Implementation
 
-NotebookJS now supports async/await by:
+Nodebook.js now supports async/await by:
 - Wrapping user code in async IIFE
 - Properly awaiting all code cell execution
 - Maintaining reactive dependencies across async operations

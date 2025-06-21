@@ -1,6 +1,6 @@
 # Storage System Documentation
 
-NotebookJS includes a built-in key-value storage system that allows you to persist data within the notebook file. This storage system is designed for explicit, user-controlled data persistence.
+Nodebook.js includes a built-in key-value storage system that allows you to persist data within the notebook file. This storage system is designed for explicit, user-controlled data persistence.
 
 ## Overview
 

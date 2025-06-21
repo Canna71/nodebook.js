@@ -1,6 +1,6 @@
 # Code Cells Guide
 
-Code cells in NotebookJS provide a powerful JavaScript execution environment with reactive capabilities, DOM manipulation, and module support. This guide covers everything you can do in a code cell.
+Code cells in Nodebook.js provide a powerful JavaScript execution environment with reactive capabilities, DOM manipulation, and module support. This guide covers everything you can do in a code cell.
 
 ## Table of Contents
 
@@ -24,7 +24,7 @@ Code cells execute standard JavaScript with full ES6+ support:
 
 ```javascript
 // Variables and functions
-const message = "Hello, NotebookJS!";
+const message = "Hello, Nodebook.js!";
 let counter = 0;
 
 function increment() {
@@ -188,11 +188,11 @@ You can freely switch between reactive and static modes:
 
 ## Output Methods and Visualization
 
-NotebookJS provides several specialized output methods for different types of data. **Avoid creating DOM elements directly** - use the appropriate output method for your data type.
+Nodebook.js provides several specialized output methods for different types of data. **Avoid creating DOM elements directly** - use the appropriate output method for your data type.
 
 ### ⚠️ Important: Use Proper Output Methods
 
-**Don't create DOM elements for data display!** NotebookJS has better alternatives:
+**Don't create DOM elements for data display!** Nodebook.js has better alternatives:
 
 - **Simple formatted output** → Use markdown cells with interpolations
 - **Tabular data** → Use `output.table(data)`
@@ -458,7 +458,7 @@ const complexHTML = createDiv({
 
 ## Reactive Values and Exports
 
-The reactive system in NotebookJS allows cells to share data and automatically update when dependencies change. This is achieved through the `exports` object and variable access.
+The reactive system in Nodebook.js allows cells to share data and automatically update when dependencies change. This is achieved through the `exports` object and variable access.
 
 ### Exporting Values
 
@@ -466,7 +466,7 @@ Use the `exports` object to make values available to other cells:
 
 ```javascript
 // Export a simple value
-exports.greeting = "Hello, NotebookJS!";
+exports.greeting = "Hello, Nodebook.js!";
 
 // Export computed values
 exports.numbers = [1, 2, 3, 4, 5];
@@ -673,7 +673,7 @@ console.log(x);
 
 ## Tabular Output
 
-NotebookJS provides specialized functions for displaying tabular data. **Always use `output.table()` for tabular data** instead of creating HTML tables manually.
+Nodebook.js provides specialized functions for displaying tabular data. **Always use `output.table()` for tabular data** instead of creating HTML tables manually.
 
 ### Primary Method: `output.table()`
 
@@ -743,7 +743,7 @@ const htmlTable = createElement('table', {
 
 ## Module System
 
-NotebookJS supports both built-in modules and custom module loading.
+Nodebook.js supports both built-in modules and custom module loading.
 
 ### Pre-loaded Global Modules
 
@@ -1164,7 +1164,7 @@ function processUserData(users) {
 
 ## Shell Integration
 
-NotebookJS includes comprehensive shell integration powered by the `zx` library, with all zx globals automatically available in code cells. This provides a powerful shell scripting environment directly in your notebooks.
+Nodebook.js includes comprehensive shell integration powered by the `zx` library, with all zx globals automatically available in code cells. This provides a powerful shell scripting environment directly in your notebooks.
 
 ### Core Shell Execution
 
@@ -1588,7 +1588,7 @@ if (developmentMode) {
 
 ## Global Output Monitoring
 
-NotebookJS provides two global output monitoring systems to capture and display different types of program output:
+Nodebook.js provides two global output monitoring systems to capture and display different types of program output:
 
 ### Output Panel (Ctrl+Shift+`)
 - **Purpose**: Captures raw stdout/stderr from shell commands and direct process writes
@@ -1642,7 +1642,7 @@ Both panels support:
 
 ## LaTeX Mathematical Expressions
 
-NotebookJS provides automatic LaTeX rendering for mathematical expressions in code cell outputs, console output, and object displays.
+Nodebook.js provides automatic LaTeX rendering for mathematical expressions in code cell outputs, console output, and object displays.
 
 ### LaTeX Syntax Support
 
@@ -1706,7 +1706,7 @@ $$\int_0^{{{upperLimit}}} x^2 dx = \frac{{{upperLimit}}^3}{3} = {{(Math.pow(uppe
 
 ### Automatic LaTeX Detection
 
-NotebookJS automatically detects and renders LaTeX content in:
+Nodebook.js automatically detects and renders LaTeX content in:
 
 - **Markdown cells**: Native LaTeX support with `markdown-it-mathjax3` plugin
 - **Code cell outputs**: String values containing `$$..$$` or `$...$`

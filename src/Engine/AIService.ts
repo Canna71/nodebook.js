@@ -484,7 +484,7 @@ The JSON should follow this exact structure:
 - Provide insights and interpretations
 - Make it engaging and informative
 
-Generate a complete JSON notebook that showcases NotebookJS's capabilities while solving the user's specific need.`;
+Generate a complete JSON notebook that showcases Nodebook.js's capabilities while solving the user's specific need.`;
     }
 
     /**

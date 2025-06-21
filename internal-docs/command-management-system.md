@@ -2,7 +2,7 @@
 
 ## Overview
 
-NotebookJS implements a sophisticated command management system based on the **Command Pattern** that provides a unified way to handle user interactions through menus, toolbars, keyboard shortcuts, and UI elements. This system enables consistent behavior, undo/redo functionality, and dynamic enabling/disabling of UI elements based on application state.
+Nodebook.js implements a sophisticated command management system based on the **Command Pattern** that provides a unified way to handle user interactions through menus, toolbars, keyboard shortcuts, and UI elements. This system enables consistent behavior, undo/redo functionality, and dynamic enabling/disabling of UI elements based on application state.
 
 ## Architecture Components
 

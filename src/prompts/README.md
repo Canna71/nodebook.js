@@ -1,6 +1,6 @@
 # AI Service Improvements
 
-This document describes the improvements made to the NotebookJS AI service.
+This document describes the improvements made to the Nodebook.js AI service.
 
 ## Changes Made
 
@@ -44,14 +44,14 @@ This document describes the improvements made to the NotebookJS AI service.
 - `formula` cells
 
 **Benefits**:
-- Support for all NotebookJS cell types
+- Support for all Nodebook.js cell types
 - Better error handling and validation
 - Cleaner, more maintainable parsing code
 - More robust against malformed input
 
 ### 4. Enhanced Prompt Knowledge
 
-**Before**: Basic system prompts with limited NotebookJS knowledge.
+**Before**: Basic system prompts with limited Nodebook.js knowledge.
 
 **After**: Comprehensive system prompts with detailed information about:
 - Available globals and functions
@@ -63,7 +63,7 @@ This document describes the improvements made to the NotebookJS AI service.
 
 **Benefits**:
 - More accurate and useful AI-generated content
-- Better understanding of NotebookJS capabilities
+- Better understanding of Nodebook.js capabilities
 - Consistent output format
 - Educational value in generated notebooks
 

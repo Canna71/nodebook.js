@@ -112,7 +112,7 @@ export function HomePage() {
         <div className="flex items-center justify-center space-x-4">
           <div className="text-5xl">🔬</div>
           <div className="space-y-1">
-            <h1 className="text-5xl font-bold text-foreground tracking-tight">NotebookJS</h1>
+            <h1 className="text-5xl font-bold text-foreground tracking-tight">Nodebook.js</h1>
             <p className="text-xl text-secondary-foreground">Interactive Reactive Notebooks</p>
           </div>
           <Badge variant="secondary" className="ml-4 text-sm px-3 py-1">

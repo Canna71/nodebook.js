@@ -3,7 +3,7 @@
     {
       "id": "intro-cell",
       "type": "markdown",
-      "content": "# Tabular Output Examples\n\nThis notebook demonstrates the different ways to display arrays and tabular data in NotebookJS.\n\n## Features\n- `output(array)` → Single-column table\n- `output.table(array)` → Multi-column table for objects"
+      "content": "# Tabular Output Examples\n\nThis notebook demonstrates the different ways to display arrays and tabular data in Nodebook.js.\n\n## Features\n- `output(array)` → Single-column table\n- `output.table(array)` → Multi-column table for objects"
     },
     {
       "id": "simple-array",
@@ -44,7 +44,7 @@
   "storage": {},
   "metadata": {
     "title": "Tabular Output Examples",
-    "description": "Demonstrates array and tabular data rendering in NotebookJS",
+    "description": "Demonstrates array and tabular data rendering in Nodebook.js",
     "tags": ["arrays", "tables", "output", "data-display"],
     "created": "2025-06-18"
   }

@@ -2,7 +2,7 @@
 
 ## Overview
 
-NotebookJS uses a unified dialog system built around the `AppDialogProvider` that supports all types of dialogs: error, confirm, info, prompt, and progress dialogs. This system provides both React hooks for components and a helper class for non-React code.
+Nodebook.js uses a unified dialog system built around the `AppDialogProvider` that supports all types of dialogs: error, confirm, info, prompt, and progress dialogs. This system provides both React hooks for components and a helper class for non-React code.
 
 ## Architecture
 
@@ -119,7 +119,7 @@ dialogs.showInfoDialog({
 // Promise-based
 await dialogs.showInfo({
   title: "Welcome",
-  message: "Welcome to NotebookJS!"
+  message: "Welcome to Nodebook.js!"
 });
 ```
 

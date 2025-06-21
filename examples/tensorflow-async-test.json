@@ -33,7 +33,7 @@
     {
       "id": "md_02",
       "type": "markdown",
-      "content": "## Async TensorFlow.js Test Results\n\nThis test validates that:\n1. **Async model training** works with `await model.fit()`\n2. **Async predictions** work with tensor operations\n3. **Cross-cell async state sharing** allows accessing training results\n4. **Proper resource cleanup** disposes of tensors\n5. **Error handling** works in async contexts\n\nIf all tests pass, async/await is fully functional in NotebookJS code cells!"
+      "content": "## Async TensorFlow.js Test Results\n\nThis test validates that:\n1. **Async model training** works with `await model.fit()`\n2. **Async predictions** work with tensor operations\n3. **Cross-cell async state sharing** allows accessing training results\n4. **Proper resource cleanup** disposes of tensors\n5. **Error handling** works in async contexts\n\nIf all tests pass, async/await is fully functional in Nodebook.js code cells!"
     }
   ]
 }
