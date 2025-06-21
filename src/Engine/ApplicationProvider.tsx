@@ -202,21 +202,26 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         stateManager.setSelectedCell(cellId, cellId ? `Select cell: ${cellId}` : 'Clear selection');
     }, [stateManager]);
 
-    // Update window title when dirty state or file path changes
+    // Update window title when dirty state, file path, or model changes
     useEffect(() => {
         const updateWindowTitle = () => {
-            if (state.currentFilePath) {
+            if (!state.currentModel) {
+                // No notebook loaded - show just the app name (HomePage)
+                window.api.setWindowTitle('Nodebook.js');
+            } else if (state.currentFilePath) {
+                // Saved notebook - show filename
                 const fileName = state.currentFilePath.split('/').pop() || 'Untitled';
                 const dirtyIndicator = state.isDirty ? '● ' : '';
                 window.api.setWindowTitle(`${dirtyIndicator}${fileName} - Nodebook.js`);
             } else {
+                // New unsaved notebook - show "untitled"
                 const dirtyIndicator = state.isDirty ? '● ' : '';
-                window.api.setWindowTitle(`${dirtyIndicator}Untitled - Nodebook.js`);
+                window.api.setWindowTitle(`${dirtyIndicator}untitled - Nodebook.js`);
             }
         };
 
         updateWindowTitle();
-    }, [state.currentFilePath, state.isDirty]);
+    }, [state.currentFilePath, state.isDirty, state.currentModel]);
 
     // Add menu event handlers
     useEffect(() => {
