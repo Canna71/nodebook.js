@@ -20,8 +20,12 @@ export function HomePage() {
 
   useEffect(() => {
     loadRecentNotebooks();
-    loadSystemInfo();
   }, []);
+
+  // Update system info when recent notebooks change
+  useEffect(() => {
+    loadSystemInfo();
+  }, [recentNotebooks]);
 
   const loadRecentNotebooks = async () => {
     try {
@@ -39,7 +43,7 @@ export function HomePage() {
       const info = {
         appVersion: '1.0.0', // TODO: Get from package.json or electron
         moduleCount,
-        notebookCount: recentNotebooks.length,
+        notebookCount: recentNotebooks.length, // Use current state
         storageSize: '2.3MB', // TODO: Calculate actual size
         platform: navigator.platform
       };
@@ -71,6 +75,20 @@ export function HomePage() {
     window.dispatchEvent(new CustomEvent('executeCommand', { 
       detail: { commandId: 'notebook.open' } 
     }));
+  };
+
+  const extractFileName = (path: string): string => {
+    const fileName = path.split('/').pop() || path.split('\\').pop() || path;
+    return fileName.replace(/\.[^/.]+$/, ''); // Remove extension
+  };
+
+  const extractDirectory = (path: string): string => {
+    const parts = path.split('/');
+    if (parts.length > 1) {
+      parts.pop(); // Remove filename
+      return parts.join('/');
+    }
+    return path;
   };
 
   const formatTimeAgo = (date: Date): string => {
@@ -118,155 +136,130 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <Card className="border-2">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-xl">
-            <Sparkles className="w-6 h-6" />
-            <span>Get Started</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button
-              onClick={createNewNotebook}
-              className="flex items-center justify-center space-x-3 h-16 text-lg"
-              size="lg"
-            >
-              <FileText className="w-6 h-6" />
-              <span>New Notebook</span>
-            </Button>
-            
-            <Button
-              onClick={handleOpenFile}
-              variant="outline"
-              className="flex items-center justify-center space-x-3 h-16 text-lg"
-              size="lg"
-            >
-              <FolderOpen className="w-6 h-6" />
-              <span>Open Notebook</span>
-            </Button>
-            
-            <Button
-              onClick={handleCreateWithAI}
-              variant="outline"
-              className="flex items-center justify-center space-x-3 h-16 text-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 border-purple-200 dark:border-purple-800"
-              size="lg"
-            >
-              <Brain className="w-6 h-6" />
-              <span>Create with AI</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Quick Actions - VSCode Style */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-foreground">Start</h2>
+        <div className="space-y-2">
+          <button
+            onClick={createNewNotebook}
+            className="flex items-center space-x-3 text-left p-2 w-full text-foreground"
+          >
+            <FileText className="w-4 h-4 text-blue-500 flex-shrink-0" />
+            <span className="text-sm">New file...</span>
+          </button>
+          
+          <button
+            onClick={handleOpenFile}
+            className="flex items-center space-x-3 text-left p-2 w-full text-foreground"
+          >
+            <FolderOpen className="w-4 h-4 text-green-500 flex-shrink-0" />
+            <span className="text-sm">Open file...</span>
+          </button>
+          
+          <button
+            onClick={handleCreateWithAI}
+            className="flex items-center space-x-3 text-left p-2 w-full text-foreground"
+          >
+            <Brain className="w-4 h-4 text-purple-500 flex-shrink-0" />
+            <span className="text-sm">Generate with AI...</span>
+          </button>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Notebooks */}
-        <div className="lg:col-span-2">
+        {/* Recent Notebooks - VSCode Style */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">Recent</h2>
+            {recentNotebooks.length > 0 && (
+              <button
+                onClick={() => RecentNotebooksManager.clearRecentNotebooks().then(loadRecentNotebooks)}
+                className="text-sm text-secondary-foreground hover:text-foreground"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+          
           {recentNotebooks.length > 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Clock className="w-5 h-5" />
-                  <span>Recent Notebooks</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {recentNotebooks.map((notebook, index) => (
-                    <div
-                      key={notebook.path}
-                      className="flex items-center justify-between p-4 rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors border border-transparent hover:border-border"
-                      onClick={() => handleOpenRecent(notebook)}
-                    >
-                      <div className="flex items-center space-x-3 min-w-0 flex-1">
-                        <div className="flex-shrink-0">
-                          <FileText className="w-5 h-5 text-blue-500" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="font-medium text-foreground truncate">
-                            {notebook.name}
-                          </div>
-                          <div className="text-sm text-secondary-foreground truncate">
-                            {notebook.path}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-sm text-secondary-foreground flex-shrink-0 ml-4">
-                        {formatTimeAgo(notebook.lastOpened)}
-                      </div>
+            <div className="space-y-1">
+              {recentNotebooks.map((notebook, index) => (
+                <div
+                  key={notebook.path}
+                  className="flex items-center justify-between p-2 cursor-pointer"
+                  onClick={() => handleOpenRecent(notebook)}
+                >
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <FileText className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-sm text-foreground">
+                        {extractFileName(notebook.path)}
+                      </span>
+                      <span className="text-xs text-secondary-foreground ml-2">
+                        {extractDirectory(notebook.path)}
+                      </span>
                     </div>
-                  ))}
+                  </div>
+                  <div className="text-xs text-secondary-foreground flex-shrink-0">
+                    {formatTimeAgo(notebook.lastOpened)}
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              ))}
+            </div>
           ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Clock className="w-5 h-5" />
-                  <span>Recent Notebooks</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-secondary-foreground">
-                  <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No recent notebooks</p>
-                  <p className="text-sm">Your recently opened notebooks will appear here</p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="text-center py-8 text-secondary-foreground">
+              <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No recent files</p>
+              <p className="text-xs">Files you've worked on will appear here</p>
+            </div>
           )}
         </div>
 
         {/* System Information */}
-        <div>
+        <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Monitor className="w-5 h-5" />
-                <span>System Status</span>
+              <CardTitle className="flex items-center space-x-2 text-base">
+                <Monitor className="w-4 h-4" />
+                <span>System</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">App Version</span>
-                  <Badge variant="outline">v{systemInfo.appVersion}</Badge>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Modules Loaded</span>
-                  <Badge variant="secondary">{systemInfo.moduleCount}</Badge>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Recent Files</span>
-                  <Badge variant="secondary">{systemInfo.notebookCount}</Badge>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Platform</span>
-                  <span className="text-sm text-secondary-foreground">{systemInfo.platform}</span>
-                </div>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span>Version</span>
+                <Badge variant="outline" className="text-xs">v{systemInfo.appVersion}</Badge>
+              </div>
+              
+              <div className="flex items-center justify-between text-sm">
+                <span>Recent files</span>
+                <Badge variant="secondary" className="text-xs">{systemInfo.notebookCount}</Badge>
+              </div>
+              
+              <div className="flex items-center justify-between text-sm">
+                <span>Platform</span>
+                <span className="text-xs text-secondary-foreground">{systemInfo.platform}</span>
               </div>
             </CardContent>
           </Card>
 
-          {/* Quick Tips */}
-          <Card className="mt-6">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-lg">💡 Quick Tips</CardTitle>
+              <CardTitle className="flex items-center space-x-2 text-base">
+                <Database className="w-4 h-4" />
+                <span>Modules ({systemInfo.moduleCount})</span>
+              </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm space-y-3">
-              <div>
-                <strong>Reactive Variables:</strong> Use <code className="bg-secondary px-1 rounded">exports.name = value</code> to create reactive variables that automatically update dependent cells.
-              </div>
-              <div>
-                <strong>LaTeX Support:</strong> Write mathematical expressions directly in markdown cells using <code className="bg-secondary px-1 rounded">$formula$</code> syntax.
-              </div>
-              <div>
-                <strong>AI Assistant:</strong> Use the AI features to generate notebooks, analyze data, and create visualizations automatically.
+            <CardContent>
+              <div className="max-h-40 overflow-y-auto space-y-2 text-sm">
+                {moduleRegistry.getAvailableModules().map((moduleName) => (
+                  <div key={moduleName} className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                    <span className="font-mono text-xs">{moduleName}</span>
+                  </div>
+                ))}
+                {systemInfo.moduleCount === 0 && (
+                  <div className="text-secondary-foreground text-xs">No modules loaded</div>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -420,3 +420,36 @@ export class ParameterizedAddCellCommand extends BaseCommand implements IParamet
         return this.context.uiState.selectedCellId;
     }
 }
+
+/**
+ * Close notebook command
+ */
+export class CloseNotebookCommand extends BaseCommand {
+    getDescription(): string {
+        return 'Close the current notebook';
+    }
+
+    canExecute(): boolean {
+        return !!this.context.applicationProvider.currentModel;
+    }
+
+    async execute(): Promise<void> {
+        try {
+            // Check if the notebook has unsaved changes
+            const isDirty = this.context.applicationProvider.isDirty;
+            
+            if (isDirty) {
+                // TODO: Show confirmation dialog for unsaved changes
+                // For now, we'll just proceed with closing
+                log.warn('Closing notebook with unsaved changes');
+            }
+            
+            // Create a new notebook to replace the current one
+            this.context.applicationProvider.newNotebook();
+            log.debug('Notebook closed by creating new notebook');
+        } catch (error) {
+            log.error('Error closing notebook:', error);
+            throw error;
+        }
+    }
+}

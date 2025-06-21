@@ -16,7 +16,8 @@ import {
   SparklesIcon,
   SettingsIcon,
   TerminalIcon,
-  ScrollTextIcon
+  ScrollTextIcon,
+  XIcon
 } from 'lucide-react';
 import { MarkdownIcon } from './icons/MarkdownIcon';
 import { JavascriptIcon } from './icons/JavascriptIcon';
@@ -48,6 +49,7 @@ export function Toolbar() {
   const saveInfo = getCommandInfo('notebook.save');
   const newInfo = getCommandInfo('notebook.new');
   const openInfo = getCommandInfo('notebook.open');
+  const closeInfo = getCommandInfo('notebook.close');
   const executeAllInfo = getCommandInfo('notebook.executeAll');
   const undoInfo = getCommandInfo('edit.undo');
   const redoInfo = getCommandInfo('edit.redo');
@@ -121,6 +123,22 @@ export function Toolbar() {
             </TooltipTrigger>
             <TooltipContent>
               {saveInfo?.tooltip} {!currentModel && "(No notebook loaded)"}
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleCommand('notebook.close')}
+                disabled={!currentModel}
+              >
+                <XIcon className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {closeInfo?.tooltip} {!currentModel && "(No notebook loaded)"}
             </TooltipContent>
           </Tooltip>
         </div>

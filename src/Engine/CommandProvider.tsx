@@ -15,7 +15,8 @@ import {
     ExecuteAllCellsCommand,
     ToggleSidebarCommand,
     UndoCommand,
-    RedoCommand
+    RedoCommand,
+    CloseNotebookCommand
 } from './Commands/NotebookCommands';
 import { 
     GenerateNotebookCommand, 
@@ -38,7 +39,8 @@ import {
     ArrowUturnRightIcon,
     SparklesIcon, // Add AI icon
     CommandLineIcon,
-    DocumentTextIcon
+    DocumentTextIcon,
+    XMarkIcon
 } from '@heroicons/react/24/outline';
 import { CellDefinition } from '@/Types/NotebookModel';
 import anylogger from 'anylogger';
@@ -134,6 +136,14 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
             shortcut: 'Cmd+O',
             icon: FolderOpenIcon,
             tooltip: 'Open notebook (Cmd+O)'
+        });
+
+        commandManager.registerCommand({
+            id: 'notebook.close',
+            command: new CloseNotebookCommand(getContext),
+            shortcut: 'Cmd+W',
+            icon: XMarkIcon,
+            tooltip: 'Close notebook (Cmd+W)'
         });
 
         commandManager.registerCommand({
@@ -266,6 +276,7 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
                 'notebook.save', 
                 'notebook.new', 
                 'notebook.open',
+                'notebook.close',
                 'notebook.saveAs',
                 'notebook.executeAll', 
                 'cell.add', 
