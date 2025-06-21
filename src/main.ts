@@ -274,6 +274,21 @@ function createMenu(mainWindow: BrowserWindow) {
                     label: 'Toggle Fullscreen',
                     accelerator: process.platform === 'darwin' ? 'Ctrl+Cmd+F' : 'F11',
                     role: 'togglefullscreen'
+                },
+                { type: 'separator' },
+                {
+                    label: 'Toggle Console Viewer',
+                    accelerator: 'CmdOrCtrl+`',
+                    click: () => {
+                        mainWindow.webContents.send('menu-toggle-console-viewer');
+                    }
+                },
+                {
+                    label: 'Toggle Output Panel',
+                    accelerator: 'CmdOrCtrl+Shift+`',
+                    click: () => {
+                        mainWindow.webContents.send('menu-toggle-output-panel');
+                    }
                 }
             ]
         },

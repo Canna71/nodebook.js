@@ -420,6 +420,30 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                         message: 'AI code cell generation is not available. Please try again later.'
                     });
                 }
+            },
+            'menu-toggle-console-viewer': async () => {
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('view.toggleConsole');
+                    } catch (error) {
+                        log.error('Error executing toggle console viewer command:', error);
+                    }
+                } else {
+                    // Fallback to direct event dispatch
+                    window.dispatchEvent(new CustomEvent('toggleConsolePanel'));
+                }
+            },
+            'menu-toggle-output-panel': async () => {
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('view.toggleOutput');
+                    } catch (error) {
+                        log.error('Error executing toggle output panel command:', error);
+                    }
+                } else {
+                    // Fallback to direct event dispatch
+                    window.dispatchEvent(new CustomEvent('toggleOutputPanel'));
+                }
             }
         };
 

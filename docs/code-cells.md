@@ -1592,19 +1592,19 @@ if (developmentMode) {
 
 NotebookJS provides two global output monitoring systems to capture and display different types of program output:
 
-### Output Panel (Ctrl+`)
+### Output Panel (Ctrl+Shift+`)
 - **Purpose**: Captures raw stdout/stderr from shell commands and direct process writes
-- **Keyboard Shortcut**: `Ctrl+` (backtick) 
-- **Toolbar Button**: "Output" button with terminal icon
+- **Keyboard Shortcut**: `Ctrl+Shift+` (backtick) - **View → Toggle Output Panel**
+- **Menu Location**: View → Toggle Output Panel (toolbar button removed)
 - **Content**: Raw text output from:
   - Shell commands executed with zx (`$`, `echo`, etc.)
   - Direct `process.stdout.write()` and `process.stderr.write()` calls
   - System-level output and error streams
 
-### Console Viewer (Ctrl+Shift+`)
+### Console Viewer (Ctrl+`)
 - **Purpose**: Captures all console.log, console.warn, console.error, etc. from code cell execution
-- **Keyboard Shortcut**: `Ctrl+Shift+` (backtick)
-- **Toolbar Button**: "Console" button with scroll icon
+- **Keyboard Shortcut**: `Ctrl+` (backtick) - **View → Toggle Console Viewer**
+- **Menu Location**: View → Toggle Console Viewer (toolbar button removed)
 - **Content**: Console output with:
   - Rich object rendering using the same ObjectDisplay component as cell outputs
   - Support for complex objects, arrays, DataFrames, and other data structures
@@ -1614,8 +1614,8 @@ NotebookJS provides two global output monitoring systems to capture and display 
 - **Also appears in**: Browser dev tools console for debugging
 
 ### Key Differences
-- **Output Panel**: Raw text streams from shell operations
-- **Console Viewer**: Structured console output with object inspection (replaces per-cell console sections)
+- **Output Panel**: Raw text streams from shell operations (**Ctrl+Shift+`**)
+- **Console Viewer**: Structured console output with object inspection (**Ctrl+`**)
 - **Persistence**: Console logs persist across cell re-executions and show global execution order
 - **Rendering**: Console viewer uses ObjectDisplay for rich data visualization
 - **Debugging**: Console output also appears in browser dev tools for debugging
@@ -1623,12 +1623,12 @@ NotebookJS provides two global output monitoring systems to capture and display 
 ### Usage Examples
 
 ```javascript
-// These appear in the Output Panel (Ctrl+`)
+// These appear in the Output Panel (Ctrl+Shift+`)
 await $`echo "Hello from shell"`;
 process.stdout.write("Direct stdout\n");
 process.stderr.write("Direct stderr\n");
 
-// These appear in the Console Viewer (Ctrl+Shift+`)
+// These appear in the Console Viewer (Ctrl+`)
 console.log("Simple log message");
 console.log("Object:", { name: "test", values: [1, 2, 3] });
 console.warn("Warning message");

@@ -23,6 +23,10 @@ import {
     GenerateCellCommand 
 } from '@/Engine/Commands/AICommands';
 import {
+    ToggleConsoleViewerCommand,
+    ToggleOutputPanelCommand
+} from './Commands/ViewCommands';
+import {
     DocumentArrowDownIcon as SaveIcon,
     DocumentArrowDownIcon as SaveAsIcon,
     DocumentPlusIcon,
@@ -32,7 +36,9 @@ import {
     Bars3Icon,
     ArrowUturnLeftIcon,
     ArrowUturnRightIcon,
-    SparklesIcon // Add AI icon
+    SparklesIcon, // Add AI icon
+    CommandLineIcon,
+    DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import { CellDefinition } from '@/Types/NotebookModel';
 import anylogger from 'anylogger';
@@ -233,6 +239,23 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
             command: new GenerateCellCommand(getContext),
             icon: SparklesIcon,
             tooltip: 'Generate cell with AI'
+        });
+
+        // View Commands (swapped shortcuts - console is more frequently used)
+        commandManager.registerCommand({
+            id: 'view.toggleConsole',
+            command: new ToggleConsoleViewerCommand(getContext),
+            shortcut: 'Ctrl+`',
+            icon: CommandLineIcon,
+            tooltip: 'Toggle Console Viewer (Ctrl+`)'
+        });
+
+        commandManager.registerCommand({
+            id: 'view.toggleOutput',
+            command: new ToggleOutputPanelCommand(getContext),
+            shortcut: 'Ctrl+Shift+`',
+            icon: DocumentTextIcon,
+            tooltip: 'Toggle Output Panel (Ctrl+Shift+`)'
         });
 
         log.debug('Commands registered successfully');

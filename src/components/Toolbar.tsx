@@ -25,8 +25,7 @@ import { AISettings } from './AISettings';
 export function Toolbar() {
   const { commandManager } = useCommands();
   const { currentModel } = useApplication();
-  const [outputPanelVisible, setOutputPanelVisible] = React.useState(false);
-  const [consolePanelVisible, setConsolePanelVisible] = React.useState(false);
+  // Removed outputPanelVisible and consolePanelVisible state since buttons are now in View menu
 
   const handleCommand = (commandId: string) => {
     commandManager.executeCommand(commandId);
@@ -276,7 +275,8 @@ export function Toolbar() {
 
         <Separator orientation="vertical" className="mx-2 h-6" />
 
-        {/* Output Panel Indicator */}
+        {/* Output and Console Panel toggles moved to View menu - buttons commented out */}
+        {/*
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
@@ -293,11 +293,10 @@ export function Toolbar() {
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            Toggle global output panel (Ctrl+`)
+            Toggle global output panel (Ctrl+Shift+`)
           </TooltipContent>
         </Tooltip>
 
-        {/* Console Panel Indicator */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
@@ -314,9 +313,10 @@ export function Toolbar() {
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            Toggle console viewer (Ctrl+Shift+`)
+            Toggle console viewer (Ctrl+`)
           </TooltipContent>
         </Tooltip>
+        */}
       </TooltipProvider>
     </div>
   );
