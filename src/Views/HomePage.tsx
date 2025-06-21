@@ -137,7 +137,8 @@ export function HomePage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-8 space-y-8">
+    <>
+      <div className="max-w-5xl mx-auto p-8 space-y-8">
       {/* Header */}
       <div className="text-center space-y-6">
         <div className="flex items-center justify-center space-x-4">
@@ -175,7 +176,7 @@ export function HomePage() {
           <div className="space-y-2">
             <button
               onClick={createNewNotebook}
-              className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors"
+              className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors cursor-pointer"
             >
               <FileText className="w-4 h-4 text-primary flex-shrink-0" />
               <span className="text-sm">New file...</span>
@@ -183,7 +184,7 @@ export function HomePage() {
             
             <button
               onClick={handleOpenFile}
-              className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors"
+              className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors cursor-pointer"
             >
               <FolderOpen className="w-4 h-4 text-primary flex-shrink-0" />
               <span className="text-sm">Open file...</span>
@@ -191,10 +192,18 @@ export function HomePage() {
             
             <button
               onClick={handleCreateWithAI}
-              className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors"
+              className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors cursor-pointer"
             >
               <Brain className="w-4 h-4 text-primary flex-shrink-0" />
               <span className="text-sm">Generate with AI...</span>
+            </button>
+            
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('showDocumentation'))}
+              className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors cursor-pointer"
+            >
+              <BookOpen className="w-4 h-4 text-primary flex-shrink-0" />
+              <span className="text-sm">View documentation</span>
             </button>
           </div>
         </div>
@@ -379,9 +388,9 @@ export function HomePage() {
                 <div className="text-secondary-foreground text-xs">No modules loaded</div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </CardContent>        </Card>
       </div>
     </div>
+    </>
   );
 }

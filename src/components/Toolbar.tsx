@@ -18,7 +18,8 @@ import {
   SettingsIcon,
   TerminalIcon,
   ScrollTextIcon,
-  XIcon
+  XIcon,
+  BookOpenIcon
 } from 'lucide-react';
 import { MarkdownIcon } from './icons/MarkdownIcon';
 import { JavascriptIcon } from './icons/JavascriptIcon';
@@ -111,6 +112,21 @@ export function Toolbar() {
             </TooltipTrigger>
             <TooltipContent>
               {aiGenerateNotebookInfo?.tooltip}
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleCommand('help.documentation')}
+              >
+                <BookOpenIcon className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              View Documentation
             </TooltipContent>
           </Tooltip>
 

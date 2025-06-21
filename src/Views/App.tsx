@@ -27,10 +27,11 @@ import { StdoutViewer } from '@/components/StdoutViewer';
 import { useStdoutCapture } from '@/hooks/useStdoutCapture';
 import { ConsoleViewer } from '@/components/ConsoleViewer';
 import { useConsoleCapture } from '@/hooks/useConsoleCapture';
+import { DocumentationViewer } from '@/components/DocumentationViewer';
 
 function AppContent() {
     const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook } = useApplication();
-    const { currentView } = useView();
+    const { currentView, setCurrentView } = useView();
     const { lines, clearLines, isSupported } = useStdoutCapture();
     const { entries, clearEntries, maxEntries } = useConsoleCapture();
     const [stdoutVisible, setStdoutVisible] = useState(false);
@@ -72,14 +73,21 @@ function AppContent() {
             });
         };
 
+        const handleShowDocumentationEvent = () => {
+            setCurrentView('documentation');
+            log.debug('Switching to documentation view');
+        };
+
         document.addEventListener('keydown', handleKeyDown);
         window.addEventListener('toggleOutputPanel', handleToggleEvent);
         window.addEventListener('toggleConsolePanel', handleToggleConsoleEvent);
+        window.addEventListener('showDocumentation', handleShowDocumentationEvent);
         
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('toggleOutputPanel', handleToggleEvent);
             window.removeEventListener('toggleConsolePanel', handleToggleConsoleEvent);
+            window.removeEventListener('showDocumentation', handleShowDocumentationEvent);
         };
     }, []);
 
@@ -162,6 +170,8 @@ function AppContent() {
                 <MathJaxContext>
                     {currentView === 'settings' ? (
                         <SettingsView />
+                    ) : currentView === 'documentation' ? (
+                        <DocumentationViewer onClose={() => setCurrentView('notebook')} />
                     ) : (
                         <>
                             <Toolbar />

@@ -62,3 +62,22 @@ export class ToggleOutputPanelCommand extends BaseCommand {
         log.debug('Output panel toggle command executed');
     }
 }
+
+/**
+ * View Documentation command
+ */
+export class ViewDocumentationCommand extends BaseCommand {
+    getDescription(): string {
+        return 'View Documentation';
+    }
+
+    canExecute(): boolean {
+        return true;
+    }
+
+    execute(): void {
+        // Dispatch custom event to show documentation
+        window.dispatchEvent(new CustomEvent('showDocumentation'));
+        log.debug('View documentation command executed');
+    }
+}

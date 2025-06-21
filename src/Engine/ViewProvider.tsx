@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-export type AppView = 'notebook' | 'settings';
+export type AppView = 'notebook' | 'settings' | 'documentation';
 
 interface ViewContextType {
     currentView: AppView;

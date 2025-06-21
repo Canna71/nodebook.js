@@ -25,7 +25,8 @@ import {
 } from '@/Engine/Commands/AICommands';
 import {
     ToggleConsoleViewerCommand,
-    ToggleOutputPanelCommand
+    ToggleOutputPanelCommand,
+    ViewDocumentationCommand
 } from './Commands/ViewCommands';
 import {
     DocumentArrowDownIcon as SaveIcon,
@@ -40,7 +41,8 @@ import {
     SparklesIcon, // Add AI icon
     CommandLineIcon,
     DocumentTextIcon,
-    XMarkIcon
+    XMarkIcon,
+    BookOpenIcon
 } from '@heroicons/react/24/outline';
 import { CellDefinition } from '@/Types/NotebookModel';
 import anylogger from 'anylogger';
@@ -266,6 +268,14 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
             shortcut: 'Ctrl+Shift+`',
             icon: DocumentTextIcon,
             tooltip: 'Toggle Output Panel (Ctrl+Shift+`)'
+        });
+
+        commandManager.registerCommand({
+            id: 'help.documentation',
+            command: new ViewDocumentationCommand(getContext),
+            shortcut: 'F1',
+            icon: BookOpenIcon,
+            tooltip: 'View Documentation (F1)'
         });
 
         log.debug('Commands registered successfully');
