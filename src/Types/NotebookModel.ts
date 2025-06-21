@@ -131,8 +131,13 @@ export interface NotebookModel {
   cells: CellDefinition[];
   // Add explicit key-value storage that users control
   storage?: NotebookStorage;
+  // Support for root-level title and description (used in some examples)
+  title?: string;
+  description?: string;
   metadata?: {
     tags?: string[];
+    title?: string; // Also support title in metadata
+    description?: string; // Also support description in metadata
     version?: string;
     createdAt?: Date;
     updatedAt?: Date;

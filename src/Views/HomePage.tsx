@@ -113,33 +113,6 @@ export function HomePage() {
     return fileName.replace(/\.[^/.]+$/, ''); // Remove extension
   };
 
-  const shouldShowDescription = (filename: string, description?: string): boolean => {
-    if (!description) return false;
-    
-    // Normalize both strings for comparison
-    const normalizedFilename = filename.toLowerCase().replace(/[-_\s]/g, '');
-    const normalizedDescription = description.toLowerCase().replace(/[-_\s]/g, '');
-    
-    // Don't show description if it's too similar to filename
-    const similarity = getSimilarity(normalizedFilename, normalizedDescription);
-    return similarity < 0.8; // Show only if less than 80% similar
-  };
-
-  const getSimilarity = (str1: string, str2: string): number => {
-    if (str1 === str2) return 1;
-    if (str1.length === 0 || str2.length === 0) return 0;
-    
-    // Simple similarity check - count matching characters
-    const longer = str1.length > str2.length ? str1 : str2;
-    const shorter = str1.length > str2.length ? str2 : str1;
-    
-    if (longer.includes(shorter) || shorter.includes(longer)) {
-      return Math.max(shorter.length / longer.length, 0.7);
-    }
-    
-    return 0;
-  };
-
   const extractDirectory = (path: string): string => {
     const parts = path.split('/');
     if (parts.length > 1) {
@@ -243,7 +216,6 @@ export function HomePage() {
             <div className="space-y-1 max-h-96 overflow-y-auto">
               {exampleNotebooks.map((example, index) => {
                 const filename = extractFileName(example.filepath);
-                const showDescription = shouldShowDescription(filename, example.description);
                 
                 return (
                   <div
@@ -254,13 +226,8 @@ export function HomePage() {
                     <BookOpen className="w-4 h-4 text-primary flex-shrink-0" />
                     <div className="min-w-0 flex-1">
                       <div className="text-sm text-primary hover:text-primary/80 truncate">
-                        {showDescription && example.description ? example.description : filename}
+                        {filename}
                       </div>
-                      {showDescription && example.description && (
-                        <div className="text-xs text-secondary-foreground mt-1 line-clamp-1">
-                          {filename}
-                        </div>
-                      )}
                     </div>
                   </div>
                 );
