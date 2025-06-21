@@ -7,9 +7,11 @@
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make",
+    "make": "pnpm run prebuild && electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "eslint --ext .ts,.tsx ."
+    "lint": "eslint --ext .ts,.tsx .",
+    "prebuild": "node scripts/generate-module-manifest.js",
+    "postinstall": "pnpm run prebuild"
   },
   "keywords": [],
   "author": {

@@ -1,0 +1,117 @@
+{
+  "generatedAt": "2025-06-21T16:28:16.588Z",
+  "modules": {
+    "danfojs": {
+      "version": "1.2.0",
+      "description": "JavaScript library providing high performance, intuitive, and easy to use data structures for manipulating and processing structured data.",
+      "type": "npm"
+    },
+    "plotly.js-dist-min": {
+      "version": "3.0.1",
+      "description": "Ready-to-use minified plotly.js distributed bundle.",
+      "type": "npm"
+    },
+    "zx": {
+      "version": "8.5.5",
+      "description": "A tool for writing better scripts",
+      "type": "npm"
+    },
+    "os": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "path": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "fs": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "util": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "url": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "querystring": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "crypto": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "zlib": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "stream": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "buffer": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "events": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "readline": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "worker_threads": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "child_process": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "string_decoder": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "timers": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "async_hooks": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "assert": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    },
+    "constants": {
+      "version": "v22.11.0",
+      "description": "Node.js built-in module",
+      "type": "builtin"
+    }
+  },
+  "nodeVersion": "v22.11.0",
+  "platform": "darwin"
+}

@@ -10,13 +10,13 @@ import {
     SaveAsNotebookCommand,
     NewNotebookCommand,
     OpenNotebookCommand,
+    CloseNotebookCommand,
     AddCellCommand,
     ParameterizedAddCellCommand,
     ExecuteAllCellsCommand,
     ToggleSidebarCommand,
     UndoCommand,
-    RedoCommand,
-    CloseNotebookCommand
+    RedoCommand
 } from './Commands/NotebookCommands';
 import { 
     GenerateNotebookCommand, 

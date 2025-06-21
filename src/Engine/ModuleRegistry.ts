@@ -23,6 +23,9 @@ import * as danfojs from '/node_modules/danfojs/dist/danfojs-browser/src';
 // case 7)
 // import * as danfojs from 'danfojs'; 
 
+// Import module manifest (generated at build time)
+import moduleManifest from '../module-manifest.json'; 
+
 const log = anylogger('ModuleRegistry');
 // Ensure TextDecoder is available globally
 /**
@@ -230,7 +233,176 @@ const danfojs:any = this.nodeRequire('danfojs');
    * Get list of available modules
    */
   public getAvailableModules(): string[] {
-    return Array.from(this.modules.keys());
+    const keys = Array.from(this.modules.keys());
+    log.debug('Available module keys:', keys);
+    return keys;
+  }
+
+  /**
+   * Get list of available modules with version information
+   */
+  public getAvailableModulesWithVersions(): Array<{name: string, version?: string}> {
+    const keys = Array.from(this.modules.keys());
+    
+    // Debug: Check if any keys are not strings
+    keys.forEach((key, index) => {
+      if (typeof key !== 'string') {
+        log.error(`Module key at index ${index} is not a string:`, key, 'Type:', typeof key);
+      }
+    });
+    
+    log.debug('Getting versions for modules:', keys);
+    
+    return keys.map((moduleName, index) => {
+      // Ensure moduleName is always a string
+      let nameStr: string;
+      try {
+        if (typeof moduleName === 'string') {
+          nameStr = moduleName;
+        } else {
+          log.warn(`Module name at index ${index} is not a string:`, moduleName);
+          nameStr = `Module_${index}`;
+        }
+      } catch (error) {
+        log.error(`Error processing module name at index ${index}:`, error);
+        nameStr = `Unknown_Module_${index}`;
+      }
+      
+      try {
+        const version = this.getModuleVersion(nameStr);
+        log.debug(`Version for ${nameStr}:`, version, '(source: runtime detection)');
+        return {
+          name: nameStr,
+          version: version
+        };
+      } catch (error) {
+        log.warn(`Error processing module ${nameStr}:`, error);
+        return {
+          name: nameStr,
+          version: undefined
+        };
+      }
+    }).filter(module => module.name && typeof module.name === 'string');
+  }
+
+  /**
+   * Get version of a specific module
+   */
+  public getModuleVersion(moduleName: string): string | undefined {
+    try {
+      const moduleExports = this.modules.get(moduleName);
+      if (!moduleExports) return undefined;
+
+      // For built-in Node.js modules, prefer the manifest since it's more reliable
+      const builtinModules = [
+        'os', 'path', 'fs', 'util', 'url', 'querystring',
+        'crypto', 'zlib', 'stream', 'buffer', 'events',
+        'readline', 'worker_threads', 'child_process',
+        'string_decoder', 'timers', 'async_hooks',
+        'assert', 'constants'
+      ];
+      
+      if (builtinModules.includes(moduleName)) {
+        // Check manifest first for built-in modules
+        if (moduleManifest && moduleManifest.modules) {
+          const manifestModules = moduleManifest.modules as Record<string, { version: string; description: string; type: string }>;
+          if (manifestModules[moduleName]) {
+            return manifestModules[moduleName].version;
+          }
+        }
+        // Fallback to Node.js version (but clean it up)
+        let nodeVersion = process.version;
+        // Ensure no double "v" prefix
+        if (nodeVersion.startsWith('v')) {
+          return nodeVersion; // Already has v prefix
+        } else {
+          return `v${nodeVersion}`;
+        }
+      }
+
+      // Try different ways to get version information for non-built-in modules
+      
+      // 1. Check if module has a version property
+      if (moduleExports.version) {
+        // Ensure version is a string
+        if (typeof moduleExports.version === 'string') {
+          return moduleExports.version;
+        } else if (typeof moduleExports.version === 'object') {
+          // For complex version objects (like TensorFlow), try to extract a meaningful version
+          if (moduleExports.version['tfjs-core']) {
+            return String(moduleExports.version['tfjs-core']);
+          } else if (moduleExports.version.core) {
+            return String(moduleExports.version.core);
+          } else if (moduleExports.version.version) {
+            return String(moduleExports.version.version);
+          }
+          // Skip other complex object versions
+          log.debug(`Module ${moduleName} has complex version object, skipping`);
+        } else {
+          return String(moduleExports.version);
+        }
+      }
+
+      // 2. Check if module has __version__ property (Python style)
+      if (moduleExports.__version__) {
+        if (typeof moduleExports.__version__ === 'string') {
+          return moduleExports.__version__;
+        } else {
+          return String(moduleExports.__version__);
+        }
+      }
+
+      // 3. Try to load package.json for the module using Node.js require
+      if (this.nodeRequire) {
+        try {
+          // For npm modules, try to load their package.json
+          const packageJson = this.nodeRequire(`${moduleName}/package.json`);
+          if (packageJson && packageJson.version) {
+            if (typeof packageJson.version === 'string') {
+              return packageJson.version;
+            } else {
+              return String(packageJson.version);
+            }
+          }
+        } catch (error) {
+          // package.json not found or not accessible
+        }
+      }
+
+      // 4. Special cases for known modules
+      if (moduleName === 'plotly.js-dist-min' && moduleExports.version) {
+        if (typeof moduleExports.version === 'string') {
+          return moduleExports.version;
+        } else {
+          return String(moduleExports.version);
+        }
+      }
+
+      // 5. Check if it's a global/browser module with version info
+      if (typeof window !== 'undefined') {
+        const globalModule = (window as any)[moduleName];
+        if (globalModule && globalModule.version) {
+          if (typeof globalModule.version === 'string') {
+            return globalModule.version;
+          } else {
+            return String(globalModule.version);
+          }
+        }
+      }
+
+      // 6. Final fallback to build-time manifest for any module
+      if (moduleManifest && moduleManifest.modules) {
+        const manifestModules = moduleManifest.modules as Record<string, { version: string; description: string; type: string }>;
+        if (manifestModules[moduleName]) {
+          return manifestModules[moduleName].version;
+        }
+      }
+
+      return undefined;
+    } catch (error) {
+      log.debug(`Could not get version for module ${moduleName}:`, error);
+      return undefined;
+    }
   }
 
   /**

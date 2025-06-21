@@ -251,12 +251,63 @@ export function HomePage() {
             </CardHeader>
             <CardContent>
               <div className="max-h-40 overflow-y-auto space-y-2 text-sm">
-                {moduleRegistry.getAvailableModules().map((moduleName) => (
-                  <div key={moduleName} className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                    <span className="font-mono text-xs">{moduleName}</span>
-                  </div>
-                ))}
+                {(() => {
+                  try {
+                    const modules = moduleRegistry.getAvailableModulesWithVersions(); // Restore version display
+                    return modules.map((module, index) => {
+                      // Ensure module name is a string
+                      let safeModuleName: string;
+                      let safeModuleVersion: string | undefined;
+                      
+                      try {
+                        if (typeof module.name === 'string') {
+                          safeModuleName = module.name;
+                        } else if (module.name && typeof module.name === 'object') {
+                          safeModuleName = `Module ${index + 1}`;
+                          console.warn('Module name is an object:', module.name);
+                        } else {
+                          safeModuleName = String(module.name);
+                        }
+
+                        // Safely handle version - ensure it's always a string
+                        if (typeof module.version === 'string') {
+                          safeModuleVersion = module.version;
+                        } else if (module.version && typeof module.version === 'object') {
+                          // This should not happen anymore with our fixed version detection
+                          safeModuleVersion = undefined;
+                          console.warn('Module version is still an object for', safeModuleName, ':', module.version);
+                        } else if (module.version) {
+                          safeModuleVersion = String(module.version);
+                        }
+                      } catch (error) {
+                        console.error('Error processing module:', error);
+                        safeModuleName = `Unknown Module ${index + 1}`;
+                        safeModuleVersion = undefined;
+                      }
+                      
+                      return (
+                        <div key={`module-${index}-${safeModuleName}`} className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2 min-w-0 flex-1">
+                            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                            <span className="font-mono text-xs truncate">{safeModuleName}</span>
+                          </div>
+                          {safeModuleVersion && (
+                            <span className="text-xs text-secondary-foreground flex-shrink-0 ml-2">
+                              v{safeModuleVersion}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    });
+                  } catch (error) {
+                    console.error('Error loading modules:', error);
+                    return (
+                      <div className="text-secondary-foreground text-xs">
+                        Error loading modules
+                      </div>
+                    );
+                  }
+                })()}
                 {systemInfo.moduleCount === 0 && (
                   <div className="text-secondary-foreground text-xs">No modules loaded</div>
                 )}
