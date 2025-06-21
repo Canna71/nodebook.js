@@ -307,16 +307,20 @@ const danfojs:any = this.nodeRequire('danfojs');
         if (moduleManifest && moduleManifest.modules) {
           const manifestModules = moduleManifest.modules as Record<string, { version: string; description: string; type: string }>;
           if (manifestModules[moduleName]) {
-            return manifestModules[moduleName].version;
+            let version = manifestModules[moduleName].version;
+            // Remove "v" prefix if present
+            if (version.startsWith('v')) {
+              version = version.substring(1);
+            }
+            return version;
           }
         }
-        // Fallback to Node.js version (but clean it up)
+        // Fallback to Node.js version (remove "v" prefix)
         let nodeVersion = process.version;
-        // Ensure no double "v" prefix
         if (nodeVersion.startsWith('v')) {
-          return nodeVersion; // Already has v prefix
+          return nodeVersion.substring(1);
         } else {
-          return `v${nodeVersion}`;
+          return nodeVersion;
         }
       }
 
