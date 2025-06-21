@@ -5,6 +5,7 @@ Code cells in NotebookJS provide a powerful JavaScript execution environment wit
 ## Table of Contents
 
 - [Basic JavaScript Execution](#basic-javascript-execution)
+- [Shell Integration](#shell-integration)
 - [Cell Execution Behavior](#cell-execution-behavior)
 - [Static Code Cells](#static-code-cells)
 - [Reactive Values and Exports](#reactive-values-and-exports)
@@ -423,7 +424,8 @@ output.table(salesData); // Sortable, searchable table
 // For formatted reports - use markdown cells with interpolation
 exports.revenue = 50000;
 exports.growth = 12.5;
-// Then in markdown: "Revenue: ${{revenue.toLocaleString()}}, Growth: {{growth}}%"
+exports.topProduct = 'Widget C';
+// Then create markdown cell: "## Report\nRevenue: ${{revenue.toLocaleString()}}"
 
 // For charts requiring DOM containers
 const chartDiv = createDiv({ id: 'chart', style: 'height: 400px;' });
@@ -1036,10 +1038,10 @@ exports.growthRate = 12.5;
 exports.topProduct = 'Widget A';
 // Then create markdown cell: "## Report\nRevenue: ${{totalRevenue.toLocaleString()}}"
 
-// ❌ Poor: Don't create HTML for data display
-const htmlReport = createDiv({
-    innerHTML: `<h3>Report</h3><p>Revenue: $${totalRevenue}</p>`
-});
+// For charts requiring DOM containers
+const chartDiv = createDiv({ id: 'chart', style: 'height: 400px;' });
+output(chartDiv);
+Plotly.newPlot('chart', data, layout);
 ```
 
 ### Visualization Integration
@@ -1161,3 +1163,161 @@ function processUserData(users) {
 ```
 
 This comprehensive guide covers all the essential features and best practices for working with code cells in NotebookJS. Remember to always test your code, handle errors gracefully, and use the reactive system effectively to build powerful data analysis and visualization notebooks.
+
+## Shell Integration
+
+NotebookJS includes full shell integration powered by the `zx` library, allowing you to execute shell commands directly in your code cells with proper async/await support.
+
+### Shell Command Execution
+
+Execute shell commands using the `$` function:
+
+```javascript
+// Simple shell commands
+const result = await $`echo "Hello World"`;
+console.log(result.stdout); // "Hello World\n"
+
+// Command with output
+const files = await $`ls -la`;
+console.log('Directory contents:', files.stdout);
+
+// Command chaining
+await $`mkdir -p temp/data`;
+await $`echo "test content" > temp/data/test.txt`;
+const content = await $`cat temp/data/test.txt`;
+console.log('File content:', content.stdout.trim());
+```
+
+### Working Directory
+
+All code cells execute in the **notebook's directory**, not the application directory:
+
+```javascript
+// Show current working directory
+const cwd = await $`pwd`;
+console.log('Working directory:', cwd.stdout.trim());
+
+// Both __dirname and process.cwd() point to notebook directory
+console.log('__dirname:', __dirname);
+console.log('process.cwd():', process.cwd());
+
+// File operations are scoped to notebook directory
+const fs = require('fs');
+const files = fs.readdirSync('.'); // Lists files in notebook directory
+console.log('Notebook files:', files.filter(f => f.endsWith('.nbjs')));
+```
+
+### Available Shell Utilities
+
+All zx globals are available without imports:
+
+```javascript
+// Directory navigation
+await cd('subdirectory');
+await cd('..'); // Back to notebook directory
+
+// User interaction
+const name = await question('What is your name? ');
+console.log(`Hello, ${name}!`);
+
+// Utility functions
+await sleep(1000); // Wait 1 second
+echo('This goes to stdout');
+
+// File globbing
+const jsFiles = await glob('**/*.js');
+console.log('JavaScript files:', jsFiles);
+
+// Check if command exists
+const hasGit = await which('git');
+console.log('Git available:', !!hasGit);
+
+// Styled output
+console.log(chalk.blue('Blue text'));
+console.log(chalk.green.bold('Bold green text'));
+
+// YAML parsing
+const yamlData = YAML.parse('key: value\narray:\n  - item1\n  - item2');
+console.log('Parsed YAML:', yamlData);
+```
+
+### Practical Examples
+
+#### File Management
+```javascript
+// Backup notebook files
+await $`mkdir -p backups`;
+const notebooks = await glob('*.nbjs');
+for (const notebook of notebooks) {
+    await $`cp ${notebook} backups/${notebook}.backup`;
+}
+console.log(`Backed up ${notebooks.length} notebooks`);
+```
+
+#### Git Operations
+```javascript
+// Check git status
+const status = await $`git status --porcelain`;
+if (status.stdout.trim()) {
+    console.log('Uncommitted changes:');
+    console.log(status.stdout);
+} else {
+    console.log('Working directory is clean');
+}
+
+// Commit changes
+await $`git add .`;
+await $`git commit -m "Update notebook: ${new Date().toISOString()}"`;
+```
+
+#### Data Processing Pipeline
+```javascript
+// Download and process data
+await $`curl -o data.csv "https://example.com/data.csv"`;
+const lineCount = await $`wc -l data.csv`;
+console.log('Downloaded data:', lineCount.stdout.trim());
+
+// Process with standard Unix tools
+await $`sort data.csv | uniq > processed.csv`;
+const processedLines = await $`wc -l processed.csv`;
+console.log('Processed data:', processedLines.stdout.trim());
+```
+
+### Error Handling
+
+Shell commands throw errors on non-zero exit codes:
+
+```javascript
+try {
+    await $`some-command-that-might-fail`;
+} catch (error) {
+    console.error('Command failed:', error.message);
+    console.error('Exit code:', error.exitCode);
+    console.error('stderr:', error.stderr);
+}
+
+// Ignore errors with nothrow
+const result = await $`command || true`; // Always succeeds
+// Or use zx's quiet mode
+$.verbose = false; // Suppress output
+const quietResult = await $`ls nonexistent || echo "not found"`;
+$.verbose = true; // Restore output
+```
+
+### Integration with Reactive System
+
+Shell commands work seamlessly with the reactive system:
+
+```javascript
+// Export shell command results
+const diskUsage = await $`df -h /`;
+exports.systemInfo = {
+    timestamp: new Date(),
+    diskUsage: diskUsage.stdout,
+    hostname: (await $`hostname`).stdout.trim()
+};
+
+// Use reactive variables in shell commands
+const logFile = `logs/${dataSource}_${new Date().toISOString().split('T')[0]}.log`;
+await $`echo "${JSON.stringify(processedData)}" >> ${logFile}`;
+```

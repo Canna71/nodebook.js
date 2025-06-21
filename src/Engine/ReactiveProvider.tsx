@@ -22,7 +22,7 @@ export const ReactiveProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
     const [system] = useState(() => createReactiveSystem());
-    const { setStorageExporter, currentModel, stateManager } = useApplication();
+    const { setStorageExporter, currentModel, stateManager, currentFilePath } = useApplication();
 
     // Set up storage exporter on mount
     useEffect(() => {
@@ -72,6 +72,13 @@ export const ReactiveProvider: React.FC<{
             }
         };
     }, [system, system?.codeCellEngine, setStorageExporter, currentModel, stateManager]);
+
+    // Update the notebook path in the code cell engine when it changes
+    useEffect(() => {
+        if (system?.codeCellEngine) {
+            system.codeCellEngine.setCurrentNotebookPath(currentFilePath);
+        }
+    }, [currentFilePath, system]);
 
     return (
         <ReactiveContext.Provider value={system}>

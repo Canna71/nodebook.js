@@ -47,6 +47,29 @@ This document contains technical specifications shared between notebook generati
   });
   ```
 
+### Shell Integration (zx Library - Injected as Globals)
+**Available as global variables for shell operations:**
+- **$**: Execute shell commands (`await $\`ls -la\``)
+- **cd**: Change directory (`await cd('folder')`)
+- **echo**: Print to stdout (`echo('message')`)
+- **question**: Interactive prompts (`await question('Name? ')`)
+- **sleep**: Delay execution (`await sleep(1000)`)
+- **glob**: File pattern matching (`await glob('*.js')`)
+- **which**: Find executable (`await which('git')`)
+- **chalk**: Terminal styling (`chalk.blue('text')`)
+- **YAML**: YAML parsing (`YAML.parse(str)`)
+- **argv**: Command line arguments (`argv._`)
+
+All code cells execute in the **notebook's directory**, not the application directory:
+```javascript
+// Both point to notebook directory
+console.log('Working dir:', process.cwd());
+console.log('__dirname:', __dirname);
+
+// Shell commands run in notebook directory
+const files = await $`ls *.nbjs`;  // Lists notebook files
+```
+
 ### Pre-bundled Libraries (Require-Available)
 **These need explicit `require()` calls:**
 - **mathjs**: Mathematical functions (`const math = require('mathjs')`)

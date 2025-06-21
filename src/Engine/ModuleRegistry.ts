@@ -172,6 +172,7 @@ const danfojs:any = this.nodeRequire('danfojs');
 
     // Optional npm modules that might be available
     const optionalModules: string[] = [
+      'zx', // Shell scripting library
       // These will be loaded on-demand when requested
     ];
 

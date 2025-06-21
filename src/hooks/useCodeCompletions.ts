@@ -167,6 +167,72 @@ export function useCodeCompletions() {
 
         suggestions.push(...systemGlobals);
 
+        // 2.5. zx shell scripting globals
+        const zxGlobals = [
+            {
+                label: "$",
+                type: "function",
+                info: "Execute shell commands with zx",
+                detail: "zx Global"
+            },
+            {
+                label: "cd",
+                type: "function", 
+                info: "Change directory (zx)",
+                detail: "zx Global"
+            },
+            {
+                label: "question",
+                type: "function",
+                info: "Prompt user for input (zx)",
+                detail: "zx Global"
+            },
+            {
+                label: "sleep",
+                type: "function",
+                info: "Sleep for specified milliseconds (zx)",
+                detail: "zx Global"
+            },
+            {
+                label: "echo",
+                type: "function",
+                info: "Print to stdout (zx)",
+                detail: "zx Global"
+            },
+            {
+                label: "glob",
+                type: "function",
+                info: "File globbing utility (zx)",
+                detail: "zx Global"
+            },
+            {
+                label: "which",
+                type: "function",
+                info: "Find executable in PATH (zx)",
+                detail: "zx Global"
+            },
+            {
+                label: "chalk",
+                type: "object",
+                info: "Terminal string styling (zx)",
+                detail: "zx Global"
+            },
+            {
+                label: "YAML",
+                type: "object",
+                info: "YAML parser (zx)",
+                detail: "zx Global"
+            },
+            {
+                label: "argv",
+                type: "array",
+                info: "Command line arguments (zx)",
+                detail: "zx Global"
+            }
+        ];
+
+        suggestions.push(...zxGlobals);
+
         // 3. DOM helper functions
         const domHelpers = [
             {

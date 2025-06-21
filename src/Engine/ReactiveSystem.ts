@@ -591,6 +591,7 @@ export class CodeCellEngine {
     private globalScope: { [key: string]: any };
     private notebookStorage: Map<string, any>; // Internal storage
     private storageChangeHandler?: () => void; // Handler for storage changes
+    private currentNotebookPath?: string; // Path to the current notebook file
 
     /**
      * Initialize only preloaded/injected modules in global scope
@@ -606,6 +607,8 @@ export class CodeCellEngine {
             '@tensorflow/tfjs': 'tf',
             'tensorflow': 'tf',
             "plotly.js-dist-min": 'Plotly',
+            // Shell scripting
+            'zx': 'zx',
             // Node.js built-ins (always available)
             'fs': 'fs',
             'path': 'path',
@@ -645,6 +648,49 @@ export class CodeCellEngine {
                     // Special handling for EventEmitter constructor
                     if (moduleName === 'events') {
                         this.globalScope['EventEmitter'] = moduleExports.EventEmitter;
+                    }
+                    
+                    // Special handling for zx - inject all globals
+                    if (moduleName === 'zx') {
+                        // Inject ALL zx globals into the global scope
+                        const zxGlobals = [
+                            // Core shell execution
+                            '$', 
+                            // Directory and process control
+                            'cd', 'within',
+                            // Input/Output
+                            'question', 'echo', 'stdin',
+                            // Timing
+                            'sleep', 'setTimeout', 'setInterval',
+                            // File system and path utilities
+                            'glob', 'fs', 'path', 'os',
+                            // Utility functions
+                            'which', 'minimist', 'argv',
+                            // Styling and formatting
+                            'chalk',
+                            // Data formats
+                            'YAML', 'fetch',
+                            // Process and system
+                            'process',
+                            // Retry mechanism
+                            'retry',
+                            // Pipes and streaming
+                            'pipe',
+                            // CLI spinner
+                            'spinner'
+                        ];
+                        
+                        zxGlobals.forEach(globalName => {
+                            if (moduleExports[globalName] !== undefined) {
+                                this.globalScope[globalName] = moduleExports[globalName];
+                                log.debug(`Injected zx global: ${globalName}`);
+                            } else {
+                                log.warn(`zx global ${globalName} not found in module exports`);
+                            }
+                        });
+                        
+                        // Also inject the entire zx module itself
+                        this.globalScope['zx'] = moduleExports;
                     }
                     
                     log.debug(`Injected preloaded module ${moduleName} as ${variableName}`);
@@ -965,7 +1011,7 @@ export class CodeCellEngine {
                             if (prop === 'require') return this.createSecureRequire();
                             if (prop === 'process' && typeof process !== 'undefined') return process;
                             if (prop === 'Buffer' && typeof Buffer !== 'undefined') return Buffer;
-                            if (prop === '__dirname') return process?.cwd() || '/';
+                            if (prop === '__dirname') return this.getWorkingDirectory();
                             if (prop === '__filename') return `${cellId}.js`;
 
                             // Check for DOM helper functions that need output binding
@@ -1062,7 +1108,34 @@ export class CodeCellEngine {
 
             // Execute the code with the smart proxy (now returns a Promise)
             const smartProxy = createSmartProxy();
-            await executeCode(smartProxy);
+            
+            // Change the process working directory to the notebook directory if available
+            let originalCwd: string | undefined;
+            const workingDir = this.getWorkingDirectory();
+            if (this.currentNotebookPath && workingDir !== process.cwd()) {
+                try {
+                    originalCwd = process.cwd();
+                    process.chdir(workingDir);
+                    log.debug(`Changed working directory to: ${workingDir} (was: ${originalCwd})`);
+                } catch (error) {
+                    log.warn(`Failed to change working directory to ${workingDir}:`, error);
+                    originalCwd = undefined; // Don't restore if we failed to change
+                }
+            }
+            
+            try {
+                await executeCode(smartProxy);
+            } finally {
+                // Always restore the original working directory
+                if (originalCwd) {
+                    try {
+                        process.chdir(originalCwd);
+                        log.debug(`Restored working directory to: ${originalCwd}`);
+                    } catch (error) {
+                        log.warn(`Failed to restore working directory to ${originalCwd}:`, error);
+                    }
+                }
+            }
 
             // Collect exports from the exports object
             const exportValues = new Map<string, any>();
@@ -1418,7 +1491,7 @@ export class CodeCellEngine {
                         if (prop === 'require') return this.createSecureRequire();
                         if (prop === 'process' && typeof process !== 'undefined') return process;
                         if (prop === 'Buffer' && typeof Buffer !== 'undefined') return Buffer;
-                        if (prop === '__dirname') return process?.cwd() || '/';
+                        if (prop === '__dirname') return this.getWorkingDirectory();
                         if (prop === '__filename') return `${cellId}.js`;
 
                         // Check global scope first (for cached modules and globals)
@@ -1468,9 +1541,35 @@ export class CodeCellEngine {
             
             const executeCode = new Function('scope', `with (scope) { return ${wrappedCode}; }`);
             
-            // Execute and return the result (now awaits the async execution)
-            const result = await executeCode(smartProxy);
-            return result;
+            // Change working directory temporarily for evaluation too
+            let originalCwd: string | undefined;
+            const workingDir = this.getWorkingDirectory();
+            if (this.currentNotebookPath && workingDir !== process.cwd()) {
+                try {
+                    originalCwd = process.cwd();
+                    process.chdir(workingDir);
+                    log.debug(`Changed working directory for evaluation to: ${workingDir}`);
+                } catch (error) {
+                    log.warn(`Failed to change working directory for evaluation to ${workingDir}:`, error);
+                    originalCwd = undefined;
+                }
+            }
+            
+            try {
+                // Execute and return the result (now awaits the async execution)
+                const result = await executeCode(smartProxy);
+                return result;
+            } finally {
+                // Restore original working directory
+                if (originalCwd) {
+                    try {
+                        process.chdir(originalCwd);
+                        log.debug(`Restored working directory after evaluation to: ${originalCwd}`);
+                    } catch (error) {
+                        log.warn(`Failed to restore working directory after evaluation to ${originalCwd}:`, error);
+                    }
+                }
+            }
 
         } catch (error) {
             log.error(`Error evaluating code in cell ${cellId}:`, error);
@@ -1584,6 +1683,26 @@ export class CodeCellEngine {
         log.debug('Storage change handler set:', !!handler);
     }
 
+    /**
+     * Set the current notebook file path (used for working directory in code cells)
+     */
+    public setCurrentNotebookPath(notebookPath: string | null): void {
+        this.currentNotebookPath = notebookPath || undefined;
+        log.debug('Current notebook path set to:', this.currentNotebookPath);
+    }
+
+    /**
+     * Get the working directory for code cells (notebook directory or cwd)
+     */
+    private getWorkingDirectory(): string {
+        if (this.currentNotebookPath) {
+            // Get the directory containing the notebook file
+            const path = require('path');
+            return path.dirname(this.currentNotebookPath);
+        }
+        // Fallback to current working directory
+        return process?.cwd() || '/';
+    }
 }
 
 /**
