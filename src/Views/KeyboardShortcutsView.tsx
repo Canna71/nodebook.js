@@ -1,11 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Keyboard, Command } from 'lucide-react';
-import { useCommands } from '@/Engine/CommandProvider';
-import anylogger from 'anylogger';
-
-const log = anylogger('KeyboardShortcutsView');
 
 interface KeyboardShortcutsViewProps {
   onClose?: () => void;
@@ -22,119 +18,67 @@ interface ShortcutGroup {
 }
 
 export function KeyboardShortcutsView({ onClose }: KeyboardShortcutsViewProps) {
-  const { commandManager } = useCommands();
-  const [shortcuts, setShortcuts] = useState<ShortcutGroup[]>([]);
+  // Static list of ONLY working shortcuts - no dynamic loading needed
+  const shortcuts = (() => {
+    // Detect platform for display
+    const isMac = navigator.platform.toLowerCase().includes('mac');
+    const cmdKey = isMac ? '⌘' : 'Ctrl';
+    const altKey = isMac ? '⌥' : 'Alt';
+    const shiftKey = isMac ? '⇧' : 'Shift';
 
-  useEffect(() => {
-    loadShortcuts();
-  }, [commandManager]);
-
-  const loadShortcuts = () => {
-    try {
-      // Get all commands with shortcuts from the command manager
-      const allCommands = commandManager.getAllCommands();
-      const commandsWithShortcuts = allCommands.filter(cmd => cmd.shortcut);
-
-      // Detect platform for display
-      const isMac = navigator.platform.toLowerCase().includes('mac');
-      const cmdKey = isMac ? '⌘' : 'Ctrl';
-      const altKey = isMac ? '⌥' : 'Alt';
-      const shiftKey = isMac ? '⇧' : 'Shift';
-
-      // Helper function to format shortcuts for display
-      const formatShortcut = (shortcut: string): string => {
-        return shortcut
-          .replace(/Ctrl/g, cmdKey)
-          .replace(/Alt/g, altKey)
-          .replace(/Shift/g, shiftKey)
-          .replace(/\+/g, isMac ? '' : '+');
-      };
-
-      // Group shortcuts by category
-      const shortcutGroups: ShortcutGroup[] = [
-        {
-          title: 'File Operations',
-          icon: <Command className="w-4 h-4" />,
-          shortcuts: [
-            { keys: `${cmdKey}+N`, description: 'New Notebook' },
-            { keys: `${cmdKey}+O`, description: 'Open Notebook' },
-            { keys: `${cmdKey}+S`, description: 'Save Notebook' },
-            { keys: `${cmdKey}+${shiftKey}+S`, description: 'Save As...' },
-          ]
-        },
-        {
-          title: 'Cell Operations',
-          icon: <Keyboard className="w-4 h-4" />,
-          shortcuts: [
-            { keys: `${shiftKey}+Enter`, description: 'Run Cell' },
-            { keys: `${cmdKey}+${shiftKey}+Enter`, description: 'Run All Cells' },
-            { keys: `${cmdKey}+${shiftKey}+C`, description: 'Insert Code Cell' },
-            { keys: `${cmdKey}+${shiftKey}+M`, description: 'Insert Markdown Cell' },
-            { keys: `${cmdKey}+${shiftKey}+F`, description: 'Insert Formula Cell' },
-            { keys: `${cmdKey}+${shiftKey}+I`, description: 'Insert Input Cell' },
-            { keys: `${cmdKey}+${shiftKey}+D`, description: 'Delete Cell' },
-          ]
-        },
-        {
-          title: 'View & Navigation',
-          icon: <Command className="w-4 h-4" />,
-          shortcuts: [
-            { keys: 'F1', description: 'Show Documentation' },
-            { keys: `${cmdKey}+R`, description: 'Reload Application' },
-            { keys: 'F11', description: 'Toggle Fullscreen' },
-            { keys: `${cmdKey}+0`, description: 'Reset Zoom' },
-            { keys: `${cmdKey}+\``, description: 'Toggle Console Viewer' },
-            { keys: `${cmdKey}+${shiftKey}+\``, description: 'Toggle Output Panel' },
-          ]
-        }
-      ];
-
-      // Add any additional shortcuts from command manager
-      const dynamicShortcuts = commandsWithShortcuts
-        .filter(cmd => !isShortcutAlreadyListed(cmd.shortcut || '', shortcutGroups))
-        .map(cmd => ({
-          keys: formatShortcut(cmd.shortcut || ''),
-          description: cmd.tooltip || cmd.id,
-          commandId: cmd.id
-        }));
-
-      if (dynamicShortcuts.length > 0) {
-        shortcutGroups.push({
-          title: 'Additional Commands',
-          icon: <Command className="w-4 h-4" />,
-          shortcuts: dynamicShortcuts
-        });
+    return [
+      {
+        title: 'File Operations',
+        icon: <Command className="w-4 h-4" />,
+        shortcuts: [
+          { keys: `${cmdKey}+N`, description: 'New Notebook' },
+          { keys: `${cmdKey}+O`, description: 'Open Notebook' },
+          { keys: `${cmdKey}+S`, description: 'Save Notebook' },
+          { keys: `${shiftKey}+${cmdKey}+S`, description: 'Save As...' },
+        ]
+      },
+      {
+        title: 'Cell Operations',
+        icon: <Keyboard className="w-4 h-4" />,
+        shortcuts: [
+          { keys: `${shiftKey}+Enter`, description: 'Run Cell' },
+          { keys: `${shiftKey}+${cmdKey}+Enter`, description: 'Run All Cells' },
+          { keys: `${shiftKey}+${cmdKey}+C`, description: 'Insert Code Cell' },
+          { keys: `${shiftKey}+${cmdKey}+M`, description: 'Insert Markdown Cell' },
+          { keys: `${shiftKey}+${cmdKey}+F`, description: 'Insert Formula Cell' },
+          { keys: `${shiftKey}+${cmdKey}+I`, description: 'Insert Input Cell' },
+          { keys: `${shiftKey}+${cmdKey}+D`, description: 'Delete Cell' },
+        ]
+      },
+      {
+        title: 'AI Features',
+        icon: <Command className="w-4 h-4" />,
+        shortcuts: [
+          { keys: `${cmdKey}+${altKey}+G`, description: 'Generate Notebook with AI' },
+          { keys: `${cmdKey}+${altKey}+C`, description: 'Generate Code Cell with AI' },
+        ]
+      },
+      {
+        title: 'Editing',
+        icon: <Keyboard className="w-4 h-4" />,
+        shortcuts: [
+          { keys: `${cmdKey}+Z`, description: 'Undo' },
+          { keys: `${shiftKey}+${cmdKey}+Z`, description: 'Redo' },
+        ]
+      },
+      {
+        title: 'View & Navigation',
+        icon: <Command className="w-4 h-4" />,
+        shortcuts: [
+          { keys: `${cmdKey}+R`, description: 'Reload Application' },
+          { keys: `${cmdKey}+0`, description: 'Reset Zoom' },
+          { keys: `${cmdKey}+/`, description: 'Show Keyboard Shortcuts' },
+          { keys: `${cmdKey}+\``, description: 'Toggle Console Viewer' },
+          { keys: `${shiftKey}+${cmdKey}+\``, description: 'Toggle Output Panel' },
+        ]
       }
-
-      setShortcuts(shortcutGroups);
-      log.debug('Loaded shortcuts:', shortcutGroups);
-    } catch (error) {
-      log.error('Failed to load shortcuts:', error);
-      // Fallback shortcuts if command manager fails
-      setShortcuts([
-        {
-          title: 'Basic Operations',
-          icon: <Keyboard className="w-4 h-4" />,
-          shortcuts: [
-            { keys: 'Ctrl+N', description: 'New Notebook' },
-            { keys: 'Ctrl+O', description: 'Open Notebook' },
-            { keys: 'Ctrl+S', description: 'Save Notebook' },
-            { keys: 'Shift+Enter', description: 'Run Cell' },
-          ]
-        }
-      ]);
-    }
-  };
-
-  const isShortcutAlreadyListed = (shortcut: string, groups: ShortcutGroup[]): boolean => {
-    const normalizedShortcut = shortcut.toLowerCase().replace(/\s/g, '');
-    return groups.some(group => 
-      group.shortcuts.some(s => 
-        s.keys.toLowerCase().replace(/\s/g, '').includes(normalizedShortcut) ||
-        normalizedShortcut.includes(s.keys.toLowerCase().replace(/\s/g, ''))
-      )
-    );
-  };
+    ];
+  })();
 
   return (
     <div className="max-w-4xl mx-auto p-8 space-y-6">
@@ -199,16 +143,16 @@ export function KeyboardShortcutsView({ onClose }: KeyboardShortcutsViewProps) {
             <h3 className="font-semibold text-foreground">💡 Pro Tips</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-secondary-foreground">
               <div>
-                <strong>Cell Navigation:</strong> Use arrow keys to move between cells when not editing
+                <strong>Cell Execution:</strong> Use Shift+Enter to run individual cells, Shift+Cmd+Enter for all
               </div>
               <div>
-                <strong>Quick Edit:</strong> Double-click any cell to start editing immediately
+                <strong>Quick Cell Creation:</strong> Use Shift+Cmd+[Letter] to insert different cell types
               </div>
               <div>
-                <strong>Batch Operations:</strong> Hold Shift while clicking to select multiple cells
+                <strong>AI Integration:</strong> Use Cmd+Alt+G to generate entire notebooks with AI
               </div>
               <div>
-                <strong>Context Menu:</strong> Right-click on cells for additional options
+                <strong>Console Access:</strong> Use Cmd+` to toggle the console viewer for debugging
               </div>
             </div>
           </div>

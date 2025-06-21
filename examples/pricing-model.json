@@ -3,7 +3,7 @@
     {
       "type": "markdown",
       "id": "header",
-      "content": "<h2>Pricing Calculator</h2><p>Configure your pricing parameters below:</p>"
+      "content": "# Pricing Calculator\n\nConfigure your pricing parameters below:\n"
     },
     {
       "type": "input",
