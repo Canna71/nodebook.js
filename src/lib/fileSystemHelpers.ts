@@ -237,20 +237,50 @@ export class FileSystemHelpers {
                     const content = await fs.promises.readFile(filePath, 'utf8');
                     const notebook = JSON.parse(content) as NotebookModel;
 
-                    // Use filename as fallback for description
-                    const baseFileName = path.basename(file, '.json');
+                    // Look for description in notebook metadata or first markdown cell
+                    let description: string | undefined;
+                    
+                    // Check notebook metadata first
+                    if (notebook.metadata?.title) {
+                        description = notebook.metadata.title;
+                    } else if (notebook.metadata?.description) {
+                        description = notebook.metadata.description;
+                    } else {
+                        // Look for first markdown cell as description
+                        const firstMarkdownCell = notebook.cells?.find(cell => 
+                            cell.type === 'markdown' && (cell as any).content?.trim()
+                        );
+                        if (firstMarkdownCell && firstMarkdownCell.type === 'markdown') {
+                            // Take first line of markdown cell as description
+                            const markdownCell = firstMarkdownCell as { content: string };
+                            const firstLine = markdownCell.content.split('\n')[0].trim();
+                            // Remove markdown headers
+                            let cleanDescription = firstLine.replace(/^#+\s*/, '').trim();
+                            
+                            // Only use as description if it's meaningful (not just filename-like)
+                            const filename = path.basename(file, '.json');
+                            const isFilenamelike = this.isFilenamelike(cleanDescription, filename);
+                            
+                            if (cleanDescription && !isFilenamelike && cleanDescription.length > 3) {
+                                // Limit length
+                                if (cleanDescription.length > 60) {
+                                    cleanDescription = cleanDescription.substring(0, 60) + '...';
+                                }
+                                description = cleanDescription;
+                            }
+                        }
+                    }
 
                     examples.push({
-                        description: baseFileName.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
+                        description,
                         filepath: filePath,
                         lastModified: stats.mtime,
                         size: stats.size
                     });
                 } catch (parseError) {
                     log.warn(`Failed to parse example file ${file}, including with basic info:`, parseError);
-                    const baseFileName = path.basename(file, '.json');
                     examples.push({
-                        description: 'Invalid JSON file',
+                        description: undefined, // No description for invalid files
                         filepath: filePath,
                         lastModified: stats.mtime,
                         size: stats.size
@@ -504,6 +534,28 @@ export class FileSystemHelpers {
                 error: errorMsg
             };
         }
+    }
+
+    /**
+     * Check if a description is too similar to a filename to be useful
+     */
+    private isFilenamelike(description: string, filename: string): boolean {
+        if (!description || !filename) return false;
+        
+        // Normalize both strings for comparison
+        const normalizedDesc = description.toLowerCase().replace(/[-_\s]/g, '');
+        const normalizedFile = filename.toLowerCase().replace(/[-_\s]/g, '');
+        
+        // Check various similarity patterns
+        if (normalizedDesc === normalizedFile) return true;
+        if (normalizedDesc.includes(normalizedFile) || normalizedFile.includes(normalizedDesc)) {
+            // If one contains the other and they're similar in length, consider them similar
+            const lengthRatio = Math.min(normalizedDesc.length, normalizedFile.length) / 
+                               Math.max(normalizedDesc.length, normalizedFile.length);
+            return lengthRatio > 0.6;
+        }
+        
+        return false;
     }
 }
 
