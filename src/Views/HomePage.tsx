@@ -167,224 +167,220 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* Quick Actions - VSCode Style */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-foreground">Start</h2>
-        <div className="space-y-2">
-          <button
-            onClick={createNewNotebook}
-            className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors"
-          >
-            <FileText className="w-4 h-4 text-primary flex-shrink-0" />
-            <span className="text-sm">New file...</span>
-          </button>
-          
-          <button
-            onClick={handleOpenFile}
-            className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors"
-          >
-            <FolderOpen className="w-4 h-4 text-primary flex-shrink-0" />
-            <span className="text-sm">Open file...</span>
-          </button>
-          
-          <button
-            onClick={handleCreateWithAI}
-            className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors"
-          >
-            <Brain className="w-4 h-4 text-primary flex-shrink-0" />
-            <span className="text-sm">Generate with AI...</span>
-          </button>
-        </div>
-      </div>
-
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        {/* Left Section: Recent + Examples (stacked on mobile, side by side on large screens) */}
-        <div className="xl:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Notebooks - VSCode Style */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-foreground">Recent</h2>
-              {recentNotebooks.length > 0 && (
-                <button
-                  onClick={() => RecentNotebooksManager.clearRecentNotebooks().then(loadRecentNotebooks)}
-                  className="text-sm text-primary hover:text-primary/80 transition-colors"
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 grid-rows-[auto_auto_auto] lg:grid-rows-[auto_auto_auto]">
+        {/* Start Section - Top Left */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-foreground">Start</h2>
+          <div className="space-y-2">
+            <button
+              onClick={createNewNotebook}
+              className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors"
+            >
+              <FileText className="w-4 h-4 text-primary flex-shrink-0" />
+              <span className="text-sm">New file...</span>
+            </button>
+            
+            <button
+              onClick={handleOpenFile}
+              className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors"
+            >
+              <FolderOpen className="w-4 h-4 text-primary flex-shrink-0" />
+              <span className="text-sm">Open file...</span>
+            </button>
+            
+            <button
+              onClick={handleCreateWithAI}
+              className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors"
+            >
+              <Brain className="w-4 h-4 text-primary flex-shrink-0" />
+              <span className="text-sm">Generate with AI...</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Examples Section - Top Right, spans 2 rows */}
+        <div className="space-y-4 lg:row-span-2">
+          <h2 className="text-lg font-semibold text-foreground">Examples</h2>
+          
+          {exampleNotebooks.length > 0 ? (
+            <div className="space-y-1 max-h-96 overflow-y-auto">
+              {exampleNotebooks.map((example, index) => (
+                <div
+                  key={example.filepath}
+                  className="flex items-center space-x-3 p-2 cursor-pointer hover:bg-accent/50 rounded transition-colors"
+                  onClick={() => handleOpenExample(example)}
                 >
-                  Clear all
-                </button>
-              )}
+                  <BookOpen className="w-4 h-4 text-primary flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm text-primary hover:text-primary/80 truncate">
+                      {extractFileName(example.filepath)}
+                    </div>
+                    {example.description && (
+                      <div className="text-xs text-secondary-foreground mt-1 line-clamp-1">
+                        {example.description}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-secondary-foreground">
+              <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No example notebooks found</p>
+              <p className="text-xs">Example notebooks will appear here</p>
+            </div>
+          )}
+        </div>
+
+        {/* Recent Section - Middle Left */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">Recent</h2>
+            {recentNotebooks.length > 0 && (
+              <button
+                onClick={() => RecentNotebooksManager.clearRecentNotebooks().then(loadRecentNotebooks)}
+                className="text-sm text-primary hover:text-primary/80 transition-colors"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+          
+          {recentNotebooks.length > 0 ? (
+            <div className="space-y-1">
+              {recentNotebooks.map((notebook, index) => (
+                <div
+                  key={notebook.path}
+                  className="flex items-center justify-between p-2 cursor-pointer hover:bg-accent/50 rounded transition-colors"
+                  onClick={() => handleOpenRecent(notebook)}
+                >
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <FileText className="w-4 h-4 text-primary flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-sm text-primary hover:text-primary/80">
+                        {extractFileName(notebook.path)}
+                      </span>
+                      <span className="text-xs text-secondary-foreground ml-2">
+                        {extractDirectory(notebook.path)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-secondary-foreground flex-shrink-0">
+                    {formatTimeAgo(notebook.lastOpened)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-secondary-foreground">
+              <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No recent files</p>
+              <p className="text-xs">Files you've worked on will appear here</p>
+            </div>
+          )}
+        </div>
+
+        {/* System Section - Bottom Left */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-base">
+              <Monitor className="w-4 h-4" />
+              <span>System</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span>Version</span>
+              <Badge variant="outline" className="text-xs">v{systemInfo.appVersion}</Badge>
             </div>
             
-            {recentNotebooks.length > 0 ? (
-              <div className="space-y-1">
-                {recentNotebooks.map((notebook, index) => (
-                  <div
-                    key={notebook.path}
-                    className="flex items-center justify-between p-2 cursor-pointer hover:bg-accent/50 rounded transition-colors"
-                    onClick={() => handleOpenRecent(notebook)}
-                  >
-                    <div className="flex items-center space-x-3 min-w-0 flex-1">
-                      <FileText className="w-4 h-4 text-primary flex-shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <span className="text-sm text-primary hover:text-primary/80">
-                          {extractFileName(notebook.path)}
-                        </span>
-                        <span className="text-xs text-secondary-foreground ml-2">
-                          {extractDirectory(notebook.path)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-xs text-secondary-foreground flex-shrink-0">
-                      {formatTimeAgo(notebook.lastOpened)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-secondary-foreground">
-                <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No recent files</p>
-                <p className="text-xs">Files you've worked on will appear here</p>
-              </div>
-            )}
-          </div>
-
-          {/* Examples Section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">Examples</h2>
+            <div className="flex items-center justify-between text-sm">
+              <span>Recent files</span>
+              <Badge variant="secondary" className="text-xs">{systemInfo.notebookCount}</Badge>
+            </div>
             
-            {exampleNotebooks.length > 0 ? (
-              <div className="space-y-1 max-h-80 overflow-y-auto">
-                {exampleNotebooks.map((example, index) => (
-                  <div
-                    key={example.filepath}
-                    className="flex items-center space-x-3 p-2 cursor-pointer hover:bg-accent/50 rounded transition-colors"
-                    onClick={() => handleOpenExample(example)}
-                  >
-                    <BookOpen className="w-4 h-4 text-primary flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm text-primary hover:text-primary/80 truncate">
-                        {extractFileName(example.filepath)}
-                      </div>
-                      {example.description && (
-                        <div className="text-xs text-secondary-foreground mt-1 line-clamp-1">
-                          {example.description}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-secondary-foreground">
-                <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No example notebooks found</p>
-                <p className="text-xs">Example notebooks will appear here</p>
-              </div>
-            )}
-          </div>
-        </div>
+            <div className="flex items-center justify-between text-sm">
+              <span>Platform</span>
+              <span className="text-xs text-secondary-foreground">{systemInfo.platform}</span>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Right Section: System Information & Modules */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-base">
-                <Monitor className="w-4 h-4" />
-                <span>System</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span>Version</span>
-                <Badge variant="outline" className="text-xs">v{systemInfo.appVersion}</Badge>
-              </div>
-              
-              <div className="flex items-center justify-between text-sm">
-                <span>Recent files</span>
-                <Badge variant="secondary" className="text-xs">{systemInfo.notebookCount}</Badge>
-              </div>
-              
-              <div className="flex items-center justify-between text-sm">
-                <span>Platform</span>
-                <span className="text-xs text-secondary-foreground">{systemInfo.platform}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-base">
-                <Database className="w-4 h-4" />
-                <span>Modules ({systemInfo.moduleCount})</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="max-h-40 overflow-y-auto space-y-2 text-sm">
-                {(() => {
-                  try {
-                    const modules = moduleRegistry.getAvailableModulesWithVersions(); // Restore version display
-                    return modules.map((module, index) => {
-                      // Ensure module name is a string
-                      let safeModuleName: string;
-                      let safeModuleVersion: string | undefined;
-                      
-                      try {
-                        if (typeof module.name === 'string') {
-                          safeModuleName = module.name;
-                        } else if (module.name && typeof module.name === 'object') {
-                          safeModuleName = `Module ${index + 1}`;
-                          console.warn('Module name is an object:', module.name);
-                        } else {
-                          safeModuleName = String(module.name);
-                        }
-
-                        // Safely handle version - ensure it's always a string
-                        if (typeof module.version === 'string') {
-                          safeModuleVersion = module.version;
-                        } else if (module.version && typeof module.version === 'object') {
-                          // This should not happen anymore with our fixed version detection
-                          safeModuleVersion = undefined;
-                          console.warn('Module version is still an object for', safeModuleName, ':', module.version);
-                        } else if (module.version) {
-                          safeModuleVersion = String(module.version);
-                        }
-                      } catch (error) {
-                        console.error('Error processing module:', error);
-                        safeModuleName = `Unknown Module ${index + 1}`;
-                        safeModuleVersion = undefined;
+        {/* Modules Section - Bottom Right */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-base">
+              <Database className="w-4 h-4" />
+              <span>Modules ({systemInfo.moduleCount})</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="max-h-40 overflow-y-auto space-y-2 text-sm">
+              {(() => {
+                try {
+                  const modules = moduleRegistry.getAvailableModulesWithVersions(); // Restore version display
+                  return modules.map((module, index) => {
+                    // Ensure module name is a string
+                    let safeModuleName: string;
+                    let safeModuleVersion: string | undefined;
+                    
+                    try {
+                      if (typeof module.name === 'string') {
+                        safeModuleName = module.name;
+                      } else if (module.name && typeof module.name === 'object') {
+                        safeModuleName = `Module ${index + 1}`;
+                        console.warn('Module name is an object:', module.name);
+                      } else {
+                        safeModuleName = String(module.name);
                       }
-                      
-                      return (
-                        <div key={`module-${index}-${safeModuleName}`} className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2 min-w-0 flex-1">
-                            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                            <span className="font-mono text-xs truncate">{safeModuleName}</span>
-                          </div>
-                          {safeModuleVersion && (
-                            <span className="text-xs text-secondary-foreground flex-shrink-0 ml-2">
-                              v{safeModuleVersion}
-                            </span>
-                          )}
-                        </div>
-                      );
-                    });
-                  } catch (error) {
-                    console.error('Error loading modules:', error);
+
+                      // Safely handle version - ensure it's always a string
+                      if (typeof module.version === 'string') {
+                        safeModuleVersion = module.version;
+                      } else if (module.version && typeof module.version === 'object') {
+                        // This should not happen anymore with our fixed version detection
+                        safeModuleVersion = undefined;
+                        console.warn('Module version is still an object for', safeModuleName, ':', module.version);
+                      } else if (module.version) {
+                        safeModuleVersion = String(module.version);
+                      }
+                    } catch (error) {
+                      console.error('Error processing module:', error);
+                      safeModuleName = `Unknown Module ${index + 1}`;
+                      safeModuleVersion = undefined;
+                    }
+                    
                     return (
-                      <div className="text-secondary-foreground text-xs">
-                        Error loading modules
+                      <div key={`module-${index}-${safeModuleName}`} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2 min-w-0 flex-1">
+                          <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                          <span className="font-mono text-xs truncate">{safeModuleName}</span>
+                        </div>
+                        {safeModuleVersion && (
+                          <span className="text-xs text-secondary-foreground flex-shrink-0 ml-2">
+                            v{safeModuleVersion}
+                          </span>
+                        )}
                       </div>
                     );
-                  }
-                })()}
-                {systemInfo.moduleCount === 0 && (
-                  <div className="text-secondary-foreground text-xs">No modules loaded</div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                  });
+                } catch (error) {
+                  console.error('Error loading modules:', error);
+                  return (
+                    <div className="text-secondary-foreground text-xs">
+                      Error loading modules
+                    </div>
+                  );
+                }
+              })()}
+              {systemInfo.moduleCount === 0 && (
+                <div className="text-secondary-foreground text-xs">No modules loaded</div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
