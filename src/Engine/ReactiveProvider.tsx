@@ -76,6 +76,7 @@ export const ReactiveProvider: React.FC<{
     // Update the notebook path in the code cell engine when it changes
     useEffect(() => {
         if (system?.codeCellEngine) {
+            log.debug(`ReactiveProvider: Setting notebook path to: ${currentFilePath}`);
             system.codeCellEngine.setCurrentNotebookPath(currentFilePath);
         }
     }, [currentFilePath, system]);

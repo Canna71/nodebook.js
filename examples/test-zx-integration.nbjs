@@ -7,6 +7,11 @@
     },
     {
       "type": "code",
+      "id": "code_debug_working_dir",
+      "code": "// Debug: Check working directory setup\nconsole.log('=== Working Directory Debug ===');\nconsole.log('process.cwd():', process.cwd());\nconsole.log('__dirname:', __dirname);\nconsole.log('Are they the same?', process.cwd() === __dirname);\n\n// Check if we're in the notebook directory (should contain package.json)\nconst fs = require('fs');\nconst path = require('path');\nconst packageJsonPath = path.join(process.cwd(), 'package.json');\nconsole.log('package.json exists in cwd:', fs.existsSync(packageJsonPath));\n\n// List some files in current directory\ntry {\n    const files = fs.readdirSync(process.cwd());\n    const relevantFiles = files.filter(f => f.endsWith('.nbjs') || f.endsWith('.json') || f.endsWith('.md')).slice(0, 10);\n    console.log('Sample files in cwd:', relevantFiles);\n} catch (error) {\n    console.error('Error reading directory:', error.message);\n}\n\nexports.debugInfo = {\n    cwd: process.cwd(),\n    dirname: __dirname,\n    packageJsonExists: fs.existsSync(packageJsonPath)\n};"
+    },
+    {
+      "type": "code",
       "id": "code_test_basics",
       "code": "// Test 1: Basic zx functionality\nconsole.log('Testing zx globals...');\nconsole.log('$ function available:', typeof $ === 'function');\nconsole.log('cd function available:', typeof cd === 'function');\nconsole.log('echo function available:', typeof echo === 'function');\nconsole.log('chalk available:', typeof chalk === 'object');\n\n// Test current working directory\nconsole.log('Current working directory:', process.cwd());\nconsole.log('__dirname value:', __dirname);\n\nexports.zxGlobalsTest = 'completed';"
     },

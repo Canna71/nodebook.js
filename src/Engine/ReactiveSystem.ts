@@ -1112,15 +1112,21 @@ export class CodeCellEngine {
             // Change the process working directory to the notebook directory if available
             let originalCwd: string | undefined;
             const workingDir = this.getWorkingDirectory();
-            if (this.currentNotebookPath && workingDir !== process.cwd()) {
+            const currentCwd = process.cwd();
+            const hasNotebookPath = this.currentNotebookPath || (typeof window !== 'undefined' && (window as any).__notebookCurrentPath);
+            log.debug(`Working directory check: notebookPath=${this.currentNotebookPath}, workingDir=${workingDir}, currentCwd=${currentCwd}, globalPath=${typeof window !== 'undefined' ? (window as any).__notebookCurrentPath : 'N/A'}, hasNotebook=${!!hasNotebookPath}`);
+            
+            if (hasNotebookPath && workingDir !== currentCwd) {
                 try {
-                    originalCwd = process.cwd();
+                    originalCwd = currentCwd;
                     process.chdir(workingDir);
                     log.debug(`Changed working directory to: ${workingDir} (was: ${originalCwd})`);
                 } catch (error) {
                     log.warn(`Failed to change working directory to ${workingDir}:`, error);
                     originalCwd = undefined; // Don't restore if we failed to change
                 }
+            } else {
+                log.debug(`Skipping working directory change: hasNotebook=${!!hasNotebookPath}, same directory=${workingDir === currentCwd}`);
             }
             
             try {
@@ -1544,15 +1550,21 @@ export class CodeCellEngine {
             // Change working directory temporarily for evaluation too
             let originalCwd: string | undefined;
             const workingDir = this.getWorkingDirectory();
-            if (this.currentNotebookPath && workingDir !== process.cwd()) {
+            const currentCwd = process.cwd();
+            const hasNotebookPath = this.currentNotebookPath || (typeof window !== 'undefined' && (window as any).__notebookCurrentPath);
+            log.debug(`Evaluation working directory check: notebookPath=${this.currentNotebookPath}, workingDir=${workingDir}, currentCwd=${currentCwd}, hasNotebook=${!!hasNotebookPath}`);
+            
+            if (hasNotebookPath && workingDir !== currentCwd) {
                 try {
-                    originalCwd = process.cwd();
+                    originalCwd = currentCwd;
                     process.chdir(workingDir);
                     log.debug(`Changed working directory for evaluation to: ${workingDir}`);
                 } catch (error) {
                     log.warn(`Failed to change working directory for evaluation to ${workingDir}:`, error);
                     originalCwd = undefined;
                 }
+            } else {
+                log.debug(`Skipping evaluation working directory change: hasNotebook=${!!hasNotebookPath}, same directory=${workingDir === currentCwd}`);
             }
             
             try {
@@ -1688,11 +1700,13 @@ export class CodeCellEngine {
      */
     public setCurrentNotebookPath(notebookPath: string | null): void {
         this.currentNotebookPath = notebookPath || undefined;
-        log.debug('Current notebook path set to:', this.currentNotebookPath);
+        const workingDir = this.getWorkingDirectory();
+        log.debug(`Current notebook path set to: ${this.currentNotebookPath}, working directory: ${workingDir}`);
     }
 
     /**
      * Get the working directory for code cells (notebook directory or cwd)
+     * Try to get the current notebook path dynamically if not set
      */
     private getWorkingDirectory(): string {
         if (this.currentNotebookPath) {
@@ -1700,6 +1714,23 @@ export class CodeCellEngine {
             const path = require('path');
             return path.dirname(this.currentNotebookPath);
         }
+        
+        // If notebook path is not set, try to get it from the global application state
+        // This is a fallback for timing issues during initialization
+        try {
+            // Check if we're in a browser environment with access to global state
+            if (typeof window !== 'undefined' && (window as any).__notebookCurrentPath) {
+                const globalNotebookPath = (window as any).__notebookCurrentPath;
+                if (globalNotebookPath) {
+                    const path = require('path');
+                    log.debug(`Using global notebook path from window: ${globalNotebookPath}`);
+                    return path.dirname(globalNotebookPath);
+                }
+            }
+        } catch (error) {
+            log.debug('Failed to get notebook path from global state:', error);
+        }
+        
         // Fallback to current working directory
         return process?.cwd() || '/';
     }

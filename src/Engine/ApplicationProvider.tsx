@@ -68,6 +68,12 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 // Use state manager for loading notebook
                 stateManager.loadNotebook(filePath, model, `Load notebook: ${filePath.split('/').pop()}`);
                 
+                // Set global notebook path for working directory fallback (timing issue fix)
+                if (typeof window !== 'undefined') {
+                    (window as any).__notebookCurrentPath = filePath;
+                    log.debug('Set global notebook path:', filePath);
+                }
+                
                 log.info('Notebook loaded successfully:', filePath);
             } else {
                 log.error('Failed to load notebook:', content.error);
@@ -149,6 +155,12 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     const newNotebook = useCallback(() => {
         // Use state manager for creating new notebook
         stateManager.newNotebook('Create new notebook');
+        
+        // Clear global notebook path for new notebooks
+        if (typeof window !== 'undefined') {
+            (window as any).__notebookCurrentPath = null;
+            log.debug('Cleared global notebook path for new notebook');
+        }
         
         log.info('New notebook created');
     }, [stateManager]);
