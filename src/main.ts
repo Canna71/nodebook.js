@@ -422,7 +422,7 @@ const createWindow = async () => {
             nodeIntegration: true,
             contextIsolation: false
         },
-        icon: '/build-resources/icons/icon.ico'
+        icon: path.join(__dirname, '../../build-resources/icon.png') // Use proper relative path
     });
     mainWindowStateKeeper.track(mainWindow);
 
@@ -663,6 +663,11 @@ async function loadExtensions() {
 // code. You can also put them in separate files and import them here.
 
 app.whenReady().then(async () => {
+
+    // Set the app name to the productName for proper menu display
+    if (process.platform === 'darwin') {
+        app.setName('Nodebook.js');
+    }
 
     registerHandlers();
     await loadExtensions();
