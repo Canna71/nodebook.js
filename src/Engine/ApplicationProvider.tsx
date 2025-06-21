@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 import { NotebookModel, CellDefinition, NotebookStorage } from '@/Types/NotebookModel';
 import { ApplicationState, ApplicationContextType, ApplicationProviderProps } from '@/Types/ApplicationTypes';
 import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
+import { RecentNotebooksManager } from '@/lib/recentNotebooks';
 import { toast } from 'sonner';
 import anylogger from 'anylogger';
 import { commandManagerSingleton } from './CommandManagerSingleton';
@@ -68,6 +69,9 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 // Use state manager for loading notebook
                 stateManager.loadNotebook(filePath, model, `Load notebook: ${filePath.split('/').pop()}`);
                 
+                // Add to recent notebooks
+                await RecentNotebooksManager.addRecentNotebook(filePath);
+                
                 // Set global notebook path for working directory fallback (timing issue fix)
                 if (typeof window !== 'undefined') {
                     (window as any).__notebookCurrentPath = filePath;
@@ -131,6 +135,11 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             
             // Use state manager for saving
             stateManager.saveNotebook(targetPath, `Save notebook: ${targetPath.split('/').pop()}`);
+            
+            // Add to recent notebooks if this is a new file path
+            if (filePath && filePath !== state.currentFilePath) {
+                await RecentNotebooksManager.addRecentNotebook(targetPath);
+            }
             
             log.info('Notebook saved successfully:', targetPath);
             
@@ -634,6 +643,7 @@ Variables automatically update when their dependencies change, creating a live, 
         saveNotebook,
         showSaveAsDialog,
         newNotebook,
+        createNewNotebook: newNotebook, // Alias for consistency
         setModel,
         setDirty,
         clearError,

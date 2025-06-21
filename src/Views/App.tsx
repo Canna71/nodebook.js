@@ -15,6 +15,7 @@ log.debug("Initializing App");
 import danfojsPlottingExample from "../../examples/danfojs-plotting-example.json";
 import { NotebookViewer } from './NotebookViewer';
 import { SettingsView } from './SettingsView';
+import { HomePage } from './HomePage';
 import { NotebookModel, CellDefinition } from 'src/Types/NotebookModel';
 import Layout from '@/app/layout';
 import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
@@ -167,13 +168,7 @@ function AppContent() {
                             {currentModel ? (
                                 <NotebookViewer model={currentModel} />
                             ) : (
-                                <div className="flex items-center justify-center min-h-[calc(100vh-3rem)]">
-                                    <div className="text-center">
-                                        <div className="text-xl font-semibold mb-4">Welcome to NotebookJS</div>
-                                        <div className="text-secondary-foreground mb-6">Create a new notebook or open an existing one to get started</div>
-                                        <div className="text-sm text-secondary-foreground">Use the toolbar above to create or open a notebook</div>
-                                    </div>
-                                </div>
+                                <HomePage />
                             )}
                         </>
                     )}
