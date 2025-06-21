@@ -661,23 +661,27 @@ export class CodeCellEngine {
                             // Input/Output
                             'question', 'echo', 'stdin',
                             // Timing
-                            'sleep', 'setTimeout', 'setInterval',
-                            // File system and path utilities
-                            'glob', 'fs', 'path', 'os',
-                            // Utility functions
-                            'which', 'minimist', 'argv',
+                            'sleep',
+                            // File system and utilities
+                            'glob', 'which', 'minimist', 'argv', 'fs', 'os', 'path',
                             // Styling and formatting
                             'chalk',
                             // Data formats
                             'YAML', 'fetch',
-                            // Process and system
-                            'process',
                             // Retry mechanism
                             'retry',
-                            // Pipes and streaming
-                            'pipe',
                             // CLI spinner
-                            'spinner'
+                            'spinner',
+                            // Process management
+                            'ps', 'kill', 'tmpdir', 'tmpfile',
+                            // Environment
+                            'dotenv',
+                            // Quoting functions
+                            'quote', 'quotePowerShell',
+                            // Shell configuration  
+                            'useBash', 'usePowerShell', 'usePwsh',
+                            // Process synchronization
+                            'syncProcessCwd'
                         ];
                         
                         zxGlobals.forEach(globalName => {

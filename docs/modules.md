@@ -117,6 +117,227 @@ output(plotDiv);
 - `tf` - TensorFlow.js machine learning (from danfojs, pre-loaded)
 - `Plotly` - Interactive plotting library (pre-loaded)
 
+## Shell Scripting with zx
+
+The `zx` library is preloaded and all its globals are automatically injected, providing a powerful shell scripting environment:
+
+### Core Shell Execution
+
+```javascript
+// Execute shell commands (always async)
+const result = await $`ls -la`;
+const files = await $`find . -name "*.js"`;
+
+// Synchronous execution
+const currentDir = $.sync`pwd`;
+
+// Command options
+const output = await $({nothrow: true})`exit 1`; // Don't throw on error
+const result = await $({timeout: '5s'})`long-running-command`;
+const piped = await $({input: 'hello'})`cat`; // Pipe input
+```
+
+### Directory and Context Management
+
+```javascript
+// Change working directory (affects all subsequent $ calls)
+cd('/tmp');
+await $`pwd`; // => /tmp
+
+// Create isolated context
+await within(async () => {
+    $.cwd = '/different/path';
+    const files = await $`ls`; // Uses /different/path
+    // Context restored after block
+});
+
+// Keep process.cwd() in sync (optional performance overhead)
+syncProcessCwd();
+```
+
+### Input/Output Operations
+
+```javascript
+// Interactive prompts
+const name = await question('What is your name? ');
+const choice = await question('Select option:', {
+    choices: ['A', 'B', 'C']
+});
+
+// Enhanced logging (handles ProcessOutput)
+echo`Current branch: ${await $`git branch --show-current`}`;
+echo('Simple message');
+
+// Read from stdin
+const input = await stdin();
+const data = JSON.parse(input);
+```
+
+### File System Operations
+
+```javascript
+// File globbing
+const jsFiles = await glob('**/*.js');
+const configs = await glob(['*.json', '*.yaml']);
+
+// Enhanced file system (fs-extra)
+const pkg = await fs.readJson('package.json');
+await fs.writeJson('output.json', data, {spaces: 2});
+await fs.copy('src', 'dist');
+
+// Path utilities
+const fullPath = path.join(os.homedir(), 'projects');
+const relative = path.relative(process.cwd(), fullPath);
+```
+
+### Process and System Management
+
+```javascript
+// Find executables
+const gitPath = await which('git');
+const nodePath = await which('node', {nothrow: true}); // null if not found
+
+// Process management
+const processes = await ps.lookup({command: 'node'});
+const tree = await ps.tree({pid: 123, recursive: true});
+await kill(123, 'SIGTERM');
+
+// Temporary files and directories
+const tempDir = tmpdir(); // /tmp/zx-random/
+const tempFile = tmpfile('data.json', JSON.stringify(data));
+const executable = tmpfile('script.sh', '#!/bin/bash\necho hello', 0o744);
+```
+
+### Utilities and Formatting
+
+```javascript
+// Terminal styling
+echo(chalk.blue('Info:'), chalk.green('Success!'));
+echo(chalk.red.bold('Error:'), chalk.yellow('Warning'));
+
+// Command line arguments
+if (argv.verbose) {
+    echo('Verbose mode enabled');
+}
+
+// Custom argument parsing
+const args = minimist(process.argv.slice(2), {
+    boolean: ['force', 'help'],
+    alias: {h: 'help'}
+});
+
+// HTTP requests with enhanced fetch
+const response = await fetch('https://api.github.com/user');
+const data = await response.json();
+
+// Pipe fetch response
+await fetch('https://example.com/data.json').pipe($`jq '.'`);
+```
+
+### Error Handling and Reliability
+
+```javascript
+// Retry with backoff
+const result = await retry(5, async () => {
+    return await $`curl https://flaky-api.com/data`;
+});
+
+// Retry with custom delay
+const data = await retry(10, '2s', async () => {
+    return await fetch('https://api.example.com/data');
+});
+
+// Exponential backoff
+const response = await retry(20, expBackoff(), async () => {
+    return await $`wget https://large-file.com/data.zip`;
+});
+
+// Progress indication
+await spinner('Downloading...', async () => {
+    await $`wget https://example.com/large-file.zip`;
+});
+
+// Custom spinner message
+await spinner(() => $`npm install`);
+```
+
+### Environment and Configuration
+
+```javascript
+// Environment variables
+dotenv.config('.env'); // Load .env file
+const env = dotenv.load('.env'); // Load without setting process.env
+const parsed = dotenv.parse('FOO=bar\nBAZ=qux');
+
+// Run with custom environment
+await $({env: {NODE_ENV: 'production'}})`node script.js`;
+
+// Shell configuration
+useBash(); // Use bash shell and bash quoting
+usePowerShell(); // Switch to PowerShell
+usePwsh(); // Use PowerShell 7+
+
+// String quoting
+const bashQuoted = quote('$HOME/file with spaces');
+const pwshQuoted = quotePowerShell('$env:HOME\\file with spaces');
+```
+
+### Data Formats
+
+```javascript
+// YAML processing
+const config = YAML.parse(await fs.readFile('config.yaml', 'utf8'));
+const yamlString = YAML.stringify({key: 'value', list: [1, 2, 3]});
+
+// Timing operations
+await sleep(1000); // Wait 1 second
+await sleep('2s'); // Wait 2 seconds
+```
+
+### Complete zx Globals Reference
+
+| Global | Type | Description | Example |
+|--------|------|-------------|---------|
+| `$` | function | Execute shell commands | `await $\`ls -la\`` |
+| `cd` | function | Change directory | `cd('/tmp')` |
+| `within` | function | Create async context | `within(async () => {})` |
+| `question` | function | Interactive prompts | `await question('Name?')` |
+| `echo` | function | Enhanced console.log | `echo\`Hello ${name}\`` |
+| `stdin` | function | Read stdin | `await stdin()` |
+| `sleep` | function | Wait/delay | `await sleep(1000)` |
+| `glob` | function | File pattern matching | `await glob('**/*.js')` |
+| `which` | function | Find executable | `await which('git')` |
+| `fs` | object | File system (fs-extra) | `fs.readJson('package.json')` |
+| `os` | object | OS utilities | `os.homedir()` |
+| `path` | object | Path utilities | `path.join(a, b)` |
+| `minimist` | function | Argument parser | `minimist(process.argv.slice(2))` |
+| `argv` | object | Parsed arguments | `argv.verbose` |
+| `chalk` | object | Terminal styling | `chalk.blue('text')` |
+| `YAML` | object | YAML parser | `YAML.parse(str)` |
+| `fetch` | function | HTTP requests | `await fetch(url)` |
+| `retry` | function | Retry with backoff | `retry(5, () => action())` |
+| `spinner` | function | CLI spinner | `spinner('msg', () => task())` |
+| `ps` | object | Process listing | `ps.lookup({command: 'node'})` |
+| `kill` | function | Kill process | `kill(pid, 'SIGTERM')` |
+| `tmpdir` | function | Temp directory | `tmpdir('subdir')` |
+| `tmpfile` | function | Temp file | `tmpfile('name.txt', content)` |
+| `dotenv` | object | Environment vars | `dotenv.config('.env')` |
+| `quote` | function | Bash quoting | `quote('$HOME/path')` |
+| `quotePowerShell` | function | PowerShell quoting | `quotePowerShell('$env:HOME')` |
+| `useBash` | function | Enable bash | `useBash()` |
+| `usePowerShell` | function | Enable PowerShell | `usePowerShell()` |
+| `usePwsh` | function | Enable pwsh | `usePwsh()` |
+| `syncProcessCwd` | function | Sync process.cwd() | `syncProcessCwd()` |
+
+### Best Practices
+
+1. **Always use `await`** with shell commands: `await $\`command\``
+2. **Handle errors** with `nothrow` option for unreliable commands
+3. **Use `within()`** for isolated contexts instead of changing global state
+4. **Prefer `tmpdir()`/`tmpfile()`** over hardcoded temp paths
+5. **Use `which()` with `nothrow`** to check if commands exist
+6. **Enable `syncProcessCwd()`** only if you need process.cwd() sync (performance cost)
+
 ## Pre-bundled Libraries (Require-Available)
 
 These scientific and data libraries are available via `require()` but are **not** automatically injected as globals:

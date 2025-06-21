@@ -1166,158 +1166,424 @@ This comprehensive guide covers all the essential features and best practices fo
 
 ## Shell Integration
 
-NotebookJS includes full shell integration powered by the `zx` library, allowing you to execute shell commands directly in your code cells with proper async/await support.
+NotebookJS includes comprehensive shell integration powered by the `zx` library, with all zx globals automatically available in code cells. This provides a powerful shell scripting environment directly in your notebooks.
 
-### Shell Command Execution
+### Core Shell Execution
 
-Execute shell commands using the `$` function:
+Execute shell commands using the `$` function (always async):
 
 ```javascript
-// Simple shell commands
+// Basic shell commands
 const result = await $`echo "Hello World"`;
-console.log(result.stdout); // "Hello World\n"
+console.log(result.stdout.trim()); // "Hello World"
 
-// Command with output
+// Command with complex output
 const files = await $`ls -la`;
-console.log('Directory contents:', files.stdout);
+console.log('Directory contents:');
+console.log(files.stdout);
 
-// Command chaining
-await $`mkdir -p temp/data`;
-await $`echo "test content" > temp/data/test.txt`;
-const content = await $`cat temp/data/test.txt`;
-console.log('File content:', content.stdout.trim());
+// Synchronous execution when needed
+const currentDir = $.sync`pwd`;
+console.log('Current directory:', currentDir.stdout.trim());
+
+// Command options and configuration
+const tolerantResult = await $({nothrow: true})`exit 1`; // Don't throw on error
+const timedResult = await $({timeout: '5s'})`long-running-command`;
+const pipedResult = await $({input: 'hello world'})`cat`; // Pipe input
 ```
 
-### Working Directory
+### Working Directory Management
 
-All code cells execute in the **notebook's directory**, not the application directory:
+**Important**: All code cells execute in the **notebook's directory**, not the application directory:
 
 ```javascript
-// Show current working directory
-const cwd = await $`pwd`;
-console.log('Working directory:', cwd.stdout.trim());
-
-// Both __dirname and process.cwd() point to notebook directory
-console.log('__dirname:', __dirname);
+// Check working directory (should be notebook directory)
 console.log('process.cwd():', process.cwd());
+console.log('__dirname:', __dirname);
+console.log('pwd command:', (await $`pwd`).stdout.trim());
 
-// File operations are scoped to notebook directory
-const fs = require('fs');
-const files = fs.readdirSync('.'); // Lists files in notebook directory
-console.log('Notebook files:', files.filter(f => f.endsWith('.nbjs')));
+// Change directory (affects subsequent $ calls)
+cd('/tmp');
+await $`pwd`; // Now shows /tmp
+
+// Isolated context with within()
+await within(async () => {
+    $.cwd = '/different/path';
+    const files = await $`ls`; // Uses /different/path
+    console.log('Files in isolated context:', files.stdout);
+    // Context automatically restored
+});
+
+// Back in original directory
+await $`pwd`; // Shows original directory
 ```
 
-### Available Shell Utilities
+### Complete zx Globals Reference
 
-All zx globals are available without imports:
+All zx globals are automatically available without imports:
 
+#### Shell Execution and Control
 ```javascript
-// Directory navigation
-await cd('subdirectory');
-await cd('..'); // Back to notebook directory
+// Execute commands
+const output = await $`command args`;
+const sync = $.sync`command args`;
 
-// User interaction
+// Directory navigation  
+cd('/path/to/directory');
+await $`pwd`; // Shows new directory
+
+// Isolated contexts
+await within(async () => {
+    // Changes here don't affect global state
+    $.verbose = false;
+    $.cwd = '/tmp';
+    await $`command`; // Runs in /tmp with no output
+});
+```
+
+#### Input/Output Operations
+```javascript
+// Interactive prompts
 const name = await question('What is your name? ');
-console.log(`Hello, ${name}!`);
+const choice = await question('Select option:', {
+    choices: ['Option A', 'Option B', 'Option C']
+});
 
-// Utility functions
-await sleep(1000); // Wait 1 second
-echo('This goes to stdout');
+// Enhanced echo (handles ProcessOutput)
+echo`Current branch: ${await $`git branch --show-current`}`;
+echo('Simple message');
+echo(chalk.green('Styled message'));
 
+// Read from stdin
+const input = await stdin();
+const data = JSON.parse(input);
+```
+
+#### File System and Path Operations  
+```javascript
+// Enhanced file system (fs-extra)
+const config = await fs.readJson('package.json');
+await fs.writeJson('output.json', data, {spaces: 2});
+await fs.copy('src', 'dist');
+await fs.ensureDir('path/to/directory');
+
+// Path utilities
+const fullPath = path.join(os.homedir(), 'projects', 'myproject');
+const relative = path.relative(process.cwd(), fullPath);
+const parsed = path.parse('/home/user/file.txt');
+
+// Operating system info
+console.log('Platform:', os.platform());
+console.log('Home directory:', os.homedir());
+console.log('CPU count:', os.cpus().length);
+```
+
+#### Pattern Matching and Process Management
+```javascript
 // File globbing
 const jsFiles = await glob('**/*.js');
-console.log('JavaScript files:', jsFiles);
+const configs = await glob(['*.json', '*.yaml', '*.yml']);
+const syncFiles = glob.sync('*.md'); // Synchronous API
 
-// Check if command exists
-const hasGit = await which('git');
-console.log('Git available:', !!hasGit);
+// Find executables
+const gitPath = await which('git');
+const nodePath = await which('node', {nothrow: true}); // null if not found
 
-// Styled output
-console.log(chalk.blue('Blue text'));
-console.log(chalk.green.bold('Bold green text'));
+// Process management
+const allProcesses = await ps.lookup();
+const nodeProcesses = await ps.lookup({command: 'node'});
+const processTree = await ps.tree({pid: 123, recursive: true});
+await kill(123, 'SIGTERM');
+```
 
-// YAML parsing
-const yamlData = YAML.parse('key: value\narray:\n  - item1\n  - item2');
-console.log('Parsed YAML:', yamlData);
+#### Temporary Files and Directories
+```javascript
+// Create temporary directories
+const tempDir = tmpdir(); // /tmp/zx-random/
+const namedTempDir = tmpdir('my-temp'); // /tmp/zx-random/my-temp/
+
+// Create temporary files
+const tempFile = tmpfile(); // Empty temp file
+const dataFile = tmpfile('data.json', JSON.stringify(data));
+const script = tmpfile('script.sh', '#!/bin/bash\necho hello', 0o755); // Executable
+```
+
+#### Utilities and Formatting
+```javascript
+// Terminal styling with chalk
+console.log(chalk.blue('Info message'));
+console.log(chalk.red.bold('Error:'), chalk.yellow('Warning message'));
+console.log(chalk.green('✓ Success'));
+
+// Command line arguments (automatically parsed)
+if (argv.verbose) {
+    console.log('Verbose mode enabled');
+}
+if (argv.help || argv.h) {
+    console.log('Usage: script [options]');
+}
+
+// Custom argument parsing
+const customArgs = minimist(process.argv.slice(2), {
+    boolean: ['force', 'help'],
+    alias: {h: 'help', f: 'force'},
+    default: {timeout: 5000}
+});
+```
+
+#### Network and Data Operations
+```javascript
+// HTTP requests with enhanced fetch
+const response = await fetch('https://api.github.com/user');
+const userData = await response.json();
+
+// Fetch with streaming (pipe to shell commands)
+await fetch('https://example.com/large-file.json').pipe($`jq '.'`);
+await fetch('https://api.example.com/data').pipe($`grep "important"`);
+
+// YAML processing
+const config = YAML.parse(await fs.readFile('config.yaml', 'utf8'));
+const yamlOutput = YAML.stringify({
+    name: 'MyProject',
+    version: '1.0.0',
+    dependencies: ['lodash', 'chalk']
+});
+```
+
+#### Error Handling and Reliability
+```javascript
+// Retry operations with backoff
+const result = await retry(5, async () => {
+    return await $`curl https://flaky-api.com/data`;
+});
+
+// Retry with custom delays
+const data = await retry(10, '2s', async () => {
+    return await fetch('https://api.example.com/data');
+});
+
+// Exponential backoff
+const downloaded = await retry(20, expBackoff(), async () => {
+    return await $`wget https://large-file.com/archive.zip`;
+});
+
+// Progress indication
+await spinner('Installing dependencies...', async () => {
+    await $`npm install`;
+});
+
+// Custom spinner
+await spinner(() => $`docker build -t myapp .`);
+```
+
+#### Environment and Configuration
+```javascript
+// Environment variable management
+dotenv.config('.env'); // Load .env into process.env
+const envVars = dotenv.load('.env'); // Load without setting process.env
+const parsed = dotenv.parse('NODE_ENV=production\nDEBUG=true');
+
+// Run commands with custom environment
+await $({env: {NODE_ENV: 'production', DEBUG: 'app:*'}})`node server.js`;
+
+// Shell configuration
+useBash(); // Use bash shell with bash quoting
+usePowerShell(); // Switch to PowerShell with PowerShell quoting  
+usePwsh(); // Use PowerShell 7+ (pwsh)
+
+// String quoting for different shells
+const bashSafe = quote('$HOME/path with spaces');
+const pwshSafe = quotePowerShell('$env:USERPROFILE\\path with spaces');
+
+// Process synchronization (optional - has performance cost)
+syncProcessCwd(); // Keep process.cwd() synced with $.cwd
+```
+
+#### Timing and Delays
+```javascript
+// Sleep/wait operations
+await sleep(1000); // Wait 1 second
+await sleep('2s'); // Wait 2 seconds  
+await sleep('500ms'); // Wait 500 milliseconds
+
+// Use in sequences
+console.log('Starting process...');
+await sleep('1s');
+await $`some-command`;
+await sleep('500ms');
+console.log('Process complete');
 ```
 
 ### Practical Examples
 
-#### File Management
+#### Project Setup and Management
 ```javascript
-// Backup notebook files
-await $`mkdir -p backups`;
-const notebooks = await glob('*.nbjs');
-for (const notebook of notebooks) {
-    await $`cp ${notebook} backups/${notebook}.backup`;
-}
-console.log(`Backed up ${notebooks.length} notebooks`);
-```
+// Initialize new project
+await $`mkdir -p project/{src,tests,docs}`;
+await $`touch project/README.md project/.gitignore`;
+cd('project');
 
-#### Git Operations
-```javascript
-// Check git status
-const status = await $`git status --porcelain`;
-if (status.stdout.trim()) {
-    console.log('Uncommitted changes:');
-    console.log(status.stdout);
-} else {
-    console.log('Working directory is clean');
-}
+// Package.json creation
+const pkg = {
+    name: 'my-project',
+    version: '1.0.0',
+    scripts: {test: 'jest', build: 'webpack'}
+};
+await fs.writeJson('package.json', pkg, {spaces: 2});
 
-// Commit changes
+// Git initialization
+await $`git init`;
 await $`git add .`;
-await $`git commit -m "Update notebook: ${new Date().toISOString()}"`;
+await $`git commit -m "Initial commit"`;
 ```
 
-#### Data Processing Pipeline
+#### Data Processing Pipelines
 ```javascript
 // Download and process data
-await $`curl -o data.csv "https://example.com/data.csv"`;
-const lineCount = await $`wc -l data.csv`;
-console.log('Downloaded data:', lineCount.stdout.trim());
+console.log(chalk.blue('Downloading data...'));
+await retry(3, '1s', () => $`curl -o data.csv "https://example.com/dataset.csv"`);
 
-// Process with standard Unix tools
-await $`sort data.csv | uniq > processed.csv`;
-const processedLines = await $`wc -l processed.csv`;
-console.log('Processed data:', processedLines.stdout.trim());
+// Validate and process
+const lineCount = parseInt((await $`wc -l < data.csv`).stdout.trim());
+console.log(`Downloaded ${lineCount} records`);
+
+// Process with Unix tools
+await $`sort data.csv | uniq | head -100 > processed.csv`;
+const processed = parseInt((await $`wc -l < processed.csv`).stdout.trim());
+console.log(chalk.green(`✓ Processed ${processed} unique records`));
+
+// Export results for other cells
+exports.dataStats = {
+    originalRows: lineCount,
+    processedRows: processed,
+    timestamp: new Date().toISOString()
+};
 ```
 
-### Error Handling
-
-Shell commands throw errors on non-zero exit codes:
-
+#### System Monitoring and Maintenance
 ```javascript
-try {
-    await $`some-command-that-might-fail`;
-} catch (error) {
-    console.error('Command failed:', error.message);
-    console.error('Exit code:', error.exitCode);
-    console.error('stderr:', error.stderr);
+// System health check
+const diskUsage = await $`df -h /`;
+const memUsage = await $`free -h`;
+const loadAvg = await $`uptime`;
+
+// Process monitoring
+const nodeProcs = await ps.lookup({command: 'node'});
+console.log(`Running ${nodeProcs.length} Node.js processes`);
+
+// Log rotation
+const logDir = tmpdir('logs');
+await $`find ${logDir} -name "*.log" -mtime +7 -delete`;
+console.log('Cleaned up old log files');
+
+// Export system status
+exports.systemStatus = {
+    disk: diskUsage.stdout,
+    memory: memUsage.stdout,
+    load: loadAvg.stdout.trim(),
+    nodeProcesses: nodeProcs.length,
+    checkTime: new Date()
+};
+```
+
+#### Git Operations and Version Control
+```javascript
+// Git status and operations
+const status = await $`git status --porcelain`;
+const hasChanges = status.stdout.trim().length > 0;
+
+if (hasChanges) {
+    console.log(chalk.yellow('Uncommitted changes detected:'));
+    console.log(status.stdout);
+    
+    // Interactive commit
+    const shouldCommit = await question('Commit changes? (y/n) ');
+    if (shouldCommit.toLowerCase() === 'y') {
+        const message = await question('Commit message: ');
+        await $`git add .`;
+        await $`git commit -m ${message}`;
+        console.log(chalk.green('✓ Changes committed'));
+    }
+} else {
+    console.log(chalk.green('✓ Working directory is clean'));
 }
 
-// Ignore errors with nothrow
-const result = await $`command || true`; // Always succeeds
-// Or use zx's quiet mode
-$.verbose = false; // Suppress output
-const quietResult = await $`ls nonexistent || echo "not found"`;
-$.verbose = true; // Restore output
+// Branch information
+const branch = (await $`git branch --show-current`).stdout.trim();
+const commits = (await $`git rev-list --count HEAD`).stdout.trim();
+exports.gitInfo = {branch, commits, hasChanges};
+```
+
+### Error Handling Best Practices
+
+```javascript
+// Handle command failures gracefully
+try {
+    const result = await $`risky-command`;
+    exports.commandOutput = result.stdout;
+} catch (error) {
+    console.error(chalk.red('Command failed:'), error.message);
+    console.error('Exit code:', error.exitCode);
+    console.error('stderr:', error.stderr);
+    exports.commandOutput = null;
+}
+
+// Use nothrow for commands that may fail
+const result = await $({nothrow: true})`test -f optional-file.txt`;
+if (result.exitCode === 0) {
+    console.log('Optional file exists');
+} else {
+    console.log('Optional file not found, continuing...');
+}
+
+// Validate prerequisites
+const requiredCommands = ['git', 'node', 'npm'];
+for (const cmd of requiredCommands) {
+    const path = await which(cmd, {nothrow: true});
+    if (!path) {
+        throw new Error(`Required command not found: ${cmd}`);
+    }
+    console.log(`✓ ${cmd} found at ${path}`);
+}
 ```
 
 ### Integration with Reactive System
 
-Shell commands work seamlessly with the reactive system:
+Shell operations work seamlessly with reactive exports:
 
 ```javascript
-// Export shell command results
-const diskUsage = await $`df -h /`;
-exports.systemInfo = {
-    timestamp: new Date(),
-    diskUsage: diskUsage.stdout,
-    hostname: (await $`hostname`).stdout.trim()
+// Export shell command results for other cells
+const systemInfo = {
+    hostname: (await $`hostname`).stdout.trim(),
+    uptime: (await $`uptime`).stdout.trim(),
+    diskSpace: await $`df -h /`,
+    timestamp: new Date()
 };
+exports.systemInfo = systemInfo;
 
 // Use reactive variables in shell commands
-const logFile = `logs/${dataSource}_${new Date().toISOString().split('T')[0]}.log`;
-await $`echo "${JSON.stringify(processedData)}" >> ${logFile}`;
+const logFile = path.join('logs', `${dataSource}_${new Date().toISOString().split('T')[0]}.log`);
+await fs.ensureDir('logs');
+await $`echo ${JSON.stringify(processedData)} >> ${logFile}`;
+
+// Conditional shell execution based on reactive state
+if (developmentMode) {
+    await $`npm run dev`;
+} else {
+    await $`npm run build`;
+    await $`npm run test`;
+}
 ```
+
+### Performance and Best Practices
+
+1. **Always use `await`** with shell commands (they're all async)
+2. **Use `nothrow` option** for commands that might fail
+3. **Use `within()`** for isolated contexts instead of changing global state
+4. **Prefer `tmpdir()`/`tmpfile()`** over hardcoded temp paths
+5. **Check command availability** with `which()` before using
+6. **Enable `syncProcessCwd()`** only if needed (has performance overhead)
+7. **Use `retry()`** for unreliable network operations
+8. **Use `spinner()`** for long-running operations to show progress
+9. **Quote variables** properly when passing to shell commands
+10. **Handle errors gracefully** with try-catch or `nothrow`

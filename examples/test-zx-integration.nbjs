@@ -13,7 +13,7 @@
     {
       "type": "code",
       "id": "code_test_basics",
-      "code": "// Test 1: Basic zx functionality\nconsole.log('Testing zx globals...');\nconsole.log('$ function available:', typeof $ === 'function');\nconsole.log('cd function available:', typeof cd === 'function');\nconsole.log('echo function available:', typeof echo === 'function');\nconsole.log('chalk available:', typeof chalk === 'object');\n\n// Test current working directory\nconsole.log('Current working directory:', process.cwd());\nconsole.log('__dirname value:', __dirname);\n\nexports.zxGlobalsTest = 'completed';"
+      "code": "// Test 1: Basic zx functionality\nconsole.log('Testing zx globals...');\nconsole.log('$ function available:', typeof $ === 'function');\nconsole.log('cd function available:', typeof cd === 'function');\nconsole.log('echo function available:', typeof echo === 'function');\nconsole.log('chalk available:', typeof chalk === 'function');\n\n// Test current working directory\nconsole.log('Current working directory:', process.cwd());\nconsole.log('__dirname value:', __dirname);\n\nexports.zxGlobalsTest = 'completed';"
     },
     {
       "type": "code",

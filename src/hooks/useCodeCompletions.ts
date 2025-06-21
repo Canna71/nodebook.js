@@ -172,61 +172,181 @@ export function useCodeCompletions() {
             {
                 label: "$",
                 type: "function",
-                info: "Execute shell commands with zx",
+                info: "Execute shell commands with zx - await $`command`",
                 detail: "zx Global"
             },
             {
                 label: "cd",
                 type: "function", 
-                info: "Change directory (zx)",
+                info: "Change directory - cd('/path/to/dir')",
                 detail: "zx Global"
             },
             {
                 label: "question",
                 type: "function",
-                info: "Prompt user for input (zx)",
+                info: "Prompt user for input - await question('What is your name?')",
                 detail: "zx Global"
             },
             {
                 label: "sleep",
                 type: "function",
-                info: "Sleep for specified milliseconds (zx)",
+                info: "Sleep for specified milliseconds - await sleep(1000)",
                 detail: "zx Global"
             },
             {
                 label: "echo",
                 type: "function",
-                info: "Print to stdout (zx)",
+                info: "Print to stdout - echo('message')",
+                detail: "zx Global"
+            },
+            {
+                label: "within",
+                type: "function",
+                info: "Create new async context - await within(async () => { ... })",
+                detail: "zx Global"
+            },
+            {
+                label: "stdin",
+                type: "function",
+                info: "Read from stdin - await stdin()",
                 detail: "zx Global"
             },
             {
                 label: "glob",
                 type: "function",
-                info: "File globbing utility (zx)",
+                info: "File globbing utility - await glob('**/*.js')",
                 detail: "zx Global"
             },
             {
                 label: "which",
                 type: "function",
-                info: "Find executable in PATH (zx)",
+                info: "Find executable in PATH - await which('git')",
                 detail: "zx Global"
             },
             {
                 label: "chalk",
                 type: "object",
-                info: "Terminal string styling (zx)",
+                info: "Terminal string styling - chalk.blue('text')",
                 detail: "zx Global"
             },
             {
                 label: "YAML",
                 type: "object",
-                info: "YAML parser (zx)",
+                info: "YAML parser - YAML.parse(yamlString)",
                 detail: "zx Global"
             },
             {
                 label: "argv",
                 type: "array",
-                info: "Command line arguments (zx)",
+                info: "Command line arguments (minimist parsed)",
+                detail: "zx Global"
+            },
+            {
+                label: "minimist",
+                type: "function",
+                info: "Command line argument parser",
+                detail: "zx Global"
+            },
+            {
+                label: "fetch",
+                type: "function",
+                info: "HTTP requests - await fetch('https://api.example.com')",
+                detail: "zx Global"
+            },
+            {
+                label: "retry",
+                type: "function",
+                info: "Retry function with backoff - await retry(5, () => $`curl url`)",
+                detail: "zx Global"
+            },
+            {
+                label: "spinner",
+                type: "function",
+                info: "CLI spinner - await spinner('loading...', () => longTask())",
+                detail: "zx Global"
+            },
+            {
+                label: "ps",
+                type: "object",
+                info: "Process listing - await ps.lookup({ command: 'node' })",
+                detail: "zx Global"
+            },
+            {
+                label: "kill",
+                type: "function",
+                info: "Kill process - await kill(pid, 'SIGTERM')",
+                detail: "zx Global"
+            },
+            {
+                label: "tmpdir",
+                type: "function",
+                info: "Create temporary directory - tmpdir() or tmpdir('subdir')",
+                detail: "zx Global"
+            },
+            {
+                label: "tmpfile",
+                type: "function",
+                info: "Create temporary file - tmpfile('name.txt', 'content')",
+                detail: "zx Global"
+            },
+            {
+                label: "dotenv",
+                type: "object", 
+                info: "Environment variable utilities - dotenv.config('.env')",
+                detail: "zx Global"
+            },
+            {
+                label: "quote",
+                type: "function",
+                info: "Quote strings for bash - quote('$FOO')",
+                detail: "zx Global"
+            },
+            {
+                label: "quotePowerShell", 
+                type: "function",
+                info: "Quote strings for PowerShell - quotePowerShell('$FOO')",
+                detail: "zx Global"
+            },
+            {
+                label: "useBash",
+                type: "function",
+                info: "Enable bash preset - useBash()",
+                detail: "zx Global"
+            },
+            {
+                label: "usePowerShell",
+                type: "function", 
+                info: "Switch to PowerShell - usePowerShell()",
+                detail: "zx Global"
+            },
+            {
+                label: "usePwsh",
+                type: "function",
+                info: "Set pwsh as default shell - usePwsh()",
+                detail: "zx Global"
+            },
+            {
+                label: "syncProcessCwd",
+                type: "function",
+                info: "Keep process.cwd() in sync with $ - syncProcessCwd()",
+                detail: "zx Global"
+            },
+            {
+                label: "fs",
+                type: "object",
+                info: "File system utilities (fs-extra) - fs.readJson('package.json')",
+                detail: "zx Global"
+            },
+            {
+                label: "os",
+                type: "object",
+                info: "Operating system utilities - os.homedir()",
+                detail: "zx Global"
+            },
+            {
+                label: "path",
+                type: "object",
+                info: "Path utilities - path.join(basedir, 'output')",
                 detail: "zx Global"
             }
         ];
