@@ -41,10 +41,19 @@ export function HomePage() {
 
   const loadSystemInfo = async () => {
     try {
+      // Get app version from package.json
+      let appVersion = '0.8.0'; // Fallback version
+      try {
+        const appInfo = await window.api.getAppInfo();
+        appVersion = appInfo.version;
+      } catch (error) {
+        console.warn('Could not get app version, using fallback:', error);
+      }
+
       // Get system information
       const moduleCount = moduleRegistry.getAvailableModules().length;
       const info = {
-        appVersion: '1.0.0', // TODO: Get from package.json or electron
+        appVersion,
         moduleCount,
         notebookCount: recentNotebooks.length, // Use current state
         storageSize: '2.3MB', // TODO: Calculate actual size
