@@ -1587,3 +1587,57 @@ if (developmentMode) {
 8. **Use `spinner()`** for long-running operations to show progress
 9. **Quote variables** properly when passing to shell commands
 10. **Handle errors gracefully** with try-catch or `nothrow`
+
+## Global Output Monitoring
+
+NotebookJS provides two global output monitoring systems to capture and display different types of program output:
+
+### Output Panel (Ctrl+`)
+- **Purpose**: Captures raw stdout/stderr from shell commands and direct process writes
+- **Keyboard Shortcut**: `Ctrl+` (backtick) 
+- **Toolbar Button**: "Output" button with terminal icon
+- **Content**: Raw text output from:
+  - Shell commands executed with zx (`$`, `echo`, etc.)
+  - Direct `process.stdout.write()` and `process.stderr.write()` calls
+  - System-level output and error streams
+
+### Console Viewer (Ctrl+Shift+`)
+- **Purpose**: Captures all console.log, console.warn, console.error, etc. from code cell execution
+- **Keyboard Shortcut**: `Ctrl+Shift+` (backtick)
+- **Toolbar Button**: "Console" button with scroll icon
+- **Content**: Console output with:
+  - Rich object rendering using the same ObjectDisplay component as cell outputs
+  - Support for complex objects, arrays, DataFrames, and other data structures
+  - Color-coded log levels (LOG, WARN, ERROR, INFO, DEBUG)
+  - Timestamps for each entry
+  - Persistent across cell re-executions (replaces per-cell console output)
+- **Also appears in**: Browser dev tools console for debugging
+
+### Key Differences
+- **Output Panel**: Raw text streams from shell operations
+- **Console Viewer**: Structured console output with object inspection (replaces per-cell console sections)
+- **Persistence**: Console logs persist across cell re-executions and show global execution order
+- **Rendering**: Console viewer uses ObjectDisplay for rich data visualization
+- **Debugging**: Console output also appears in browser dev tools for debugging
+
+### Usage Examples
+
+```javascript
+// These appear in the Output Panel (Ctrl+`)
+await $`echo "Hello from shell"`;
+process.stdout.write("Direct stdout\n");
+process.stderr.write("Direct stderr\n");
+
+// These appear in the Console Viewer (Ctrl+Shift+`)
+console.log("Simple log message");
+console.log("Object:", { name: "test", values: [1, 2, 3] });
+console.warn("Warning message");
+console.error("Error message");
+console.info("Info message");
+```
+
+Both panels support:
+- Auto-scroll to bottom (with manual disable when scrolling up)
+- Manual clearing of all entries
+- Configurable maximum entry limits (100 for console, 1000 for output)
+- Real-time updates as output is generated

@@ -817,77 +817,16 @@ export class CodeCellEngine {
         const output: ConsoleOutput[] = [];
 
         const captureOutput = (type: ConsoleOutput['type']) => (...args: any[]) => {
-            // Process each argument to determine if it should be rendered as an object
-            // Also call the real console for debugging
+            // Call the real console for debugging in browser dev tools
             (console as any)[type](...args);
-            const processedArgs = args.map(arg => {
-                // Enhanced object detection - check for complex objects including DataFrames, Series, etc.
-                const isComplexObject = arg !== null &&
-                    typeof arg === 'object' &&
-                    (
-                        // Basic objects and arrays
-                        arg.constructor === Object ||
-                        Array.isArray(arg) ||
-                        // DataFrames and Series (Danfo.js)
-                        (arg.constructor && arg.constructor.name === 'DataFrame') ||
-                        (arg.constructor && arg.constructor.name === 'Series') ||
-                        // TensorFlow tensors
-                        (arg.constructor && arg.constructor.name === 'Tensor') ||
-                        // Other structured objects with methods/properties
-                        (typeof arg.toString === 'function' && arg.toString !== Object.prototype.toString) ||
-                        // Objects with custom constructors (not built-in types)
-                        (arg.constructor &&
-                            arg.constructor !== String &&
-                            arg.constructor !== Number &&
-                            arg.constructor !== Boolean &&
-                            arg.constructor !== Date &&
-                            arg.constructor !== RegExp &&
-                            arg.constructor.name !== 'Object' &&
-                            Object.keys(arg).length > 0)
-                    );
-
-                if (isComplexObject) {
-                    // Store as object for ObjectDisplay
-                    return {
-                        type: 'object',
-                        data: arg
-                    };
-                } else {
-                    // Store as regular value (primitives, null, functions, etc.)
-                    return {
-                        type: 'primitive',
-                        data: arg,
-                        message: typeof arg === 'object' ?
-                            (arg === null ? 'null' : JSON.stringify(arg)) :
-                            String(arg)
-                    };
-                }
-            });
-
-            // Check if we have any objects to display
-            const hasObjects = processedArgs.some(arg => arg.type === 'object');
-
-            if (hasObjects) {
-                // Store processed arguments for mixed rendering
-                output.push({
-                    type,
-                    message: '',
-                    timestamp: new Date(),
-                    data: processedArgs,
-                    isObject: true
-                });
-            } else {
-                // All primitives - create a simple message
-                const message = processedArgs.map(arg => arg.message).join(' ');
-                output.push({
-                    type,
-                    message,
-                    timestamp: new Date(),
-                    isObject: false
-                });
-            }
-
             
+            // Trigger global console capture if available
+            // This allows the global console viewer to capture output from code cells
+            if ((window as any).__globalConsoleCapture) {
+                (window as any).__globalConsoleCapture(type, args);
+            }
+            
+            // No longer store console output at cell level - it goes to global ConsoleViewer
         };
 
         const wrappedConsole = {

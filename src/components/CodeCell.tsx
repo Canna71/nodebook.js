@@ -6,7 +6,6 @@ import { log } from './DynamicNotebook';
 import { ObjectDisplay } from './ObjectDisplay';
 import Editor from './Editor';
 import { oneDark } from '@codemirror/theme-one-dark';
-import ConsoleOutput from './ConsoleOutput';
 import { PlayIcon } from '@heroicons/react/24/solid';
 import { Button } from './ui/button';
 import { DomElementDisplay } from './DomElementDisplay';
@@ -34,9 +33,9 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     // Subscribe to execution count to know when cell re-executes
     const [executionCount] = useReactiveValue(`__cell_${definition.id}_execution`, 0);
     
-    // Debug log execution count changes
+    // Debug log execution count changes (using log instead of console to avoid capture)
     useEffect(() => {
-        console.log('🎯 CodeCell execution count changed for', definition.id, ':', executionCount);
+        log.debug('CodeCell execution count changed for', definition.id, ':', executionCount);
     }, [executionCount, definition.id]);
 
     // Local state for the code being edited
@@ -53,7 +52,6 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     const [exports, setExports] = React.useState<string[]>([]);
     const [error, setError] = React.useState<Error | null>(null);
     const [dependencies, setDependencies] = React.useState<string[]>([]);
-    const [consoleOutput, setConsoleOutput] = React.useState<any[]>([]);
     const [outputValues, setOutputValues] = React.useState<any[]>([]);
 
     // Update local state when definition changes
@@ -84,12 +82,10 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
             setError(null);
             const newExports = codeCellEngine.getCellExports(definition.id);
             const newDependencies = codeCellEngine.getCellDependencies(definition.id);
-            const rawOutput = codeCellEngine.getCellOutput(definition.id);
             const cellOutputValues = codeCellEngine.getCellOutputValues(definition.id);
 
             setExports(newExports);
             setDependencies(newDependencies);
-            setConsoleOutput(rawOutput);
             setOutputValues(cellOutputValues);
 
             log.debug(`Code cell ${definition.id} UI updated after execution:`, {
@@ -339,15 +335,6 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                                 )}
                             </div>
                         ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Console Output Display - Styled like terminal/log */}
-            {consoleOutput.length > 0 && (
-                <div className="console-output bg-muted/30 px-4 py-3 border-t border-border font-mono text-xs">
-                    <div className="space-y-1">
-                        {consoleOutput.map((output, index) => ConsoleOutput(output, index))}
                     </div>
                 </div>
             )}

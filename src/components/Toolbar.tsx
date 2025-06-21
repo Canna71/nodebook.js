@@ -15,7 +15,8 @@ import {
   VariableIcon,
   SparklesIcon,
   SettingsIcon,
-  TerminalIcon
+  TerminalIcon,
+  ScrollTextIcon
 } from 'lucide-react';
 import { MarkdownIcon } from './icons/MarkdownIcon';
 import { JavascriptIcon } from './icons/JavascriptIcon';
@@ -25,6 +26,7 @@ export function Toolbar() {
   const { commandManager } = useCommands();
   const { currentModel } = useApplication();
   const [outputPanelVisible, setOutputPanelVisible] = React.useState(false);
+  const [consolePanelVisible, setConsolePanelVisible] = React.useState(false);
 
   const handleCommand = (commandId: string) => {
     commandManager.executeCommand(commandId);
@@ -292,6 +294,27 @@ export function Toolbar() {
           </TooltipTrigger>
           <TooltipContent>
             Toggle global output panel (Ctrl+`)
+          </TooltipContent>
+        </Tooltip>
+
+        {/* Console Panel Indicator */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => {
+                setConsolePanelVisible(!consolePanelVisible);
+                // Also dispatch a custom event that the App component can listen to
+                window.dispatchEvent(new CustomEvent('toggleConsolePanel'));
+              }}
+            >
+              <ScrollTextIcon className="h-3 w-3 mr-1" />
+              <span className="text-xs">Console</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            Toggle console viewer (Ctrl+Shift+`)
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

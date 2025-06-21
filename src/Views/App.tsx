@@ -24,21 +24,34 @@ import { AIDialogProvider } from '@/components/AIDialogProvider';
 import { AppDialogProvider } from '@/components/AppDialogProvider';
 import { StdoutViewer } from '@/components/StdoutViewer';
 import { useStdoutCapture } from '@/hooks/useStdoutCapture';
+import { ConsoleViewer } from '@/components/ConsoleViewer';
+import { useConsoleCapture } from '@/hooks/useConsoleCapture';
 
 function AppContent() {
     const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook } = useApplication();
     const { currentView } = useView();
     const { lines, clearLines, isSupported } = useStdoutCapture();
+    const { entries, clearEntries, maxEntries } = useConsoleCapture();
     const [stdoutVisible, setStdoutVisible] = useState(false);
+    const [consoleVisible, setConsoleVisible] = useState(false);
 
     // Keyboard shortcut handler
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             // Ctrl+` (backtick) to toggle stdout viewer
-            if (event.ctrlKey && event.key === '`') {
+            if (event.ctrlKey && event.key === '`' && !event.shiftKey) {
                 event.preventDefault();
                 setStdoutVisible(prev => {
                     log.debug('Toggling stdout viewer via keyboard:', !prev);
+                    return !prev;
+                });
+            }
+            
+            // Ctrl+Shift+` (backtick) to toggle console viewer
+            if (event.ctrlKey && event.shiftKey && event.key === '`') {
+                event.preventDefault();
+                setConsoleVisible(prev => {
+                    log.debug('Toggling console viewer via keyboard:', !prev);
                     return !prev;
                 });
             }
@@ -51,12 +64,21 @@ function AppContent() {
             });
         };
 
+        const handleToggleConsoleEvent = () => {
+            setConsoleVisible(prev => {
+                log.debug('Toggling console viewer via toolbar button:', !prev);
+                return !prev;
+            });
+        };
+
         document.addEventListener('keydown', handleKeyDown);
         window.addEventListener('toggleOutputPanel', handleToggleEvent);
+        window.addEventListener('toggleConsolePanel', handleToggleConsoleEvent);
         
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('toggleOutputPanel', handleToggleEvent);
+            window.removeEventListener('toggleConsolePanel', handleToggleConsoleEvent);
         };
     }, []);
 
@@ -165,6 +187,15 @@ function AppContent() {
                             onClear={clearLines}
                         />
                     )}
+                    
+                    {/* Global console viewer */}
+                    <ConsoleViewer
+                        isVisible={consoleVisible}
+                        onToggle={() => setConsoleVisible(!consoleVisible)}
+                        entries={entries}
+                        onClear={clearEntries}
+                        maxEntries={maxEntries}
+                    />
                 </MathJaxContext>
             </CommandProvider>
         </ReactiveProvider>
