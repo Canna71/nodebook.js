@@ -142,25 +142,25 @@ export function HomePage() {
         <div className="space-y-2">
           <button
             onClick={createNewNotebook}
-            className="flex items-center space-x-3 text-left p-2 w-full text-foreground"
+            className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors"
           >
-            <FileText className="w-4 h-4 text-blue-500 flex-shrink-0" />
+            <FileText className="w-4 h-4 text-primary flex-shrink-0" />
             <span className="text-sm">New file...</span>
           </button>
           
           <button
             onClick={handleOpenFile}
-            className="flex items-center space-x-3 text-left p-2 w-full text-foreground"
+            className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors"
           >
-            <FolderOpen className="w-4 h-4 text-green-500 flex-shrink-0" />
+            <FolderOpen className="w-4 h-4 text-primary flex-shrink-0" />
             <span className="text-sm">Open file...</span>
           </button>
           
           <button
             onClick={handleCreateWithAI}
-            className="flex items-center space-x-3 text-left p-2 w-full text-foreground"
+            className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors"
           >
-            <Brain className="w-4 h-4 text-purple-500 flex-shrink-0" />
+            <Brain className="w-4 h-4 text-primary flex-shrink-0" />
             <span className="text-sm">Generate with AI...</span>
           </button>
         </div>
@@ -174,7 +174,7 @@ export function HomePage() {
             {recentNotebooks.length > 0 && (
               <button
                 onClick={() => RecentNotebooksManager.clearRecentNotebooks().then(loadRecentNotebooks)}
-                className="text-sm text-secondary-foreground hover:text-foreground"
+                className="text-sm text-primary hover:text-primary/80 transition-colors"
               >
                 Clear all
               </button>
@@ -186,13 +186,13 @@ export function HomePage() {
               {recentNotebooks.map((notebook, index) => (
                 <div
                   key={notebook.path}
-                  className="flex items-center justify-between p-2 cursor-pointer"
+                  className="flex items-center justify-between p-2 cursor-pointer hover:bg-accent/50 rounded transition-colors"
                   onClick={() => handleOpenRecent(notebook)}
                 >
                   <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    <FileText className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                    <FileText className="w-4 h-4 text-primary flex-shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <span className="text-sm text-foreground">
+                      <span className="text-sm text-primary hover:text-primary/80">
                         {extractFileName(notebook.path)}
                       </span>
                       <span className="text-xs text-secondary-foreground ml-2">
