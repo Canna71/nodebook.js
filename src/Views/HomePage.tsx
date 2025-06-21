@@ -250,7 +250,7 @@ export function HomePage() {
             {recentNotebooks.length > 0 && (
               <button
                 onClick={() => RecentNotebooksManager.clearRecentNotebooks().then(loadRecentNotebooks)}
-                className="text-sm text-primary hover:text-primary/80 transition-colors"
+                className="text-sm text-primary hover:text-primary/80 transition-colors cursor-pointer"
               >
                 Clear all
               </button>

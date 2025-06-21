@@ -28,6 +28,7 @@ import { useStdoutCapture } from '@/hooks/useStdoutCapture';
 import { ConsoleViewer } from '@/components/ConsoleViewer';
 import { useConsoleCapture } from '@/hooks/useConsoleCapture';
 import { DocumentationViewer } from '@/components/DocumentationViewer';
+import { KeyboardShortcutsView } from './KeyboardShortcutsView';
 
 function AppContent() {
     const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook } = useApplication();
@@ -78,16 +79,23 @@ function AppContent() {
             log.debug('Switching to documentation view');
         };
 
+        const handleShowShortcutsEvent = () => {
+            setCurrentView('shortcuts');
+            log.debug('Switching to shortcuts view');
+        };
+
         document.addEventListener('keydown', handleKeyDown);
         window.addEventListener('toggleOutputPanel', handleToggleEvent);
         window.addEventListener('toggleConsolePanel', handleToggleConsoleEvent);
         window.addEventListener('showDocumentation', handleShowDocumentationEvent);
+        window.addEventListener('showShortcuts', handleShowShortcutsEvent);
         
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('toggleOutputPanel', handleToggleEvent);
             window.removeEventListener('toggleConsolePanel', handleToggleConsoleEvent);
             window.removeEventListener('showDocumentation', handleShowDocumentationEvent);
+            window.removeEventListener('showShortcuts', handleShowShortcutsEvent);
         };
     }, []);
 
@@ -172,6 +180,8 @@ function AppContent() {
                         <SettingsView />
                     ) : currentView === 'documentation' ? (
                         <DocumentationViewer onClose={() => setCurrentView('notebook')} />
+                    ) : currentView === 'shortcuts' ? (
+                        <KeyboardShortcutsView onClose={() => setCurrentView('notebook')} />
                     ) : (
                         <>
                             <Toolbar />

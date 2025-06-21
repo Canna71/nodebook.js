@@ -217,7 +217,7 @@ export function DocumentationViewer({ onClose, initialDocument = 'index.md' }: D
                        prose-strong:text-foreground prose-code:text-foreground
                        prose-pre:bg-background-secondary prose-pre:border prose-pre:border-border
                        prose-blockquote:border-l-primary prose-blockquote:text-secondary-foreground
-                       prose-a:text-primary prose-a:no-underline hover:prose-a:underline"
+                       prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-a:cursor-pointer"
             dangerouslySetInnerHTML={{ __html: content }}
           />
         </div>

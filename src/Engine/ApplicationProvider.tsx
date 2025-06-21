@@ -334,10 +334,12 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 showWelcomeDialog();
             },
             'menu-shortcuts': () => {
-                showShortcutsDialog();
+                // Dispatch the global event to show shortcuts
+                window.dispatchEvent(new CustomEvent('showShortcuts'));
             },
             'menu-documentation': () => {
-                showDocumentationDialog();
+                // Dispatch the global event to show documentation
+                window.dispatchEvent(new CustomEvent('showDocumentation'));
             },
             'menu-insert-cell': async (cellType: string) => {
                 if (currentCommandManager) {
@@ -515,8 +517,8 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         const version = await window.api.getAppVersion();
         await appDialogHelper.showInfo(
             'About Nodebook.js',
-            'Nodebook.js',
-            `Version: ${version}\n\nA reactive notebook application for interactive computing and data analysis.`
+            `Nodebook.js v${version}`,
+            `A reactive notebook application for interactive computing and data analysis.\n\nBuilt with React, TypeScript, and Electron.\n\n© 2025 Nodebook.js Project`
         );
     };
 
@@ -556,43 +558,6 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         
         setModel(welcomeNotebook);
         setState(prev => ({ ...prev, currentFilePath: null, isDirty: false }));
-    };    const showShortcutsDialog = async () => {
-        await appDialogHelper.showInfo(
-            'Keyboard Shortcuts',
-            'Nodebook.js Shortcuts',
-            `File Operations:
-• Ctrl/Cmd+N - New Notebook
-• Ctrl/Cmd+O - Open Notebook
-• Ctrl/Cmd+S - Save
-• Ctrl/Cmd+Shift+S - Save As
-
-Cell Operations:
-• Ctrl/Cmd+Shift+C - Insert Code Cell
-• Ctrl/Cmd+Shift+M - Insert Markdown Cell
-• Ctrl/Cmd+Shift+F - Insert Formula Cell
-• Ctrl/Cmd+Shift+I - Insert Input Cell
-• Shift+Enter - Run Cell
-• Ctrl/Cmd+Shift+Enter - Run All Cells
-• Ctrl/Cmd+Shift+D - Delete Cell
-
-View:
-• Ctrl/Cmd+R - Reload
-• F11/Ctrl+Cmd+F - Toggle Fullscreen
-• Ctrl/Cmd+0 - Reset Zoom`
-        );
-    };    const showDocumentationDialog = async () => {
-        await appDialogHelper.showInfo(
-            'Documentation',
-            'Nodebook.js Documentation',
-            `Cell Types:
-• Code Cells: Write JavaScript code with reactive variables
-• Formula Cells: Create calculated values using $variable syntax
-• Input Cells: Interactive controls (sliders, inputs, checkboxes)
-• Markdown Cells: Rich text with {{variable}} interpolation
-
-Reactive System:
-Variables automatically update when their dependencies change, creating a live, interactive document.`
-        );
     };
 
     const exportAsJson = async () => {
