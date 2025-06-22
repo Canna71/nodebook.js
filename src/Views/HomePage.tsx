@@ -254,7 +254,7 @@ export function HomePage() {
           </div>
           
           {recentNotebooks.length > 0 ? (
-            <div className="space-y-1">
+            <div className="space-y-1 max-h-96 overflow-y-auto">
               {recentNotebooks.map((notebook, index) => (
                 <div
                   key={notebook.path}
@@ -292,7 +292,7 @@ export function HomePage() {
           <h2 className="text-lg font-semibold text-foreground">Examples</h2>
           
           {exampleNotebooks.length > 0 ? (
-            <div className="space-y-1 max-h-96 overflow-y-auto">
+            <div className="space-y-1 overflow-y-auto">
               {exampleNotebooks.map((example, index) => {
                 const filename = extractFileName(example.filepath);
                 
