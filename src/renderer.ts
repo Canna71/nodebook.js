@@ -35,6 +35,7 @@ import loglevel from "loglevel";
 if (window.api.isDev()) {
     loglevel.enableAll();
 }
+(window as any).log = loglevel;
 log.log('👋 This message is being logged by "renderer.ts", included via Vite');
 
 import './root';
