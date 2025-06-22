@@ -200,9 +200,9 @@ export function HomePage() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 grid-rows-[auto_auto_auto] lg:grid-rows-[auto_auto_auto]">
-        {/* Start Section - Top Left */}
-        <div className="space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Start Section - Row 1, Col 1 */}
+        <div className="space-y-4 order-1 lg:order-1">
           <h2 className="text-lg font-semibold text-foreground">Start</h2>
           <div className="space-y-2">
             <button
@@ -239,42 +239,8 @@ export function HomePage() {
           </div>
         </div>
 
-        {/* Examples Section - Top Right, spans 2 rows */}
-        <div className="space-y-4 lg:row-span-2">
-          <h2 className="text-lg font-semibold text-foreground">Examples</h2>
-          
-          {exampleNotebooks.length > 0 ? (
-            <div className="space-y-1 max-h-96 overflow-y-auto">
-              {exampleNotebooks.map((example, index) => {
-                const filename = extractFileName(example.filepath);
-                
-                return (
-                  <div
-                    key={example.filepath}
-                    className="flex items-center space-x-3 p-2 cursor-pointer hover:bg-accent/50 rounded transition-colors"
-                    onClick={() => handleOpenExample(example)}
-                  >
-                    <BookOpen className="w-4 h-4 text-primary flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm text-primary hover:text-primary/80 truncate">
-                        {filename}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-secondary-foreground">
-              <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No example notebooks found</p>
-              <p className="text-xs">Example notebooks will appear here</p>
-            </div>
-          )}
-        </div>
-
-        {/* Recent Section - Middle Left */}
-        <div className="space-y-4">
+        {/* Recent Section - Row 2 on mobile, Row 2 Col 1 on desktop */}
+        <div className="space-y-4 order-2 lg:order-3">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Recent</h2>
             {recentNotebooks.length > 0 && (
@@ -321,8 +287,42 @@ export function HomePage() {
           )}
         </div>
 
-        {/* System Section - Bottom Left */}
-        <Card>
+        {/* Examples Section - Row 3 on mobile, Row 1-2 Col 2 on desktop */}
+        <div className="space-y-4 order-3 lg:order-2 lg:row-span-2">
+          <h2 className="text-lg font-semibold text-foreground">Examples</h2>
+          
+          {exampleNotebooks.length > 0 ? (
+            <div className="space-y-1 max-h-96 overflow-y-auto">
+              {exampleNotebooks.map((example, index) => {
+                const filename = extractFileName(example.filepath);
+                
+                return (
+                  <div
+                    key={example.filepath}
+                    className="flex items-center space-x-3 p-2 cursor-pointer hover:bg-accent/50 rounded transition-colors"
+                    onClick={() => handleOpenExample(example)}
+                  >
+                    <BookOpen className="w-4 h-4 text-primary flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm text-primary hover:text-primary/80 truncate">
+                        {filename}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-secondary-foreground">
+              <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No example notebooks found</p>
+              <p className="text-xs">Example notebooks will appear here</p>
+            </div>
+          )}
+        </div>
+
+        {/* System Section - Row 4 on mobile, Row 3 Col 1 on desktop */}
+        <Card className="order-4 lg:order-4">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-base">
               <Monitor className="w-4 h-4" />
@@ -357,8 +357,8 @@ export function HomePage() {
           </CardContent>
         </Card>
 
-        {/* Modules Section - Bottom Right */}
-        <Card>
+        {/* Modules Section - Row 5 on mobile, Row 3 Col 2 on desktop */}
+        <Card className="order-5 lg:order-5">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-base">
               <Database className="w-4 h-4" />
@@ -428,7 +428,8 @@ export function HomePage() {
                 <div className="text-secondary-foreground text-xs">No modules loaded</div>
               )}
             </div>
-          </CardContent>        </Card>
+          </CardContent>
+        </Card>
       </div>
     </div>
     </>
