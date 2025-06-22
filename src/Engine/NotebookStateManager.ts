@@ -83,7 +83,8 @@ export class NotebookStateManager {
             isDirty: this.currentState.isDirty,
             isLoading: this.currentState.isLoading, // Include but won't be restored
             error: this.currentState.error, // Include but won't be restored
-            selectedCellId: this.currentState.selectedCellId
+            selectedCellId: this.currentState.selectedCellId,
+            readingMode: this.currentState.readingMode // Preserve reading mode in history
         };
 
         this.undoStack.push({
@@ -144,34 +145,50 @@ export class NotebookStateManager {
         }
     }
 
+    setReadingMode(readingMode: boolean, description: string = 'Toggle reading mode'): void {
+        if (this.currentState.readingMode !== readingMode) {
+            this.updateState({
+                readingMode
+            }, description);
+        }
+    }
+
     loadNotebook(filePath: string, model: NotebookModel, description: string = 'Load notebook'): void {
+        // Preserve reading mode when loading a new notebook
+        const currentReadingMode = this.currentState.readingMode;
         this.updateState({
             currentFilePath: filePath,
             currentModel: model,
             isDirty: false,
             error: null,
-            selectedCellId: null
+            selectedCellId: null,
+            readingMode: currentReadingMode // Preserve reading mode
         }, description);
     }
 
     newNotebook(description: string = 'New notebook'): void {
         const emptyNotebook: NotebookModel = { cells: [] };
+        // Preserve reading mode when creating a new notebook
+        const currentReadingMode = this.currentState.readingMode;
         this.updateState({
             currentFilePath: null,
             currentModel: emptyNotebook,
             isDirty: false,
             error: null,
-            selectedCellId: null
+            selectedCellId: null,
+            readingMode: currentReadingMode // Preserve reading mode
         }, description);
     }
 
     clearNotebook(description: string = 'Clear notebook'): void {
+        // Reset reading mode when clearing notebook (returning to homepage)
         this.updateState({
             currentFilePath: null,
             currentModel: null,
             isDirty: false,
             error: null,
-            selectedCellId: null
+            selectedCellId: null,
+            readingMode: false // Reset reading mode when clearing
         }, description);
     }
 

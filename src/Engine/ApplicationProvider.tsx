@@ -250,8 +250,9 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     }, [stateManager]);
 
     const setReadingMode = useCallback((readingMode: boolean) => {
-        setState(prev => ({ ...prev, readingMode }));
-    }, []);
+        // Use state manager for reading mode updates
+        stateManager.setReadingMode(readingMode, readingMode ? 'Enter reading mode' : 'Exit reading mode');
+    }, [stateManager]);
 
     // Update window title when dirty state, file path, or model changes
     useEffect(() => {
