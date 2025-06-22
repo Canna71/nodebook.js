@@ -20,6 +20,7 @@ const api: ElectronApi = {
     getEnvironmentVariables: (variableNames) => ipcRenderer.invoke('get-environment-variables', variableNames),
     getAppVersion: () => ipcRenderer.invoke('get-app-version'),
     getAppInfo: () => ipcRenderer.invoke('get-app-info'),
+    getRuntimeVersions: () => ipcRenderer.invoke('get-runtime-versions'),
     getAppPath: () => ipcRenderer.invoke('get-app-path'),
     getAppName: () => ipcRenderer.invoke('get-app-name'),
     getAppLocale: () => ipcRenderer.invoke('get-app-locale'),

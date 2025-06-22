@@ -713,6 +713,16 @@ function registerHandlers() {
             };
         }
     });
+
+    ipcMain.handle('get-runtime-versions', () => {
+        return {
+            node: process.versions.node,
+            chromium: process.versions.chrome,
+            v8: process.versions.v8,
+            electron: process.versions.electron
+        };
+    });
+
     ipcMain.handle('get-app-path', () => {
         return app.getAppPath();
     }

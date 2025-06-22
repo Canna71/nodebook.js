@@ -18,6 +18,7 @@ export interface ElectronApi {
     getEnvironmentVariables: (variableNames: string[]) => Promise<Record<string, string | undefined>>;
     getAppVersion: () => Promise<string>;
     getAppInfo: () => Promise<{name: string, version: string, author: string, license: string}>;
+    getRuntimeVersions: () => Promise<{node: string, chromium: string, v8: string, electron: string}>;
     getAppPath: () => Promise<string>;
     getAppName: () => Promise<string>;
     getAppLocale: () => Promise<string>;

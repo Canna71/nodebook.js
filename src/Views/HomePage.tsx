@@ -18,7 +18,13 @@ export function HomePage() {
     moduleCount: 0,
     notebookCount: 0,
     storageSize: '0MB',
-    platform: 'Unknown'
+    platform: 'Unknown',
+    runtimeVersions: {
+      node: 'N/A',
+      chromium: 'N/A',
+      v8: 'N/A',
+      electron: 'N/A'
+    }
   });
 
   useEffect(() => {
@@ -51,6 +57,20 @@ export function HomePage() {
         console.warn('Could not get app version, using fallback:', error);
       }
 
+      // Get runtime versions
+      let runtimeVersions = {
+        node: 'N/A',
+        chromium: 'N/A',
+        v8: 'N/A',
+        electron: 'N/A'
+      };
+      try {
+        const versions = await window.api.getRuntimeVersions();
+        runtimeVersions = versions;
+      } catch (error) {
+        console.warn('Could not get runtime versions, using fallback:', error);
+      }
+
       // Get system information
       const moduleCount = moduleRegistry.getAvailableModules().length;
       const info = {
@@ -58,7 +78,8 @@ export function HomePage() {
         moduleCount,
         notebookCount: recentNotebooks.length, // Use current state
         storageSize: '2.3MB', // TODO: Calculate actual size
-        platform: navigator.platform
+        platform: navigator.platform,
+        runtimeVersions
       };
       setSystemInfo(info);
     } catch (error) {
@@ -315,8 +336,18 @@ export function HomePage() {
             </div>
             
             <div className="flex items-center justify-between text-sm">
-              <span>Recent files</span>
-              <Badge variant="secondary" className="text-xs">{systemInfo.notebookCount}</Badge>
+              <span>Node.js</span>
+              <Badge variant="secondary" className="text-xs">v{systemInfo.runtimeVersions.node}</Badge>
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <span>Chromium</span>
+              <Badge variant="secondary" className="text-xs">v{systemInfo.runtimeVersions.chromium}</Badge>
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <span>V8</span>
+              <Badge variant="secondary" className="text-xs">v{systemInfo.runtimeVersions.v8}</Badge>
             </div>
             
             <div className="flex items-center justify-between text-sm">
