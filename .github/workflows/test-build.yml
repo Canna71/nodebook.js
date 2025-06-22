@@ -1,0 +1,90 @@
+name: Test Cross-Platform Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build for'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - darwin
+          - win32
+      arch:
+        description: 'Architecture to build for'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - x64
+          - arm64
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: darwin
+            arch: x64
+            artifact_name: darwin-x64
+          - os: macos-latest
+            platform: darwin
+            arch: arm64
+            artifact_name: darwin-arm64
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            artifact_name: win32-x64
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build application
+        run: pnpm run make
+        env:
+          npm_config_target_arch: ${{ matrix.arch }}
+          npm_config_target_platform: ${{ matrix.platform }}
+
+      - name: List build outputs
+        shell: bash
+        run: |
+          echo "Build outputs for ${{ matrix.platform }}-${{ matrix.arch }}:"
+          if [ -d "out" ]; then
+            find out -name "*.exe" -o -name "*.dmg" -o -name "*.zip" -o -name "*.deb" -o -name "*.rpm" | head -10
+          else
+            echo "No 'out' directory found"
+            ls -la
+          fi
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-build-${{ matrix.artifact_name }}
+          path: |
+            out/make/**/*.exe
+            out/make/**/*.dmg
+            out/make/**/*.zip
+            out/make/**/*.deb
+            out/make/**/*.rpm
+          retention-days: 7
+          if-no-files-found: warn

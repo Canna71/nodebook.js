@@ -58,26 +58,33 @@ const config: ForgeConfig = {
     //   "./node_modules/@tensorflow/",
     "./examples/",
     "./docs/"
-    ]
+    ],
+    // Support for different architectures
+    ...(process.env.npm_config_target_arch && {
+      arch: process.env.npm_config_target_arch
+    }),
+    ...(process.env.npm_config_target_platform && {
+      platform: process.env.npm_config_target_platform
+    })
   },
   rebuildConfig: {},
   makers: [
     new MakerSquirrel({
       // Windows installer icons
       iconUrl: 'https://raw.githubusercontent.com/your-username/nodebook.js/main/build-resources/icons/icon.png', // Change this URL
-      setupIcon: './build-resources/icon.ico'
-    }), 
-    new MakerZIP({}, ['darwin']), 
+      setupIcon: './build-resources/icons/icon.ico'
+    }, ['win32']), 
+    new MakerZIP({}, ['darwin', 'linux']), 
     new MakerRpm({
       options: {
-        icon: './build-resources/icon.png'
+        icon: './build-resources/icons/icon.png'
       }
-    }), 
+    }, ['linux']), 
     new MakerDeb({
       options: {
-        icon: './build-resources/icon.png'
+        icon: './build-resources/icons/icon.png'
       }
-    })
+    }, ['linux'])
     ],
   plugins: [
     new VitePlugin({
