@@ -29,7 +29,7 @@ import { ConsoleViewer } from '@/components/ConsoleViewer';
 import { useConsoleCapture } from '@/hooks/useConsoleCapture';
 import { DocumentationViewer } from '@/components/DocumentationViewer';
 import { KeyboardShortcutsView } from './KeyboardShortcutsView';
-import { updateCloseMenuLabel } from '@/lib/electronHelpers';
+import { updateCloseMenuLabel, updateApplicationContext, buildApplicationContext } from '@/lib/electronHelpers';
 
 function AppContent() {
     const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook, clearNotebook } = useApplication();
@@ -38,6 +38,23 @@ function AppContent() {
     const { entries, clearEntries, maxEntries } = useConsoleCapture();
     const [stdoutVisible, setStdoutVisible] = useState(false);
     const [consoleVisible, setConsoleVisible] = useState(false);
+
+    // Update application context for menu system when state changes
+    useEffect(() => {
+        const context = buildApplicationContext(
+            currentView,
+            !!currentModel,
+            false, // TODO: Get actual dirty state
+            false, // TODO: Get actual undo state  
+            false, // TODO: Get actual redo state
+            false, // TODO: Get actual reading mode state
+            null,  // TODO: Get actual selected cell ID
+            currentModel?.cells?.length || 0
+        );
+        
+        updateApplicationContext(context);
+        log.debug('Updated application context for menu:', context);
+    }, [currentView, currentModel]);
 
     // Close view event handler (needs to be defined outside useEffect to avoid stale closure)
     const handleCloseViewEvent = useCallback(() => {

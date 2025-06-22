@@ -1,5 +1,24 @@
 
 /**
+ * Current view type for context-aware menu management
+ */
+export type CurrentViewType = 'home' | 'notebook' | 'settings' | 'documentation' | 'shortcuts';
+
+/**
+ * Application context for menu and command state management
+ */
+export interface ApplicationContext {
+    currentView: CurrentViewType;
+    hasOpenNotebook: boolean;
+    isNotebookDirty: boolean;
+    canUndo: boolean;
+    canRedo: boolean;
+    readingMode: boolean;
+    selectedCellId: string | null;
+    totalCells: number;
+}
+
+/**
  * Command interface for implementing the Command Pattern
  */
 export interface ICommand {

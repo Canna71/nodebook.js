@@ -35,6 +35,8 @@ export interface ElectronApi {
     removeMenuListener: (event: string) => void;
     // Dynamic menu updates
     updateCloseMenuLabel: (label: string) => Promise<void>;
+    updateApplicationContext: (updates: Partial<import('@/Types/CommandTypes').ApplicationContext>) => Promise<boolean>;
+    getApplicationContext: () => Promise<import('@/Types/CommandTypes').ApplicationContext>;
     isDev: () => boolean;
 }
 
@@ -87,4 +89,54 @@ export const updateCloseMenuLabel = async (currentView: AppView, hasNotebook: bo
     } catch (error) {
         console.error('Failed to update close menu label:', error);
     }
+};
+
+/**
+ * Update the complete application context for the menu system
+ */
+export const updateApplicationContext = async (updates: Partial<import('@/Types/CommandTypes').ApplicationContext>) => {
+    if (!window.api?.updateApplicationContext) {
+        console.warn('Electron API updateApplicationContext not available');
+        return;
+    }
+    
+    try {
+        await window.api.updateApplicationContext(updates);
+    } catch (error) {
+        console.error('Failed to update application context:', error);
+    }
+};
+
+/**
+ * Helper to build application context from current app state
+ */
+export const buildApplicationContext = (
+    currentView: AppView,
+    hasOpenNotebook: boolean,
+    isNotebookDirty: boolean = false,
+    canUndo: boolean = false,
+    canRedo: boolean = false,
+    readingMode: boolean = false,
+    selectedCellId: string | null = null,
+    totalCells: number = 0
+): import('@/Types/CommandTypes').ApplicationContext => {
+    // Convert view types - handle the mapping between AppView and CurrentViewType
+    let contextView: import('@/Types/CommandTypes').CurrentViewType;
+    
+    if (currentView === 'notebook' && !hasOpenNotebook) {
+        contextView = 'home'; // notebook view with no notebook = home
+    } else {
+        contextView = currentView as import('@/Types/CommandTypes').CurrentViewType;
+    }
+    
+    return {
+        currentView: contextView,
+        hasOpenNotebook,
+        isNotebookDirty,
+        canUndo,
+        canRedo,
+        readingMode,
+        selectedCellId,
+        totalCells
+    };
 };

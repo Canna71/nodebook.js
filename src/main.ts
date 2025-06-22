@@ -8,9 +8,13 @@ import anylogger from 'anylogger';
 import 'anylogger-console'
 import windowStateKeeper from './lib/windowStateKeeper';
 import settings from 'electron-settings';
+import { MainProcessMenuManager } from './lib/MainProcessMenuManager';
+import { mainProcessMenuConfig, updateCloseMenuItemLabel } from './lib/MainProcessMenuConfig';
+import type { ApplicationContext } from './Types/CommandTypes';
 
 const log = anylogger('Main');
 import os from 'node:os';
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
     app.quit();
@@ -44,13 +48,93 @@ const extensions = {
     }
 }
 
-// Store reference to close menu item for dynamic updates
+// Initialize menu manager
+let menuManager: MainProcessMenuManager | null = null;
+let mainWindowRef: BrowserWindow | null = null;
+let currentApplicationContext: ApplicationContext = {
+    currentView: 'home',
+    hasOpenNotebook: false,
+    isNotebookDirty: false,
+    canUndo: false,
+    canRedo: false,
+    readingMode: false,
+    selectedCellId: null,
+    totalCells: 0
+};
+
+// Legacy variables for backward compatibility (will be removed)
 let closeMenuItem: Electron.MenuItem | null = null;
-// Store current close menu label and main window reference for dynamic updates
 let currentCloseMenuLabel = 'Close Notebook';
 let closeMenuVisible = true;
-let mainWindowRef: BrowserWindow | null = null;
 
+// New menu creation using MainProcessMenuManager
+function createMenuWithManager(mainWindow: BrowserWindow) {
+    if (!menuManager) {
+        // Create command handlers that send IPC messages to renderer
+        const commandHandlers = {
+            'file.new': () => mainWindow.webContents.send('menu-new-notebook'),
+            'file.open': () => mainWindow.webContents.send('menu-open-notebook'),
+            'file.save': () => mainWindow.webContents.send('menu-save-notebook'),
+            'file.saveAs': () => mainWindow.webContents.send('menu-save-notebook-as'),
+            'file.exportJson': () => mainWindow.webContents.send('menu-export-json'),
+            'file.closeNotebook': () => mainWindow.webContents.send('menu-close-notebook'),
+            'file.quit': () => app.quit(),
+            'file.aiGenerate': () => mainWindow.webContents.send('menu-ai-generate-notebook'),
+            'edit.undo': () => mainWindow.webContents.send('menu-undo'),
+            'edit.redo': () => mainWindow.webContents.send('menu-redo'),
+            'edit.find': () => mainWindow.webContents.send('menu-find'),
+            'insert.codeCell': () => mainWindow.webContents.send('menu-insert-cell', 'code'),
+            'insert.markdownCell': () => mainWindow.webContents.send('menu-insert-cell', 'markdown'),
+            'insert.formulaCell': () => mainWindow.webContents.send('menu-insert-cell', 'formula'),
+            'insert.inputCell': () => mainWindow.webContents.send('menu-insert-cell', 'input'),
+            'insert.aiCodeCell': () => mainWindow.webContents.send('menu-ai-generate-code-cell'),
+            'cell.run': () => mainWindow.webContents.send('menu-run-cell'),
+            'cell.runAll': () => mainWindow.webContents.send('menu-run-all-cells'),
+            'cell.clearOutput': () => mainWindow.webContents.send('menu-clear-cell-output'),
+            'cell.clearAllOutputs': () => mainWindow.webContents.send('menu-clear-all-outputs'),
+            'cell.delete': () => mainWindow.webContents.send('menu-delete-cell'),
+            'view.reload': () => mainWindow.reload(),
+            'view.forceReload': () => mainWindow.webContents.reloadIgnoringCache(),
+            'view.toggleDevTools': () => mainWindow.webContents.toggleDevTools(),
+            'view.toggleReadingMode': () => mainWindow.webContents.send('menu-toggle-reading-mode'),
+            'view.settings': () => mainWindow.webContents.send('menu-settings'),
+            'view.toggleConsole': () => mainWindow.webContents.send('menu-toggle-console-viewer'),
+            'view.toggleOutputPanel': () => mainWindow.webContents.send('menu-toggle-output-panel'),
+            'help.about': () => mainWindow.webContents.send('menu-about'),
+            'help.welcome': () => mainWindow.webContents.send('menu-welcome'),
+            'help.shortcuts': () => mainWindow.webContents.send('menu-shortcuts'),
+            'help.documentation': () => mainWindow.webContents.send('menu-documentation'),
+        };
+
+        menuManager = new MainProcessMenuManager(commandHandlers, mainProcessMenuConfig);
+    }
+
+    // Update close menu item label based on current context
+    updateCloseMenuItemLabel(currentApplicationContext);
+    
+    // Update menu context and build menu
+    menuManager.updateContext(currentApplicationContext);
+    const menu = menuManager.buildMenu();
+    
+    log.debug('Menu created using MainProcessMenuManager');
+}
+
+// Function to update application context and rebuild menu
+function updateApplicationContext(updates: Partial<ApplicationContext>) {
+    const oldContext = { ...currentApplicationContext };
+    currentApplicationContext = { ...currentApplicationContext, ...updates };
+    
+    // Update close menu item label if needed
+    updateCloseMenuItemLabel(currentApplicationContext);
+    
+    // Only rebuild menu if context changed and menuManager exists
+    if (menuManager && JSON.stringify(oldContext) !== JSON.stringify(currentApplicationContext)) {
+        menuManager.updateContext(currentApplicationContext);
+        log.debug('Menu context updated:', updates);
+    }
+}
+
+// Legacy function (will be removed)
 function createMenu(mainWindow: BrowserWindow) {
     const template: Electron.MenuItemConstructorOptions[] = [
         {
@@ -492,8 +576,8 @@ function updateCloseMenuLabel(label: string) {
     // Instead of modifying the existing menu item, rebuild the menu
     // This ensures the changes are properly reflected
     if (mainWindowRef) {
-        createMenu(mainWindowRef);
-        log.debug('Menu rebuilt with new close label and visibility');
+        createMenuWithManager(mainWindowRef);
+        log.debug('Menu rebuilt with new close label and visibility using MenuManager');
     } else {
         log.warn('mainWindow not available for menu rebuild');
     }
@@ -528,8 +612,8 @@ const createWindow = async () => {
     }
     // Store reference to main window for menu updates
     mainWindowRef = mainWindow;
-    // Create menu after window is created
-    createMenu(mainWindow);
+    // Create menu using new system
+    createMenuWithManager(mainWindow);
 };
 
 // This method will be called when Electron has finished
@@ -772,15 +856,33 @@ function registerHandlers() {
         }
     });
 
+    // Legacy handler for backward compatibility
     ipcMain.handle('update-close-menu-label', async (event, label: string) => {
         try {
             updateCloseMenuLabel(label);
-            log.debug(`Updated close menu label to: ${label}`);
+            log.debug(`Updated close menu label to: ${label} (legacy)`);
             return true;
         } catch (error) {
             log.error('Failed to update close menu label:', error);
             return false;
         }
+    });
+
+    // New handler for application context updates
+    ipcMain.handle('update-application-context', async (event, updates: Partial<ApplicationContext>) => {
+        try {
+            updateApplicationContext(updates);
+            log.debug('Updated application context:', updates);
+            return true;
+        } catch (error) {
+            log.error('Failed to update application context:', error);
+            return false;
+        }
+    });
+
+    // Handler to get current application context
+    ipcMain.handle('get-application-context', async () => {
+        return currentApplicationContext;
     });
 }
 

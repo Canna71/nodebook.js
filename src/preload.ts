@@ -46,6 +46,8 @@ const api: ElectronApi = {
     
     // Dynamic menu updates
     updateCloseMenuLabel: (label: string) => ipcRenderer.invoke('update-close-menu-label', label),
+    updateApplicationContext: (updates: any) => ipcRenderer.invoke('update-application-context', updates),
+    getApplicationContext: () => ipcRenderer.invoke('get-application-context'),
     
     isDev: memoize(() => {
         // Check if the app is running in development mode
