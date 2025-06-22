@@ -7,6 +7,7 @@ import loglevel from "loglevel";
 import anylogger from 'anylogger';
 import 'anylogger-console'
 import windowStateKeeper from './lib/windowStateKeeper';
+import settings from 'electron-settings';
 
 const log = anylogger('Main');
 import os from 'node:os';
@@ -658,6 +659,45 @@ function registerHandlers() {
         } catch (error) {
             log.error('Failed to get storage info:', error);
             return { error: error.message };
+        }
+    });
+
+    // Application settings handlers
+    ipcMain.handle('get-app-setting', async (event, key: string, defaultValue?: any) => {
+        try {
+            if (await settings.has(key)) {
+                const value = await settings.get(key);
+                log.debug(`Got app setting: ${key} = ${value}`);
+                return value;
+            } else {
+                log.debug(`App setting ${key} not found, returning default: ${defaultValue}`);
+                return defaultValue;
+            }
+        } catch (error) {
+            log.error(`Failed to get app setting: ${key}`, error);
+            return defaultValue;
+        }
+    });
+
+    ipcMain.handle('set-app-setting', async (event, key: string, value: any) => {
+        try {
+            await settings.set(key, value);
+            log.debug(`Set app setting: ${key} = ${value}`);
+            return true;
+        } catch (error) {
+            log.error(`Failed to set app setting: ${key}`, error);
+            return false;
+        }
+    });
+
+    ipcMain.handle('get-all-app-settings', async () => {
+        try {
+            const allSettings = settings.get() as Record<string, any>;
+            log.debug('Got all app settings:', allSettings);
+            return allSettings;
+        } catch (error) {
+            log.error('Failed to get all app settings:', error);
+            return {};
         }
     });
 }

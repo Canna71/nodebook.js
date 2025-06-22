@@ -84,11 +84,17 @@ function AppContent() {
             log.debug('Switching to shortcuts view');
         };
 
+        const handleShowSettingsEvent = () => {
+            setCurrentView('settings');
+            log.debug('Switching to settings view');
+        };
+
         document.addEventListener('keydown', handleKeyDown);
         window.addEventListener('toggleOutputPanel', handleToggleEvent);
         window.addEventListener('toggleConsolePanel', handleToggleConsoleEvent);
         window.addEventListener('showDocumentation', handleShowDocumentationEvent);
         window.addEventListener('showShortcuts', handleShowShortcutsEvent);
+        window.addEventListener('showSettings', handleShowSettingsEvent);
         
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
@@ -96,6 +102,7 @@ function AppContent() {
             window.removeEventListener('toggleConsolePanel', handleToggleConsoleEvent);
             window.removeEventListener('showDocumentation', handleShowDocumentationEvent);
             window.removeEventListener('showShortcuts', handleShowShortcutsEvent);
+            window.removeEventListener('showSettings', handleShowSettingsEvent);
         };
     }, []);
 

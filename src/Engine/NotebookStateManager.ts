@@ -168,12 +168,6 @@ export class NotebookStateManager {
     loadNotebook(filePath: string, model: NotebookModel, description: string = 'Load notebook'): void {
         // Only update notebook-specific state, completely avoid touching UI state
         const currentState = this.currentState;
-        console.log('🔍 NotebookStateManager.loadNotebook - BEFORE:', {
-            readingMode: currentState.readingMode,
-            filePath,
-            description
-        });
-        
         this.updateState({
             currentFilePath: filePath,
             currentModel: model,
@@ -184,10 +178,6 @@ export class NotebookStateManager {
             readingMode: currentState.readingMode,
             isLoading: currentState.isLoading
         }, description);
-        
-        console.log('🔍 NotebookStateManager.loadNotebook - AFTER:', {
-            readingMode: this.currentState.readingMode
-        });
     }
 
     newNotebook(description: string = 'New notebook'): void {

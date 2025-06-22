@@ -27,6 +27,7 @@ import {
     ToggleConsoleViewerCommand,
     ToggleOutputPanelCommand,
     ViewDocumentationCommand,
+    ViewSettingsCommand,
     ToggleReadingModeCommand,
     EnterReadingModeCommand,
     ExitReadingModeCommand
@@ -46,7 +47,8 @@ import {
     DocumentTextIcon,
     XMarkIcon,
     BookOpenIcon,
-    EyeIcon // NEW: Reading mode icon
+    EyeIcon, // NEW: Reading mode icon
+    CogIcon // NEW: Settings icon
 } from '@heroicons/react/24/outline';
 import { CellDefinition } from '@/Types/NotebookModel';
 import anylogger from 'anylogger';
@@ -280,6 +282,13 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
             shortcut: 'F1',
             icon: BookOpenIcon,
             tooltip: 'View Documentation (F1)'
+        });
+
+        commandManager.registerCommand({
+            id: 'view.settings',
+            command: new ViewSettingsCommand(getContext),
+            icon: CogIcon,
+            tooltip: 'Open Settings'
         });
 
         // Reading mode commands

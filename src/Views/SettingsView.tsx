@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { KeyIcon, CheckIcon, AlertCircleIcon, SparklesIcon } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { KeyIcon, CheckIcon, AlertCircleIcon, SparklesIcon, BookOpenIcon, PencilIcon, SettingsIcon } from 'lucide-react';
 import { AIService } from '@/Engine/AIService';
 import anylogger from 'anylogger';
 
@@ -19,6 +20,10 @@ interface AISettingsState {
     isTestingConnection: boolean;
     connectionTestResult: 'idle' | 'success' | 'error';
     connectionTestMessage: string;
+}
+
+interface AppSettingsState {
+    defaultReadingMode: boolean;
 }
 
 export function SettingsView() {
@@ -43,6 +48,26 @@ export function SettingsView() {
         connectionTestMessage: ''
     });
 
+    const [appSettings, setAppSettings] = useState<AppSettingsState>({
+        defaultReadingMode: false
+    });
+
+    // Load app settings on component mount
+    useEffect(() => {
+        const loadAppSettings = async () => {
+            try {
+                const defaultReadingMode = await window.api.getAppSetting('defaultReadingMode', false);
+                setAppSettings({
+                    defaultReadingMode
+                });
+            } catch (error) {
+                log.error('Failed to load app settings:', error);
+            }
+        };
+        
+        loadAppSettings();
+    }, []);
+
     const handleApiKeyChange = (provider: 'openai' | 'claude', value: string) => {
         setAiSettings(prev => ({
             ...prev,
@@ -64,6 +89,7 @@ export function SettingsView() {
 
     const handleSaveSettings = async () => {
         try {
+            // Save AI settings
             // Prepare API keys object
             const apiKeys: any = {};
             if (aiSettings.openaiApiKey) {
@@ -80,7 +106,10 @@ export function SettingsView() {
             aiService.setProvider(getInternalProvider(aiSettings.provider));
             aiService.setModel(aiSettings.model);
             
-            log.info('AI settings saved successfully');
+            // Save app settings
+            await window.api.setAppSetting('defaultReadingMode', appSettings.defaultReadingMode);
+            
+            log.info('Settings saved successfully');
             
             // Show success feedback
             setAiSettings(prev => ({
@@ -97,7 +126,7 @@ export function SettingsView() {
                 }));
             }, 3000);
         } catch (error) {
-            log.error('Error saving AI settings:', error);
+            log.error('Error saving settings:', error);
             setAiSettings(prev => ({
                 ...prev,
                 connectionTestResult: 'error',
@@ -167,6 +196,63 @@ export function SettingsView() {
                     Configure your Nodebook.js preferences and integrations.
                 </p>
             </div>
+            
+            <Separator />
+            
+            {/* Application Settings */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <SettingsIcon className="h-5 w-5" />
+                        Application Preferences
+                    </CardTitle>
+                    <CardDescription>
+                        Configure default behavior and user interface preferences.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    {/* Default Reading Mode Setting */}
+                    <div className="space-y-4">
+                        <h4 className="text-sm font-medium">Default Document Mode</h4>
+                        
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="default-reading-mode"
+                                checked={appSettings.defaultReadingMode}
+                                onCheckedChange={(checked) => 
+                                    setAppSettings(prev => ({ ...prev, defaultReadingMode: !!checked }))
+                                }
+                            />
+                            <div className="grid gap-1.5 leading-none">
+                                <Label 
+                                    htmlFor="default-reading-mode"
+                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                >
+                                    Start in Reading Mode by default
+                                </Label>
+                                <p className="text-xs text-muted-foreground">
+                                    When enabled, notebooks will open in reading mode (clean view without editing controls). 
+                                    You can still toggle to edit mode anytime with Ctrl+R.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            {appSettings.defaultReadingMode ? (
+                                <>
+                                    <BookOpenIcon className="h-4 w-4" />
+                                    <span>Notebooks will start in reading mode (clean view)</span>
+                                </>
+                            ) : (
+                                <>
+                                    <PencilIcon className="h-4 w-4" />
+                                    <span>Notebooks will start in edit mode (normal view)</span>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
             
             <Separator />
             

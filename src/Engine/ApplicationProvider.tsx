@@ -26,7 +26,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         isLoading: false,
         error: null,
         selectedCellId: null,
-        readingMode: false, // NEW: Initialize reading mode as false
+        readingMode: false, // Will be updated from settings
     });
 
     // Storage exporter function from ReactiveProvider
@@ -53,11 +53,6 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         
         // Subscribe to state manager changes
         stateManagerRef.current.onStateChange((newState) => {
-            console.log('🔍 ApplicationProvider.onStateChange:', {
-                readingMode: newState.readingMode,
-                currentFilePath: newState.currentFilePath,
-                hasModel: !!newState.currentModel
-            });
             setState(newState);
         });
     }
@@ -79,11 +74,6 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     }, [setError]);
 
     const loadNotebook = useCallback(async (filePath: string) => {
-        console.log('🔍 ApplicationProvider.loadNotebook - START:', {
-            filePath,
-            currentReadingMode: state.readingMode
-        });
-        
         setLoading(true);
         setError(null);
         
@@ -104,10 +94,6 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 // Use state manager for loading notebook
                 stateManager.loadNotebook(filePath, model, `Load notebook: ${filePath.split('/').pop()}`);
                 
-                console.log('🔍 ApplicationProvider.loadNotebook - AFTER stateManager.loadNotebook:', {
-                    stateManagerReadingMode: stateManager.getCurrentState().readingMode,
-                    reactStateReadingMode: state.readingMode
-                });
                 // Add notebook-specific module path for per-notebook node_modules resolution
                 try {
                     moduleRegistry.addNotebookModulePath(filePath);
@@ -268,13 +254,9 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     }, [stateManager]);
 
     const setReadingMode = useCallback((readingMode: boolean) => {
-        console.log('🔍 ApplicationProvider.setReadingMode called:', {
-            requested: readingMode,
-            current: state.readingMode
-        });
         // Use state manager for reading mode updates
         stateManager.setReadingMode(readingMode, readingMode ? 'Enter reading mode' : 'Exit reading mode');
-    }, [stateManager, state.readingMode]);
+    }, [stateManager]);
 
     // Update window title when dirty state, file path, or model changes
     useEffect(() => {
@@ -574,6 +556,23 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             });
         };
     }, [loadNotebook, saveNotebook, newNotebook, commandManager, state.currentFilePath]); // Include commandManager and currentFilePath
+
+    // Load default reading mode setting on startup
+    useEffect(() => {
+        const loadDefaultReadingMode = async () => {
+            try {
+                const defaultReadingMode = await window.api.getAppSetting('defaultReadingMode', false);
+                if (defaultReadingMode) {
+                    stateManager.setReadingMode(true, 'Initialize with default reading mode');
+                    log.info('Application started with default reading mode enabled');
+                }
+            } catch (error) {
+                log.warn('Failed to load default reading mode setting:', error);
+            }
+        };
+        
+        loadDefaultReadingMode();
+    }, [stateManager]);
 
     // Helper function for Save As dialog
     const showSaveAsDialog = async () => {

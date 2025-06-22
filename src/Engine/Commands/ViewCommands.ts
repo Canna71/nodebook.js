@@ -153,3 +153,22 @@ export class ExitReadingModeCommand extends BaseCommand {
         }
     }
 }
+
+/**
+ * View Settings command
+ */
+export class ViewSettingsCommand extends BaseCommand {
+    getDescription(): string {
+        return 'Open Settings';
+    }
+
+    canExecute(): boolean {
+        return true;
+    }
+
+    execute(): void {
+        // Dispatch custom event that the App component listens for
+        window.dispatchEvent(new CustomEvent('showSettings'));
+        log.debug('Settings view command executed');
+    }
+}

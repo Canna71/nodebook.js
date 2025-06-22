@@ -30,6 +30,11 @@ const api: ElectronApi = {
     getStoredAPIKeys: () => ipcRenderer.invoke('get-stored-api-keys'),
     getApiKeyStorageInfo: () => ipcRenderer.invoke('get-api-key-storage-info'),
 
+    // Application settings
+    getAppSetting: (key: string, defaultValue?: any) => ipcRenderer.invoke('get-app-setting', key, defaultValue),
+    setAppSetting: (key: string, value: any) => ipcRenderer.invoke('set-app-setting', key, value),
+    getAllAppSettings: () => ipcRenderer.invoke('get-all-app-settings'),
+
     // Menu event handling
     onMenuAction: (event: string, callback: (...args: any[]) => void) => {
         ipcRenderer.on(event, (_, ...args) => callback(...args));

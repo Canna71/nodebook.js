@@ -24,6 +24,10 @@ export interface ElectronApi {
     saveAPIKeys: (keys: {openai?: string, anthropic?: string}) => Promise<void>;
     getStoredAPIKeys: () => Promise<{openai?: string, anthropic?: string} | null>;
     getApiKeyStorageInfo: () => Promise<{hasEncryptedKeys: boolean, hasObfuscatedKeys: boolean, encryptionAvailable: boolean}>;
+    // Application settings
+    getAppSetting: (key: string, defaultValue?: any) => Promise<any>;
+    setAppSetting: (key: string, value: any) => Promise<boolean>;
+    getAllAppSettings: () => Promise<Record<string, any>>;
     // Menu event handling
     onMenuAction: (event: string, callback: (...args: any[]) => void) => void;
     removeMenuListener: (event: string) => void;

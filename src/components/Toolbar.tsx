@@ -24,7 +24,6 @@ import {
 } from 'lucide-react';
 import { MarkdownIcon } from './icons/MarkdownIcon';
 import { JavascriptIcon } from './icons/JavascriptIcon';
-import { AISettings } from './AISettings';
 
 export function Toolbar() {
   const { commandManager } = useCommands();
@@ -305,12 +304,21 @@ export function Toolbar() {
 
         <Separator orientation="vertical" className="mx-2 h-6" />
 
-        {/* AI Settings */}
-        <AISettings>
-          <Button variant="ghost" size="sm">
-            <SettingsIcon className="h-4 w-4" />
-          </Button>
-        </AISettings>
+        {/* Settings */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCommand('view.settings')}
+            >
+              <SettingsIcon className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            Open Settings
+          </TooltipContent>
+        </Tooltip>
 
         <Separator orientation="vertical" className="mx-2 h-6" />
 
