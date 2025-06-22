@@ -10,6 +10,7 @@ import mathjax3 from 'markdown-it-mathjax3';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/vs2015.css'; // Import highlight.js theme
 import { useMarkdownCompletions } from '@/hooks/useMarkdownCompletions';
+import { useTheme } from '@/lib/themeHelpers';
 
 interface MarkdownCellProps {
   definition: MarkdownCellDefinition;
@@ -51,6 +52,10 @@ export function MarkdownCell({ definition, initialized, isEditMode = false, read
   const { reactiveStore, codeCellEngine } = useReactiveSystem();
   const { updateCell } = useApplication();
   const [renderedContent, setRenderedContent] = React.useState('');
+  
+  // Get current theme for CodeMirror
+  const currentTheme = useTheme();
+  const editorTheme = currentTheme === 'dark' ? oneDark : undefined; // undefined for light mode (default)
   
   // Local state for content being edited
   const [currentContent, setCurrentContent] = useState(definition.content);
@@ -227,7 +232,7 @@ export function MarkdownCell({ definition, initialized, isEditMode = false, read
           <Editor
             value={currentContent}
             language="markdown"
-            theme={oneDark}
+            theme={editorTheme}
             onChange={onContentChange}
             showLineNumbers={false}
             markdownCompletions={markdownCompletionSource}

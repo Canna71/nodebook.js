@@ -1,0 +1,113 @@
+<VSCode.Cell language="markdown">
+# Theme-Aware Components Example
+
+This notebook demonstrates how to create components that automatically adapt to light and dark themes using the centralized theme helper utilities.
+</VSCode.Cell>
+<VSCode.Cell language="javascript">
+// Import the theme helper utilities
+import { 
+  getCurrentTheme, 
+  isDarkMode, 
+  isLightMode, 
+  getReactJsonTheme, 
+  getCodeMirrorTheme, 
+  useTheme 
+} from '@/lib/themeHelpers';
+
+// Check current theme
+console.log('Current theme:', getCurrentTheme());
+console.log('Is dark mode:', isDarkMode());
+console.log('React JSON theme:', getReactJsonTheme());
+console.log('CodeMirror theme:', getCodeMirrorTheme());
+
+// Example: Theme-aware styling
+const getButtonStyle = () => ({
+  backgroundColor: isDarkMode() ? '#374151' : '#f3f4f6',
+  color: isDarkMode() ? '#f9fafb' : '#111827',
+  border: `1px solid ${isDarkMode() ? '#4b5563' : '#d1d5db'}`,
+  padding: '8px 16px',
+  borderRadius: '6px',
+  cursor: 'pointer'
+});
+
+output({ 
+  message: 'Theme detection working!',
+  currentTheme: getCurrentTheme(),
+  buttonStyle: getButtonStyle()
+});
+</VSCode.Cell>
+<VSCode.Cell language="markdown">
+## Usage Patterns
+
+### For React Components
+
+```jsx
+import { useTheme, getReactJsonTheme } from '@/lib/themeHelpers';
+
+function MyComponent() {
+  const theme = useTheme(); // Automatically updates on theme change
+  
+  return (
+    <div style={{
+      backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff',
+      color: theme === 'dark' ? '#f9fafb' : '#111827'
+    }}>
+      Content adapts to {theme} theme
+    </div>
+  );
+}
+```
+
+### For Non-React Code
+
+```javascript
+import { getCurrentTheme, onThemeChange } from '@/lib/themeHelpers';
+
+// Check theme once
+const theme = getCurrentTheme();
+
+// Listen for theme changes
+const cleanup = onThemeChange((newTheme) => {
+  console.log('Theme changed to:', newTheme);
+  // Update your component/library
+});
+
+// Don't forget to cleanup when done
+// cleanup();
+```
+
+### For Libraries (CodeMirror, etc.)
+
+```javascript
+import { getCodeMirrorTheme, onThemeChange } from '@/lib/themeHelpers';
+
+// Initialize CodeMirror with current theme
+const editor = CodeMirror.fromTextArea(textarea, {
+  theme: getCodeMirrorTheme()
+});
+
+// Update when theme changes
+onThemeChange(() => {
+  editor.setOption('theme', getCodeMirrorTheme());
+});
+```
+</VSCode.Cell>
+<VSCode.Cell language="javascript">
+// Demonstrate theme change detection
+let changeCount = 0;
+
+const cleanup = onThemeChange((newTheme) => {
+  changeCount++;
+  console.log(`Theme changed ${changeCount} times - now ${newTheme}`);
+});
+
+output({
+  message: 'Theme change listener set up!',
+  instruction: 'Switch between light and dark mode to see the detection working',
+  currentTheme: getCurrentTheme()
+});
+
+// The cleanup function would normally be called when component unmounts
+// For demo purposes, we'll keep it running
+// cleanup();
+</VSCode.Cell>

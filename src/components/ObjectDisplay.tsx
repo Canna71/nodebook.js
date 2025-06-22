@@ -6,6 +6,7 @@ import DataFrameRenderer from './DataFrameRenderer';
 import { TabularRenderer } from './TabularRenderer';
 import { useReactiveSystem } from '../Engine/ReactiveProvider';
 import { LatexRenderer, isLatexContent, renderMixedContent } from './LatexRenderer';
+import { useTheme, getReactJsonTheme } from '@/lib/themeHelpers';
 
 
 interface ObjectDisplayProps {
@@ -53,9 +54,15 @@ export function ObjectDisplay({
   displayDataTypes = true, 
   displayObjectSize = true,
   enableClipboard = true,
-  theme = 'codeschool'
+  theme
 }: ObjectDisplayProps) {
   const reactiveContext = useReactiveSystem();
+  
+  // Use centralized theme detection
+  const currentTheme = useTheme();
+  
+  // Determine theme - use provided theme or auto-detect based on current mode
+  const effectiveTheme = theme || getReactJsonTheme();
 
   // Reverse lookup function to find variable name by object reference
   const findVariableNameByReference = useMemo(() => {
@@ -155,7 +162,7 @@ export function ObjectDisplay({
           displayDataTypes={displayDataTypes}
           displayObjectSize={displayObjectSize}
           enableClipboard={enableClipboard}
-          theme={theme}
+          theme={effectiveTheme}
           style={{
             backgroundColor: 'transparent',
             fontSize: '13px',

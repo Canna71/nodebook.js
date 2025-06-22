@@ -13,6 +13,7 @@ import { CodeSummary } from './CodeSummary';
 import { useCodeCompletions, useModuleCompletions } from '@/hooks/useCodeCompletions';
 import { useEnhancedCompletions } from '@/hooks/useRuntimeCompletions';
 import { LatexRenderer, isLatexContent, renderMixedContent } from './LatexRenderer';
+import { useTheme } from '@/lib/themeHelpers';
 
 interface CodeCellProps {
   definition: CodeCellDefinition;
@@ -25,6 +26,10 @@ interface CodeCellProps {
 export function CodeCell({ definition, initialized, isEditMode = false, readingMode = false }: CodeCellProps) {
     const { codeCellEngine } = useReactiveSystem();
     const { updateCell } = useApplication();
+    
+    // Get current theme for CodeMirror
+    const currentTheme = useTheme();
+    const editorTheme = currentTheme === 'dark' ? oneDark : undefined; // undefined for light mode (default)
 
     // Get code completions for IntelliSense
     const codeCompletions = useCodeCompletions();
@@ -248,7 +253,7 @@ export function CodeCell({ definition, initialized, isEditMode = false, readingM
                     <Editor
                         value={currentCode}
                         language="javascript"
-                        theme={oneDark}
+                        theme={editorTheme}
                         onChange={onCodeChange}
                         customCompletions={codeCompletions}
                         objectCompletions={moduleCompletions}

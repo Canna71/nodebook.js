@@ -11,6 +11,7 @@ import { log } from './DynamicNotebook';
 import { useFormulaCompletions } from '@/hooks/useFormulaCompletions';
 import { useModuleCompletions } from '@/hooks/useCodeCompletions';
 import { useFormulaRuntimeCompletions } from '@/hooks/useFormulaRuntimeCompletions';
+import { useTheme } from '@/lib/themeHelpers';
 
 interface FormulaCellProps {
   definition: FormulaCellDefinition;
@@ -24,6 +25,10 @@ export function FormulaCell({ definition, initialized, isEditMode = false, readi
   const { updateCell } = useApplication();
   const [value, setValue] = useReactiveValue(definition.variableName, null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get current theme for CodeMirror
+  const currentTheme = useTheme();
+  const editorTheme = currentTheme === 'dark' ? oneDark : undefined; // undefined for light mode (default)
 
   // Get completions for formula editor
   const formulaCompletions = useFormulaCompletions();
@@ -169,7 +174,7 @@ export function FormulaCell({ definition, initialized, isEditMode = false, readi
                   value={editConfig.formula}
                   onChange={(value) => handleConfigChange({ formula: value })}
                   language="javascript"
-                  theme={oneDark}
+                  theme={editorTheme}
                   showLineNumbers={false}
                   placeholder="Examples: finalPrice, $basePrice * 1.08, Math.round(price * quantity)"
                   customCompletions={formulaCompletions}
