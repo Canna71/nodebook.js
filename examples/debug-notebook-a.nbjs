@@ -1,0 +1,26 @@
+````xml
+<VSCode.Cell language="markdown">
+# Debug Test Notebook A
+
+This is test notebook A for debugging reading mode persistence.
+
+1. Enable reading mode with Ctrl+R
+2. Load Test Notebook B
+3. Check if reading mode persists
+
+**Current Notebook: A**
+</VSCode.Cell>
+<VSCode.Cell language="input">
+{
+  "inputType": "text",
+  "variableName": "notebookName",
+  "value": "Test Notebook A",
+  "label": "Notebook Identity"
+}
+</VSCode.Cell>
+<VSCode.Cell language="markdown">
+**Notebook Name**: {{notebookName}}
+
+If reading mode persists correctly, you should see this content cleanly formatted without editing controls.
+</VSCode.Cell>
+````

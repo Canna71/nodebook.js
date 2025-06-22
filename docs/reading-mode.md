@@ -55,14 +55,15 @@ You can toggle reading mode in several ways:
 
 ### Reading Mode Persistence
 
-Reading mode state is preserved when:
+Reading mode state is preserved across ALL operations:
 - ✅ Changing reactive values and recalculating cells
-- ✅ Loading different notebooks 
+- ✅ Loading different notebooks (including from recent files and examples)
 - ✅ Creating new notebooks
 - ✅ Using undo/redo operations
+- ✅ Opening welcome tutorial
+- ✅ Returning to the homepage (clearing the notebook)
 
-Reading mode is reset when:
-- ❌ Returning to the homepage (clearing the notebook)
+Reading mode persists until explicitly toggled by the user.
 
 ### Component Props
 

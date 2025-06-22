@@ -4,16 +4,22 @@
 
 This notebook demonstrates that reading mode now persists across:
 - Reactive value changes
-- Notebook switching
+- Notebook switching (load different notebooks)
 - Undo/redo operations
+- Creating new notebooks
 
 ## Instructions
 
 1. Toggle to reading mode using Ctrl+R or the toolbar button
-2. Notice the different icon (pencil when in reading mode)
-3. Change the input value below
-4. See that reading mode is preserved during recalculations
-5. Try loading another notebook - reading mode should persist
+2. Notice the different icon (pencil when in reading mode, book when in edit mode)
+3. Change the input value below to test reactive persistence
+4. Try loading another notebook - reading mode should persist!
+5. Open recent files or examples - reading mode should remain active
+6. Create a new notebook - reading mode should still be active
+
+## Key Fix Applied
+
+Fixed race condition where `setLoading()` and `setError()` calls were bypassing the state manager and causing reading mode to reset during notebook loading.
 </VSCode.Cell>
 <VSCode.Cell language="input">
 {

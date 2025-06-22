@@ -53,6 +53,11 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         
         // Subscribe to state manager changes
         stateManagerRef.current.onStateChange((newState) => {
+            console.log('🔍 ApplicationProvider.onStateChange:', {
+                readingMode: newState.readingMode,
+                currentFilePath: newState.currentFilePath,
+                hasModel: !!newState.currentModel
+            });
             setState(newState);
         });
     }
@@ -60,18 +65,25 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     const stateManager = stateManagerRef.current;
 
     const setLoading = useCallback((loading: boolean) => {
-        setState((prev:ApplicationState) => ({ ...prev, isLoading: loading }));
-    }, []);
+        // Use state manager for loading state to avoid race conditions
+        stateManager.setLoadingState(loading, loading ? 'Start loading' : 'Stop loading');
+    }, [stateManager]);
 
     const setError = useCallback((error: string | null) => {
-        setState((prev:ApplicationState) => ({ ...prev, error }));
-    }, []);
+        // Use state manager for error state to avoid race conditions
+        stateManager.setErrorState(error, error ? 'Set error' : 'Clear error');
+    }, [stateManager]);
 
     const clearError = useCallback(() => {
         setError(null);
     }, [setError]);
 
     const loadNotebook = useCallback(async (filePath: string) => {
+        console.log('🔍 ApplicationProvider.loadNotebook - START:', {
+            filePath,
+            currentReadingMode: state.readingMode
+        });
+        
         setLoading(true);
         setError(null);
         
@@ -92,6 +104,10 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 // Use state manager for loading notebook
                 stateManager.loadNotebook(filePath, model, `Load notebook: ${filePath.split('/').pop()}`);
                 
+                console.log('🔍 ApplicationProvider.loadNotebook - AFTER stateManager.loadNotebook:', {
+                    stateManagerReadingMode: stateManager.getCurrentState().readingMode,
+                    reactStateReadingMode: state.readingMode
+                });
                 // Add notebook-specific module path for per-notebook node_modules resolution
                 try {
                     moduleRegistry.addNotebookModulePath(filePath);
@@ -110,6 +126,8 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 }
                 
                 log.info('Notebook loaded successfully:', filePath);
+                // Mark loading as complete after successful load
+                setLoading(false);
             } else {
                 log.error('Failed to load notebook:', content.error);
                 setError(`Failed to load notebook: ${content.error}`);
@@ -250,9 +268,13 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     }, [stateManager]);
 
     const setReadingMode = useCallback((readingMode: boolean) => {
+        console.log('🔍 ApplicationProvider.setReadingMode called:', {
+            requested: readingMode,
+            current: state.readingMode
+        });
         // Use state manager for reading mode updates
         stateManager.setReadingMode(readingMode, readingMode ? 'Enter reading mode' : 'Exit reading mode');
-    }, [stateManager]);
+    }, [stateManager, state.readingMode]);
 
     // Update window title when dirty state, file path, or model changes
     useEffect(() => {

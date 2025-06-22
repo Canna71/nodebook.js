@@ -146,49 +146,78 @@ export class NotebookStateManager {
     }
 
     setReadingMode(readingMode: boolean, description: string = 'Toggle reading mode'): void {
+        console.log('🔍 NotebookStateManager.setReadingMode:', {
+            requested: readingMode,
+            current: this.currentState.readingMode,
+            description
+        });
+        
         if (this.currentState.readingMode !== readingMode) {
             this.updateState({
                 readingMode
             }, description);
+            
+            console.log('🔍 NotebookStateManager.setReadingMode - UPDATED:', {
+                newReadingMode: this.currentState.readingMode
+            });
+        } else {
+            console.log('🔍 NotebookStateManager.setReadingMode - NO CHANGE');
         }
     }
 
     loadNotebook(filePath: string, model: NotebookModel, description: string = 'Load notebook'): void {
-        // Preserve reading mode when loading a new notebook
-        const currentReadingMode = this.currentState.readingMode;
+        // Only update notebook-specific state, completely avoid touching UI state
+        const currentState = this.currentState;
+        console.log('🔍 NotebookStateManager.loadNotebook - BEFORE:', {
+            readingMode: currentState.readingMode,
+            filePath,
+            description
+        });
+        
         this.updateState({
             currentFilePath: filePath,
             currentModel: model,
             isDirty: false,
             error: null,
             selectedCellId: null,
-            readingMode: currentReadingMode // Preserve reading mode
+            // Explicitly preserve ALL other state
+            readingMode: currentState.readingMode,
+            isLoading: currentState.isLoading
         }, description);
+        
+        console.log('🔍 NotebookStateManager.loadNotebook - AFTER:', {
+            readingMode: this.currentState.readingMode
+        });
     }
 
     newNotebook(description: string = 'New notebook'): void {
         const emptyNotebook: NotebookModel = { cells: [] };
-        // Preserve reading mode when creating a new notebook
-        const currentReadingMode = this.currentState.readingMode;
+        // Preserve UI state when creating a new notebook
+        const currentState = this.currentState;
         this.updateState({
             currentFilePath: null,
             currentModel: emptyNotebook,
             isDirty: false,
             error: null,
             selectedCellId: null,
-            readingMode: currentReadingMode // Preserve reading mode
+            // Preserve UI state
+            readingMode: currentState.readingMode,
+            isLoading: currentState.isLoading
         }, description);
     }
 
     clearNotebook(description: string = 'Clear notebook'): void {
-        // Reset reading mode when clearing notebook (returning to homepage)
+        // Preserve UI state (like reading mode) when clearing notebook
+        const currentState = this.currentState;
         this.updateState({
             currentFilePath: null,
             currentModel: null,
             isDirty: false,
             error: null,
             selectedCellId: null,
-            readingMode: false // Reset reading mode when clearing
+            // Preserve reading mode and other UI state
+            readingMode: currentState.readingMode,
+            isLoading: currentState.isLoading
         }, description);
     }
 
@@ -351,6 +380,25 @@ export class NotebookStateManager {
 
     getRedoDescription(): string | null {
         return this.redoStack.length > 0 ? this.redoStack[this.redoStack.length - 1].description : null;
+    }
+
+    // Transient state updates (no history)
+    setLoadingState(isLoading: boolean, description: string = 'Update loading state'): void {
+        // Don't save loading state changes to history as they're transient
+        this.currentState = {
+            ...this.currentState,
+            isLoading
+        };
+        this.notifyStateChange();
+    }
+
+    setErrorState(error: string | null, description: string = 'Update error state'): void {
+        // Don't save error state changes to history as they're transient
+        this.currentState = {
+            ...this.currentState,
+            error
+        };
+        this.notifyStateChange();
     }
 
     // Helper methods
