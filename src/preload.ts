@@ -43,6 +43,10 @@ const api: ElectronApi = {
     removeMenuListener: (event: string) => {
         ipcRenderer.removeAllListeners(event);
     },
+    
+    // Dynamic menu updates
+    updateCloseMenuLabel: (label: string) => ipcRenderer.invoke('update-close-menu-label', label),
+    
     isDev: memoize(() => {
         // Check if the app is running in development mode
         return process.env.ISDEV === '1';

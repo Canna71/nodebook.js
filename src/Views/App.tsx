@@ -29,6 +29,7 @@ import { ConsoleViewer } from '@/components/ConsoleViewer';
 import { useConsoleCapture } from '@/hooks/useConsoleCapture';
 import { DocumentationViewer } from '@/components/DocumentationViewer';
 import { KeyboardShortcutsView } from './KeyboardShortcutsView';
+import { updateCloseMenuLabel } from '@/lib/electronHelpers';
 
 function AppContent() {
     const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook, clearNotebook } = useApplication();
@@ -147,6 +148,11 @@ function AppContent() {
             
         }
     }, [currentModel, loadNotebook]);
+
+    // Update close menu label when view or notebook state changes
+    useEffect(() => {
+        updateCloseMenuLabel(currentView, !!currentModel);
+    }, [currentView, currentModel]);
 
     if (isLoading) {
         return (

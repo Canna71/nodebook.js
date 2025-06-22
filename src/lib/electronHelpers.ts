@@ -1,3 +1,5 @@
+import { AppView } from '@/Engine/ViewProvider';
+
 export function isDev() {
   return process.mainModule.filename.indexOf('app.asar') === -1;
 }
@@ -31,6 +33,8 @@ export interface ElectronApi {
     // Menu event handling
     onMenuAction: (event: string, callback: (...args: any[]) => void) => void;
     removeMenuListener: (event: string) => void;
+    // Dynamic menu updates
+    updateCloseMenuLabel: (label: string) => Promise<void>;
     isDev: () => boolean;
 }
 
@@ -39,3 +43,48 @@ declare global {
         api: ElectronApi;
     }
 }
+
+export const updateCloseMenuLabel = async (currentView: AppView, hasNotebook: boolean = false) => {
+    if (!window.api) {
+        console.warn('Electron API not available');
+        return;
+    }
+    
+    let label: string;
+    let shouldShow = true;
+    
+    switch (currentView) {
+        case 'settings':
+            label = 'Close Settings';
+            break;
+        case 'documentation':
+            label = 'Close Documentation';
+            break;
+        case 'shortcuts':
+            label = 'Close Keyboard Shortcuts';
+            break;
+        case 'notebook':
+            if (hasNotebook) {
+                label = 'Close Notebook';
+            } else {
+                // Hide the menu item when on home page (notebook view with no notebook)
+                shouldShow = false;
+                label = ''; // Not used when hidden
+            }
+            break;
+        default:
+            shouldShow = false;
+            label = '';
+    }
+    
+    try {
+        if (shouldShow) {
+            await window.api.updateCloseMenuLabel(label);
+        } else {
+            // Use a special marker to indicate the menu should be hidden
+            await window.api.updateCloseMenuLabel('__HIDE_MENU_ITEM__');
+        }
+    } catch (error) {
+        console.error('Failed to update close menu label:', error);
+    }
+};

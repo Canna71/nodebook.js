@@ -44,7 +44,12 @@ const extensions = {
     }
 }
 
-
+// Store reference to close menu item for dynamic updates
+let closeMenuItem: Electron.MenuItem | null = null;
+// Store current close menu label and main window reference for dynamic updates
+let currentCloseMenuLabel = 'Close Notebook';
+let closeMenuVisible = true;
+let mainWindowRef: BrowserWindow | null = null;
 
 function createMenu(mainWindow: BrowserWindow) {
     const template: Electron.MenuItemConstructorOptions[] = [
@@ -95,15 +100,17 @@ function createMenu(mainWindow: BrowserWindow) {
                         mainWindow.webContents.send('menu-export-json');
                     }
                 },
-                { type: 'separator' },
-                {
-                    label: 'Close Notebook',
-                    accelerator: 'CmdOrCtrl+W',
-                    click: () => {
-                        mainWindow.webContents.send('menu-close-notebook');
-                    }
-                },
-                { type: 'separator' },
+                ...(closeMenuVisible ? [
+                    { type: 'separator' as const },
+                    {
+                        label: currentCloseMenuLabel,
+                        accelerator: 'CmdOrCtrl+W',
+                        click: () => {
+                            mainWindow.webContents.send('menu-close-notebook');
+                        }
+                    },
+                    { type: 'separator' as const }
+                ] : [{ type: 'separator' as const }]),
                 {
                     label: 'Quit',
                     accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
@@ -444,6 +451,52 @@ function createMenu(mainWindow: BrowserWindow) {
 
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
+    
+    // Find and store reference to the close menu item for dynamic updates
+    log.debug('Looking for close menu item...');
+    const fileMenu = menu.items.find(item => item.label === 'File');
+    log.debug('File menu found:', !!fileMenu);
+    
+    if (fileMenu && fileMenu.submenu) {
+        log.debug('File submenu items:', fileMenu.submenu.items.map(item => item.label));
+        closeMenuItem = fileMenu.submenu.items.find(item => 
+            item.label === 'Close Notebook' || item.label?.startsWith('Close ')
+        ) || null;
+        log.debug('Close menu item found:', !!closeMenuItem);
+        if (closeMenuItem) {
+            log.debug('Close menu item label:', closeMenuItem.label);
+        }
+    }
+}
+
+// Function to update the close menu item label and visibility
+function updateCloseMenuLabel(label: string) {
+    log.debug('updateCloseMenuLabel called with label:', label);
+    
+    const shouldHide = label === '__HIDE_MENU_ITEM__';
+    const actualLabel = shouldHide ? 'Close' : label;
+    const visible = !shouldHide;
+    
+    log.debug('Processing: shouldHide =', shouldHide, 'actualLabel =', actualLabel, 'visible =', visible);
+    log.debug('Current state: currentCloseMenuLabel =', currentCloseMenuLabel, 'closeMenuVisible =', closeMenuVisible);
+    
+    if (currentCloseMenuLabel === actualLabel && closeMenuVisible === visible) {
+        log.debug('Label and visibility unchanged, skipping update');
+        return;
+    }
+    
+    currentCloseMenuLabel = actualLabel;
+    closeMenuVisible = visible;
+    log.debug('Updated currentCloseMenuLabel to:', currentCloseMenuLabel, 'closeMenuVisible:', closeMenuVisible);
+    
+    // Instead of modifying the existing menu item, rebuild the menu
+    // This ensures the changes are properly reflected
+    if (mainWindowRef) {
+        createMenu(mainWindowRef);
+        log.debug('Menu rebuilt with new close label and visibility');
+    } else {
+        log.warn('mainWindow not available for menu rebuild');
+    }
 }
 
 const createWindow = async () => {
@@ -473,6 +526,8 @@ const createWindow = async () => {
         // Open the DevTools.
         mainWindow.webContents.openDevTools();
     }
+    // Store reference to main window for menu updates
+    mainWindowRef = mainWindow;
     // Create menu after window is created
     createMenu(mainWindow);
 };
@@ -714,6 +769,17 @@ function registerHandlers() {
         } catch (error) {
             log.error('Failed to get all app settings:', error);
             return {};
+        }
+    });
+
+    ipcMain.handle('update-close-menu-label', async (event, label: string) => {
+        try {
+            updateCloseMenuLabel(label);
+            log.debug(`Updated close menu label to: ${label}`);
+            return true;
+        } catch (error) {
+            log.error('Failed to update close menu label:', error);
+            return false;
         }
     });
 }
