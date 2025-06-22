@@ -34,6 +34,14 @@ export function CodeCell({ definition, initialized, isEditMode = false, readingM
     // Subscribe to execution count to know when cell re-executes
     const [executionCount] = useReactiveValue(`__cell_${definition.id}_execution`, 0);
     
+    // Subscribe to error state from reactive system
+    const [error] = useReactiveValue(`__cell_${definition.id}_error`, null);
+    
+    // Debug log error state changes
+    useEffect(() => {
+        log.debug('CodeCell error state changed for', definition.id, ':', error?.message || 'null');
+    }, [error, definition.id]);
+    
     // Debug log execution count changes (using log instead of console to avoid capture)
     useEffect(() => {
         log.debug('CodeCell execution count changed for', definition.id, ':', executionCount);
@@ -51,7 +59,6 @@ export function CodeCell({ definition, initialized, isEditMode = false, readingM
     const outputContainerRef = React.useRef<HTMLDivElement>(null);
 
     const [exports, setExports] = React.useState<string[]>([]);
-    const [error, setError] = React.useState<Error | null>(null);
     const [dependencies, setDependencies] = React.useState<string[]>([]);
     const [outputValues, setOutputValues] = React.useState<any[]>([]);
 
@@ -80,7 +87,6 @@ export function CodeCell({ definition, initialized, isEditMode = false, readingM
         if (!initialized) return;
 
         try {
-            setError(null);
             const newExports = codeCellEngine.getCellExports(definition.id);
             const newDependencies = codeCellEngine.getCellDependencies(definition.id);
             const cellOutputValues = codeCellEngine.getCellOutputValues(definition.id);
@@ -97,7 +103,7 @@ export function CodeCell({ definition, initialized, isEditMode = false, readingM
             });
 
         } catch (err) {
-            setError(err as Error);
+            // Error state is now handled reactively, just reset the display state
             setExports([]);
             setDependencies([]);
             setOutputValues([]);
@@ -210,9 +216,11 @@ export function CodeCell({ definition, initialized, isEditMode = false, readingM
             readingMode 
                 ? 'reading-mode border-none bg-transparent mb-2' 
                 : `border rounded-lg mb-4 overflow-hidden ${
-                    isStatic 
-                        ? 'border-orange-400 bg-orange-50/50 dark:bg-orange-950/20' 
-                        : 'border-border bg-background'
+                    error 
+                        ? 'border-destructive bg-destructive/5 dark:bg-destructive/10' // Error state styling
+                        : isStatic 
+                            ? 'border-orange-400 bg-orange-50/50 dark:bg-orange-950/20' 
+                            : 'border-border bg-background'
                 }`
         }`}>
             {/* Code Summary - only show in edit mode, not reading mode */}
@@ -222,6 +230,7 @@ export function CodeCell({ definition, initialized, isEditMode = false, readingM
                         code={currentCode}
                         exports={exports}
                         dependencies={dependencies}
+                        error={error}
                     />
                     {(isDirty || isStaticDirty) && isEditMode && (
                         <div className="px-4 py-2">
@@ -361,7 +370,19 @@ export function CodeCell({ definition, initialized, isEditMode = false, readingM
                     : "code-error bg-destructive/10 border-t border-destructive px-4 py-3"
                 }>
                     <div className="text-xs font-medium text-destructive mb-1">Execution Error:</div>
-                    <div className="text-sm text-destructive">{error.message}</div>
+                    <div className="text-sm text-destructive font-mono">
+                        {error.message}
+                    </div>
+                    {error.stack && (
+                        <details className="mt-2">
+                            <summary className="text-xs text-destructive/80 cursor-pointer hover:text-destructive">
+                                Show stack trace
+                            </summary>
+                            <pre className="text-xs text-destructive/80 font-mono mt-1 overflow-x-auto whitespace-pre-wrap">
+                                {error.stack}
+                            </pre>
+                        </details>
+                    )}
                 </div>
             )}
         </div>

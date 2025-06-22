@@ -172,8 +172,9 @@ export class ReactiveStore {
             if (computeFn) {
                 (reactiveValue as ReactiveValue<T>).setComputeFn(computeFn);
                 this.setupDependencies(reactiveValue as ReactiveValue<T>, dependencies);
-            } else if (value !== null) {
-                reactiveValue.setValue(value);
+            } else {
+                // Always update the value, even if it's null (important for clearing errors)
+                reactiveValue.setValue(value as T);
             }
         } else {
             reactiveValue = new ReactiveValue<T>(value as T, computeFn);
@@ -585,6 +586,7 @@ export class CodeCellEngine {
         executionCount: number;
         lastOutputContainer?: HTMLElement; // Add this to remember the container
         unsubscribeFunctions?: (() => void)[]; // Track unsubscribe functions for cleanup
+        lastError?: Error | null; // Track last execution error
     }>;
     private executingCells: Set<string>;
     private moduleCache: Map<string, any>;
@@ -763,8 +765,13 @@ export class CodeCellEngine {
                 lastOutput: [],
                 outputValues: [],
                 executionCount: 0,
-                unsubscribeFunctions: []
+                unsubscribeFunctions: [],
+                lastError: null
             });
+            
+            // Initialize reactive values for the cell
+            this.reactiveStore.define(`__cell_${id}_execution`, 0);
+            this.reactiveStore.define(`__cell_${id}_error`, null);
         }
     }
 
@@ -1152,11 +1159,14 @@ export class CodeCellEngine {
                 outputValues: [...outputValues],
                 executionCount,
                 lastOutputContainer: outputContainer, // Store the container for reactive execution
-                unsubscribeFunctions: previousCellInfo?.unsubscribeFunctions || [] // Preserve existing subscriptions
+                unsubscribeFunctions: previousCellInfo?.unsubscribeFunctions || [], // Preserve existing subscriptions
+                lastError: null // Clear any previous error on successful execution
             });
 
-            // Create a reactive value for this cell's execution state
+            // Create reactive values for this cell's execution state
             this.reactiveStore.define(`__cell_${cellId}_execution`, executionCount);
+            this.reactiveStore.define(`__cell_${cellId}_error`, null); // Clear error on success
+            log.debug(`Code cell ${cellId} executed successfully - error cleared`);
 
             // Set up reactive execution for dependencies (only if not static and not already set up)
             if (!isStatic && (!previousCellInfo || JSON.stringify(previousCellInfo.dependencies) !== JSON.stringify(dependencyArray))) {
@@ -1182,6 +1192,9 @@ export class CodeCellEngine {
             const previousCellInfo = this.executedCells.get(cellId);
             const executionCount = (previousCellInfo?.executionCount || 0) + 1;
 
+            // Store error in cell info
+            const errorObj = error instanceof Error ? error : new Error(String(error));
+            
             this.executedCells.set(cellId, {
                 code,
                 exports: exportsArray,
@@ -1191,8 +1204,14 @@ export class CodeCellEngine {
                 outputValues: [], // Empty output values on error
                 executionCount,
                 lastOutputContainer: outputContainer, // Store container even on error
-                unsubscribeFunctions: previousCellInfo?.unsubscribeFunctions || [] // Preserve existing subscriptions
+                unsubscribeFunctions: previousCellInfo?.unsubscribeFunctions || [], // Preserve existing subscriptions
+                lastError: errorObj // Store the error
             });
+
+            // Create reactive values for this cell's execution and error state
+            this.reactiveStore.define(`__cell_${cellId}_execution`, executionCount);
+            this.reactiveStore.define(`__cell_${cellId}_error`, errorObj);
+            log.debug(`Code cell ${cellId} error stored in reactive system:`, errorObj.message);
 
             log.error(`Error executing code cell ${cellId}:`, error);
             throw new Error(`Code execution error: ${error instanceof Error ? error.message : String(error)}`);
@@ -1308,6 +1327,13 @@ export class CodeCellEngine {
      */
     public getCellOutputValues(cellId: string): any[] {
         return this.executedCells.get(cellId)?.outputValues || [];
+    }
+
+    /**
+     * Get last error from a code cell
+     */
+    public getCellError(cellId: string): Error | null {
+        return this.executedCells.get(cellId)?.lastError || null;
     }
 
     /**

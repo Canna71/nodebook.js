@@ -1,10 +1,11 @@
-import { CodeIcon } from 'lucide-react';
+import { CodeIcon, AlertTriangleIcon } from 'lucide-react';
 import React from 'react';
 
 interface CodeSummaryProps {
   code: string;
   exports?: string[];
   dependencies?: string[];
+  error?: Error | null; // Add error prop
 }
 
 interface CodeMetadata {
@@ -75,7 +76,7 @@ function parseCodeMetadata(code: string): CodeMetadata {
   };
 }
 
-export function CodeSummary({ code, exports = [], dependencies = [] }: CodeSummaryProps) {
+export function CodeSummary({ code, exports = [], dependencies = [], error = null }: CodeSummaryProps) {
   const metadata = parseCodeMetadata(code);
   
   // Determine what to display as the main summary
@@ -86,6 +87,15 @@ export function CodeSummary({ code, exports = [], dependencies = [] }: CodeSumma
       <div className="flex items-center gap-2 text-muted-foreground">
         {/* Language indicator with code icon */}
         <CodeIcon className="w-3 h-3" />
+        
+        {/* Error indicator */}
+        {error && (
+          <>
+            <AlertTriangleIcon className="w-3 h-3 text-destructive" />
+            <span className="text-xs text-destructive font-medium">Error</span>
+            <span className="text-muted-foreground/60">{'•'}</span>
+          </>
+        )}
         
         {/* Code preview with comment styling */}
         {displayText && (
