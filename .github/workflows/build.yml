@@ -59,8 +59,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
       
-      - name: Increase Node.js memory
-        run: echo "NODE_OPTIONS=--max_old_space_size=8192" >> $GITHUB_ENV
 
       - name: Free up disk space (Ubuntu/Linux)
         if: runner.os == 'Linux'
@@ -73,12 +71,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         env:
-          NODE_OPTIONS: --max_old_space_size=4096
+          NODE_OPTIONS: --max_old_space_size=8912
 
       - name: Rebuild native modules for target architecture
         run: pnpm run postinstall
         env:
-          NODE_OPTIONS: --max_old_space_size=4096
+          NODE_OPTIONS: --max_old_space_size=8912
 
       - name: Build application
         run: pnpm run make
@@ -89,7 +87,7 @@ jobs:
           # Disable native module rebuilding during make (already done above)
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
           # Additional memory optimization
-          NODE_OPTIONS: --max_old_space_size=4096
+          NODE_OPTIONS: --max_old_space_size=8912
 
       - name: List build outputs (Debug)
         shell: bash

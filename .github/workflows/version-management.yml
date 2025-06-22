@@ -1,0 +1,123 @@
+name: Version Management
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - prerelease
+      release_type:
+        description: 'Release type (for prerelease)'
+        required: false
+        default: 'beta'
+        type: choice
+        options:
+          - alpha
+          - beta
+          - rc
+      create_release:
+        description: 'Create release after version bump'
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Configure git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Get current version
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+
+      - name: Bump version
+        id: bump_version
+        run: |
+          if [ "${{ github.event.inputs.version_type }}" = "prerelease" ]; then
+            NEW_VERSION=$(pnpm version prerelease --preid=${{ github.event.inputs.release_type }} --no-git-tag-version --json | jq -r '.newVersion')
+          else
+            NEW_VERSION=$(pnpm version ${{ github.event.inputs.version_type }} --no-git-tag-version --json | jq -r '.newVersion')
+          fi
+          echo "new=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+
+      - name: Update package.json
+        run: |
+          git add package.json
+          git commit -m "chore: bump version to ${{ steps.bump_version.outputs.new }}"
+
+      - name: Create and push tag
+        if: github.event.inputs.create_release == 'true'
+        run: |
+          git tag "v${{ steps.bump_version.outputs.new }}"
+          git push origin main
+          git push origin "v${{ steps.bump_version.outputs.new }}"
+
+      - name: Push changes without tag
+        if: github.event.inputs.create_release == 'false'
+        run: |
+          git push origin main
+
+      - name: Create GitHub Release
+        if: github.event.inputs.create_release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ steps.bump_version.outputs.new }}"
+          name: "Release v${{ steps.bump_version.outputs.new }}"
+          draft: false
+          prerelease: ${{ contains(steps.bump_version.outputs.new, 'alpha') || contains(steps.bump_version.outputs.new, 'beta') || contains(steps.bump_version.outputs.new, 'rc') }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    outputs:
+      old_version: ${{ steps.current_version.outputs.current }}
+      new_version: ${{ steps.bump_version.outputs.new }}
+
+  trigger-build:
+    if: github.event.inputs.create_release == 'true'
+    needs: bump-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for build workflow
+        run: |
+          echo "Version bumped from ${{ needs.bump-version.outputs.old_version }} to ${{ needs.bump-version.outputs.new_version }}"
+          echo "Build workflow will be triggered automatically by the tag push."
+          echo "Check the Actions tab for the 'Build and Release' workflow."
