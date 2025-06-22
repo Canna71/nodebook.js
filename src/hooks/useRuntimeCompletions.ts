@@ -158,7 +158,14 @@ export function useRuntimeCompletions(cellId: string) {
             `;
 
             // Execute in the cell's context
-            const result = await codeCellEngine.evaluateInCellContext(cellId, introspectionCode);
+            const evaluationResult = await codeCellEngine.evaluateInCellContext(cellId, introspectionCode);
+            
+            // Check if evaluation was successful
+            if (!evaluationResult.success) {
+                return [];
+            }
+            
+            const result = evaluationResult.result;
             
             // Validate and filter the results
             if (Array.isArray(result)) {
@@ -254,7 +261,14 @@ export function useRuntimeCompletions(cellId: string) {
                 }
             `;
 
-            const result = await codeCellEngine.evaluateInCellContext(cellId, scopeIntrospectionCode);
+            const evaluationResult = await codeCellEngine.evaluateInCellContext(cellId, scopeIntrospectionCode);
+            
+            // Check if evaluation was successful
+            if (!evaluationResult.success) {
+                return [];
+            }
+            
+            const result = evaluationResult.result;
             const runtimeVariables = Array.isArray(result) ? result : [];
             
             // Combine both sources, avoiding duplicates

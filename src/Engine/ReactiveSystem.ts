@@ -1416,12 +1416,14 @@ export class CodeCellEngine {
     /**
      * Evaluate code in a cell's context and return the result
      * Used for runtime introspection and completions
+     * This method is designed to be safe for live evaluation while typing,
+     * so errors are returned as part of the result instead of being thrown
      */
-    public async evaluateInCellContext(cellId: string, code: string): Promise<any> {
+    public async evaluateInCellContext(cellId: string, code: string): Promise<{ success: boolean; result?: any; error?: string }> {
         try {
             // Prevent circular execution
             if (this.executingCells.has(cellId)) {
-                throw new Error(`Cell ${cellId} is currently executing`);
+                return { success: false, error: `Cell ${cellId} is currently executing` };
             }
 
             // Create a temporary execution context similar to executeCodeCell
@@ -1495,40 +1497,38 @@ export class CodeCellEngine {
             const workingDir = this.getWorkingDirectory();
             const currentCwd = process.cwd();
             const hasNotebookPath = this.currentNotebookPath || (typeof window !== 'undefined' && (window as any).__notebookCurrentPath);
-            log.debug(`Evaluation working directory check: notebookPath=${this.currentNotebookPath}, workingDir=${workingDir}, currentCwd=${currentCwd}, hasNotebook=${!!hasNotebookPath}`);
             
             if (hasNotebookPath && workingDir !== currentCwd) {
                 try {
                     originalCwd = currentCwd;
                     process.chdir(workingDir);
-                    log.debug(`Changed working directory for evaluation to: ${workingDir}`);
                 } catch (error) {
-                    log.warn(`Failed to change working directory for evaluation to ${workingDir}:`, error);
+                    // Silently fail - this is just for convenience
                     originalCwd = undefined;
                 }
-            } else {
-                log.debug(`Skipping evaluation working directory change: hasNotebook=${!!hasNotebookPath}, same directory=${workingDir === currentCwd}`);
             }
             
             try {
                 // Execute and return the result (now awaits the async execution)
                 const result = await executeCode(smartProxy);
-                return result;
+                return { success: true, result };
             } finally {
                 // Restore original working directory
                 if (originalCwd) {
                     try {
                         process.chdir(originalCwd);
-                        log.debug(`Restored working directory after evaluation to: ${originalCwd}`);
                     } catch (error) {
-                        log.warn(`Failed to restore working directory after evaluation to ${originalCwd}:`, error);
+                        // Silently fail - this is just cleanup
                     }
                 }
             }
 
         } catch (error) {
-            log.error(`Error evaluating code in cell ${cellId}:`, error);
-            throw error;
+            // Don't log errors for live evaluation - they are expected while typing
+            return { 
+                success: false, 
+                error: error instanceof Error ? error.message : String(error) 
+            };
         }
     }
 
