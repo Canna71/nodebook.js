@@ -371,9 +371,9 @@ export function CodeCell({ definition, initialized, isEditMode = false, readingM
                 }>
                     <div className="flex items-center gap-2">
                         <div className="text-xs font-medium text-destructive">Execution Error:</div>
-                        <div className="text-xs text-destructive/80">Check console for details</div>
+                        <div className="text-xs text-muted-foreground">Check console for details</div>
                     </div>
-                    <div className="text-sm text-destructive font-mono mt-1">
+                    <div className="text-sm text-foreground font-mono mt-1">
                         {error.message}
                     </div>
                 </div>
