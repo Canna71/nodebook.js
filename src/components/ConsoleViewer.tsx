@@ -82,6 +82,23 @@ export function ConsoleViewer({ isVisible, onToggle, entries, onClear, maxEntrie
                     <div key={index} className="console-arg">
                         {typeof arg === 'string' || typeof arg === 'number' || typeof arg === 'boolean' ? (
                             <span className="text-gray-100">{String(arg)}</span>
+                        ) : arg instanceof Error ? (
+                            // Special handling for Error objects
+                            <div className="error-display bg-red-900/20 border border-red-500/30 rounded p-2 mt-1">
+                                <div className="text-red-400 font-medium text-sm mb-1">
+                                    {arg.name}: {arg.message}
+                                </div>
+                                {arg.stack && (
+                                    <details className="mt-2">
+                                        <summary className="text-red-300 text-xs cursor-pointer hover:text-red-200">
+                                            Stack trace
+                                        </summary>
+                                        <pre className="text-red-300/80 text-xs font-mono mt-1 overflow-x-auto whitespace-pre-wrap bg-red-950/30 p-2 rounded">
+                                            {arg.stack}
+                                        </pre>
+                                    </details>
+                                )}
+                            </div>
                         ) : (
                             <div className="ml-2">
                                 <ObjectDisplay 
@@ -154,7 +171,9 @@ export function ConsoleViewer({ isVisible, onToggle, entries, onClear, maxEntrie
                     <div className="text-gray-500 italic">No console output yet...</div>
                 ) : (
                     entries.map((entry) => (
-                        <div key={entry.id} className="py-1 border-b border-gray-800 last:border-b-0">
+                        <div key={entry.id} className={`py-1 border-b border-gray-800 last:border-b-0 ${
+                            entry.level === 'error' ? 'bg-red-950/20 border-red-800/30' : ''
+                        }`}>
                             <div className="flex items-start space-x-2 mb-1">
                                 <span className="text-gray-500 text-xs font-mono">
                                     {entry.timestamp.toLocaleTimeString()}

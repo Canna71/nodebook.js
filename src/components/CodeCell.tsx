@@ -369,20 +369,13 @@ export function CodeCell({ definition, initialized, isEditMode = false, readingM
                     ? "code-error bg-destructive/10 border border-destructive rounded px-3 py-2 mt-2" 
                     : "code-error bg-destructive/10 border-t border-destructive px-4 py-3"
                 }>
-                    <div className="text-xs font-medium text-destructive mb-1">Execution Error:</div>
-                    <div className="text-sm text-destructive font-mono">
+                    <div className="flex items-center gap-2">
+                        <div className="text-xs font-medium text-destructive">Execution Error:</div>
+                        <div className="text-xs text-destructive/80">Check console for details</div>
+                    </div>
+                    <div className="text-sm text-destructive font-mono mt-1">
                         {error.message}
                     </div>
-                    {error.stack && (
-                        <details className="mt-2">
-                            <summary className="text-xs text-destructive/80 cursor-pointer hover:text-destructive">
-                                Show stack trace
-                            </summary>
-                            <pre className="text-xs text-destructive/80 font-mono mt-1 overflow-x-auto whitespace-pre-wrap">
-                                {error.stack}
-                            </pre>
-                        </details>
-                    )}
                 </div>
             )}
         </div>

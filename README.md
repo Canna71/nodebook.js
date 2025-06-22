@@ -14,6 +14,14 @@
 
 [ ] render returned object
 
+[x] Enhanced Error Handling & Display
+  - ✅ Reactive error tracking in code cells
+  - ✅ Visual error indicators (red border, error icon)
+  - ✅ Minimal error display in cells (message + console reference)
+  - ✅ Detailed error display in console viewer (full stack traces)
+  - ✅ Automatic error clearing on successful re-execution
+  - ✅ Error state propagation through reactive dependencies
+
 [ ] Enhanced API Key Security
   - ✅ Implement encryption using Electron's `safeStorage` API
   - ✅ Integration with electron-settings for consistent storage

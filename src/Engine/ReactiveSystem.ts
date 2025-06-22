@@ -1179,8 +1179,9 @@ export class CodeCellEngine {
             return exportsArray;
 
         } catch (error) {
-            // Use wrapped console to capture error (this will go to ConsoleViewer)
-            wrappedConsole.error(`Execution Error: ${error instanceof Error ? error.message : String(error)}`);
+            // Use wrapped console to capture error with full details (this will go to ConsoleViewer)
+            const consoleErrorObj = error instanceof Error ? error : new Error(String(error));
+            wrappedConsole.error(`Execution Error in cell ${cellId}:`, consoleErrorObj);
             
             // Capture any final console output after the error
             const lastOutput = getOutput();
