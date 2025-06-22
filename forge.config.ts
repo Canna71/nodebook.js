@@ -64,7 +64,7 @@ const config: ForgeConfig = {
   makers: [
     new MakerSquirrel({
       // Windows installer icons
-      iconUrl: 'https://raw.githubusercontent.com/your-username/notebookjs/main/build-resources/icons/icon.png', // Change this URL
+      iconUrl: 'https://raw.githubusercontent.com/your-username/nodebook.js/main/build-resources/icons/icon.png', // Change this URL
       setupIcon: './build-resources/icon.ico'
     }), 
     new MakerZIP({}, ['darwin']), 

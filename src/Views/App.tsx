@@ -152,17 +152,10 @@ function AppContent() {
     }, [handleCloseViewEvent]);
 
     useEffect(() => {
-        log.debug("AppContent mounted, currentModel:", currentModel);
+        log.debug("Is this effect needed?:", currentModel);
         // Load default example on startup
         if (!currentModel) {
             const fs = getFileSystemHelpers();
-            // fs.loadNotebook("../../examples/danfojs-plotting-example.json")
-            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/danfojs-plotting-example.json");
-            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/danfojs-example.json");
-            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/d3-visualization-example.json");
-            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/pricingModel.json");
-            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/reactive-system-test.json");
-            
         }
     }, [currentModel, loadNotebook]);
 
