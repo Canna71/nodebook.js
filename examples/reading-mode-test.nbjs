@@ -1,0 +1,50 @@
+{
+  "cells": [
+    {
+      "id": "markdown-intro",
+      "type": "markdown",
+      "content": "# Reading Mode Demo\n\nThis notebook demonstrates the **Reading Mode** feature, which hides all editing UI elements and shows only the content and outputs.\n\nIn reading mode:\n- ✅ Inputs remain interactive (reactive values)\n- ✅ Outputs are displayed and updated\n- ❌ No editing controls or cell separators\n- ❌ No hover effects or cell selection"
+    },
+    {
+      "id": "input-price",
+      "type": "input",
+      "variableName": "basePrice",
+      "value": 100,
+      "inputType": "number",
+      "label": "Base Price ($)",
+      "min": 0,
+      "max": 1000
+    },
+    {
+      "id": "input-tax",
+      "type": "input",
+      "variableName": "taxRate",
+      "value": 0.08,
+      "inputType": "number",
+      "label": "Tax Rate",
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "formula-total",
+      "type": "formula",
+      "variableName": "totalPrice",
+      "formula": "basePrice * (1 + taxRate)"
+    },
+    {
+      "id": "code-calculation",
+      "type": "code",
+      "code": "// Calculate pricing breakdown\nconst breakdown = {\n  basePrice: basePrice,\n  taxAmount: basePrice * taxRate,\n  totalPrice: totalPrice,\n  savings: basePrice > 500 ? basePrice * 0.05 : 0\n};\n\noutput(breakdown);\n\n// Export for other cells\nexports.breakdown = breakdown;"
+    },
+    {
+      "id": "markdown-summary",
+      "type": "markdown",
+      "content": "## Summary\n\nBase Price: **${{basePrice}}**  \nTax Rate: **{{taxRate * 100}}%**  \nTotal Price: **${{totalPrice.toFixed(2)}}**\n\n> Try changing the input values above to see the reactive updates!"
+    }
+  ],
+  "metadata": {
+    "title": "Reading Mode Test",
+    "description": "Test notebook for reading mode functionality"
+  }
+}

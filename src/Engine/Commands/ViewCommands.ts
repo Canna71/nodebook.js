@@ -81,3 +81,75 @@ export class ViewDocumentationCommand extends BaseCommand {
         log.debug('View documentation command executed');
     }
 }
+
+/**
+ * Toggle Reading Mode command
+ */
+export class ToggleReadingModeCommand extends BaseCommand {
+    getDescription(): string {
+        const { applicationProvider } = this.context;
+        const isReadingMode = applicationProvider?.readingMode || false;
+        return isReadingMode ? 'Switch to Edit Mode' : 'Switch to Reading Mode';
+    }
+
+    canExecute(): boolean {
+        const { applicationProvider } = this.context;
+        // Only available when a notebook is loaded
+        return applicationProvider?.currentModel !== null;
+    }
+
+    execute(): void {
+        const { applicationProvider } = this.context;
+        if (applicationProvider) {
+            const newReadingMode = !applicationProvider.readingMode;
+            applicationProvider.setReadingMode(newReadingMode);
+            log.debug(`Reading mode toggled to: ${newReadingMode}`);
+        }
+    }
+}
+
+/**
+ * Enter Reading Mode command
+ */
+export class EnterReadingModeCommand extends BaseCommand {
+    getDescription(): string {
+        return 'Enter Reading Mode';
+    }
+
+    canExecute(): boolean {
+        const { applicationProvider } = this.context;
+        // Only available when a notebook is loaded and not in reading mode
+        return applicationProvider?.currentModel !== null && !applicationProvider.readingMode;
+    }
+
+    execute(): void {
+        const { applicationProvider } = this.context;
+        if (applicationProvider) {
+            applicationProvider.setReadingMode(true);
+            log.debug('Entered reading mode');
+        }
+    }
+}
+
+/**
+ * Exit Reading Mode command
+ */
+export class ExitReadingModeCommand extends BaseCommand {
+    getDescription(): string {
+        return 'Exit Reading Mode';
+    }
+
+    canExecute(): boolean {
+        const { applicationProvider } = this.context;
+        // Only available when a notebook is loaded and in reading mode
+        return applicationProvider?.currentModel !== null && applicationProvider.readingMode === true;
+    }
+
+    execute(): void {
+        const { applicationProvider } = this.context;
+        if (applicationProvider) {
+            applicationProvider.setReadingMode(false);
+            log.debug('Exited reading mode');
+        }
+    }
+}

@@ -313,6 +313,25 @@ export function Toolbar() {
 
         <Separator orientation="vertical" className="mx-2 h-6" />
 
+        {/* Reading Mode Toggle */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCommand('view.toggleReadingMode')}
+              disabled={!currentModel}
+            >
+              <BookOpenIcon className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {getCommandInfo('view.toggleReadingMode')?.tooltip || 'Toggle Reading Mode (Ctrl+R)'} {!currentModel && "(No notebook loaded)"}
+          </TooltipContent>
+        </Tooltip>
+
+        <Separator orientation="vertical" className="mx-2 h-6" />
+
         {/* Output and Console Panel toggles moved to View menu - buttons commented out */}
         {/*
         <Tooltip>

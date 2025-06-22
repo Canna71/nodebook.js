@@ -16,9 +16,10 @@ interface FormulaCellProps {
   definition: FormulaCellDefinition;
   initialized: boolean;
   isEditMode?: boolean;
+  readingMode?: boolean; // NEW: Reading mode flag
 }
 
-export function FormulaCell({ definition, initialized, isEditMode = false }: FormulaCellProps) {
+export function FormulaCell({ definition, initialized, isEditMode = false, readingMode = false }: FormulaCellProps) {
   const { reactiveStore } = useReactiveSystem();
   const { updateCell } = useApplication();
   const [value, setValue] = useReactiveValue(definition.variableName, null);
@@ -215,10 +216,10 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
     );
   };
 
-  // Render view mode (simple pseudo-code format)
-  if (!isEditMode) {
+  // Render view mode (simple pseudo-code format) - always used in reading mode
+  if (!isEditMode || readingMode) {
     return (
-      <div className="cell formula-cell p-2">
+      <div className={readingMode ? "cell formula-cell-reading" : "cell formula-cell p-2"}>
         <div className="flex items-center gap-2 text-sm">
           {/* Simple pseudo-code format: variableName = <expression> */}
           <span className="font-mono text-foreground">
@@ -228,6 +229,16 @@ export function FormulaCell({ definition, initialized, isEditMode = false }: For
           <code className="text-sm bg-muted text-secondary-foreground px-2 py-1 rounded">
             {definition.formula}
           </code>
+          
+          {/* Show current value if available */}
+          {value !== null && value !== undefined && (
+            <>
+              <span className="text-secondary-foreground">→</span>
+              <span className="font-mono text-accent-foreground text-sm">
+                {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+              </span>
+            </>
+          )}
           
           {/* Show error if any */}
           {error && (

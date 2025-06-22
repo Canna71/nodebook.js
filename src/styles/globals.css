@@ -284,3 +284,40 @@ svg text {
   line-clamp: 3;
   overflow: hidden;
 }
+  
+  /* Reading Mode Styles */
+  .reading-mode-active .cell-reading-mode {
+    /* Remove borders and padding for seamless reading experience */
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin-bottom: 1rem;
+  }
+
+  .reading-mode-active .markdown-cell-reading {
+    /* Clean markdown display */
+    padding: 0;
+    margin-bottom: 1rem;
+  }
+
+  .reading-mode-active .formula-cell-reading {
+    /* Minimal formula display */
+    padding: 0.5rem 0;
+    margin-bottom: 1rem;
+  }
+
+  .reading-mode-active .input-cell-reading {
+    /* Clean input display */
+    padding: 0.5rem 0;
+    margin-bottom: 1rem;
+  }
+
+  .reading-mode-active .cells-reading-mode {
+    /* Remove spacing adjustments for reading mode */
+    padding: 0;
+  }
+
+  .reading-mode-active .cells-reading-mode .cell-wrapper {
+    /* Seamless cell display */
+    margin: 0;
+  }

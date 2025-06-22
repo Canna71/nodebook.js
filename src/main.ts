@@ -281,6 +281,14 @@ function createMenu(mainWindow: BrowserWindow) {
                 },
                 { type: 'separator' },
                 {
+                    label: 'Toggle Reading Mode',
+                    accelerator: 'CmdOrCtrl+R',
+                    click: () => {
+                        mainWindow.webContents.send('menu-toggle-reading-mode');
+                    }
+                },
+                { type: 'separator' },
+                {
                     label: 'Toggle Console Viewer',
                     accelerator: 'CmdOrCtrl+`',
                     click: () => {

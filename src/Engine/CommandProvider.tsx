@@ -26,7 +26,10 @@ import {
 import {
     ToggleConsoleViewerCommand,
     ToggleOutputPanelCommand,
-    ViewDocumentationCommand
+    ViewDocumentationCommand,
+    ToggleReadingModeCommand,
+    EnterReadingModeCommand,
+    ExitReadingModeCommand
 } from './Commands/ViewCommands';
 import {
     DocumentArrowDownIcon as SaveIcon,
@@ -42,7 +45,8 @@ import {
     CommandLineIcon,
     DocumentTextIcon,
     XMarkIcon,
-    BookOpenIcon
+    BookOpenIcon,
+    EyeIcon // NEW: Reading mode icon
 } from '@heroicons/react/24/outline';
 import { CellDefinition } from '@/Types/NotebookModel';
 import anylogger from 'anylogger';
@@ -278,6 +282,15 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
             tooltip: 'View Documentation (F1)'
         });
 
+        // Reading mode commands
+        commandManager.registerCommand({
+            id: 'view.toggleReadingMode',
+            command: new ToggleReadingModeCommand(getContext),
+            shortcut: 'Ctrl+R',
+            icon: EyeIcon,
+            tooltip: 'Toggle Reading Mode (Ctrl+R)'
+        });
+
         log.debug('Commands registered successfully');
 
         // Cleanup function to unregister commands when component unmounts
@@ -324,6 +337,8 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
                 setModel: applicationProvider.setModel,
                 setDirty: applicationProvider.setDirty,
                 isDirty: applicationProvider.isDirty,
+                readingMode: applicationProvider.readingMode, // NEW: Reading mode state
+                setReadingMode: applicationProvider.setReadingMode, // NEW: Reading mode setter
                 // Add undo/redo operations
                 canUndo: applicationProvider.canUndo,
                 canRedo: applicationProvider.canRedo,

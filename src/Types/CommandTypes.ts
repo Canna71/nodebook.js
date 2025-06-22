@@ -40,6 +40,8 @@ export interface CommandContext {
         setModel: (model: any) => void;
         setDirty: (dirty: boolean) => void;
         isDirty: boolean;
+        readingMode: boolean; // NEW: Reading mode state
+        setReadingMode: (readingMode: boolean) => void; // NEW: Reading mode setter
         // Undo/Redo operations
         canUndo: () => boolean;
         canRedo: () => boolean;

@@ -9,6 +9,7 @@ export interface ApplicationState {
     isLoading: boolean;
     error: string | null;
     selectedCellId: string | null;
+    readingMode: boolean; // NEW: Reading mode state
 }
 
 export interface ApplicationContextType extends ApplicationState {
@@ -23,6 +24,7 @@ export interface ApplicationContextType extends ApplicationState {
     clearError: () => void;
     setSelectedCellId: (cellId: string | null) => void;
     setStorageExporter: (exporter: (() => NotebookStorage) | null) => void;
+    setReadingMode: (readingMode: boolean) => void; // NEW: Reading mode setter
     
     // State manager for centralized operations
     stateManager: NotebookStateManager;

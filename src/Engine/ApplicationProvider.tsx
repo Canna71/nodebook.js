@@ -26,6 +26,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         isLoading: false,
         error: null,
         selectedCellId: null,
+        readingMode: false, // NEW: Initialize reading mode as false
     });
 
     // Storage exporter function from ReactiveProvider
@@ -247,6 +248,10 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         // Use state manager for selection changes
         stateManager.setSelectedCell(cellId, cellId ? `Select cell: ${cellId}` : 'Clear selection');
     }, [stateManager]);
+
+    const setReadingMode = useCallback((readingMode: boolean) => {
+        setState(prev => ({ ...prev, readingMode }));
+    }, []);
 
     // Update window title when dirty state, file path, or model changes
     useEffect(() => {
@@ -508,6 +513,18 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                     window.dispatchEvent(new CustomEvent('toggleConsolePanel'));
                 }
             },
+            'menu-toggle-reading-mode': async () => { // NEW: Reading mode menu handler
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('view.toggleReadingMode');
+                    } catch (error) {
+                        log.error('Error executing toggle reading mode command:', error);
+                    }
+                } else {
+                    // Fallback to direct state change
+                    setReadingMode(!state.readingMode);
+                }
+            },
             'menu-toggle-output-panel': async () => {
                 if (currentCommandManager) {
                     try {
@@ -692,6 +709,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         clearError,
         setSelectedCellId,
         setStorageExporter,
+        setReadingMode, // NEW: Add reading mode setter
         
         // State manager for centralized operations
         stateManager,

@@ -12,9 +12,10 @@ import { Button } from './ui/button';
 interface InputCellProps {
   definition: InputCellDefinition;
   isEditMode?: boolean;
+  readingMode?: boolean; // NEW: Reading mode flag
 }
 
-export function InputCell({ definition, isEditMode = false }: InputCellProps) {
+export function InputCell({ definition, isEditMode = false, readingMode = false }: InputCellProps) {
   // Helper function to generate auto variable name from cell type and ID
   const generateAutoVariableName = (cellId: string): string => {
     return `input-${cellId}`;
@@ -377,7 +378,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
   };
 
   return (
-    <div className="cell input-cell p-2">
+    <div className={readingMode ? "cell input-cell-reading py-2" : "cell input-cell p-2"}>
       {/* Horizontal layout for label and input */}
       <div className="flex items-center gap-2 mb-2">
         {/* Label - show for all input types except checkbox (which handles its own label) */}
@@ -396,8 +397,8 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
         </div>
       </div>
 
-      {/* Only show configuration interface in edit mode */}
-      {isEditMode && (
+      {/* Only show configuration interface in edit mode and not in reading mode */}
+      {isEditMode && !readingMode && (
         <div className="edit-mode-container">
           {renderEditMode()}
         </div>
