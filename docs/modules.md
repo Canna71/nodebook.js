@@ -2,8 +2,20 @@
 
 Nodebook.js provides a comprehensive module system that allows you to use Node.js modules, scientific computing libraries, and custom modules in your code cells. This guide explains what modules are available and how to use them.
 
+## New: Per-Notebook Module Resolution
+
+**🎉 New Feature**: Nodebook.js now supports per-notebook module resolution! Each notebook can have its own `node_modules` directory with packages specific to that notebook's needs.
+
+👉 **[Read the full Per-Notebook Modules Guide](./per-notebook-modules.md)** for detailed setup instructions and examples.
+
+**Quick Start:**
+1. Create a `node_modules` directory in the same folder as your notebook
+2. Install packages: `npm install lodash moment`
+3. Use in your notebook: `const _ = require('lodash');`
+
 ## Table of Contents
 
+- [Per-Notebook Module Resolution (NEW)](#new-per-notebook-module-resolution)
 - [Module Availability](#module-availability)
 - [Injected Global Variables](#injected-global-variables)
 - [Require-Available Modules](#require-available-modules)
@@ -580,13 +592,37 @@ if (optionalModule) {
 
 ## Module Resolution
 
-Nodebook.js resolves modules in this order:
+Nodebook.js resolves modules using a priority-based system. As of the latest version, the resolution order is:
 
-1. **Cache check**: Previously loaded modules
-2. **Built-in modules**: Node.js standard library
-3. **Pre-bundled modules**: Application resources
-4. **User modules**: User data directory
-5. **System modules**: System-wide npm modules
+### Priority Order (Highest to Lowest)
+
+1. **Notebook-specific node_modules** 🆕 - Modules installed in the notebook's directory
+2. **Cache check** - Previously loaded modules in memory
+3. **Built-in modules** - Node.js standard library (fs, path, crypto, etc.)
+4. **Pre-bundled modules** - Application resources (danfojs, plotly, etc.)
+5. **User data modules** - User-installed global modules
+6. **System modules** - System-wide npm modules
+
+### Per-Notebook Module Resolution 🆕
+
+The highest priority goes to modules installed in the same directory as your notebook:
+
+```
+my-notebook-project/
+├── my-notebook.nbjs       # Your notebook
+├── package.json           # Dependencies
+└── node_modules/          # Notebook-specific modules (highest priority)
+    ├── lodash/
+    ├── moment/
+    └── axios/
+```
+
+**Benefits:**
+- **Isolation**: Each notebook can use different package versions
+- **Reproducibility**: Dependencies travel with the notebook
+- **Flexibility**: Install packages only where needed
+
+👉 **[Full Per-Notebook Modules Guide](./per-notebook-modules.md)**
 
 ### Checking Module Availability
 
@@ -710,6 +746,53 @@ function getExpensiveModule() {
 }
 
 exports.expensiveResult = getExpensiveModule().process(data);
+```
+
+### Per-Notebook Module Issues 🆕
+
+**Module not found despite being installed:**
+```javascript
+// Debug notebook module paths
+const { moduleRegistry } = require('@/Engine/ModuleRegistry');
+const debugInfo = moduleRegistry.getDebugInfo();
+
+console.log('Notebook module paths:', debugInfo.notebookModulePaths);
+console.log('Total paths:', debugInfo.nodeRequirePaths.length);
+console.log('NODE_PATH:', debugInfo.nodePathEnv);
+
+// Check if module exists in notebook directory
+const fs = require('fs');
+const path = require('path');
+const modulePath = path.join(process.cwd(), 'node_modules', 'your-module');
+console.log('Module exists locally:', fs.existsSync(modulePath));
+```
+
+**Module conflicts between notebook and global:**
+```javascript
+// Check which version is being loaded
+const pkg = require('your-module');
+console.log('Module version:', pkg.version || 'unknown');
+
+// Check module path
+console.log('Module path:', require.resolve('your-module'));
+```
+
+**Installing packages in notebook directory:**
+```javascript
+// Method 1: Using zx (if available)
+try {
+  await $`cd ${process.cwd()} && npm install your-package`;
+  console.log('Package installed successfully');
+} catch (error) {
+  console.error('Installation failed:', error.message);
+}
+
+// Method 2: Using child_process
+const { spawn } = require('child_process');
+const npm = spawn('npm', ['install', 'your-package'], { 
+  cwd: process.cwd(),
+  stdio: 'inherit' 
+});
 ```
 
 ## Best Practices

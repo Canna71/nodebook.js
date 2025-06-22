@@ -1,0 +1,29 @@
+{
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "intro",
+      "content": "# Per-Notebook Module Resolution Example\n\nThis example demonstrates how notebooks can have their own `node_modules` directory and install packages specific to their needs.\n\n## Setup Instructions\n\n1. Create a `node_modules` directory in the same folder as this notebook\n2. Install a package using `zx` (or manually):\n   ```bash\n   cd /path/to/this/notebook/folder\n   npm init -y\n   npm install lodash\n   ```\n3. Run the code cells below to see per-notebook module resolution in action\n\n## Example: Installing packages with zx\n\nYou can install packages directly from a code cell:"
+    },
+    {
+      "type": "code",
+      "id": "install_package",
+      "code": "// Install a package using zx (if available)\n// This will install lodash in the notebook's directory\nconst fs = require('fs');\nconst path = require('path');\n\n// Check if we have zx available\ntry {\n  const zx = require('zx');\n  console.log('✓ zx is available for package installation');\n  \n  // You can uncomment the following lines to actually install lodash:\n  // await zx`cd ${path.dirname(__filename)} && npm init -y`;\n  // await zx`cd ${path.dirname(__filename)} && npm install lodash`;\n  \n  output('zx is available - you can install packages using shell commands');\n} catch (error) {\n  output('zx is not available - install packages manually or install zx globally');\n}"
+    },
+    {
+      "type": "code",
+      "id": "check_module_paths",
+      "code": "// Check current module resolution paths\nconst { moduleRegistry } = require('@/Engine/ModuleRegistry');\n\n// Get debug info about current module resolution\nconst debugInfo = moduleRegistry.getDebugInfo();\n\noutput({\n  title: 'Module Resolution Debug Info',\n  notebookModulePaths: debugInfo.notebookModulePaths,\n  totalRequirePaths: debugInfo.nodeRequirePaths.length,\n  firstFewPaths: debugInfo.nodeRequirePaths.slice(0, 5),\n  nodePathEnv: debugInfo.nodePathEnv,\n  availableModules: debugInfo.availableModules.length + ' modules available'\n});"
+    },
+    {
+      "type": "code",
+      "id": "try_lodash",
+      "code": "// Try to require lodash if it's installed in the notebook's node_modules\ntry {\n  const _ = require('lodash');\n  \n  // Test lodash functionality\n  const numbers = [1, 2, 3, 4, 5];\n  const doubled = _.map(numbers, n => n * 2);\n  \n  output({\n    success: true,\n    message: '✓ Successfully loaded lodash from notebook-specific node_modules',\n    originalNumbers: numbers,\n    doubledNumbers: doubled,\n    lodashVersion: _.VERSION || 'version not available'\n  });\n} catch (error) {\n  output({\n    success: false,\n    message: '⚠️ lodash not found in notebook-specific node_modules',\n    error: error.message,\n    suggestion: 'Install lodash in this notebook\\'s directory: npm install lodash'\n  });\n}"
+    },
+    {
+      "type": "markdown",
+      "id": "benefits",
+      "content": "## Benefits of Per-Notebook Module Resolution\n\n1. **Isolation**: Each notebook can have its own versions of packages\n2. **Flexibility**: Install packages only where needed\n3. **Reproducibility**: Notebook dependencies are self-contained\n4. **No Conflicts**: Different notebooks can use different versions of the same package\n\n## Priority Order\n\nModule resolution follows this priority:\n1. **Notebook-specific node_modules** (highest priority)\n2. **User data node_modules** (global user modules)\n3. **App resources node_modules** (bundled modules)\n4. **Built-in Node.js modules** (lowest priority)\n\nThis ensures that notebook-specific packages always take precedence."
+    }
+  ]
+}

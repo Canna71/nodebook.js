@@ -10,6 +10,7 @@ import { NotebookStateManager } from './NotebookStateManager';
 import { appDialogHelper } from '@/lib/AppDialogHelper';
 import NotebookCellsStack from '@/components/icons/NotebookCellsStack';
 import { AboutDialog } from '@/components/AboutDialog';
+import { moduleRegistry } from '@/Engine/ModuleRegistry';
 
 // State interface
 
@@ -74,6 +75,14 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         setError(null);
         
         try {
+            // Clear any existing notebook module paths first (in case switching notebooks)
+            try {
+                moduleRegistry.clearNotebookModulePaths();
+                log.debug('Cleared existing notebook module paths before loading new notebook');
+            } catch (error) {
+                log.warn('Failed to clear existing notebook module paths:', error);
+            }
+            
             const fs = getFileSystemHelpers();
             const content = await fs.loadNotebook(filePath);
             if (content.success) {
@@ -81,6 +90,14 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             
                 // Use state manager for loading notebook
                 stateManager.loadNotebook(filePath, model, `Load notebook: ${filePath.split('/').pop()}`);
+                
+                // Add notebook-specific module path for per-notebook node_modules resolution
+                try {
+                    moduleRegistry.addNotebookModulePath(filePath);
+                    log.debug('Added notebook module path for:', filePath);
+                } catch (error) {
+                    log.warn('Failed to add notebook module path:', error);
+                }
                 
                 // Add to recent notebooks
                 await RecentNotebooksManager.addRecentNotebook(filePath);
@@ -175,6 +192,14 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     }, [state.currentModel, state.currentFilePath, stateManager, storageExporter]);
 
     const newNotebook = useCallback(() => {
+        // Clear notebook-specific module paths before creating new notebook
+        try {
+            moduleRegistry.clearNotebookModulePaths();
+            log.debug('Cleared notebook module paths for new notebook');
+        } catch (error) {
+            log.warn('Failed to clear notebook module paths:', error);
+        }
+        
         // Use state manager for creating new notebook
         stateManager.newNotebook('Create new notebook');
         
@@ -188,6 +213,14 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     }, [stateManager]);
 
     const clearNotebook = useCallback(() => {
+        // Clear notebook-specific module paths before clearing notebook
+        try {
+            moduleRegistry.clearNotebookModulePaths();
+            log.debug('Cleared notebook module paths');
+        } catch (error) {
+            log.warn('Failed to clear notebook module paths:', error);
+        }
+        
         // Clear the current notebook model to return to homepage
         stateManager.clearNotebook('Clear notebook');
         
