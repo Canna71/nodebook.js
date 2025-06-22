@@ -39,22 +39,30 @@ Reading Mode transforms your notebook into a clean, output-focused view that's p
 
 ## How to Use Reading Mode
 
-### Programmatically
+### Toggle Reading Mode
 
-```tsx
-import { DynamicNotebook } from './components/DynamicNotebook';
+You can toggle reading mode in several ways:
 
-function MyNotebook() {
-  const [readingMode, setReadingMode] = useState(false);
-  
-  return (
-    <DynamicNotebook 
-      model={notebookModel} 
-      readingMode={readingMode}
-    />
-  );
-}
-```
+1. **Toolbar Button**: Click the reading mode toggle button in the toolbar
+   - 📖 Book icon: Click to enter reading mode
+   - ✏️ Pencil icon: Click to exit reading mode (when in reading mode)
+
+2. **Keyboard Shortcut**: Press `Ctrl+R` (or `Cmd+R` on Mac) to toggle between modes
+
+3. **View Menu**: Select "Toggle Reading Mode" from the View menu
+
+4. **Command Palette**: Search for "reading mode" commands
+
+### Reading Mode Persistence
+
+Reading mode state is preserved when:
+- ✅ Changing reactive values and recalculating cells
+- ✅ Loading different notebooks 
+- ✅ Creating new notebooks
+- ✅ Using undo/redo operations
+
+Reading mode is reset when:
+- ❌ Returning to the homepage (clearing the notebook)
 
 ### Component Props
 
@@ -124,6 +132,23 @@ return (
     <DynamicNotebook model={notebook} readingMode={readingMode} />
   </div>
 );
+```
+
+### Programmatic Usage
+
+```tsx
+import { DynamicNotebook } from './components/DynamicNotebook';
+
+function MyNotebook() {
+  const [readingMode, setReadingMode] = useState(false);
+  
+  return (
+    <DynamicNotebook 
+      model={notebookModel} 
+      readingMode={readingMode}
+    />
+  );
+}
 ```
 
 ## Best Practices

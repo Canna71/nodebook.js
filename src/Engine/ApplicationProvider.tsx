@@ -634,7 +634,8 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         };
         
         setModel(welcomeNotebook);
-        setState(prev => ({ ...prev, currentFilePath: null, isDirty: false }));
+        // Use state manager to preserve reading mode when showing welcome notebook
+        stateManager.saveNotebook(null, 'Load welcome notebook');
     };
 
     const exportAsJson = async () => {

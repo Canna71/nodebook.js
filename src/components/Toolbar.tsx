@@ -19,7 +19,8 @@ import {
   TerminalIcon,
   ScrollTextIcon,
   XIcon,
-  BookOpenIcon
+  BookOpenIcon,
+  PencilIcon
 } from 'lucide-react';
 import { MarkdownIcon } from './icons/MarkdownIcon';
 import { JavascriptIcon } from './icons/JavascriptIcon';
@@ -27,7 +28,7 @@ import { AISettings } from './AISettings';
 
 export function Toolbar() {
   const { commandManager } = useCommands();
-  const { currentModel } = useApplication();
+  const { currentModel, readingMode } = useApplication(); // Get reading mode state
   // Removed outputPanelVisible and consolePanelVisible state since buttons are now in View menu
 
   const handleCommand = (commandId: string) => {
@@ -322,11 +323,15 @@ export function Toolbar() {
               onClick={() => handleCommand('view.toggleReadingMode')}
               disabled={!currentModel}
             >
-              <BookOpenIcon className="h-4 w-4" />
+              {readingMode ? (
+                <PencilIcon className="h-4 w-4" />
+              ) : (
+                <BookOpenIcon className="h-4 w-4" />
+              )}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {getCommandInfo('view.toggleReadingMode')?.tooltip || 'Toggle Reading Mode (Ctrl+R)'} {!currentModel && "(No notebook loaded)"}
+            {readingMode ? 'Exit Reading Mode (Ctrl+R)' : 'Enter Reading Mode (Ctrl+R)'} {!currentModel && "(No notebook loaded)"}
           </TooltipContent>
         </Tooltip>
 
