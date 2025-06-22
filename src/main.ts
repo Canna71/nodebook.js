@@ -15,6 +15,9 @@ if (started) {
     app.quit();
 }
 
+const isDev = process.env.NODE_ENV === 'development' || process.env.VITE_DEV_SERVER_URL !== undefined;
+
+process.env.ISDEV = isDev ? '1' : '0';
 
 // distinguish the path between windows and macOS
 const extensions = {
@@ -388,7 +391,7 @@ function createMenu(mainWindow: BrowserWindow) {
         // Remove Quit from File menu on macOS (it's in the app menu)
         const fileMenu = template.find(item => item.label === 'File');
         if (fileMenu && Array.isArray(fileMenu.submenu)) {
-            fileMenu.submenu = fileMenu.submenu.filter(item => 
+            fileMenu.submenu = fileMenu.submenu.filter(item =>
                 typeof item === 'object' && item.label !== 'Quit'
             );
         }
@@ -413,7 +416,7 @@ function createMenu(mainWindow: BrowserWindow) {
 const createWindow = async () => {
     // Get window state
     const mainWindowStateKeeper = await windowStateKeeper('main');
-    
+
     // Create the browser window.
     const mainWindow = new BrowserWindow({
         ...mainWindowStateKeeper.rectangle,
@@ -433,9 +436,10 @@ const createWindow = async () => {
         mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
     }
 
-    // Open the DevTools.
-    mainWindow.webContents.openDevTools();
-
+    if (isDev) {
+        // Open the DevTools.
+        mainWindow.webContents.openDevTools();
+    }
     // Create menu after window is created
     createMenu(mainWindow);
 };
@@ -511,11 +515,11 @@ function registerHandlers() {
         return true; // Just to indicate the error box was shown
     }
     );
-    
+
     ipcMain.handle('get-app-version', () => {
         return app.getVersion();
     });
-    
+
     ipcMain.handle('get-app-info', () => {
         // Read package.json to get app info
         const packageJsonPath = path.join(__dirname, '../../package.json');
@@ -548,7 +552,7 @@ function registerHandlers() {
     ipcMain.handle('get-app-locale', () => {
         return app.getLocale();
     });
-    
+
     ipcMain.handle('set-window-title', (event, title: string) => {
         const webContents = event.sender;
         const window = BrowserWindow.fromWebContents(webContents);
@@ -559,7 +563,7 @@ function registerHandlers() {
     });
 
     // AI Assistant Dialog Handlers
-    ipcMain.handle('show-input-dialog', async (event, options: {title: string, message: string, placeholder?: string}) => {
+    ipcMain.handle('show-input-dialog', async (event, options: { title: string, message: string, placeholder?: string }) => {
         const result = await dialog.showMessageBox({
             type: 'question',
             title: options.title,
@@ -570,7 +574,7 @@ function registerHandlers() {
             // Note: Electron doesn't have a built-in input dialog
             // In a production app, you'd create a proper input dialog window
         });
-        
+
         if (result.response === 1) {
             // For demo purposes, return a sample prompt
             // In a real implementation, you'd create a proper input dialog
@@ -586,7 +590,7 @@ function registerHandlers() {
         }
     });
 
-    ipcMain.handle('show-message-dialog', async (event, options: {type: 'info' | 'error' | 'warning', title: string, message: string}) => {
+    ipcMain.handle('show-message-dialog', async (event, options: { type: 'info' | 'error' | 'warning', title: string, message: string }) => {
         await dialog.showMessageBox({
             type: options.type,
             title: options.title,
@@ -605,7 +609,7 @@ function registerHandlers() {
     });
 
     // API Key storage handlers
-    ipcMain.handle('save-api-keys', async (event, keys: {openai?: string, anthropic?: string}) => {
+    ipcMain.handle('save-api-keys', async (event, keys: { openai?: string, anthropic?: string }) => {
         try {
             const { SecureApiKeyStorage } = await import('./lib/secureApiKeyStorage');
             await SecureApiKeyStorage.saveApiKeys(keys);
@@ -665,9 +669,9 @@ async function loadExtensions() {
 app.whenReady().then(async () => {
 
     // Set the app name to the productName for proper menu display
-    if (process.platform === 'darwin') {
-        app.setName('Nodebook.js');
-    }
+    // if (process.platform === 'darwin') {
+    app.setName('Nodebook.js');
+    // }
 
     registerHandlers();
     await loadExtensions();

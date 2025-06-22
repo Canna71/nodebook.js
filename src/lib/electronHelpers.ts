@@ -27,6 +27,7 @@ export interface ElectronApi {
     // Menu event handling
     onMenuAction: (event: string, callback: (...args: any[]) => void) => void;
     removeMenuListener: (event: string) => void;
+    isDev: () => boolean;
 }
 
 declare global {

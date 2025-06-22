@@ -3,12 +3,12 @@
 import { ElectronApi } from "./lib/electronHelpers";
 
 
-
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 // const { ipcRenderer } = require('electron');
-import {  ipcRenderer } from 'electron';
+import { ipcRenderer } from 'electron';
+import { memoize } from "./lib/utils";
 
-const api : ElectronApi = {
+const api: ElectronApi = {
     getUserDataPath: () => ipcRenderer.invoke('get-user-data-path'),
     isPackaged: () => ipcRenderer.invoke('is-packaged'),
     openFileDialog: (options?: Electron.OpenDialogOptions) => ipcRenderer.invoke('open-file-dialog', options),
@@ -24,20 +24,25 @@ const api : ElectronApi = {
     getAppName: () => ipcRenderer.invoke('get-app-name'),
     getAppLocale: () => ipcRenderer.invoke('get-app-locale'),
     setWindowTitle: (title: string) => ipcRenderer.invoke('set-window-title', title),
-    
+
     // API Key storage
     saveAPIKeys: (keys) => ipcRenderer.invoke('save-api-keys', keys),
     getStoredAPIKeys: () => ipcRenderer.invoke('get-stored-api-keys'),
     getApiKeyStorageInfo: () => ipcRenderer.invoke('get-api-key-storage-info'),
-    
+
     // Menu event handling
     onMenuAction: (event: string, callback: (...args: any[]) => void) => {
         ipcRenderer.on(event, (_, ...args) => callback(...args));
     },
-    
+
     removeMenuListener: (event: string) => {
         ipcRenderer.removeAllListeners(event);
-    }
+    },
+    isDev: memoize(() => {
+        // Check if the app is running in development mode
+        return process.env.ISDEV === '1';
+    })
 };
 
 window.api = api;
+
