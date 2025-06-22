@@ -58,6 +58,9 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
+      
+      - name: Increase Node.js memory
+        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -73,6 +76,8 @@ jobs:
           npm_config_target_platform: ${{ matrix.platform }}
           # Disable native module rebuilding during make (already done above)
           ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+          # Additional memory optimization
+          NODE_OPTIONS: --max_old_space_size=4096
 
       - name: List build outputs (Debug)
         shell: bash
