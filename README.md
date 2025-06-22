@@ -7,13 +7,7 @@
   **The next generation of interactive notebooks with reactive programming and live JavaScript execution.**
 </div>
 
-[![Version](https://img.shields.io/badge/version-0.8.0-blue.svg)](https://github.com/gcannata/nodebook.js)k.js
 
-<div align="center">
-  <img src="./build-resources/icons/icon.png" alt="Nodebook.js Icon" width="128" height="128">
-  
-  **The next generation of interactive notebooks with reactive programming and live JavaScript execution.**
-</div>
 
 [![Version](https://img.shields.io/badge/version-0.8.0-blue.svg)](https://github.com/gcannata/nodebook.js)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -130,8 +124,8 @@ pnpm run make
 ## 📚 Documentation
 
 ### 📖 **Complete Documentation**
-Access the full documentation at **[docs/](./docs/)** or within the application:
-- Press `F1` for instant help
+Access the full **[documentation](./docs/index.md)** or within the application:
+- Press `Ctrl/Cmd+,` for instant help
 - Click the 📖 icon in the toolbar
 - Use "View Documentation" command
 
