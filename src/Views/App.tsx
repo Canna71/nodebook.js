@@ -39,6 +39,56 @@ function AppContent() {
     const [stdoutVisible, setStdoutVisible] = useState(false);
     const [consoleVisible, setConsoleVisible] = useState(false);
 
+    // Initialize theme on app start
+    useEffect(() => {
+        const initializeTheme = async () => {
+            try {
+                const savedTheme = await window.api.getAppSetting('theme', 'system');
+                applyTheme(savedTheme);
+                
+                // Listen for system theme changes if using system theme
+                if (savedTheme === 'system') {
+                    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                    const handleSystemThemeChange = () => {
+                        applyTheme('system');
+                    };
+                    
+                    mediaQuery.addEventListener('change', handleSystemThemeChange);
+                    
+                    // Cleanup function
+                    return () => {
+                        mediaQuery.removeEventListener('change', handleSystemThemeChange);
+                    };
+                }
+            } catch (error) {
+                log.warn('Failed to load theme setting, using system default:', error);
+                applyTheme('system');
+            }
+        };
+        
+        initializeTheme();
+    }, []);
+
+    const applyTheme = (theme: 'light' | 'dark' | 'system') => {
+        const root = document.documentElement;
+        
+        if (theme === 'system') {
+            // Remove manual theme classes and let CSS media query handle it
+            root.classList.remove('dark', 'light');
+            // Check system preference
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDark) {
+                root.classList.add('dark');
+            }
+        } else if (theme === 'dark') {
+            root.classList.remove('light');
+            root.classList.add('dark');
+        } else {
+            root.classList.remove('dark');
+            root.classList.add('light');
+        }
+    };
+
     // Update application context for menu system when state changes
     useEffect(() => {
         const context = buildApplicationContext(

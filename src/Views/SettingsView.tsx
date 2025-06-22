@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { KeyIcon, CheckIcon, AlertCircleIcon, SparklesIcon, BookOpenIcon, PencilIcon, SettingsIcon, XIcon } from 'lucide-react';
+import { KeyIcon, CheckIcon, AlertCircleIcon, SparklesIcon, BookOpenIcon, PencilIcon, SettingsIcon, XIcon, SunIcon, MoonIcon, MonitorIcon } from 'lucide-react';
 import { AIService } from '@/Engine/AIService';
 import { useView } from '@/Engine/ViewProvider';
 import { useCommands } from '@/Engine/CommandProvider';
@@ -26,6 +26,7 @@ interface AISettingsState {
 
 interface AppSettingsState {
     defaultReadingMode: boolean;
+    theme: 'light' | 'dark' | 'system';
 }
 
 export function SettingsView() {
@@ -53,7 +54,8 @@ export function SettingsView() {
     });
 
     const [appSettings, setAppSettings] = useState<AppSettingsState>({
-        defaultReadingMode: false
+        defaultReadingMode: false,
+        theme: 'system'
     });
 
     // Load app settings on component mount
@@ -61,15 +63,39 @@ export function SettingsView() {
         const loadAppSettings = async () => {
             try {
                 const defaultReadingMode = await window.api.getAppSetting('defaultReadingMode', false);
+                const theme = await window.api.getAppSetting('theme', 'system');
                 setAppSettings({
-                    defaultReadingMode
+                    defaultReadingMode,
+                    theme
                 });
+                // Apply the theme immediately
+                applyTheme(theme);
             } catch (error) {
                 log.error('Failed to load app settings:', error);
             }
         };
         
         loadAppSettings();
+        
+        // Listen for system theme changes
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleSystemThemeChange = async () => {
+            // Only apply if current theme is system
+            try {
+                const currentTheme = await window.api.getAppSetting('theme', 'system');
+                if (currentTheme === 'system') {
+                    applyTheme('system');
+                }
+            } catch (error) {
+                log.error('Failed to check theme setting:', error);
+            }
+        };
+        
+        mediaQuery.addEventListener('change', handleSystemThemeChange);
+        
+        return () => {
+            mediaQuery.removeEventListener('change', handleSystemThemeChange);
+        };
     }, []);
 
     const handleApiKeyChange = (provider: 'openai' | 'claude', value: string) => {
@@ -112,6 +138,7 @@ export function SettingsView() {
             
             // Save app settings
             await window.api.setAppSetting('defaultReadingMode', appSettings.defaultReadingMode);
+            await window.api.setAppSetting('theme', appSettings.theme);
             
             log.info('Settings saved successfully');
             
@@ -192,6 +219,39 @@ export function SettingsView() {
             : ['claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229'];
     };
 
+    const applyTheme = (theme: 'light' | 'dark' | 'system') => {
+        const root = document.documentElement;
+        
+        if (theme === 'system') {
+            // Remove manual theme classes and let CSS media query handle it
+            root.classList.remove('dark', 'light');
+            // Check system preference
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDark) {
+                root.classList.add('dark');
+            }
+        } else if (theme === 'dark') {
+            root.classList.remove('light');
+            root.classList.add('dark');
+        } else {
+            root.classList.remove('dark');
+            root.classList.add('light');
+        }
+    };
+
+    const handleThemeChange = async (theme: 'light' | 'dark' | 'system') => {
+        setAppSettings(prev => ({ ...prev, theme }));
+        applyTheme(theme);
+        
+        // Save theme setting immediately for better UX
+        try {
+            await window.api.setAppSetting('theme', theme);
+            log.info('Theme setting saved:', theme);
+        } catch (error) {
+            log.error('Failed to save theme setting:', error);
+        }
+    };
+
     return (
         <div className="relative min-h-screen bg-background">
             <div className="flex-1 space-y-6 p-6 pb-24">
@@ -252,6 +312,64 @@ export function SettingsView() {
                                 <>
                                     <PencilIcon className="h-4 w-4" />
                                     <span>Notebooks will start in edit mode (normal view)</span>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Theme Setting */}
+                    <div className="space-y-4">
+                        <h4 className="text-sm font-medium">Appearance</h4>
+                        
+                        <div className="space-y-2">
+                            <Label htmlFor="theme-select">Theme</Label>
+                            <Select value={appSettings.theme} onValueChange={handleThemeChange}>
+                                <SelectTrigger id="theme-select">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="system">
+                                        <div className="flex items-center gap-2">
+                                            <MonitorIcon className="h-4 w-4" />
+                                            <span>System</span>
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value="light">
+                                        <div className="flex items-center gap-2">
+                                            <SunIcon className="h-4 w-4" />
+                                            <span>Light</span>
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value="dark">
+                                        <div className="flex items-center gap-2">
+                                            <MoonIcon className="h-4 w-4" />
+                                            <span>Dark</span>
+                                        </div>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-muted-foreground">
+                                Choose your preferred theme. System will follow your operating system's theme preference.
+                            </p>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            {appSettings.theme === 'system' ? (
+                                <>
+                                    <MonitorIcon className="h-4 w-4" />
+                                    <span>Follows system theme preference</span>
+                                </>
+                            ) : appSettings.theme === 'light' ? (
+                                <>
+                                    <SunIcon className="h-4 w-4" />
+                                    <span>Light theme enabled</span>
+                                </>
+                            ) : (
+                                <>
+                                    <MoonIcon className="h-4 w-4" />
+                                    <span>Dark theme enabled</span>
                                 </>
                             )}
                         </div>
