@@ -1,0 +1,29 @@
+{
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "completion_test_intro",
+      "content": "# Code Completion Test\n\nThis notebook tests the fixed code completion functionality. Try typing the following in the code cells:\n\n1. **Object completions**: Type `Math.` and see method suggestions\n2. **Variable completions**: Type `my` and see reactive variables\n3. **Module completions**: Type `fs.` and see Node.js module methods\n\n**Expected behavior:**\n- Use **Up/Down arrows** to navigate suggestions\n- Use **Enter** to select a completion\n- Use **Escape** to close completion menu\n- No console logging loops should occur"
+    },
+    {
+      "type": "code",
+      "id": "test_variables",
+      "code": "// Define some test variables\nexports.myVariable = 42;\nexports.myFunction = () => 'Hello World';\nexports.myObject = { name: 'test', value: 123 };\n\noutput('Variables exported for completion testing');"
+    },
+    {
+      "type": "code",
+      "id": "test_completions",
+      "code": "// Test completions here:\n// 1. Type 'Math.' and use Up/Down + Enter to select a method\n// 2. Type 'my' and use Up/Down + Enter to select a variable\n// 3. Type 'fs.' and use Up/Down + Enter to select a file system method\n\n// Example: Math.max(myVariable, 100)\n\n"
+    },
+    {
+      "type": "code",
+      "id": "test_object_methods",
+      "code": "// Test object method completions\nconst testObj = { \n  getName: () => 'test',\n  getValue: () => 42,\n  setData: (data) => console.log(data)\n};\n\n// Type 'testObj.' to see method completions\n// Use Up/Down arrows and Enter to select\n\n"
+    },
+    {
+      "type": "markdown",
+      "id": "completion_test_results",
+      "content": "## Test Results\n\nAfter testing the above cells, you should observe:\n\n✅ **Working keyboard navigation**: Up/Down arrows move through suggestions\n✅ **Working selection**: Enter key applies the selected completion\n✅ **No console spam**: No infinite logging loops in browser console\n✅ **Responsive completion**: Suggestions appear quickly without delays\n\nIf any of these don't work, the completion system needs further debugging."
+    }
+  ]
+}

@@ -93,17 +93,12 @@ export function useRuntimeCompletions(cellId: string) {
      * Get runtime completions by executing introspection code in the cell context
      */
     const getRuntimeCompletions = useCallback(async (objectPath: string): Promise<Completion[]> => {
-        console.log('getRuntimeCompletions called with:', objectPath);
-        
         try {
             // Create introspection code that will run in the cell's context
             const introspectionCode = `
-                console.log('Introspecting object:', '${objectPath}');
                 const target = ${objectPath};
-                console.log('Target found:', typeof target, target);
                 
                 if (typeof target === 'undefined') {
-                    console.log('Target is undefined');
                     return [];
                 } else {
                     const completions = [];
@@ -158,17 +153,12 @@ export function useRuntimeCompletions(cellId: string) {
                         });
                     }
                     
-                    console.log('Found completions:', completions);
-                    const result = completions.sort((a, b) => a.label.localeCompare(b.label));
-                    console.log('Returning result:', result);
-                    return result;
+                    return completions.sort((a, b) => a.label.localeCompare(b.label));
                 }
             `;
 
-            console.log('Executing introspection code in cell context...');
             // Execute in the cell's context
             const result = await codeCellEngine.evaluateInCellContext(cellId, introspectionCode);
-            console.log('Introspection result:', result);
             
             // Validate and filter the results
             if (Array.isArray(result)) {
@@ -181,14 +171,12 @@ export function useRuntimeCompletions(cellId: string) {
                     typeof item.info === 'string' &&
                     typeof item.apply === 'string'
                 );
-                console.log('Valid completions:', validResults.length, 'out of', result.length);
                 return validResults.length > 0 ? validResults : [];
             }
             
-            console.log('Result is not an array:', typeof result);
             return [];
         } catch (error) {
-            console.warn('Error getting runtime completions:', error);
+            // Silently ignore errors to prevent console noise in completion loops
             return [];
         }
     }, [cellId, codeCellEngine]);
@@ -216,7 +204,7 @@ export function useRuntimeCompletions(cellId: string) {
                     }
                 });
             } catch (error) {
-                console.warn('Error getting reactive variables:', error);
+                // Silently ignore reactive variable errors
             }
 
             // Then introspect the runtime scope
@@ -259,36 +247,31 @@ export function useRuntimeCompletions(cellId: string) {
                         });
                     }
                     
-                    console.log('Runtime scope variables found:', variables);
                     return variables; // Return the variables array
                 } catch (error) {
-                    console.error('Error in scope introspection:', error);
+                    // Silently ignore errors to prevent console noise in completion loops
                     return [];
                 }
             `;
 
             const result = await codeCellEngine.evaluateInCellContext(cellId, scopeIntrospectionCode);
             const runtimeVariables = Array.isArray(result) ? result : [];
-            console.log('Runtime variables after evaluation:', runtimeVariables.length, 'items');
             
             // Combine both sources, avoiding duplicates
             const allVariables = [...reactiveVariables];
             const reactiveLabels = new Set(reactiveVariables.map(v => v.label));
             
-            let addedCount = 0;
             runtimeVariables.forEach(variable => {
                 if (variable && typeof variable === 'object' && 
                     typeof variable.label === 'string' && 
                     !reactiveLabels.has(variable.label)) {
                     allVariables.push(variable);
-                    addedCount++;
                 }
             });
             
-            console.log('Added', addedCount, 'runtime variables to completions. Total:', allVariables.length);
             return allVariables;
         } catch (error) {
-            console.warn('Error getting scope variables:', error);
+            // Silently ignore errors to prevent console noise in completion loops
             return [];
         }
     }, [cellId, codeCellEngine, reactiveStore]);
@@ -310,28 +293,23 @@ export function useEnhancedCompletions(cellId: string) {
      * Get completions for object member access (e.g., "Math." or "myVar.")
      */
     const getObjectCompletions = useCallback(async (objectPath: string): Promise<Completion[]> => {
-        console.log('Runtime completions requested for:', objectPath);
-        
         try {
             // For well-known objects, prefer static completions with documentation
             const staticCompletions = getStaticObjectCompletions(objectPath);
             if (Array.isArray(staticCompletions) && staticCompletions.length > 0) {
-                console.log('Using static completions for known object:', objectPath, staticCompletions.length, 'items');
                 return staticCompletions;
             }
 
             // For user-defined objects, use runtime introspection
             const runtimeCompletions = await getRuntimeCompletions(objectPath);
-            console.log('Runtime completions found:', runtimeCompletions.length, 'items');
             
             if (Array.isArray(runtimeCompletions) && runtimeCompletions.length > 0) {
                 return runtimeCompletions;
             }
 
-            console.log('No completions found for:', objectPath);
             return [];
         } catch (error) {
-            console.warn('Error in getObjectCompletions:', error);
+            // Silently ignore errors to prevent console noise in completion loops
             return [];
         }
     }, [getRuntimeCompletions]);

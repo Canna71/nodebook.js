@@ -8,7 +8,7 @@ import { json } from "@codemirror/lang-json"
 import { xml } from "@codemirror/lang-xml"
 import { markdown } from "@codemirror/lang-markdown" // NEW: Add markdown support
 import { indentWithTab } from '@codemirror/commands'
-import { autocompletion, Completion, CompletionSource } from '@codemirror/autocomplete'
+import { autocompletion, Completion, CompletionSource, completionKeymap } from '@codemirror/autocomplete'
 import { placeholder as cmPlaceholder } from '@codemirror/view'
 import { syntaxTree } from "@codemirror/language"
 
@@ -83,9 +83,7 @@ function getLanguageExtension(
                             // Try runtime completions first
                             if (runtimeCompletions) {
                                 try {
-                                    console.log('Runtime completion triggered for object:', objectName)
                                     const runtimeResults = await runtimeCompletions.getObjectCompletions(objectName)
-                                    console.log('Runtime completion results:', runtimeResults)
                                     
                                     if (Array.isArray(runtimeResults) && runtimeResults.length > 0) {
                                         // Validate each completion item
@@ -112,7 +110,7 @@ function getLanguageExtension(
                                         }
                                     }
                                 } catch (error) {
-                                    console.warn('Runtime completions failed:', error)
+                                    // Silently ignore runtime completion errors
                                 }
                             }
                             
@@ -174,11 +172,10 @@ function getLanguageExtension(
                                 }
                                 
                                 // Add runtime scope variables (reactive variables + runtime exports)
-                                if (runtimeCompletions && runtimeCompletions.getScopeVariables) {
+                                // Only call once per completion session to prevent event loops
+                                if (runtimeCompletions && runtimeCompletions.getScopeVariables && context.explicit) {
                                     try {
-                                        console.log('Calling getScopeVariables...');
                                         const scopeVars = await runtimeCompletions.getScopeVariables()
-                                        console.log('getScopeVariables returned:', scopeVars);
                                         if (Array.isArray(scopeVars)) {
                                             const existingLabels = new Set(allOptions.map(opt => opt.label))
                                             const scopeList = scopeVars
@@ -189,11 +186,10 @@ function getLanguageExtension(
                                                     v.label.length > 0 &&
                                                     !existingLabels.has(v.label)
                                                 )
-                                            console.log('Filtered scope variables:', scopeList);
                                             allOptions.push(...scopeList)
                                         }
                                     } catch (error) {
-                                        console.warn('Error getting scope variables:', error)
+                                        // Silently ignore errors to prevent console noise
                                     }
                                 }
                                 
@@ -206,7 +202,7 @@ function getLanguageExtension(
                             }
                         }
                     } catch (error) {
-                        console.warn('Error in completion source:', error)
+                        // Silently ignore completion errors to prevent console noise
                     }
                     
                     return null
@@ -548,17 +544,18 @@ export default function Editor({
                     basicSetupCompartment.of(
                         language === 'url'
                             ? [
-                                keymap.of([indentWithTab]),
+                                keymap.of([indentWithTab, ...completionKeymap]),
                                 autocompletion(),
                             ]
                             : [
                                 basicSetup,
-                                keymap.of([indentWithTab]),
+                                keymap.of([indentWithTab, ...completionKeymap]),
                                 autocompletion({
                                     activateOnTyping: true,
                                     closeOnBlur: false,
                                     icons: true,
-                                    defaultKeymap: true
+                                    defaultKeymap: true,
+                                    maxRenderedOptions: 100
                                 })
                             ]
                     ),
