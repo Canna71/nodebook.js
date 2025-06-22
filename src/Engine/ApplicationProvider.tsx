@@ -530,18 +530,30 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                     setReadingMode(!state.readingMode);
                 }
             },
-            'menu-toggle-output-panel': async () => {
+            'menu-settings': async () => { // NEW: Settings menu handler
                 if (currentCommandManager) {
                     try {
-                        await currentCommandManager.executeCommand('view.toggleOutput');
+                        await currentCommandManager.executeCommand('view.settings');
                     } catch (error) {
-                        log.error('Error executing toggle output panel command:', error);
+                        log.error('Error executing settings command:', error);
                     }
                 } else {
                     // Fallback to direct event dispatch
-                    window.dispatchEvent(new CustomEvent('toggleOutputPanel'));
+                    window.dispatchEvent(new CustomEvent('showSettings'));
                 }
-            }
+            },
+            'menu-close-notebook': async () => { // NEW: Close notebook menu handler
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('file.clearNotebook');
+                    } catch (error) {
+                        log.error('Error executing close notebook command:', error);
+                    }
+                } else {
+                    // Fallback to direct state change
+                    clearNotebook();
+                }
+            },
         };
 
         // Register all menu event listeners

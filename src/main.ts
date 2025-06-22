@@ -97,6 +97,14 @@ function createMenu(mainWindow: BrowserWindow) {
                 },
                 { type: 'separator' },
                 {
+                    label: 'Close Notebook',
+                    accelerator: 'CmdOrCtrl+W',
+                    click: () => {
+                        mainWindow.webContents.send('menu-close-notebook');
+                    }
+                },
+                { type: 'separator' },
+                {
                     label: 'Quit',
                     accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
                     click: () => {
@@ -239,14 +247,14 @@ function createMenu(mainWindow: BrowserWindow) {
             submenu: [
                 {
                     label: 'Reload',
-                    accelerator: 'CmdOrCtrl+R',
+                    accelerator: 'CmdOrCtrl+Shift+R',
                     click: () => {
                         mainWindow.reload();
                     }
                 },
                 {
                     label: 'Force Reload',
-                    accelerator: 'CmdOrCtrl+Shift+R',
+                    accelerator: 'CmdOrCtrl+Alt+R',
                     click: () => {
                         mainWindow.webContents.reloadIgnoringCache();
                     }
@@ -290,6 +298,14 @@ function createMenu(mainWindow: BrowserWindow) {
                 },
                 { type: 'separator' },
                 {
+                    label: 'Settings',
+                    accelerator: 'CmdOrCtrl+,',
+                    click: () => {
+                        mainWindow.webContents.send('menu-settings');
+                    }
+                },
+                { type: 'separator' },
+                {
                     label: 'Toggle Console Viewer',
                     accelerator: 'CmdOrCtrl+`',
                     click: () => {
@@ -315,7 +331,7 @@ function createMenu(mainWindow: BrowserWindow) {
                 },
                 {
                     label: 'Close',
-                    accelerator: 'CmdOrCtrl+W',
+                    accelerator: 'CmdOrCtrl+Shift+W',
                     role: 'close'
                 }
             ]

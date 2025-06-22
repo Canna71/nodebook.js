@@ -6,8 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { KeyIcon, CheckIcon, AlertCircleIcon, SparklesIcon, BookOpenIcon, PencilIcon, SettingsIcon } from 'lucide-react';
+import { KeyIcon, CheckIcon, AlertCircleIcon, SparklesIcon, BookOpenIcon, PencilIcon, SettingsIcon, ArrowLeftIcon } from 'lucide-react';
 import { AIService } from '@/Engine/AIService';
+import { useView } from '@/Engine/ViewProvider';
 import anylogger from 'anylogger';
 
 const log = anylogger('SettingsView');
@@ -28,6 +29,7 @@ interface AppSettingsState {
 
 export function SettingsView() {
     const aiService = AIService.getInstance();
+    const { setCurrentView } = useView();
     
     // Map internal provider names to UI display names
     const getUIProvider = (internalProvider: 'openai' | 'anthropic'): 'openai' | 'claude' => {
@@ -347,12 +349,9 @@ export function SettingsView() {
                     
                     <Separator />
                     
-                    {/* Actions */}
+                    {/* AI-specific Actions */}
                     <div className="flex flex-col gap-4">
                         <div className="flex gap-2">
-                            <Button onClick={handleSaveSettings}>
-                                Save Settings
-                            </Button>
                             <Button 
                                 variant="outline" 
                                 onClick={handleTestConnection}
@@ -418,6 +417,17 @@ export function SettingsView() {
                     </CardContent>
                 </Card>
             )}
+            
+            {/* Global Settings Actions */}
+            <div className="flex justify-between items-center pt-6">
+                <Button variant="outline" onClick={() => setCurrentView('notebook')}>
+                    <ArrowLeftIcon className="h-4 w-4 mr-2" />
+                    Back to Notebook
+                </Button>
+                <Button onClick={handleSaveSettings}>
+                    Save Settings
+                </Button>
+            </div>
             
             {/* Future settings sections can be added here */}
         </div>
