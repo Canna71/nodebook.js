@@ -85,15 +85,15 @@ export function ConsoleViewer({ isVisible, onToggle, entries, onClear, maxEntrie
                         ) : arg instanceof Error ? (
                             // Special handling for Error objects
                             <div className="error-display bg-red-900/20 border border-red-500/30 rounded p-2 mt-1">
-                                <div className="text-red-400 font-medium text-sm mb-1">
-                                    {arg.name}: {arg.message}
+                                <div className="text-gray-100 font-medium text-sm mb-1">
+                                    <span className="text-red-400">{arg.name}:</span> {arg.message}
                                 </div>
                                 {arg.stack && (
                                     <details className="mt-2">
-                                        <summary className="text-red-300 text-xs cursor-pointer hover:text-red-200">
+                                        <summary className="text-gray-300 text-xs cursor-pointer hover:text-gray-100">
                                             Stack trace
                                         </summary>
-                                        <pre className="text-red-300/80 text-xs font-mono mt-1 overflow-x-auto whitespace-pre-wrap bg-red-950/30 p-2 rounded">
+                                        <pre className="text-gray-200 text-xs font-mono mt-1 overflow-x-auto whitespace-pre-wrap bg-red-950/30 p-2 rounded">
                                             {arg.stack}
                                         </pre>
                                     </details>
