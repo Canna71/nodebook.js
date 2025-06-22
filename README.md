@@ -220,7 +220,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ by [Gabriele Cannata](https://github.com/gcannata)**
+**Made with ❤️ by [Gabriele Cannata](https://github.com/Canna71)**
 
-![Footer Image](./docs/images/footer-banner.png)
-*Join the reactive notebook revolution with Nodebook.js*
+
