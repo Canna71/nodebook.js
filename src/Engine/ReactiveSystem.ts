@@ -1169,13 +1169,11 @@ export class CodeCellEngine {
             return exportsArray;
 
         } catch (error) {
-            // Capture error in console output
+            // Use wrapped console to capture error (this will go to ConsoleViewer)
+            wrappedConsole.error(`Execution Error: ${error instanceof Error ? error.message : String(error)}`);
+            
+            // Capture any final console output after the error
             const lastOutput = getOutput();
-            lastOutput.push({
-                type: 'error',
-                message: `Execution Error: ${error instanceof Error ? error.message : String(error)}`,
-                timestamp: new Date()
-            });
 
             // Store error state
             const exportsArray = Array.from(exportedVars);
