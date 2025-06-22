@@ -60,13 +60,25 @@ jobs:
             ${{ runner.os }}-pnpm-store-
       
       - name: Increase Node.js memory
-        run: echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
+        run: echo "NODE_OPTIONS=--max_old_space_size=8192" >> $GITHUB_ENV
+
+      - name: Free up disk space (Ubuntu/Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        env:
+          NODE_OPTIONS: --max_old_space_size=4096
 
       - name: Rebuild native modules for target architecture
         run: pnpm run postinstall
+        env:
+          NODE_OPTIONS: --max_old_space_size=4096
 
       - name: Build application
         run: pnpm run make
