@@ -6,9 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { KeyIcon, CheckIcon, AlertCircleIcon, SparklesIcon, BookOpenIcon, PencilIcon, SettingsIcon, ArrowLeftIcon } from 'lucide-react';
+import { KeyIcon, CheckIcon, AlertCircleIcon, SparklesIcon, BookOpenIcon, PencilIcon, SettingsIcon, XIcon } from 'lucide-react';
 import { AIService } from '@/Engine/AIService';
 import { useView } from '@/Engine/ViewProvider';
+import { useCommands } from '@/Engine/CommandProvider';
 import anylogger from 'anylogger';
 
 const log = anylogger('SettingsView');
@@ -30,6 +31,7 @@ interface AppSettingsState {
 export function SettingsView() {
     const aiService = AIService.getInstance();
     const { setCurrentView } = useView();
+    const { commandManager } = useCommands();
     
     // Map internal provider names to UI display names
     const getUIProvider = (internalProvider: 'openai' | 'anthropic'): 'openai' | 'claude' => {
@@ -191,7 +193,8 @@ export function SettingsView() {
     };
 
     return (
-        <div className="flex-1 space-y-6 p-6">
+        <div className="relative min-h-screen bg-background">
+            <div className="flex-1 space-y-6 p-6 pb-24">
             <div>
                 <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
                 <p className="text-muted-foreground">
@@ -415,18 +418,20 @@ export function SettingsView() {
                             Check Storage Info
                         </Button>
                     </CardContent>
-                </Card>
-            )}
-            
-            {/* Global Settings Actions */}
-            <div className="flex justify-between items-center pt-6">
-                <Button variant="outline" onClick={() => setCurrentView('notebook')}>
-                    <ArrowLeftIcon className="h-4 w-4 mr-2" />
-                    Back to Notebook
-                </Button>
-                <Button onClick={handleSaveSettings}>
-                    Save Settings
-                </Button>
+                </Card>            )}
+            </div>
+
+            {/* Fixed Bottom Actions */}
+            <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4">
+                <div className="max-w-4xl mx-auto flex justify-between">
+                    <Button variant="outline" onClick={() => commandManager.executeCommand('view.close')}>
+                        <XIcon className="h-4 w-4 mr-2" />
+                        Close
+                    </Button>
+                    <Button onClick={handleSaveSettings}>
+                        Save Settings
+                    </Button>
+                </div>
             </div>
             
             {/* Future settings sections can be added here */}

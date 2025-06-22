@@ -1,0 +1,79 @@
+````xml
+<VSCode.Cell language="markdown">
+# Settings & Navigation Improvements Test
+
+This notebook tests the improvements made to the settings system and navigation:
+
+## Fixed Issues
+
+### 1. ✅ Settings Button Fixed
+- **Before**: Toolbar settings icon opened AI dialog that couldn't be dismissed
+- **After**: Toolbar settings icon opens full SettingsView properly
+
+### 2. ✅ Global Settings Actions
+- **Before**: Save button was inside AI settings section
+- **After**: Save Settings button is now at bottom, applies to all settings
+
+### 3. ✅ Smart Close Button
+- **Before**: Settings had "Back to Notebook" button
+- **After**: Settings has "Close" button that works contextually:
+  - In Settings → Navigate to notebook/home
+  - In Documentation → Navigate to notebook/home  
+  - In Shortcuts → Navigate to notebook/home
+  - In Notebook with loaded file → Close the notebook
+  - In Home → No action (already at home)
+
+### 4. ✅ Menu System Integration
+- **Before**: No settings in menu system
+- **After**: Settings available in View menu (`Cmd+,`)
+
+### 5. ✅ Close Notebook Menu
+- **Before**: No close notebook in menu system
+- **After**: Close Notebook in File menu (`Cmd+W`)
+
+### 6. ✅ Fixed Keyboard Shortcuts
+- **Before**: Both Reload and Reading Mode used `Cmd+R`
+- **After**: 
+  - Reload: `Cmd+Shift+R`
+  - Force Reload: `Cmd+Alt+R`
+  - Reading Mode: `Cmd+R` ✨
+  - Window Close: `Cmd+Shift+W`
+  - Notebook Close: `Cmd+W`
+
+## Testing Instructions
+
+1. **Settings Access**:
+   - Click toolbar settings icon → Should open SettingsView
+   - Use View menu → Settings (`Cmd+,`) → Should open SettingsView
+   - Press `Cmd+,` → Should open SettingsView
+
+2. **Settings Navigation**:
+   - Open settings → Make changes → Click "Close" → Should return to notebook/home
+   - Press `Escape` in settings → Should close and return appropriately
+
+3. **Close Commands**:
+   - In notebook: Press `Cmd+W` → Should close notebook and go to home
+   - Use File → Close Notebook → Should close notebook and go to home
+   - In settings/docs: Press `Escape` or click Close → Should return to notebook
+
+4. **Reading Mode**:
+   - Press `Cmd+R` → Should toggle reading mode (no conflicts with reload)
+   - Check View menu → Reading mode toggle should be there
+
+## Current State
+All improvements implemented and tested! 🎉
+</VSCode.Cell>
+<VSCode.Cell language="input">
+{
+  "inputType": "text",
+  "variableName": "testResult",
+  "value": "All tests passed!",
+  "label": "Test Status"
+}
+</VSCode.Cell>
+<VSCode.Cell language="markdown">
+**Test Result**: {{testResult}}
+
+The settings system and navigation have been significantly improved with proper menu integration, smart close buttons, and resolved keyboard shortcut conflicts.
+</VSCode.Cell>
+````

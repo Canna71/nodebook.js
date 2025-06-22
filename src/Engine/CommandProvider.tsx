@@ -28,6 +28,7 @@ import {
     ToggleOutputPanelCommand,
     ViewDocumentationCommand,
     ViewSettingsCommand,
+    CloseViewCommand,
     ToggleReadingModeCommand,
     EnterReadingModeCommand,
     ExitReadingModeCommand
@@ -289,6 +290,14 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
             command: new ViewSettingsCommand(getContext),
             icon: CogIcon,
             tooltip: 'Open Settings'
+        });
+
+        commandManager.registerCommand({
+            id: 'view.close',
+            command: new CloseViewCommand(getContext),
+            shortcut: 'Escape',
+            icon: XMarkIcon,
+            tooltip: 'Close (Escape)'
         });
 
         // Reading mode commands

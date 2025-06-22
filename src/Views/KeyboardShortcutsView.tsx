@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Keyboard, Command } from 'lucide-react';
+import { useCommands } from '@/Engine/CommandProvider';
 
 interface KeyboardShortcutsViewProps {
   onClose?: () => void;
@@ -18,6 +19,7 @@ interface ShortcutGroup {
 }
 
 export function KeyboardShortcutsView({ onClose }: KeyboardShortcutsViewProps) {
+  const { commandManager } = useCommands();
   // Static list of ONLY working shortcuts - no dynamic loading needed
   const shortcuts = (() => {
     // Detect platform for display
@@ -81,7 +83,8 @@ export function KeyboardShortcutsView({ onClose }: KeyboardShortcutsViewProps) {
   })();
 
   return (
-    <div className="max-w-4xl mx-auto p-8 space-y-6">
+    <div className="relative min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto p-8 pb-24 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
@@ -94,10 +97,14 @@ export function KeyboardShortcutsView({ onClose }: KeyboardShortcutsViewProps) {
           </div>
         </div>
         {onClose && (
-          <Button variant="outline" onClick={onClose}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to App
-          </Button>
+          <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4">
+            <div className="max-w-4xl mx-auto flex justify-start">
+              <Button variant="outline" onClick={onClose}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Close
+              </Button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -158,6 +165,19 @@ export function KeyboardShortcutsView({ onClose }: KeyboardShortcutsViewProps) {
           </div>
         </CardContent>
       </Card>
+      </div>
+
+      {/* Fixed Bottom Actions */}
+      {onClose && (
+        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4">
+          <div className="max-w-4xl mx-auto flex justify-start">
+            <Button variant="outline" onClick={onClose}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

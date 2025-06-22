@@ -172,3 +172,23 @@ export class ViewSettingsCommand extends BaseCommand {
         log.debug('Settings view command executed');
     }
 }
+
+/**
+ * Close View command - smart close that navigates appropriately
+ */
+export class CloseViewCommand extends BaseCommand {
+    getDescription(): string {
+        return 'Close current view';
+    }
+
+    canExecute(): boolean {
+        return true;
+    }
+
+    execute(): void {
+        // Dispatch custom event that App component will handle intelligently
+        log.debug('CloseViewCommand: Dispatching closeView event');
+        window.dispatchEvent(new CustomEvent('closeView'));
+        log.debug('CloseViewCommand: Event dispatched successfully');
+    }
+}

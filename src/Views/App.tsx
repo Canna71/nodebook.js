@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 
 import { ReactiveProvider } from '../Engine/ReactiveProvider';
 import { ApplicationProvider, useApplication } from '@/Engine/ApplicationProvider';
@@ -31,12 +31,37 @@ import { DocumentationViewer } from '@/components/DocumentationViewer';
 import { KeyboardShortcutsView } from './KeyboardShortcutsView';
 
 function AppContent() {
-    const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook } = useApplication();
+    const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook, clearNotebook } = useApplication();
     const { currentView, setCurrentView } = useView();
     const { lines, clearLines, isSupported } = useStdoutCapture();
     const { entries, clearEntries, maxEntries } = useConsoleCapture();
     const [stdoutVisible, setStdoutVisible] = useState(false);
     const [consoleVisible, setConsoleVisible] = useState(false);
+
+    // Close view event handler (needs to be defined outside useEffect to avoid stale closure)
+    const handleCloseViewEvent = useCallback(() => {
+        log.debug('handleCloseViewEvent: Event received. Current view:', currentView, 'Current model:', !!currentModel);
+        log.debug('handleCloseViewEvent: All views - current:', currentView, 'expected in settings: "settings"');
+        
+        // Smart close logic based on current view
+        if (currentView === 'notebook' && currentModel) {
+            // If we're in notebook view with a notebook loaded, close the notebook
+            clearNotebook();
+            log.debug('Closed notebook, returned to home');
+        } else if (currentView !== 'notebook') {
+            // If we're in any other view (settings, docs, shortcuts), go back to notebook/home
+            if (currentModel) {
+                setCurrentView('notebook');
+                log.debug('Closed view, returning to notebook with model');
+            } else {
+                setCurrentView('notebook');
+                log.debug('Closed view, returning to home without model');
+            }
+        } else {
+            log.debug('handleCloseViewEvent: No action taken - already in notebook without model');
+        }
+        // If we're in notebook view with no notebook loaded, do nothing (already at home)
+    }, [currentView, currentModel, clearNotebook, setCurrentView]);
 
     // Keyboard shortcut handler
     useEffect(() => {
@@ -95,6 +120,7 @@ function AppContent() {
         window.addEventListener('showDocumentation', handleShowDocumentationEvent);
         window.addEventListener('showShortcuts', handleShowShortcutsEvent);
         window.addEventListener('showSettings', handleShowSettingsEvent);
+        window.addEventListener('closeView', handleCloseViewEvent);
         
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
@@ -103,8 +129,9 @@ function AppContent() {
             window.removeEventListener('showDocumentation', handleShowDocumentationEvent);
             window.removeEventListener('showShortcuts', handleShowShortcutsEvent);
             window.removeEventListener('showSettings', handleShowSettingsEvent);
+            window.removeEventListener('closeView', handleCloseViewEvent);
         };
-    }, []);
+    }, [handleCloseViewEvent]);
 
     useEffect(() => {
         log.debug("AppContent mounted, currentModel:", currentModel);

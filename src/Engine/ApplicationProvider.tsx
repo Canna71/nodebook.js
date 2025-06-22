@@ -542,16 +542,26 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                     window.dispatchEvent(new CustomEvent('showSettings'));
                 }
             },
-            'menu-close-notebook': async () => { // NEW: Close notebook menu handler
+            'menu-close-notebook': async () => { // Close notebook menu handler
                 if (currentCommandManager) {
                     try {
-                        await currentCommandManager.executeCommand('file.clearNotebook');
+                        // Check if we can close a notebook, otherwise use view.close
+                        if (await currentCommandManager.canExecuteCommand('notebook.close')) {
+                            await currentCommandManager.executeCommand('notebook.close');
+                        } else {
+                            await currentCommandManager.executeCommand('view.close');
+                        }
                     } catch (error) {
-                        log.error('Error executing close notebook command:', error);
+                        log.error('Error executing close command:', error);
                     }
                 } else {
-                    // Fallback to direct state change
-                    clearNotebook();
+                    // Fallback to direct close
+                    if (state.currentModel) {
+                        clearNotebook();
+                    } else {
+                        // Dispatch close view event
+                        window.dispatchEvent(new CustomEvent('closeView'));
+                    }
                 }
             },
         };
