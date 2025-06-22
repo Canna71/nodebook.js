@@ -407,6 +407,14 @@ function createMenu(mainWindow: BrowserWindow) {
                 }
             );
         }
+
+        // Remove About from Help menu on macOS (it's in the app menu)
+        const helpMenu = template.find(item => item.label === 'Help');
+        if (helpMenu && Array.isArray(helpMenu.submenu)) {
+            helpMenu.submenu = helpMenu.submenu.filter(item =>
+                typeof item === 'object' && item.label !== 'About Nodebook.js'
+            );
+        }
     }
 
     const menu = Menu.buildFromTemplate(template);
