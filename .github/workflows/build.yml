@@ -95,6 +95,24 @@ jobs:
           echo "Build outputs:"
           if [ -d "out" ]; then
             find out -name "*.exe" -o -name "*.dmg" -o -name "*.zip" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" | head -20
+            
+            # Check code signing status for macOS builds
+            if [ "${{ matrix.platform }}" = "darwin" ]; then
+              echo ""
+              echo "🔍 Checking macOS app signature status:"
+              for app in $(find out -name "*.app" -type d); do
+                echo "Checking: $app"
+                if command -v codesign >/dev/null 2>&1; then
+                  codesign -dv "$app" 2>&1 | head -5 || echo "❌ App is unsigned"
+                else
+                  echo "⚠️  codesign not available (Linux runner)"
+                fi
+              done
+              echo ""
+              echo "📋 Note: macOS apps built on GitHub Actions are currently unsigned."
+              echo "📋 Users will need to right-click → Open to run the app initially."
+              echo "📋 See MACOS_INSTALL.md for detailed installation instructions."
+            fi
           else
             echo "No 'out' directory found"
             ls -la
