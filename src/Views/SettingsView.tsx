@@ -487,8 +487,8 @@ export function SettingsView() {
                         {aiSettings.connectionTestResult !== 'idle' && (
                             <div className={`flex items-center gap-2 text-sm ${
                                 aiSettings.connectionTestResult === 'success' 
-                                    ? 'text-green-600' 
-                                    : 'text-red-600'
+                                    ? 'text-success' 
+                                    : 'text-error'
                             }`}>
                                 {aiSettings.connectionTestResult === 'success' ? (
                                     <CheckIcon className="h-4 w-4" />

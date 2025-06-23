@@ -40,16 +40,16 @@ export function StdoutViewer({ isVisible, onToggle, lines, onClear }: StdoutView
     if (!isVisible) return null;
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 bg-gray-900 text-gray-100 border-t border-gray-700 z-50">
+        <div className="fixed bottom-0 left-0 right-0 bg-console-background text-console-foreground border-t border-console-border z-50">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+            <div className="flex items-center justify-between px-4 py-2 bg-console-background border-b border-console-border">
                 <div className="flex items-center space-x-4">
-                    <h3 className="text-sm font-medium text-gray-200">Output</h3>
-                    <span className="text-xs text-gray-400">
+                    <h3 className="text-sm font-medium text-console-foreground">Output</h3>
+                    <span className="text-xs text-console-muted">
                         {lines.length} lines
                     </span>
                     {!autoScroll && (
-                        <span className="text-xs text-yellow-400">
+                        <span className="text-xs text-warning">
                             Auto-scroll disabled
                         </span>
                     )}
@@ -57,14 +57,14 @@ export function StdoutViewer({ isVisible, onToggle, lines, onClear }: StdoutView
                 <div className="flex items-center space-x-2">
                     <button
                         onClick={onClear}
-                        className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
+                        className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded text-muted-foreground hover:text-foreground transition-colors"
                         title="Clear output"
                     >
                         Clear
                     </button>
                     <button
                         onClick={() => setAutoScroll(true)}
-                        className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
+                        className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded text-muted-foreground hover:text-foreground transition-colors"
                         title="Auto-scroll to bottom"
                         disabled={autoScroll}
                     >
@@ -72,7 +72,7 @@ export function StdoutViewer({ isVisible, onToggle, lines, onClear }: StdoutView
                     </button>
                     <button
                         onClick={onToggle}
-                        className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
+                        className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded text-muted-foreground hover:text-foreground transition-colors"
                         title="Close (Ctrl+`)"
                     >
                         ✕
@@ -83,23 +83,23 @@ export function StdoutViewer({ isVisible, onToggle, lines, onClear }: StdoutView
             {/* Content */}
             <div
                 ref={containerRef}
-                className="h-64 overflow-y-auto px-4 py-2 font-mono text-sm bg-gray-900"
+                className="h-64 overflow-y-auto px-4 py-2 font-mono text-sm bg-console-background"
                 onScroll={handleScroll}
             >
                 {lines.length === 0 ? (
-                    <div className="text-gray-500 italic">No output yet...</div>
+                    <div className="text-console-muted italic">No output yet...</div>
                 ) : (
                     lines.map((line) => (
                         <div key={line.id} className="py-0.5">
-                            <span className="text-gray-500 text-xs mr-2">
+                            <span className="text-console-muted text-xs mr-2">
                                 {line.timestamp.toLocaleTimeString()}
                             </span>
                             <span className={`text-xs mr-2 ${
-                                line.type === 'stderr' ? 'text-red-400' : 'text-blue-400'
+                                line.type === 'stderr' ? 'text-error' : 'text-info'
                             }`}>
                                 [{line.type}]
                             </span>
-                            <span className={line.type === 'stderr' ? 'text-red-300' : 'text-gray-100'}>
+                            <span className={line.type === 'stderr' ? 'text-error' : 'text-console-foreground'}>
                                 {line.content}
                             </span>
                         </div>

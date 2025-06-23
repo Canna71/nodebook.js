@@ -116,7 +116,7 @@ export function CodeSummary({ code, exports = [], dependencies = [], error = nul
               <span className="text-muted-foreground/60">depends:</span>
               <div className="flex gap-1">
                 {dependencies.map((dep, index) => (
-                  <span key={dep} className="text-blue-400 font-medium">
+                  <span key={dep} className="text-info font-medium">
                     {dep}{index < dependencies.length - 1 && ','}
                   </span>
                 ))}
@@ -129,7 +129,7 @@ export function CodeSummary({ code, exports = [], dependencies = [], error = nul
               <span className="text-muted-foreground/60">exports:</span>
               <div className="flex gap-1">
                 {exports.map((exp, index) => (
-                  <span key={exp} className="text-green-400 font-medium">
+                  <span key={exp} className="text-success font-medium">
                     {exp}{index < exports.length - 1 && ','}
                   </span>
                 ))}

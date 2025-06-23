@@ -218,7 +218,7 @@ function AppContent() {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-info mx-auto mb-4"></div>
                     <div>Loading notebook...</div>
                 </div>
             </div>
@@ -228,7 +228,7 @@ function AppContent() {
     if (error) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center text-red-500">
+                <div className="text-center text-error">
                     <div className="text-xl mb-4">Error</div>
                     <div>{error}</div>
                 </div>
@@ -345,7 +345,7 @@ export default function App() {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-info mx-auto mb-4"></div>
                     <div>Initializing Nodebook.js...</div>
                 </div>
             </div>

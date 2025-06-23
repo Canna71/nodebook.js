@@ -239,7 +239,7 @@ export function CodeCell({ definition, initialized, isEditMode = false, readingM
                     />
                     {(isDirty || isStaticDirty) && isEditMode && (
                         <div className="px-4 py-2">
-                            <span className="text-orange-500 text-xs font-medium">
+                            <span className="text-warning-accent text-xs font-medium">
                                 • Unsaved changes
                             </span>
                         </div>
@@ -274,13 +274,13 @@ export function CodeCell({ definition, initialized, isEditMode = false, readingM
                                     type="checkbox"
                                     checked={isStatic}
                                     onChange={(e) => onStaticToggle(e.target.checked)}
-                                    className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                                    className="rounded border-border text-warning-accent focus:ring-warning-accent"
                                 />
                                 <span className="text-secondary-foreground">
                                     Static mode (manual execution only)
                                 </span>
                                 {isStatic && (
-                                    <span className="text-xs text-orange-600 bg-orange-100 dark:bg-orange-900/30 px-1.5 py-0.5 rounded">
+                                    <span className="text-xs text-warning-accent bg-warning-accent/10 px-1.5 py-0.5 rounded">
                                         Static
                                     </span>
                                 )}

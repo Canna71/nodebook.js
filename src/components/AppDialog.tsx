@@ -45,28 +45,28 @@ const variantStyles = {
   },
   destructive: {
     icon: AlertCircleIcon,
-    titleClass: 'text-red-600',
-    iconClass: 'text-red-600',
+    titleClass: 'text-error',
+    iconClass: 'text-error',
   },
   warning: {
     icon: AlertTriangleIcon,
-    titleClass: 'text-yellow-600',
-    iconClass: 'text-yellow-600',
+    titleClass: 'text-warning',
+    iconClass: 'text-warning',
   },
   success: {
     icon: CheckIcon,
-    titleClass: 'text-green-600',
-    iconClass: 'text-green-600',
+    titleClass: 'text-success',
+    iconClass: 'text-success',
   },
   info: {
     icon: InfoIcon,
-    titleClass: 'text-blue-600',
-    iconClass: 'text-blue-600',
+    titleClass: 'text-info',
+    iconClass: 'text-info',
   },
   progress: {
     icon: LoaderIcon,
-    titleClass: 'text-blue-600',
-    iconClass: 'text-blue-600 animate-spin',
+    titleClass: 'text-info',
+    iconClass: 'text-info animate-spin',
   },
 };
 

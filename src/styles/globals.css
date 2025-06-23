@@ -168,19 +168,23 @@
   
   /* Console log level styling */
   .console-output [data-log-level="error"] {
-    @apply text-red-400;
+    @apply text-error;
   }
   
   .console-output [data-log-level="warn"] {
-    @apply text-yellow-400;
+    @apply text-warning;
   }
   
   .console-output [data-log-level="info"] {
-    @apply text-blue-400;
+    @apply text-info;
   }
   
   .console-output [data-log-level="log"] {
-    @apply text-muted-foreground;
+    @apply text-success;
+  }
+  
+  .console-output [data-log-level="debug"] {
+    @apply text-debug;
   }
   
   /* Code summary styling - terminal/comment-like appearance */
@@ -190,12 +194,12 @@
   }
   
   /* Add subtle syntax highlighting to code summary */
-  .code-summary .text-blue-400 {
-    @apply text-blue-400/90;
+  .code-summary .text-info {
+    @apply text-info/90;
   }
   
-  .code-summary .text-green-400 {
-    @apply text-green-400/90;
+  .code-summary .text-success {
+    @apply text-success/90;
   }
   
   /* Code summary hover effect */
@@ -211,7 +215,7 @@
     top: 0;
     bottom: 0;
     width: 2px;
-    background: linear-gradient(to bottom, rgba(59, 130, 246, 0.3), rgba(34, 197, 94, 0.3));
+    background: linear-gradient(to bottom, rgb(from var(--color-info) r g b / 0.3), rgb(from var(--color-success) r g b / 0.3));
   }
 
   .prose {

@@ -67,9 +67,9 @@ export function ReadingModeTest({ notebook }: ReadingModeTestProps) {
         <div className="text-sm text-secondary-foreground">
           {readingMode ? (
             <div className="flex items-start gap-2">
-              <Eye className="w-4 h-4 mt-0.5 text-blue-500" />
+              <Eye className="w-4 h-4 mt-0.5 text-info" />
               <div>
-                <div className="font-medium text-blue-500 mb-1">Reading Mode Active</div>
+                <div className="font-medium text-info mb-1">Reading Mode Active</div>
                 <div>
                   Only content and interactive elements are shown. 
                   Input values can still be changed and will trigger reactive updates.
@@ -78,9 +78,9 @@ export function ReadingModeTest({ notebook }: ReadingModeTestProps) {
             </div>
           ) : (
             <div className="flex items-start gap-2">
-              <Edit className="w-4 h-4 mt-0.5 text-green-500" />
+              <Edit className="w-4 h-4 mt-0.5 text-success" />
               <div>
-                <div className="font-medium text-green-500 mb-1">Edit Mode Active</div>
+                <div className="font-medium text-success mb-1">Edit Mode Active</div>
                 <div>
                   Full editing capabilities are available. 
                   You can add, edit, delete, and rearrange cells.

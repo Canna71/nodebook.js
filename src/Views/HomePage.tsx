@@ -404,7 +404,7 @@ export function HomePage() {
                     return (
                       <div key={`module-${index}-${safeModuleName}`} className="flex items-center justify-between">
                         <div className="flex items-center space-x-2 min-w-0 flex-1">
-                          <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                          <div className="w-2 h-2 bg-success rounded-full flex-shrink-0"></div>
                           <span className="font-mono text-xs truncate">{safeModuleName}</span>
                         </div>
                         {safeModuleVersion && (

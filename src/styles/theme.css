@@ -31,6 +31,27 @@
   --sidebar-border: oklch(0.82 0.02 240.77);
   --sidebar-ring: oklch(0.57 0.11 228.92);
 
+  /* Console and status colors */
+  --console-background: oklch(0.95 0.01 240);
+  --console-foreground: oklch(0.15 0.02 269.18);
+  --console-border: oklch(0.82 0.02 240.77);
+  --console-muted: oklch(0.50 0.02 240);
+  
+  /* Semantic status colors */
+  --success: oklch(0.55 0.15 145);
+  --success-foreground: oklch(0.98 0.01 145);
+  --warning: oklch(0.70 0.15 85);
+  --warning-foreground: oklch(0.98 0.01 85);
+  --warning-accent: oklch(0.65 0.18 45); /* Orange for static mode */
+  --error: oklch(0.60 0.20 25);
+  --error-foreground: oklch(0.98 0.01 25);
+  --info: oklch(0.60 0.15 220);
+  --info-foreground: oklch(0.98 0.01 220);
+  
+  /* Debug and log colors */
+  --debug: oklch(0.50 0.05 280);
+  --debug-foreground: oklch(0.85 0.02 280);
+
   --font-sans: 'Source Code Pro', 'Geist', 'Geist Fallback', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-serif: 'Source Serif 4', 'Geist', 'Geist Fallback', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
   --font-mono: 'Source Code Pro', 'Geist Mono', 'Geist Mono Fallback', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
@@ -81,6 +102,27 @@
   --sidebar-border: oklch(0.90 0.01 238.47 / 15%);
   --sidebar-ring: oklch(0.66 0.13 227.70);
   
+  /* Console and status colors - dark theme */
+  --console-background: oklch(0.15 0.02 269);
+  --console-foreground: oklch(0.90 0.01 238);
+  --console-border: oklch(0.25 0.02 269);
+  --console-muted: oklch(0.45 0.02 269);
+  
+  /* Semantic status colors - dark theme */
+  --success: oklch(0.65 0.15 145);
+  --success-foreground: oklch(0.15 0.02 145);
+  --warning: oklch(0.75 0.15 85);
+  --warning-foreground: oklch(0.15 0.02 85);
+  --warning-accent: oklch(0.75 0.18 45); /* Orange for static mode - dark theme */
+  --error: oklch(0.70 0.20 25);
+  --error-foreground: oklch(0.15 0.02 25);
+  --info: oklch(0.70 0.15 220);
+  --info-foreground: oklch(0.15 0.02 220);
+  
+  /* Debug and log colors - dark theme */
+  --debug: oklch(0.60 0.05 280);
+  --debug-foreground: oklch(0.25 0.02 280);
+  
   --shadow-2xs: 0px 1px 2px 0px oklch(0 0 0 / 0.01);
   --shadow-xs: 0px 1px 2px 0px oklch(0 0 0 / 0.01);
   --shadow-sm: 0px 1px 2px 0px oklch(0 0 0 / 0.01), 0px 1px 2px -1px oklch(0 0 0 / 0.01);
@@ -123,6 +165,24 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Console and status color variables */
+  --color-console-background: var(--console-background);
+  --color-console-foreground: var(--console-foreground);
+  --color-console-border: var(--console-border);
+  --color-console-muted: var(--console-muted);
+  
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-accent: var(--warning-accent);
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-debug: var(--debug);
+  --color-debug-foreground: var(--debug-foreground);
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
