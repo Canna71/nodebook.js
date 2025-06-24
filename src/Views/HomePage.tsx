@@ -9,6 +9,8 @@ import { moduleRegistry } from '@/Engine/ModuleRegistry';
 import { getFileSystemHelpers, NotebookFileInfo } from '@/lib/fileSystemHelpers';
 import NotebookCellsStack from '@/components/icons/NotebookCellsStack';
 
+const path = require('node:path');
+
 export function HomePage() {
   const { createNewNotebook, loadNotebook } = useApplication();
   const [recentNotebooks, setRecentNotebooks] = useState<RecentNotebook[]>([]);
@@ -111,13 +113,11 @@ export function HomePage() {
     } catch (error) {
       console.error('Failed to open recent notebook:', error);
     }
-  };
-
-  const handleOpenExample = async (example: NotebookFileInfo) => {
+  };  const handleOpenExample = async (example: NotebookFileInfo) => {
     try {
       await loadNotebook(example.filepath);
       // Add to recent notebooks for easy access
-      const fileName = example.filepath.split('/').pop() || example.filepath.split('\\').pop() || 'Unknown';
+      const fileName = path.basename(example.filepath);
       await RecentNotebooksManager.addRecentNotebook(example.filepath, fileName);
       loadRecentNotebooks(); // Refresh the list
     } catch (error) {
@@ -137,20 +137,15 @@ export function HomePage() {
     window.dispatchEvent(new CustomEvent('executeCommand', { 
       detail: { commandId: 'notebook.open' } 
     }));
-  };
-
-  const extractFileName = (path: string): string => {
-    const fileName = path.split('/').pop() || path.split('\\').pop() || path;
+  };  const extractFileName = (filePath: string): string => {
+    // Use path.basename to get the filename, then remove extension
+    const fileName = path.basename(filePath);
     return fileName.replace(/\.[^/.]+$/, ''); // Remove extension
   };
 
-  const extractDirectory = (path: string): string => {
-    const parts = path.split('/');
-    if (parts.length > 1) {
-      parts.pop(); // Remove filename
-      return parts.join('/');
-    }
-    return path;
+  const extractDirectory = (filePath: string): string => {
+    // Use path.dirname to get the directory path
+    return path.dirname(filePath);
   };
 
   const formatTimeAgo = (date: Date): string => {
