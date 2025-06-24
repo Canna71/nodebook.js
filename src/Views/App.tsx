@@ -30,6 +30,7 @@ import { useConsoleCapture } from '@/hooks/useConsoleCapture';
 import { DocumentationViewer } from '@/components/DocumentationViewer';
 import { KeyboardShortcutsView } from './KeyboardShortcutsView';
 import { updateCloseMenuLabel, updateApplicationContext, buildApplicationContext } from '@/lib/electronHelpers';
+import { PlotlyStyleProvider } from '@/lib/plotlyDark';
 
 function AppContent() {
     const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook, clearNotebook } = useApplication();
@@ -355,7 +356,9 @@ export default function App() {
             <ApplicationProvider commandManager={commandManagerSingleton}>
                 <AppDialogProvider>
                     <AIDialogProvider>
-                        <AppContent />
+                        <PlotlyStyleProvider>
+                          <AppContent />
+                        </PlotlyStyleProvider>
                     </AIDialogProvider>
                 </AppDialogProvider>
             </ApplicationProvider>

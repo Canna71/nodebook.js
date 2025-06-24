@@ -9,6 +9,7 @@ import { CodeCell } from './CodeCell';
 import { FormulaCell } from './FormulaCell';
 import { CellContainer } from './CellContainer';
 import { CellSeparator } from './CellSeparator';
+import useMutationObserver from '@/lib/plotlyDark';
 export const log = anylogger("DynamicNotebook");
 
 interface DynamicNotebookProps {
@@ -36,6 +37,7 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
 
   // Track previous cells to detect newly added cells
   const [previousCellIds, setPreviousCellIds] = useState<Set<string>>(new Set());
+  useMutationObserver({}); // Initialize mutation observer for dynamic updates
 
   // Initialize reactive values and formulas from cells - ONLY ONCE on mount
   useEffect(() => {
@@ -91,7 +93,6 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
       setPreviousCellIds(initialCellIds);
 
       log.debug('Notebook initialized with reactive values and formulas from cells.');
-
       // Mark as initialized to trigger component rendering
       setInitialized(true);
     };
