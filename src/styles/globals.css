@@ -152,8 +152,7 @@
     /* overflowY: auto !important; */
     overscroll-behavior-y: contain !important;
   }
-  
-  /* Cell container state styling */
+    /* Cell container state styling */
   .cell-container {
     @apply border-transparent;
   }
@@ -163,8 +162,7 @@
   .cell-container.edit-mode {
     @apply border-border;
   }
-  
-  /* Ensure selected cells have proper visual feedback */
+    /* Ensure selected cells have proper visual feedback */
   .cell-container.selected {
     @apply border-accent shadow-lg bg-accent/10;
   }
