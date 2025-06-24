@@ -71,15 +71,20 @@ export function CellContainer({
             // Show floating button when:
             // 1. Cell top is above the toolbar (scrolled up)
             // 2. Cell bottom is still below the minimum position (cell is tall enough)
-            const shouldShowFloating = cellTop < minTop && cellBottom > minTop + buttonHeight + 20;
-            
-            if (shouldShowFloating) {
+            const shouldShowFloating = cellTop < minTop && cellBottom > minTop + buttonHeight + 20;            if (shouldShowFloating) {
                 // Calculate the optimal position within the cell bounds
                 const maxTop = Math.min(cellBottom - buttonHeight - 8, window.innerHeight - buttonHeight - 8);
-                const calculatedTop = Math.max(minTop, Math.min(minTop, maxTop));
                 
-                // Calculate left position to align with the cell's left side (where the type indicator is)
-                const calculatedLeft = cellLeft + 8; // 8px margin from cell edge
+                // Account for cell type indicator height when positioning at the top
+                // Cell type indicator has: py-1.5 (6px) + badge height (~20px) + py-1.5 (6px) = ~32px
+                const typeIndicatorHeight = 32;
+                const minTopWithIndicator = minTop + typeIndicatorHeight + 4; // 4px additional margin
+                
+                const calculatedTop = Math.max(minTopWithIndicator, Math.min(minTop, maxTop));
+                
+                // Calculate left position to align with the cell type indicator center
+                // Position it within the cell type indicator area, similar to the normal button
+                const calculatedLeft = cellLeft + 8; // 8px from cell edge, inside the type indicator
                 
                 setPlayButtonTop(calculatedTop);
                 setPlayButtonLeft(calculatedLeft);
