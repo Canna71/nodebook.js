@@ -60,7 +60,7 @@ export function CellContainer({
 
             const cellRect = cellContainerRef.current.getBoundingClientRect();
             const toolbarHeight = 48; // h-12 = 48px
-            const buttonHeight = 32; // size-8 = 32px
+            const buttonHeight = 24; // w-6 h-6 = 24px
             const minTop = toolbarHeight + 8; // 8px margin below toolbar
             
             // Check if cell is partially visible and scrolled
@@ -304,15 +304,14 @@ export function CellContainer({
                 } ${isEditMode ? 'edit-mode' : ''}`}
                 onClick={handleClick}
                 onDoubleClick={handleDoubleClick}
-            >{/* Left Cell Type Indicator - always takes up space, visibility controlled by opacity */}
-                <div className={`cell-type-indicator flex flex-col items-center justify-start px-1 py-2 bg-background-secondary border-r border-border rounded-l-lg transition-opacity duration-200 ${
+            >                {/* Left Cell Type Indicator - always takes up space, visibility controlled by opacity */}
+                <div className={`cell-type-indicator flex flex-col items-center justify-start px-1 py-1.5 bg-background-secondary border-r border-border rounded-l-lg transition-opacity duration-200 ${
                     isSelected || isHovered ? 'opacity-100' : 'opacity-0'
-                }`}>
-                    {/* Cell Type Badge with Tooltip */}
+                }`}>                    {/* Cell Type Badge with Tooltip */}
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <div className={`cell-type-badge text-xs font-medium px-1.5 py-1 rounded cursor-help ${getCellTypeColor(definition.type)}`}>
+                                <div className={`cell-type-badge text-xs font-medium px-0.5 py-0.5 rounded cursor-help ${getCellTypeColor(definition.type)}`}>
                                     <CellTypeIcon type={definition.type} />
                                 </div>
                             </TooltipTrigger>
@@ -324,8 +323,10 @@ export function CellContainer({
                                     </div>
                                 </div>
                             </TooltipContent>
-                        </Tooltip>                    </TooltipProvider>
-                      {/* Smart Execute Button for Code Cells */}
+                        </Tooltip>
+                    </TooltipProvider>
+                    
+                    {/* Smart Execute Button for Code Cells */}
                     {definition.type === 'code' && onExecuteCode && (
                         <>
                             {/* Normal position button (hidden when floating) */}
@@ -337,17 +338,17 @@ export function CellContainer({
                                         onExecuteCode();
                                     }}
                                     variant="secondary" 
-                                    size="icon" 
-                                    className="size-8 execute-button p-1 mt-2 rounded bg-background border border-border hover:bg-accent/20 text-foreground transition-colors"
+                                    size="sm" 
+                                    className="w-6 h-6 execute-button p-1 mt-1.5 rounded bg-background border border-border hover:bg-accent/20 text-foreground transition-colors"
                                     title="Execute cell"
                                 >
-                                    <PlayIcon className="w-3 h-3" />
+                                    <PlayIcon className="w-2.5 h-2.5" />
                                 </Button>
                             )}
                             
                             {/* Placeholder to maintain layout when floating */}
                             {showFloatingButton && (
-                                <div className="size-8 p-1 mt-2 rounded opacity-0 pointer-events-none" />
+                                <div className="w-6 h-6 p-1 mt-1.5 rounded opacity-0 pointer-events-none" />
                             )}
                             
                             {/* Floating position button (portal to fixed position) */}
@@ -358,20 +359,20 @@ export function CellContainer({
                                         onExecuteCode();
                                     }}
                                     variant="secondary"
-                                    size="icon"
+                                    size="sm"
                                     className="fixed z-50 shadow-lg border-2 backdrop-blur-sm bg-background/95 hover:bg-accent/20 transition-all duration-200"
                                     style={{
                                         top: `${playButtonTop}px`,
                                         left: `${playButtonLeft}px`,
-                                        width: '32px',
-                                        height: '32px',
-                                        minWidth: '32px',
-                                        minHeight: '32px',
+                                        width: '24px',
+                                        height: '24px',
+                                        minWidth: '24px',
+                                        minHeight: '24px',
                                         padding: '4px'
                                     }}
                                     title="Execute cell"
                                 >
-                                    <PlayIcon className="w-3 h-3 flex-shrink-0" />
+                                    <PlayIcon className="w-2.5 h-2.5 flex-shrink-0" />
                                 </Button>
                             )}
                         </>
