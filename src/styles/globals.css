@@ -29,6 +29,49 @@
   [role="button"]:not([disabled]) {
     cursor: pointer;
   }
+  
+  /* Custom scrollbar styles for all platforms - macOS-like appearance */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(from var(--color-muted-foreground) r g b / 0.3) transparent;
+  }
+  
+  /* WebKit scrollbar styles (Chrome, Safari, Edge) */
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  *::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background: rgb(from var(--color-muted-foreground) r g b / 0.3);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgb(from var(--color-muted-foreground) r g b / 0.5);
+    background-clip: content-box;
+  }
+  
+  *::-webkit-scrollbar-thumb:active {
+    background: rgb(from var(--color-muted-foreground) r g b / 0.7);
+    background-clip: content-box;
+  }
+  
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  
+  /* Hide scrollbar arrows */
+  *::-webkit-scrollbar-button {
+    display: none;
+  }
 }
 
 @layer utilities {
