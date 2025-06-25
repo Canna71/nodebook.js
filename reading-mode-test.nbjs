@@ -1,0 +1,38 @@
+{
+  "cells": [
+    {
+      "id": "markdown-intro",
+      "type": "markdown",
+      "content": "# Reading Mode Test Notebook\n\nThis notebook tests that DOM outputs are preserved when switching between reading mode and edit mode.\n\n## Test Cases:\n- DOM output (styled div)\n- Object output (JSON data)\n- Table output (structured data)\n- Plotly visualization"
+    },
+    {
+      "id": "dom-output-test",
+      "type": "code",
+      "code": "// Create a styled DOM element\nconst container = createDiv({\n  style: 'background: linear-gradient(45deg, #ff6b6b, #4ecdc4); padding: 20px; border-radius: 10px; color: white; font-weight: bold; text-align: center;',\n  innerHTML: 'DOM Output Test - This should persist in reading mode!'\n});\n\noutput(container);\n\n// Export a value for reactivity\nexports.domTestValue = 'DOM test completed at ' + new Date().toLocaleTimeString();"
+    },
+    {
+      "id": "object-output-test",
+      "type": "code",
+      "code": "// Create complex object data\nconst analysisResults = {\n  revenue: 50000,\n  growth: 12.5,\n  customers: 1250,\n  trends: [\n    { month: 'Jan', value: 42000 },\n    { month: 'Feb', value: 45000 },\n    { month: 'Mar', value: 50000 }\n  ],\n  metrics: {\n    conversionRate: 0.025,\n    averageOrderValue: 40,\n    customerLifetimeValue: 320\n  }\n};\n\noutput(analysisResults);\n\nexports.analysisData = analysisResults;"
+    },
+    {
+      "id": "table-output-test",
+      "type": "code",
+      "code": "// Create table data\nconst salesData = [\n  { product: 'Widget A', sales: 1000, revenue: 25000, margin: 0.4 },\n  { product: 'Widget B', sales: 750, revenue: 18750, margin: 0.35 },\n  { product: 'Widget C', sales: 1200, revenue: 36000, margin: 0.45 },\n  { product: 'Widget D', sales: 850, revenue: 21250, margin: 0.38 }\n];\n\noutput.table(salesData);\n\nexports.salesSummary = {\n  totalSales: salesData.reduce((sum, item) => sum + item.sales, 0),\n  totalRevenue: salesData.reduce((sum, item) => sum + item.revenue, 0)\n};"
+    },
+    {
+      "id": "reactive-test",
+      "type": "formula",
+      "formula": "Total Sales: {{salesSummary?.totalSales || 0}} units\\nTotal Revenue: ${{(salesSummary?.totalRevenue || 0).toLocaleString()}}\\nTest Time: {{domTestValue || 'Not yet executed'}}"
+    },
+    {
+      "id": "instructions",
+      "type": "markdown",
+      "content": "## Testing Instructions:\n\n1. **Execute all code cells** above to generate outputs\n2. **Switch to reading mode** - all outputs should remain visible\n3. **Switch back to edit mode** - outputs should still be there\n4. **Check browser console** for any errors or warnings\n\n### Expected Behavior:\n- ✅ DOM elements (styled divs) should remain visible\n- ✅ Object displays should remain interactive\n- ✅ Tables should remain sortable/searchable\n- ✅ Reactive formulas should still show current values\n- ✅ No console errors about lost DOM references"
+    }
+  ],
+  "metadata": {
+    "title": "Reading Mode Test",
+    "description": "Test notebook for verifying DOM output preservation during reading mode switches"
+  }
+}

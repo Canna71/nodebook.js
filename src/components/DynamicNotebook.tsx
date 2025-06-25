@@ -244,33 +244,27 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
     let cellComponent: React.ReactNode;
     switch (cell.type) {
       case 'input':
-        // Input cells remain interactive in reading mode (for reactive value changes)
-        cellComponent = <InputCell definition={cell} isEditMode={isEditMode} readingMode={readingMode} />;
+        // Remove readingMode prop - handle via CSS
+        cellComponent = <InputCell definition={cell} isEditMode={isEditMode} />;
         break;
       case 'markdown':
-        cellComponent = <MarkdownCell definition={cell} initialized={initialized} isEditMode={isEditMode} readingMode={readingMode} />;
+        // Remove readingMode prop - handle via CSS
+        cellComponent = <MarkdownCell definition={cell} initialized={initialized} isEditMode={isEditMode} />;
         break;
       case 'formula':
-        cellComponent = <FormulaCell definition={cell} initialized={initialized} isEditMode={isEditMode} readingMode={readingMode} />;
+        // Remove readingMode prop - handle via CSS
+        cellComponent = <FormulaCell definition={cell} initialized={initialized} isEditMode={isEditMode} />;
         break;
       case 'code':
-        cellComponent = <CodeCell definition={cell} initialized={initialized} isEditMode={isEditMode} readingMode={readingMode} />;
+        // Remove readingMode prop - handle via CSS
+        cellComponent = <CodeCell definition={cell} initialized={initialized} isEditMode={isEditMode} />;
         break;
       default:
         log.warn(`Unknown cell type: ${(cell as any).type}`);
         return null;
     }
 
-    // In reading mode, render cells directly without CellContainer wrapper
-    if (readingMode) {
-      return (
-        <div key={cell.id} className="cell-reading-mode mb-4">
-          {cellComponent}
-        </div>
-      );
-    }
-
-    // Normal editing mode with full CellContainer
+    // Always render the same structure - use CSS to control reading mode appearance
     return (
       <CellContainer
         key={cell.id}
@@ -294,25 +288,22 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
   };
 
   return (
-    <div className="dynamic-notebook max-w-4xl mx-auto p-2 pt-6">
+    <div className={`dynamic-notebook max-w-4xl mx-auto p-2 pt-6 ${readingMode ? 'reading-mode' : ''}`}>
       <div className="notebook-cells">
         {model.cells.length === 0 ? (
-          // Empty notebook - hide in reading mode
-          readingMode ? (
-            <div className="empty-notebook-reading text-center py-12 text-secondary-foreground">
-              <div className="text-lg">No content to display</div>
-            </div>
-          ) : (
-            <div className="empty-notebook text-center py-12 text-secondary-foreground">
-              <div className="text-lg mb-4">Your notebook is empty</div>
-              <div className="text-sm mb-6">Hover over the line below to add your first cell</div>
+          <div className="empty-notebook text-center py-12 text-secondary-foreground">
+            <div className="text-lg mb-4">Your notebook is empty</div>
+            <div className="text-sm mb-6 reading-mode-hide">Hover over the line below to add your first cell</div>
+            <div className="reading-mode-hide">
               <CellSeparator onAddCell={addCell} insertIndex={0} isFirst isLast />
             </div>
-          )
+          </div>
         ) : (
-          <div className={readingMode ? "cells-reading-mode" : "cells-with-separators"}>
-            {/* In reading mode, don't show separators */}
-            {!readingMode && <CellSeparator onAddCell={addCell} insertIndex={0} isFirst />}
+          <div className="cells-container">
+            {/* Cell separator at the top - hidden in reading mode */}
+            <div className="reading-mode-hide">
+              <CellSeparator onAddCell={addCell} insertIndex={0} isFirst />
+            </div>
             
             {model.cells.map((cell, index) => (
               <React.Fragment key={cell.id}>
@@ -321,14 +312,14 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
                   {renderCell(cell, index)}
                 </div>
                 
-                {/* Add separator after each cell (not in reading mode) */}
-                {!readingMode && (
+                {/* Add separator after each cell - hidden in reading mode */}
+                <div className="reading-mode-hide">
                   <CellSeparator 
                     onAddCell={addCell} 
                     insertIndex={index + 1}
                     isLast={index === model.cells.length - 1}
                   />
-                )}
+                </div>
               </React.Fragment>
             ))}
           </div>

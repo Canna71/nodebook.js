@@ -3,7 +3,7 @@ import {
     NotebookModel, 
     CellDefinition, 
     CodeCellDefinition, 
-    MarkdownCellDefinition, 
+    MarkdownCellDefinition,
     FormulaCellDefinition, 
     InputCellDefinition 
 } from '@/Types/NotebookModel';
@@ -120,6 +120,22 @@ export class NotebookStateManager {
         log.debug(`State updated: ${description}`);
     }
 
+    /**
+     * Update state without saving to history (for UI-only state changes like reading mode)
+     */
+    private updateStateWithoutHistory(updates: Partial<ApplicationState>): void {
+        // Apply updates without saving to history
+        this.currentState = {
+            ...this.currentState,
+            ...updates
+        };
+
+        // Notify subscribers
+        this.notifyStateChange();
+
+        log.debug(`State updated without history: ${Object.keys(updates).join(', ')}`);
+    }
+
     // High-level operations that automatically handle history
     setNotebookModel(model: NotebookModel, description: string = 'Update notebook model'): void {
         this.updateState({
@@ -153,9 +169,9 @@ export class NotebookStateManager {
         });
         
         if (this.currentState.readingMode !== readingMode) {
-            this.updateState({
+            this.updateStateWithoutHistory({
                 readingMode
-            }, description);
+            });
             
             console.log('🔍 NotebookStateManager.setReadingMode - UPDATED:', {
                 newReadingMode: this.currentState.readingMode

@@ -19,11 +19,10 @@ interface CodeCellProps {
   definition: CodeCellDefinition;
   initialized: boolean;
   isEditMode?: boolean;
-  readingMode?: boolean; // NEW: Reading mode flag
 }
 
 // Add CodeCell component for display purposes
-export function CodeCell({ definition, initialized, isEditMode = false, readingMode = false }: CodeCellProps) {
+export function CodeCell({ definition, initialized, isEditMode = false }: CodeCellProps) {
     const { codeCellEngine } = useReactiveSystem();
     const { updateCell } = useApplication();
     
@@ -217,38 +216,32 @@ export function CodeCell({ definition, initialized, isEditMode = false, readingM
     };
 
     return (
-        <div className={`cell code-cell ${
-            readingMode 
-                ? 'reading-mode border-none bg-transparent mb-2' 
-                : `border rounded-lg mb-4 overflow-hidden ${
-                    error 
-                        ? 'border-destructive bg-destructive/5 dark:bg-destructive/10' // Error state styling
-                        : isStatic 
-                            ? 'border-orange-400 bg-orange-50/50 dark:bg-orange-950/20' 
-                            : 'border-border bg-background'
-                }`
+        <div className={`cell code-cell border rounded-lg mb-4 overflow-hidden ${
+            error 
+                ? 'border-destructive bg-destructive/5 dark:bg-destructive/10' // Error state styling
+                : isStatic 
+                    ? 'border-orange-400 bg-orange-50/50 dark:bg-orange-950/20' 
+                    : 'border-border bg-background'
         }`}>
-            {/* Code Summary - only show in edit mode, not reading mode */}
-            {!readingMode && (
-                <div className="flex items-center justify-between">
-                    <CodeSummary 
-                        code={currentCode}
-                        exports={exports}
-                        dependencies={dependencies}
-                        error={error}
-                    />
-                    {(isDirty || isStaticDirty) && isEditMode && (
-                        <div className="px-4 py-2">
-                            <span className="text-warning-accent text-xs font-medium">
-                                • Unsaved changes
-                            </span>
-                        </div>
-                    )}
-                </div>
-            )}
+            {/* Code Summary - hidden in reading mode via CSS */}
+            <div className="flex items-center justify-between">
+                <CodeSummary 
+                    code={currentCode}
+                    exports={exports}
+                    dependencies={dependencies}
+                    error={error}
+                />
+                {(isDirty || isStaticDirty) && isEditMode && (
+                    <div className="px-4 py-2">
+                        <span className="text-warning-accent text-xs font-medium">
+                            • Unsaved changes
+                        </span>
+                    </div>
+                )}
+            </div>
 
-            {/* Code Editor (Edit Mode) - hide in reading mode */}
-            {!readingMode && isEditMode && (
+            {/* Code Editor (Edit Mode) - hidden in reading mode via CSS */}
+            {isEditMode && (
                 <div className="code-content bg-background-secondary px-4 py-3 overflow-x-auto">
                     <Editor
                         value={currentCode}
@@ -320,25 +313,16 @@ export function CodeCell({ definition, initialized, isEditMode = false, readingM
             <div 
                 id={`${definition.id}-outEl`}
                 ref={outputContainerRef}
-                className={readingMode 
-                    ? "dom-output-container bg-transparent" 
-                    : "dom-output-container bg-background border-t border-border"
-                }
+                className="dom-output-container bg-background border-t border-border"
                 style={{ minHeight: '0px' }}
             />
 
             {/* Output Values Display - No explicit label */}
             {outputValues.length > 0 && (
-                <div className={readingMode 
-                    ? "output-values bg-transparent" 
-                    : "output-values bg-background-secondary border-t border-border"
-                }>
+                <div className="output-values bg-background-secondary border-t border-border">
                     <div className="output-content">
                         {outputValues.map((value, index) => (
-                            <div key={index} className={readingMode 
-                                ? "output-item py-1" 
-                                : "output-item px-4 py-1 [&:not(:last-child)]:border-b"
-                            }>
+                            <div key={index} className="output-item px-4 py-1 [&:not(:last-child)]:border-b">
                                 {/* {outputValues.length > 1 && (
                                     <div className="text-xs text-secondary-foreground mb-1">#{index + 1}:</div>
                                 )} */}
@@ -370,10 +354,7 @@ export function CodeCell({ definition, initialized, isEditMode = false, readingM
             )}
 
             {error && (
-                <div className={readingMode 
-                    ? "code-error bg-destructive/10 border border-destructive rounded px-3 py-2 mt-2" 
-                    : "code-error bg-destructive/10 border-t border-destructive px-4 py-3"
-                }>
+                <div className="code-error bg-destructive/10 border-t border-destructive px-4 py-3">
                     <div className="flex items-center gap-2">
                         <div className="text-xs font-medium text-destructive">Execution Error:</div>
                         <div className="text-xs text-muted-foreground">Check console for details</div>

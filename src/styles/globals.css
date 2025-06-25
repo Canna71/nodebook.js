@@ -366,3 +366,111 @@ svg text {
     /* Seamless cell display */
     margin: 0;
   }
+
+/* ======================================
+     READING MODE - PURE CSS SOLUTION
+     ====================================== */
+  
+  /* Hide elements in reading mode */
+  .reading-mode .reading-mode-hide {
+    display: none !important;
+  }
+  
+  /* Cell container adjustments for reading mode */
+  .reading-mode .cell-container {
+    /* Remove borders, shadows, and hover effects */
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    margin-bottom: 1rem !important;
+    padding: 0 !important;
+  }
+  
+  .reading-mode .cell-container:hover,
+  .reading-mode .cell-container.selected,
+  .reading-mode .cell-container.edit-mode {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+  
+  /* Hide all cell controls in reading mode */
+  .reading-mode .cell-controls,
+  .reading-mode .cell-type-indicator,
+  .reading-mode .cell-grip-indicator {
+    display: none !important;
+  }
+  
+  /* Code cell reading mode adjustments */
+  .reading-mode .code-cell {
+    border: none !important;
+    background: transparent !important;
+    margin-bottom: 0 !important;
+  }
+  
+  /* Hide code editor and summary in reading mode */
+  .reading-mode .code-cell .code-content,
+  .reading-mode .code-cell .code-summary,
+  .reading-mode .code-cell .flex.items-center.justify-between {
+    display: none !important;
+  }
+  
+  /* Keep code outputs visible but clean */
+  .reading-mode .code-cell .dom-output-container {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+  
+  .reading-mode .code-cell .output-values {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+  
+  .reading-mode .code-cell .output-item {
+    padding: 0.25rem 0 !important;
+    border: none !important;
+  }
+  
+  /* Error display in reading mode - keep visible but clean */
+  .reading-mode .code-cell .code-error {
+    border: 1px solid var(--color-destructive) !important;
+    border-radius: 0.375rem !important;
+    background: rgb(from var(--color-destructive) r g b / 0.1) !important;
+    padding: 0.75rem !important;
+    margin: 0.5rem 0 !important;
+  }
+  
+  /* Markdown cell reading mode - clean display */
+  .reading-mode .markdown-cell {
+    border: none !important;
+    background: transparent !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .reading-mode .markdown-cell .markdown-content {
+    padding: 0 !important;
+  }
+  
+  /* Formula cell reading mode - show results only */
+  .reading-mode .formula-cell {
+    border: none !important;
+    background: transparent !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .reading-mode .formula-cell .formula-editor {
+    display: none !important;
+  }
+  
+  /* Input cell reading mode - minimal display */
+  .reading-mode .input-cell {
+    border: none !important;
+    background: transparent !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .reading-mode .input-cell .input-controls {
+    display: none !important;
+  }
