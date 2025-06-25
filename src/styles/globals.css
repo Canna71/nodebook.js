@@ -330,43 +330,6 @@ svg text {
   overflow: hidden;
 }
   
-  /* Reading Mode Styles */
-  .reading-mode-active .cell-reading-mode {
-    /* Remove borders and padding for seamless reading experience */
-    border: none !important;
-    background: transparent !important;
-    padding: 0 !important;
-    margin-bottom: 1rem;
-  }
-
-  .reading-mode-active .markdown-cell-reading {
-    /* Clean markdown display */
-    padding: 0;
-    margin-bottom: 1rem;
-  }
-
-  .reading-mode-active .formula-cell-reading {
-    /* Minimal formula display */
-    padding: 0.5rem 0;
-    margin-bottom: 1rem;
-  }
-
-  .reading-mode-active .input-cell-reading {
-    /* Clean input display */
-    padding: 0.5rem 0;
-    margin-bottom: 1rem;
-  }
-
-  .reading-mode-active .cells-reading-mode {
-    /* Remove spacing adjustments for reading mode */
-    padding: 0;
-  }
-
-  .reading-mode-active .cells-reading-mode .cell-wrapper {
-    /* Seamless cell display */
-    margin: 0;
-  }
-
 /* ======================================
      READING MODE - PURE CSS SOLUTION
      ====================================== */
@@ -382,7 +345,7 @@ svg text {
     border: none !important;
     box-shadow: none !important;
     background: transparent !important;
-    margin-bottom: 1rem !important;
+    margin-bottom: 0.75rem !important; /* Consistent, smaller spacing */
     padding: 0 !important;
   }
   
@@ -405,7 +368,7 @@ svg text {
   .reading-mode .code-cell {
     border: none !important;
     background: transparent !important;
-    margin-bottom: 0 !important;
+    margin-bottom: 0 !important; /* Remove extra margin, rely on container spacing */
   }
   
   /* Hide code editor and summary in reading mode */
@@ -446,7 +409,7 @@ svg text {
   .reading-mode .markdown-cell {
     border: none !important;
     background: transparent !important;
-    margin-bottom: 1rem !important;
+    margin-bottom: 0 !important; /* Remove extra margin, rely on container spacing */
   }
   
   .reading-mode .markdown-cell .markdown-content {
@@ -457,7 +420,7 @@ svg text {
   .reading-mode .formula-cell {
     border: none !important;
     background: transparent !important;
-    margin-bottom: 1rem !important;
+    margin-bottom: 0 !important; /* Remove extra margin, rely on container spacing */
   }
   
   .reading-mode .formula-cell .formula-editor {
@@ -468,7 +431,7 @@ svg text {
   .reading-mode .input-cell {
     border: none !important;
     background: transparent !important;
-    margin-bottom: 1rem !important;
+    margin-bottom: 0 !important; /* Remove extra margin, rely on container spacing */
   }
   
   .reading-mode .input-cell .input-controls {
