@@ -141,7 +141,7 @@ function applyDarkModeToPlotly(el: HTMLElement) {
     return Plotly.relayout(el, {
           "template.layout": {
             annotationdefaults: {
-              arrowcolor: "#f2f5fa",
+              arrowcolor: "#d8dfe4",
               arrowhead: 0,
               arrowwidth: 1,
             },
@@ -192,10 +192,10 @@ function applyDarkModeToPlotly(el: HTMLElement) {
                 ],
             },
             font: {
-              color: "#f2f5fa"
+              color: "#d8dfe4"
             },
             geo: {
-              bgcolor: "#161a1d",
+              bgcolor: "#1e212b",
               lakecolor: "#161a1d",
               landcolor: "#161a1d",
               showlakes: true,
@@ -209,15 +209,15 @@ function applyDarkModeToPlotly(el: HTMLElement) {
             mapbox: {
               style: "dark"
             },
-            paper_bgcolor: "#161a1d",
-            plot_bgcolor: "#161a1d",
+            paper_bgcolor: "#1e212b",
+            plot_bgcolor: "#1e212b",
             polar: {
               angularaxis: {
                 gridcolor: "#506784",
                 linecolor: "#506784",
                 ticks: "",
               },
-              bgcolor: "#161a1d",
+              bgcolor: "#1e212b",
               radialaxis: {
                 gridcolor: "#506784",
                 linecolor: "#506784",
@@ -226,7 +226,7 @@ function applyDarkModeToPlotly(el: HTMLElement) {
             },
             scene: {
               xaxis: {
-                backgroundcolor: "#161a1d",
+                backgroundcolor: "#1e212b",
                 gridcolor: "#506784",
                 gridwidth: 2,
                 linecolor: "#506784",
@@ -235,7 +235,7 @@ function applyDarkModeToPlotly(el: HTMLElement) {
                 zerolinecolor: "#C8D4E3",
               },
               yaxis: {
-                backgroundcolor: "#161a1d",
+                backgroundcolor: "#1e212b",
                 gridcolor: "#506784",
                 gridwidth: 2,
                 linecolor: "#506784",
@@ -244,7 +244,7 @@ function applyDarkModeToPlotly(el: HTMLElement) {
                 zerolinecolor: "#C8D4E3",
               },
               zaxis: {
-                backgroundcolor: "#161a1d",
+                backgroundcolor: "#1e212b",
                 gridcolor: "#506784",
                 gridwidth: 2,
                 linecolor: "#506784",
@@ -255,12 +255,12 @@ function applyDarkModeToPlotly(el: HTMLElement) {
             },
             shapedefaults: {
               line: {
-                color: "#f2f5fa"
+                color: "#d8dfe4"
               }
             },
             sliderdefaults: {
               bgcolor: "#C8D4E3",
-              bordercolor: "#161a1d",
+              bordercolor: "#1e212b",
               borderwidth: 1,
               tickwidth: 0,
             },
@@ -275,7 +275,7 @@ function applyDarkModeToPlotly(el: HTMLElement) {
                 linecolor: "#506784",
                 ticks: "",
               },
-              bgcolor: "#161a1d",
+              bgcolor: "#1e212b",
               caxis: {
                 gridcolor: "#506784",
                 linecolor: "#506784",
@@ -328,7 +328,7 @@ function applyDarkModeToPlotly(el: HTMLElement) {
                 plot_bgcolor: "var(--color-secondary)",
             }
             // annotationdefaults: {
-            //     arrowcolor: "#f2f5fa",
+            //     arrowcolor: "#d8dfe4",
             //     arrowhead: 0,
             //     arrowwidth: 1,
             // },
@@ -379,12 +379,12 @@ function applyDarkModeToPlotly(el: HTMLElement) {
             //     ],
             // },
             // font: {
-            //     color: "#f2f5fa"
+            //     color: "#d8dfe4"
             // },
             // geo: {
-            //     bgcolor: "#161a1d",
-            //     lakecolor: "#161a1d",
-            //     landcolor: "#161a1d",
+            //     bgcolor: "#1e212b",
+            //     lakecolor: "#1e212b",
+            //     landcolor: "#1e212b",
             //     showlakes: true,
             //     showland: true,
             //     subunitcolor: "#506784",
@@ -396,15 +396,15 @@ function applyDarkModeToPlotly(el: HTMLElement) {
             // mapbox: {
             //     style: "dark"
             // },
-            // paper_bgcolor: "#161a1d",
-            // plot_bgcolor: "#161a1d",
+            // paper_bgcolor: "#1e212b",
+            // plot_bgcolor: "#1e212b",
             // polar: {
             //     angularaxis: {
             //         gridcolor: "#506784",
             //         linecolor: "#506784",
             //         ticks: "",
             //     },
-            //     bgcolor: "#161a1d",
+            //     bgcolor: "#1e212b",
             //     radialaxis: {
             //         gridcolor: "#506784",
             //         linecolor: "#506784",
@@ -413,7 +413,7 @@ function applyDarkModeToPlotly(el: HTMLElement) {
             // },
             // scene: {
             //     xaxis: {
-            //         backgroundcolor: "#161a1d",
+            //         backgroundcolor: "#1e212b",
             //         gridcolor: "#506784",
             //         gridwidth: 2,
             //         linecolor: "#506784",
@@ -422,7 +422,7 @@ function applyDarkModeToPlotly(el: HTMLElement) {
             //         zerolinecolor: "#C8D4E3",
             //     },
             //     yaxis: {
-            //         backgroundcolor: "#161a1d",
+            //         backgroundcolor: "#1e212b",
             //         gridcolor: "#506784",
             //         gridwidth: 2,
             //         linecolor: "#506784",
@@ -431,7 +431,7 @@ function applyDarkModeToPlotly(el: HTMLElement) {
             //         zerolinecolor: "#C8D4E3",
             //     },
             //     zaxis: {
-            //         backgroundcolor: "#161a1d",
+            //         backgroundcolor: "#1e212b",
             //         gridcolor: "#506784",
             //         gridwidth: 2,
             //         linecolor: "#506784",
@@ -442,12 +442,12 @@ function applyDarkModeToPlotly(el: HTMLElement) {
             // },
             // shapedefaults: {
             //     line: {
-            //         color: "#f2f5fa"
+            //         color: "#d8dfe4"
             //     }
             // },
             // sliderdefaults: {
             //     bgcolor: "#C8D4E3",
-            //     bordercolor: "#161a1d",
+            //     bordercolor: "#1e212b",
             //     borderwidth: 1,
             //     tickwidth: 0,
             // },
@@ -462,7 +462,7 @@ function applyDarkModeToPlotly(el: HTMLElement) {
             //         linecolor: "#506784",
             //         ticks: "",
             //     },
-            //     bgcolor: "#161a1d",
+            //     bgcolor: "#1e212b",
             //     caxis: {
             //         gridcolor: "#506784",
             //         linecolor: "#506784",

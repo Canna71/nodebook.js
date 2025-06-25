@@ -4,5 +4,13 @@
     },
     "editor.quickSuggestions": {
         "strings": "on"
-    }
+    },
+    "vscode-color-picker.languages": [
+
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact",
+        
+    ],
 }

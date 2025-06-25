@@ -271,9 +271,9 @@
 } */
 
 /* Utility classes for dark mode */
-.dark .plot-container { 
+/* .dark .plot-container {  */
 	 /* filter: invert(100%) hue-rotate(180deg);  */
- }
+ /* } */
 
 .dark .plot-container g.cartesianlayer  g.gridlayer path {
     stroke: var(--color-muted-foreground) !important;
@@ -301,9 +301,9 @@ svg text {
 }
 
 /* Exclude SVG text from plot container filters if needed */
-.dark .plot-container svg text {
+/* .dark .plot-container svg text { */
   /* filter: invert(100%) hue-rotate(180deg); */
-}
+/* } */
 
 /* Line clamp utilities for text truncation */
 .line-clamp-1 {
