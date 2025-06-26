@@ -19,6 +19,7 @@ import fs from 'fs-extra';
     'long',
     // '@tensorflow',
     'seedrandom',
+    // TODO: preload mathjs
     'mathjs',
     'typed-function',
     'decimal.js',
@@ -26,8 +27,10 @@ import fs from 'fs-extra';
     'fraction.js',
     'javascript-natural-sort',
     'lodash',
-    'moment',
+
     'axios',
+    'form-data',
+
     'node-fetch',
     'escape-latex',
     'tiny-emitter',

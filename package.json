@@ -70,6 +70,7 @@
     "eslint": "9.26.0",
     "eslint-plugin-import": "^2.25.0",
     "tailwindcss": "^4.1.8",
+    "terser": "^5.43.1",
     "ts-node": "^10.0.0",
     "typescript": "5.8.3",
     "unplugin-preprocessor-directives": "^1.0.3",
