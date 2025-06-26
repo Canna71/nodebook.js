@@ -38,6 +38,8 @@ jobs:
 
       - name: Test package (without make)
         run: pnpm run package
+        env:
+          NODE_OPTIONS: "--max-old-space-size=8192"
 
       - name: List package outputs
         shell: bash
