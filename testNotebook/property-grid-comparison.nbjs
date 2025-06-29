@@ -1,0 +1,24 @@
+{
+  "cells": [
+    {
+      "id": "md_01",
+      "type": "markdown",
+      "content": "# PropertyGrid vs ReactJson Comparison\n\nThis notebook compares the old ReactJson view with the new PropertyGrid component."
+    },
+    {
+      "id": "code_01",
+      "type": "code",
+      "code": "// Create a sample object\nexports.testObject = {\n  user: {\n    id: 123,\n    name: \"Alice Johnson\",\n    email: \"alice@example.com\",\n    isAdmin: false,\n    lastLogin: \"2025-06-29T10:30:00Z\"\n  },\n  preferences: {\n    theme: \"dark\",\n    language: \"en\",\n    notifications: {\n      email: true,\n      push: false,\n      sms: true\n    }\n  },\n  stats: {\n    loginCount: 42,\n    averageSessionTime: 1800.5,\n    favoriteFeatures: [\"search\", \"export\", \"collaboration\"]\n  }\n};\n\noutput(testObject);"
+    },
+    {
+      "id": "md_02",
+      "type": "markdown",
+      "content": "## Default PropertyGrid View (Above)\n\nThe object above shows the default PropertyGrid view with:\n- Clean two-column layout\n- Property names with full paths\n- Type badges for each property\n- Editable values (since it's a reactive variable)\n- Collapsible sections\n\nTry editing some values - change the user name, toggle the admin flag, or modify notification settings!"
+    },
+    {
+      "id": "md_03",
+      "type": "markdown",
+      "content": "## Toggle Between Views\n\nYou can click the \"Switch to JSON view\" button in the top-right of the PropertyGrid to see the traditional ReactJson view, and vice versa.\n\n## Key Differences\n\n### PropertyGrid Advantages:\n✅ **Cleaner layout**: Properties and values in organized columns  \n✅ **Better readability**: Clear property names and type information  \n✅ **Easier editing**: Click-to-edit interface like DataFrame editor  \n✅ **Path visualization**: Shows full nested path for each property  \n✅ **Type awareness**: Automatic type conversion during editing  \n✅ **Consistent UX**: Matches the DataFrame editing experience  \n\n### ReactJson Advantages:\n✅ **Familiar**: Traditional JSON tree structure  \n✅ **Compact**: More data visible at once  \n✅ **Copy/paste**: Easy to copy JSON snippets  \n✅ **Nested structure**: Shows object hierarchy clearly  \n\n## When to Use Each\n\n- **PropertyGrid**: Best for editing object properties, exploring data structure, or when you want a spreadsheet-like view\n- **ReactJson**: Best for viewing raw JSON structure, copying data, or when you prefer the traditional tree view"
+    }
+  ]
+}

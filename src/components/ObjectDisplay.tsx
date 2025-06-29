@@ -4,6 +4,7 @@ import ReactJson, { ThemeKeys, ThemeObject } from 'react-json-view';
 import SeriesRenderer from './SeriesRenderer';
 import DataFrameRenderer from './DataFrameRenderer';
 import { TabularRenderer } from './TabularRenderer';
+import PropertyGrid from './PropertyGrid';
 import { useReactiveSystem } from '../Engine/ReactiveProvider';
 import { LatexRenderer, isLatexContent, renderMixedContent } from './LatexRenderer';
 import { useTheme, getReactJsonTheme } from '@/lib/themeHelpers';
@@ -17,6 +18,7 @@ interface ObjectDisplayProps {
   displayDataTypes?: boolean;
   displayObjectSize?: boolean;
   enableClipboard?: boolean;
+  usePropertyGrid?: boolean; // New option to use PropertyGrid instead of ReactJson
 }
 
 // Type detection functions
@@ -54,9 +56,11 @@ export function ObjectDisplay({
   displayDataTypes = true, 
   displayObjectSize = true,
   enableClipboard = true,
+  usePropertyGrid = true, // Default to using PropertyGrid
   theme
 }: ObjectDisplayProps) {
   const reactiveContext = useReactiveSystem();
+  const [showPropertyGrid, setShowPropertyGrid] = useState(usePropertyGrid);
   
   // Use centralized theme detection
   const currentTheme = useTheme();
@@ -141,7 +145,20 @@ export function ObjectDisplay({
   //   return <TensorRenderer data={data} name={typeof name === 'string' ? name : undefined} />;
   // }
 
-  // Default fallback to ReactJson for generic objects and arrays
+  // Check if we should use PropertyGrid for generic objects
+  if (showPropertyGrid && typeof data === 'object' && data !== null) {
+    return (
+      <PropertyGrid
+        data={data}
+        name={typeof name === 'string' ? name : effectiveName}
+        editable={true}
+        collapsed={collapsed}
+        maxDepth={3}
+      />
+    );
+  }
+
+  // Fallback to ReactJson for when PropertyGrid is disabled or for primitive values
   return (
     <div className="object-display">
       <div 
@@ -189,5 +206,15 @@ export function ObjectDisplay({
 
 // Utility function to render object inline
 export const renderObjectInline = (data: any): JSX.Element => {
-  return <ObjectDisplay data={data} collapsed={true} displayDataTypes={false} name={false} />;
+  return <ObjectDisplay data={data} collapsed={true} displayDataTypes={false} name={false} usePropertyGrid={false} />;
+};
+
+// Utility function to render object with PropertyGrid
+export const renderObjectAsPropertyGrid = (data: any, name?: string): JSX.Element => {
+  return <ObjectDisplay data={data} name={name} usePropertyGrid={true} />;
+};
+
+// Utility function to render object with ReactJson (legacy)
+export const renderObjectAsJson = (data: any, name?: string): JSX.Element => {
+  return <ObjectDisplay data={data} name={name} usePropertyGrid={false} />;
 };
