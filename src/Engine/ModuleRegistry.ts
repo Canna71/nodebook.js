@@ -4,6 +4,7 @@ import anylogger from 'anylogger';
 // const { app, remote } = require('electron');
 const path = require('node:path');
 import * as Plotly from 'plotly.js-dist-min';
+import * as math from 'mathjs';
 // preloaded modules
 
 // case 2)
@@ -616,6 +617,13 @@ const danfojs:any = this.nodeRequire('danfojs');
         log.info('✓ Successfully loaded Plotly');
     } else {
         log.warn('⚠️ Plotly not available');
+    }
+
+    if( math ) {
+        this.modules.set('mathjs', math);
+        log.info('✓ Successfully loaded mathjs');
+    } else {
+        log.warn('⚠️ mathjs not available');
     }
 
     // Optional npm modules that might be available

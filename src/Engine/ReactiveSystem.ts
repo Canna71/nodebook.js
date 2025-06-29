@@ -609,6 +609,7 @@ export class CodeCellEngine {
             '@tensorflow/tfjs': 'tf',
             'tensorflow': 'tf',
             "plotly.js-dist-min": 'Plotly',
+            'mathjs': 'math',
             // Shell scripting
             'zx': 'zx',
             // Node.js built-ins (always available)
