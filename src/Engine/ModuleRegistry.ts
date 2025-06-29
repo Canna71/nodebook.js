@@ -570,21 +570,21 @@ export class ModuleRegistry {
 
     // Ensure path.join is available globally
 
-    // add process.resourcesPath to node module search path
+    // add process.resourcesPath/node_modules to node module search path
     if (this.nodeRequire) {
       const path = this.nodeRequire('path');
       const resourcesPath = process.resourcesPath || __dirname;
-      const nodeModulesPath = path.join(resourcesPath);
+      const resourcesNodeModulesPath = path.join(resourcesPath, 'node_modules');
       // Add node_modules to require paths
       if (this.nodeRequire.paths) {
-        this.nodeRequire.paths.unshift(nodeModulesPath);
+        this.nodeRequire.paths.unshift(resourcesNodeModulesPath);
       } else {
         // For older Node.js versions
-        this.nodeRequire.paths = [nodeModulesPath];
+        this.nodeRequire.paths = [resourcesNodeModulesPath];
       }
-      log.debug(`Added node_modules path: ${nodeModulesPath}`);
+      log.debug(`Added resources node_modules path: ${resourcesNodeModulesPath}`);
     } else {
-      log.warn('Node.js require not available, cannot add node_modules path');
+      log.warn('Node.js require not available, cannot add resources node_modules path');
     }
 
     // case 1)
@@ -653,28 +653,61 @@ const danfojs:any = this.nodeRequire('danfojs');
    * Initialize the module registry and file system helpers
    */
   public async initialize(): Promise<boolean> {
+    if (!this.nodeRequire) {
+      log.error('Cannot initialize: nodeRequire not available');
+      return false;
+    }
+
     const fs = await initializeFileSystemHelpers();
     if (!fs) {
       log.error('Failed to initialize file system helpers');
       return false;
     }
-    const userDataPath = fs.getUserDataPath();
-
-    // Use the user data path to create a custom module directory
-    const moduleDir = path.join(userDataPath, 'node_modules');
-    log.debug(`Adding custom module directory to require paths: ${moduleDir}`);
     
-    // Set NODE_PATH to include your custom directory
-    process.env.NODE_PATH = process.env.NODE_PATH ? 
-    `${process.env.NODE_PATH}${path.delimiter}${moduleDir}` : 
-    moduleDir;
+    try {
+      const pathModule = this.nodeRequire('path');
+      const userDataPath = fs.getUserDataPath();
+      log.debug(`Setting up user data module directory: ${userDataPath}`);
 
-    // Force Node to update its module paths
-    require('module').Module._initPaths();
+      // Use the user data path to create a custom module directory
+      const userDataModuleDir = pathModule.join(userDataPath, 'node_modules');
+      log.debug(`User data node_modules path: ${userDataModuleDir}`);
+      
+      // Add user data node_modules to require.paths for consistency with preloadCommonModules approach
+      if (this.nodeRequire.paths) {
+        // Remove if already present to avoid duplicates
+        const existingIndex = this.nodeRequire.paths.indexOf(userDataModuleDir);
+        if (existingIndex !== -1) {
+          this.nodeRequire.paths.splice(existingIndex, 1);
+        }
+        // Add to paths for direct require.paths resolution (same approach as preloadCommonModules)
+        this.nodeRequire.paths.unshift(userDataModuleDir);
+        log.info(`✓ Added user data module path to require.paths: ${userDataModuleDir}`);
+      } else {
+        // For older Node.js versions
+        this.nodeRequire.paths = [userDataModuleDir];
+        log.info(`✓ Initialized require.paths with user data module path: ${userDataModuleDir}`);
+      }
+      
+      // Also set NODE_PATH to include the custom directory (fallback mechanism)
+      process.env.NODE_PATH = process.env.NODE_PATH ? 
+        `${process.env.NODE_PATH}${pathModule.delimiter}${userDataModuleDir}` : 
+        userDataModuleDir;
+      log.debug(`✓ Added user data module path to NODE_PATH: ${userDataModuleDir}`);
 
-    log.debug(`NODE_PATH set to: ${process.env.NODE_PATH}`);
+      // Force Node to update its module paths
+      try {
+        this.nodeRequire('module').Module._initPaths();
+        log.debug('Successfully reinitialized module paths');
+      } catch (error) {
+        log.warn('Failed to reinitialize module paths:', error);
+      }
 
-    return true;
+      return true;
+    } catch (error) {
+      log.error('Failed to initialize module registry:', error);
+      return false;
+    }
   }
 }
 
