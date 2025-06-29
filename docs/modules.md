@@ -137,19 +137,37 @@ exports.bigNumber = math.bignumber('1').div(3); // Precision arithmetic
 - `Plotly` - Interactive plotting library (pre-loaded)
 - `math` - Math.js mathematical functions and expressions (pre-loaded)
 
-## Shell Scripting with zx
+## Shell Scripting with zx (Per-Notebook Installation Required)
 
-The `zx` library is preloaded and all its globals are automatically injected, providing a powerful shell scripting environment:
+**Note:** The `zx` library is **not** preloaded globally. To use `zx`, you need to install it per-notebook or in your user data directory.
 
-### Core Shell Execution
+### Installing zx
+
+**Option 1: Per-notebook installation (recommended)**
+```bash
+# In your notebook's directory
+npm install zx
+```
+
+**Option 2: Global user data installation**
+```bash
+# Navigate to user data node_modules directory first
+npm install zx
+```
+
+### Using zx after installation
 
 ```javascript
+// Require zx first (not available as global)
+const { $, cd, question, echo, sleep } = require('zx');
+
 // Execute shell commands (always async)
 const result = await $`ls -la`;
 const files = await $`find . -name "*.js"`;
 
-// Synchronous execution
-const currentDir = $.sync`pwd`;
+// Note: $.sync is not available in newer zx versions
+// Use regular $ with await instead
+const currentDir = await $`pwd`;
 
 // Command options
 const output = await $({nothrow: true})`exit 1`; // Don't throw on error

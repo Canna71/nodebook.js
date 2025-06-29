@@ -5,6 +5,8 @@ import anylogger from 'anylogger';
 const path = require('node:path');
 import * as Plotly from 'plotly.js-dist-min';
 import * as math from 'mathjs';
+
+
 // preloaded modules
 
 // case 2)
@@ -13,6 +15,7 @@ import * as math from 'mathjs';
 // #if !DEV
 // @ts-ignore - danfojs module path resolution
 import * as danfojs from '/node_modules/danfojs/dist/danfojs-browser/src';
+import * as zx from 'zx';
 // #endif
 
 // case 5)
@@ -791,6 +794,7 @@ export class ModuleRegistry {
 
 // #if DEV
 const danfojs:any = this.nodeRequire('danfojs');
+const zx:any = this.nodeRequire('zx');
 // #endif
 
     // Register statically imported danfojs
@@ -821,9 +825,15 @@ const danfojs:any = this.nodeRequire('danfojs');
         log.warn('⚠️ mathjs not available');
     }
 
+    if( zx ) {
+        this.modules.set('zx', zx);
+        log.info('✓ Successfully loaded zx');
+    } else {
+        log.warn('⚠️ zx not available');
+    }
+
     // Optional npm modules that might be available
     const optionalModules: string[] = [
-      'zx', // Shell scripting library
       // These will be loaded on-demand when requested
     ];
 

@@ -610,8 +610,8 @@ export class CodeCellEngine {
             'tensorflow': 'tf',
             "plotly.js-dist-min": 'Plotly',
             'mathjs': 'math',
-            // Shell scripting
-            'zx': 'zx',
+            // Shell scripting - main export as '$'
+            'zx': '$',
             // Node.js built-ins (always available)
             'fs': 'fs',
             'path': 'path',
@@ -665,8 +665,8 @@ export class CodeCellEngine {
                             'question', 'echo', 'stdin',
                             // Timing
                             'sleep',
-                            // File system and utilities
-                            'glob', 'which', 'minimist', 'argv', 'fs', 'os', 'path',
+                            // File system and utilities (avoid conflicts with Node.js built-ins)
+                            'glob', 'which', 'minimist', 'argv',
                             // Styling and formatting
                             'chalk',
                             // Data formats
