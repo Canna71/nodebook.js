@@ -117,7 +117,7 @@ function formatValueForEdit(value: any): string {
   return JSON.stringify(value, null, 2);
 }
 
-function formatValueWithSyntaxHighlighting(value: any): React.ReactElement {
+function formatValueWithSyntaxHighlighting(value: any): JSX.Element {
   const type = getValueType(value);
   
   if (value === null) {

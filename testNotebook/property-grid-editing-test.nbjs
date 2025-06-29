@@ -3,7 +3,7 @@
     {
       "id": "md_01",
       "type": "markdown",
-      "content": "# PropertyGrid Editing Test\n\nThis notebook tests the editing functionality of the PropertyGrid component."
+      "content": "# PropertyGrid Editing Test\n\nThis notebook tests the editing functionality of the PropertyGrid component.\n\n## New Features ✨\n- 🌳 **Hierarchical display** - nested objects are expandable\n- 🎨 **Syntax highlighting** - values styled like code with colors\n- 🖱️ **Click anywhere to edit** - no need to find the pencil icon\n- 🎯 **Better styling** - distinct backgrounds for properties vs values"
     },
     {
       "id": "code_01",

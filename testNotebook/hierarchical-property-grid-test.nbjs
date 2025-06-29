@@ -1,0 +1,59 @@
+{
+  "cells": [
+    {
+      "id": "md_intro",
+      "type": "markdown",
+      "content": "# Hierarchical PropertyGrid Test\n\nThis notebook tests the new hierarchical PropertyGrid with:\n- 🌳 **Expandable nested objects** - click to expand/collapse\n- 🎨 **Syntax highlighting** - values styled like code\n- 🔧 **Better styling** - distinct property vs value backgrounds\n- 📝 **Click-to-edit** - click anywhere on a value to edit"
+    },
+    {
+      "id": "code_nested",
+      "type": "code",
+      "code": "// Create a complex nested configuration object\nexports.appConfig = {\n  name: \"My Application\",\n  version: \"2.1.0\",\n  debug: true,\n  port: 3000,\n  \n  // Nested server configuration\n  server: {\n    host: \"localhost\",\n    port: 8080,\n    ssl: false,\n    timeout: 30000,\n    routes: {\n      api: \"/api/v1\",\n      health: \"/health\",\n      metrics: \"/metrics\"\n    }\n  },\n  \n  // Nested database configuration\n  database: {\n    host: \"db.example.com\",\n    port: 5432,\n    name: \"myapp_production\",\n    ssl: true,\n    pool: {\n      min: 2,\n      max: 10,\n      acquireTimeoutMillis: 60000\n    }\n  },\n  \n  // Feature flags\n  features: {\n    authentication: true,\n    logging: true,\n    analytics: false,\n    caching: true,\n    experimental: {\n      newUI: false,\n      betaFeatures: true,\n      advancedMetrics: false\n    }\n  },\n  \n  // Various data types\n  settings: {\n    maxUsers: 1000,\n    sessionTimeout: 3600,\n    enableNotifications: true,\n    theme: \"dark\",\n    languages: [\"en\", \"es\", \"fr\"],\n    metadata: null,\n    placeholder: undefined\n  }\n};\n\noutput(exports.appConfig);"
+    },
+    {
+      "id": "md_instructions",
+      "type": "markdown",
+      "content": "## Test Instructions\n\n**Hierarchical Display**: Notice how the PropertyGrid now shows:\n- Top-level properties (name, version, debug, port)\n- **Expandable nested objects** (server, database, features, settings)\n- **Syntax-highlighted values**: \n  - 🟢 Strings in green with quotes\n  - 🔵 Numbers in blue\n  - 🟠 Booleans in orange\n  - 🟣 Arrays showing length\n  - 🟦 Objects showing property count\n  - 🟪 null/undefined in special colors\n\n**Try This**:\n1. **Expand/collapse** nested objects by clicking the chevron arrows\n2. **Edit values** by clicking anywhere on a value (not just the pencil icon)\n3. **Notice the styling** - property names have neutral background, values have white background\n4. **Test different types** - edit strings, numbers, booleans\n\nThen run the verification cell below:"
+    },
+    {
+      "id": "code_verify",
+      "type": "code",
+      "code": "// Verify that hierarchical editing works\nconsole.log('Current appConfig after editing:');\nconsole.log(JSON.stringify(appConfig, null, 2));\n\n// Show some nested values to verify they changed\noutput({\n  'App Name': appConfig.name,\n  'Debug Mode': appConfig.debug,\n  'Server Host': appConfig.server.host,\n  'Server Port': appConfig.server.port,\n  'API Route': appConfig.server.routes.api,\n  'Database SSL': appConfig.database.ssl,\n  'Pool Max': appConfig.database.pool.max,\n  'Auth Enabled': appConfig.features.authentication,\n  'New UI Experimental': appConfig.features.experimental.newUI,\n  'Max Users': appConfig.settings.maxUsers,\n  'Theme': appConfig.settings.theme,\n  'Languages': appConfig.settings.languages\n});"
+    },
+    {
+      "id": "md_arrays",
+      "type": "markdown",
+      "content": "## Array Testing\n\nLet's test how arrays are displayed and edited:"
+    },
+    {
+      "id": "code_arrays",
+      "type": "code",
+      "code": "// Test object with arrays\nexports.arrayData = {\n  simpleArray: [\"apple\", \"banana\", \"cherry\"],\n  numberArray: [1, 2, 3, 42, 100],\n  mixedArray: [\"text\", 123, true, null],\n  nestedArray: [\n    { name: \"John\", age: 30 },\n    { name: \"Jane\", age: 25 },\n    { name: \"Bob\", age: 35 }\n  ],\n  deepNested: {\n    users: [\n      {\n        profile: {\n          name: \"Alice\",\n          settings: {\n            theme: \"light\",\n            notifications: true\n          }\n        }\n      }\n    ]\n  }\n};\n\noutput(exports.arrayData);"
+    },
+    {
+      "id": "md_array_test",
+      "type": "markdown",
+      "content": "**Array Testing**: Try these:\n1. **Expand arrays** - click chevron to see array items as `[0]`, `[1]`, etc.\n2. **Edit array values** - modify strings, numbers in the arrays\n3. **Expand nested objects in arrays** - see how objects inside arrays work\n4. **Test deep nesting** - expand the `deepNested.users[0].profile.settings` path\n\nRun verification below:"
+    },
+    {
+      "id": "code_verify_arrays",
+      "type": "code",
+      "code": "// Verify array editing\nconsole.log('Array data after editing:');\nconsole.log('Simple Array:', arrayData.simpleArray);\nconsole.log('Number Array:', arrayData.numberArray);\nconsole.log('Mixed Array:', arrayData.mixedArray);\nconsole.log('First nested user:', arrayData.nestedArray[0]);\nconsole.log('Deep nested theme:', arrayData.deepNested.users[0].profile.settings.theme);\n\noutput({\n  'First Fruit': arrayData.simpleArray[0],\n  'Last Number': arrayData.numberArray[arrayData.numberArray.length - 1],\n  'Mixed Item 1': arrayData.mixedArray[1],\n  'John Age': arrayData.nestedArray[0].age,\n  'Alice Theme': arrayData.deepNested.users[0].profile.settings.theme,\n  'Alice Notifications': arrayData.deepNested.users[0].profile.settings.notifications\n});"
+    },
+    {
+      "id": "md_reactive",
+      "type": "markdown",
+      "content": "## Reactive Updates Test\n\nTest that hierarchical editing still triggers reactive updates:"
+    },
+    {
+      "id": "code_reactive",
+      "type": "code",
+      "code": "// Create computed values based on nested properties\nconst serverUrl = `http${appConfig.server.ssl ? 's' : ''}://${appConfig.server.host}:${appConfig.server.port}${appConfig.server.routes.api}`;\nconst dbConnectionString = `postgresql://${appConfig.database.host}:${appConfig.database.port}/${appConfig.database.name}?ssl=${appConfig.database.ssl}`;\nconst isProduction = !appConfig.debug;\nconst enabledFeatures = Object.entries(appConfig.features)\n  .filter(([key, value]) => typeof value === 'boolean' && value)\n  .map(([key]) => key);\nconst experimentalFeatures = Object.entries(appConfig.features.experimental)\n  .filter(([key, value]) => value === true)\n  .map(([key]) => key);\n\nexports.computed = {\n  serverUrl,\n  dbConnectionString,\n  isProduction,\n  enabledFeatures,\n  experimentalFeatures,\n  totalUsers: appConfig.settings.maxUsers,\n  theme: appConfig.settings.theme,\n  timestamp: new Date().toISOString()\n};\n\noutput(exports.computed);"
+    },
+    {
+      "id": "md_final",
+      "type": "markdown",
+      "content": "## Final Test\n\n1. **Edit nested values** in the first PropertyGrid (try changing server.host, database.ssl, features.experimental.newUI)\n2. **Re-run the computed cell** above - values should update automatically\n3. **Verify the new design**:\n   - ✅ Hierarchical display with expand/collapse\n   - ✅ Syntax-highlighted values (colors for different types)\n   - ✅ Distinct backgrounds for property names vs values\n   - ✅ Click anywhere on value to edit\n   - ✅ Reactive updates still work\n\n## Expected Results\n\n- 🌳 **Hierarchical display** - nested objects show as expandable rows\n- 🎨 **Syntax highlighting** - strings are green, numbers blue, booleans orange\n- 🏗️ **Better structure** - property names in neutral background, values in white\n- 📝 **Easy editing** - click anywhere on a value to start editing\n- 🔄 **Reactive system** - changes propagate to dependent cells\n- 📊 **Arrays support** - arrays show items as [0], [1], etc."
+    }
+  ]
+}
