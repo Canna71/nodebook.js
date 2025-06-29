@@ -51,7 +51,7 @@ export default defineConfig({
                     vendor: ['react', 'react-dom'],
                     ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu']
                 },
-                sourcemap: true,
+                // sourcemap: true,
             }
         },
         // Reduce memory usage during build
@@ -62,6 +62,7 @@ export default defineConfig({
         //         drop_debugger: true
         //     }
         // }
+        sourcemap: true, // Enable source maps for easier debugging
     },
     server: {
         watch: {
@@ -71,5 +72,7 @@ export default defineConfig({
                 '**/.git/**'
             ]
         }
-    }
+    },
+    // sourcemap: true,
+
 });
