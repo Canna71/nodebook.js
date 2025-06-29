@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18.18.0'  # Use a stable LTS version
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -46,7 +46,7 @@ jobs:
         run: |
           echo "Package outputs:"
           if [ -d "out" ]; then
-            find out -type d -name "*" | head -10
+            find out -type d -name "*" | head -10 || true
           else
             echo "No 'out' directory found"
           fi
