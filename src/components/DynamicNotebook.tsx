@@ -158,10 +158,6 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
   }, [initialized, model?.cells, enhancedFormulaEngine]); // Removed previousFormulas from dependencies to avoid loops
 
   // Cell management functions
-  const generateCellId = (): string => {
-    return `cell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  };
-
   const addCell = (cellType: CellDefinition['type'], insertIndex?: number) => {
     console.log(`DynamicNotebook.addCell called with:`, { cellType, insertIndex });
     

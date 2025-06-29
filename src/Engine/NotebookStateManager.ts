@@ -182,6 +182,7 @@ export class NotebookStateManager {
     }
 
     loadNotebook(filePath: string, model: NotebookModel, description: string = 'Load notebook'): void {
+        // Model should already have all cell IDs assigned by ApplicationProvider
         // Only update notebook-specific state, completely avoid touching UI state
         const currentState = this.currentState;
         this.updateState({

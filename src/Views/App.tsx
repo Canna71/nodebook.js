@@ -237,37 +237,6 @@ function AppContent() {
         );
     }
 
-    // Cell management function - generates IDs with type-based prefixes and progressive numbering
-    const generateCellId = (cellType: CellDefinition['type']): string => {
-        if (!currentModel?.cells) {
-            return `${getTypePrefix(cellType)}_01`;
-        }
-
-        const prefix = getTypePrefix(cellType);
-        const existingIds = new Set(currentModel.cells.map(cell => cell.id));
-        
-        let counter = 1;
-        let candidateId: string;
-        
-        do {
-            const paddedNumber = counter.toString().padStart(2, '0');
-            candidateId = `${prefix}_${paddedNumber}`;
-            counter++;
-        } while (existingIds.has(candidateId));
-        
-        return candidateId;
-    };
-
-    const getTypePrefix = (cellType: CellDefinition['type']): string => {
-        switch (cellType) {
-            case 'markdown': return 'md';
-            case 'code': return 'code';
-            case 'formula': return 'fx';
-            case 'input': return 'var';
-            default: return 'cell';
-        }
-    };
-
     const addCell = (cellType: CellDefinition['type'], insertIndex?: number) => {
         // Use state manager's addCell method
         addCellToNotebook(cellType, insertIndex, `Add ${cellType} cell`);

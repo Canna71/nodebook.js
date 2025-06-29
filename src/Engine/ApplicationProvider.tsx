@@ -16,6 +16,74 @@ import { moduleRegistry } from '@/Engine/ModuleRegistry';
 
 const log = anylogger('ApplicationProvider');
 
+/**
+ * Ensures all cells in a notebook model have IDs, assigning them if missing
+ * Uses the same ID generation logic as for new cells
+ */
+function ensureAllCellsHaveIds(model: NotebookModel): NotebookModel {
+    // Collect existing IDs from cells that already have them
+    const existingIds = new Set<string>();
+    model.cells.forEach(cell => {
+        if (cell.id) {
+            existingIds.add(cell.id);
+        }
+    });
+
+    // Track assigned IDs during processing to avoid duplicates
+    const assignedIds = new Set<string>(existingIds);
+
+    const cellsWithIds = model.cells.map(cell => {
+        if (!cell.id) {
+            // Generate ID that doesn't conflict with existing or already assigned IDs
+            const cellId = generateCellIdWithExistingIds(cell.type, assignedIds);
+            assignedIds.add(cellId);
+            log.debug(`Assigned missing cell ID: ${cellId} for ${cell.type} cell`);
+            return { ...cell, id: cellId };
+        }
+        return cell;
+    });
+
+    // Return new model with cells that all have IDs
+    return {
+        ...model,
+        cells: cellsWithIds
+    };
+}
+
+/**
+ * Generate a cell ID that doesn't conflict with the provided set of existing IDs
+ */
+function generateCellIdWithExistingIds(cellType: CellDefinition['type'], existingIds: Set<string>): string {
+    const prefix = getTypePrefix(cellType);
+    
+    // Find the first available number
+    for (let i = 1; i <= 999; i++) {
+        const paddedNumber = i.toString().padStart(2, '0');
+        const candidateId = `${prefix}_${paddedNumber}`;
+        
+        if (!existingIds.has(candidateId)) {
+            return candidateId;
+        }
+    }
+    
+    // Fallback if somehow we reach 999 cells of the same type
+    const timestamp = Date.now().toString(36);
+    return `${prefix}_${timestamp}`;
+}
+
+/**
+ * Get type prefix for cell ID generation
+ */
+function getTypePrefix(cellType: CellDefinition['type']): string {
+    switch (cellType) {
+        case 'markdown': return 'md';
+        case 'code': return 'code';
+        case 'formula': return 'fx';
+        case 'input': return 'var';
+        default: return 'cell';
+    }
+}
+
 const ApplicationContext = createContext<ApplicationContextType | undefined>(undefined);
 
 export function ApplicationProvider({ children, commandManager }: ApplicationProviderProps) {
@@ -89,7 +157,10 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             const fs = getFileSystemHelpers();
             const content = await fs.loadNotebook(filePath);
             if (content.success) {
-                const model = content.data;
+                let model = content.data;
+            
+                // Process model to ensure all cells have IDs BEFORE setting it into state
+                model = ensureAllCellsHaveIds(model);
             
                 // Use state manager for loading notebook
                 stateManager.loadNotebook(filePath, model, `Load notebook: ${filePath.split('/').pop()}`);
