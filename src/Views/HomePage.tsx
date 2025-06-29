@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useApplication } from '@/Engine/ApplicationProvider';
+import { useCommands } from '@/Engine/CommandProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,7 @@ const path = require('node:path');
 
 export function HomePage() {
   const { createNewNotebook, loadNotebook } = useApplication();
+  const { commandManager } = useCommands();
   const [recentNotebooks, setRecentNotebooks] = useState<RecentNotebook[]>([]);
   const [exampleNotebooks, setExampleNotebooks] = useState<NotebookFileInfo[]>([]);
   const [systemInfo, setSystemInfo] = useState({
@@ -126,17 +128,13 @@ export function HomePage() {
   };
 
   const handleCreateWithAI = () => {
-    // Trigger AI notebook creation dialog
-    window.dispatchEvent(new CustomEvent('openAIDialog', { 
-      detail: { type: 'createNotebook' } 
-    }));
+    // Use the command manager directly like the toolbar does
+    commandManager.executeCommand('ai.generateNotebook');
   };
 
   const handleOpenFile = () => {
-    // Use the command system to open file dialog
-    window.dispatchEvent(new CustomEvent('executeCommand', { 
-      detail: { commandId: 'notebook.open' } 
-    }));
+    // Use the command manager directly like the toolbar does
+    commandManager.executeCommand('notebook.open');
   };  const extractFileName = (filePath: string): string => {
     // Use path.basename to get the filename, then remove extension
     const fileName = path.basename(filePath);
@@ -201,7 +199,7 @@ export function HomePage() {
           <h2 className="text-lg font-semibold text-foreground">Start</h2>
           <div className="space-y-2">
             <button
-              onClick={createNewNotebook}
+              onClick={() => commandManager.executeCommand('notebook.new')}
               className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors cursor-pointer"
             >
               <FileText className="w-4 h-4 text-primary flex-shrink-0" />
