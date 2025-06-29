@@ -659,7 +659,6 @@ const danfojs:any = this.nodeRequire('danfojs');
       return false;
     }
     const userDataPath = fs.getUserDataPath();
-    log.debug(`Adding custom module directory to require paths: ${userDataPath}`);
 
     // Use the user data path to create a custom module directory
     const moduleDir = path.join(userDataPath, 'node_modules');
@@ -672,6 +671,8 @@ const danfojs:any = this.nodeRequire('danfojs');
 
     // Force Node to update its module paths
     require('module').Module._initPaths();
+
+    log.debug(`NODE_PATH set to: ${process.env.NODE_PATH}`);
 
     return true;
   }
