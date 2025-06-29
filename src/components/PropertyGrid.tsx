@@ -21,13 +21,16 @@ interface EditableCellProps {
   path: string[];
   onValueChange: (path: string[], value: any) => void;
   onCancel?: () => void;
+  isEditable?: boolean;
 }
 
-const EditableCell: React.FC<EditableCellProps> = ({ value, path, onValueChange, onCancel }) => {
+const EditableCell: React.FC<EditableCellProps> = ({ value, path, onValueChange, onCancel, isEditable = true }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(formatValueForEdit(value));
 
   const handleSave = useCallback(() => {
+    if (!isEditable) return;
+    
     let parsedValue: any = editValue;
     
     // Try to parse the value based on the original type
@@ -54,7 +57,7 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, path, onValueChange,
     
     onValueChange(path, parsedValue);
     setIsEditing(false);
-  }, [editValue, path, value, onValueChange]);
+  }, [editValue, path, value, onValueChange, isEditable]);
 
   const handleCancel = useCallback(() => {
     setEditValue(formatValueForEdit(value));
@@ -65,13 +68,17 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, path, onValueChange,
   if (!isEditing) {
     return (
       <div 
-        className="flex items-center justify-between group cursor-pointer w-full h-full"
-        onClick={() => setIsEditing(true)}
+        className={`flex items-center justify-between group w-full h-full ${
+          isEditable ? 'cursor-pointer' : 'cursor-default'
+        }`}
+        onClick={() => isEditable && setIsEditing(true)}
       >
         <span className="flex-1 pr-2">
           {formatValueWithSyntaxHighlighting(value)}
         </span>
-        <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-40 text-muted-foreground flex-shrink-0" />
+        {isEditable && (
+          <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-40 text-muted-foreground flex-shrink-0" />
+        )}
       </div>
     );
   }
@@ -227,6 +234,7 @@ function PropertyRow({
               value={value}
               path={path}
               onValueChange={onValueChange}
+              isEditable={isEditable}
             />
           )}
         </div>
@@ -295,14 +303,35 @@ export function PropertyGrid({
     try {
       // Check if this variable exists in the reactive store
       const variableNames = reactiveContext.reactiveStore.getAllVariableNames();
-      const isEditable = variableNames.includes(name);
-      console.log('PropertyGrid: Checking if editable:', { name, variableNames, isEditable });
-      return isEditable;
+      const variableExists = variableNames.includes(name);
+      
+      if (!variableExists) {
+        console.log('PropertyGrid: Variable does not exist in reactive store:', { name, variableNames });
+        return false;
+      }
+      
+      // Additional check: verify the variable actually has the same value reference as our data
+      try {
+        const storedValue = reactiveContext.reactiveStore.getValue(name);
+        const sameReference = storedValue === data;
+        console.log('PropertyGrid: Reference check:', { name, sameReference, storedValue, data });
+        
+        // If references don't match, this might be a copy or different object
+        if (!sameReference) {
+          console.log('PropertyGrid: Not editable - object reference mismatch');
+          return false;
+        }
+        
+        return true;
+      } catch (error) {
+        console.warn('PropertyGrid: Could not verify object reference:', error);
+        return false;
+      }
     } catch (error) {
       console.error('PropertyGrid: Error checking reactive editable:', error);
       return false;
     }
-  }, [editable, name, reactiveContext]);
+  }, [editable, name, reactiveContext, data]);
 
   // Subscribe to reactive value changes
   React.useEffect(() => {
