@@ -229,6 +229,8 @@ See the following example notebooks:
 - `storage-example.json` - Basic storage operations
 - `storage-integration-test.json` - Testing save/load functionality
 
+*Note: Example notebooks may have either `.json` or `.nbjs` file extensions.*
+
 ## Troubleshooting
 
 ### Data Not Persisting
