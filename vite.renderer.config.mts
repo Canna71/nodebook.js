@@ -54,13 +54,13 @@ export default defineConfig({
             }
         },
         // Reduce memory usage during build
-        minify: 'terser',
-        terserOptions: {
-            compress: {
-                drop_console: false, // Keep console logs for debugging
-                drop_debugger: true
-            }
-        }
+        // minify: 'terser',
+        // terserOptions: {
+        //     compress: {
+        //         drop_console: false, // Keep console logs for debugging
+        //         drop_debugger: true
+        //     }
+        // }
     },
     server: {
         watch: {
