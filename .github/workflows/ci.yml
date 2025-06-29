@@ -31,7 +31,7 @@ jobs:
           version: latest
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --build-from-source=false
+        run: pnpm install --frozen-lockfile
         env:
             npm_config_tfjs_node_prebuilt: true    
       - name: Run prebuild script
