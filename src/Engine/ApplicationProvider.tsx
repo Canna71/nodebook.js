@@ -135,6 +135,13 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     const setError = useCallback((error: string | null) => {
         // Use state manager for error state to avoid race conditions
         stateManager.setErrorState(error, error ? 'Set error' : 'Clear error');
+        
+        // Auto-clear errors after 10 seconds to prevent stale error states
+        if (error) {
+            setTimeout(() => {
+                stateManager.setErrorState(null, 'Auto-clear error');
+            }, 10000);
+        }
     }, [stateManager]);
 
     const clearError = useCallback(() => {
@@ -183,16 +190,36 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 }
                 
                 log.info('Notebook loaded successfully:', filePath);
+                
+                // Clear any previous error state on successful load
+                setError(null);
+                
                 // Mark loading as complete after successful load
                 setLoading(false);
             } else {
+                const errorMessage = `Failed to load notebook: ${content.error}`;
                 log.error('Failed to load notebook:', content.error);
-                setError(`Failed to load notebook: ${content.error}`);
+                setError(errorMessage);
+                
+                // Show toast notification for immediate user feedback
+                toast.error('Failed to Load Notebook', {
+                    description: content.error,
+                    duration: 5000,
+                });
+                
                 setLoading(false);
             }
         } catch (error) {
+            const errorMessage = `Failed to load notebook: ${error instanceof Error ? error.message : 'Unknown error'}`;
             log.error('Error loading notebook:', error);
-            setError(`Failed to load notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            setError(errorMessage);
+            
+            // Show toast notification for immediate user feedback
+            toast.error('Error Loading Notebook', {
+                description: error instanceof Error ? error.message : 'An unknown error occurred',
+                duration: 5000,
+            });
+            
             setLoading(false);
         }
     }, [stateManager]);    

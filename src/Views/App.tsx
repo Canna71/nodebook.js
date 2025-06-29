@@ -226,16 +226,8 @@ function AppContent() {
         );
     }
 
-    if (error) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center text-error">
-                    <div className="text-xl mb-4">Error</div>
-                    <div>{error}</div>
-                </div>
-            </div>
-        );
-    }
+    // Note: We don't render a full-screen error view here anymore.
+    // Errors are handled via modal dialogs and toasts, allowing users to stay in their current view.
 
     const addCell = (cellType: CellDefinition['type'], insertIndex?: number) => {
         // Use state manager's addCell method
