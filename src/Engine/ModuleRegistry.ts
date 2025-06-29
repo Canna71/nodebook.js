@@ -104,20 +104,17 @@ export class ModuleRegistry {
           log.debug(`Current module paths: ${this.nodeRequire.paths.slice(0, 5).join(', ')}${this.nodeRequire.paths.length > 5 ? '...' : ''}`);
         }
         
-        // Also update NODE_PATH environment variable
+        // Force comprehensive module resolution update
         const currentNodePath = process.env.NODE_PATH || '';
-        const pathSeparator = path.delimiter;
         
         if (!currentNodePath.includes(notebookModulesPath)) {
-          process.env.NODE_PATH = currentNodePath 
-            ? `${notebookModulesPath}${pathSeparator}${currentNodePath}`
-            : notebookModulesPath;
+          log.debug('Forcing module resolution update after adding notebook path...');
+          const updateSuccess = this.forceModuleResolutionUpdate();
           
-          // Force Node to update its module paths
-          try {
-            this.nodeRequire('module').Module._initPaths();
-          } catch (error) {
-            log.warn('Failed to reinitialize module paths:', error);
+          if (updateSuccess) {
+            log.info(`✓ Updated module resolution with notebook path: ${notebookModulesPath}`);
+          } else {
+            log.warn('Failed to update module resolution after adding notebook path');
           }
         }
       } else {
@@ -156,18 +153,23 @@ export class ModuleRegistry {
         // Remove from our tracking set
         this.currentNotebookModulePaths.delete(notebookModulesPath);
         
-        // Update NODE_PATH environment variable
+        // Update NODE_PATH environment variable using the working approach
         const currentNodePath = process.env.NODE_PATH || '';
         const pathSeparator = path.delimiter;
         
         if (currentNodePath.includes(notebookModulesPath)) {
-          const pathArray = currentNodePath.split(pathSeparator);
-          const filteredPaths = pathArray.filter(p => p !== notebookModulesPath);
-          process.env.NODE_PATH = filteredPaths.join(pathSeparator);
+          // Set NODE_PATH to the actual require.paths (your working solution)
+          process.env.NODE_PATH = this.nodeRequire.paths.join(pathSeparator);
+          log.debug(`Updated NODE_PATH from require.paths after removal: ${process.env.NODE_PATH}`);
           
           // Force Node to update its module paths
           try {
-            this.nodeRequire('module').Module._initPaths();
+            const Module = this.nodeRequire('module');
+            if (Module._pathCache) {
+              Module._pathCache = Object.create(null);
+            }
+            Module._initPaths();
+            log.debug('Successfully reinitialized module paths after removal');
           } catch (error) {
             log.warn('Failed to reinitialize module paths after removal:', error);
           }
@@ -208,19 +210,20 @@ export class ModuleRegistry {
       // Clear our tracking set
       this.currentNotebookModulePaths.clear();
       
-      // Clean up NODE_PATH environment variable
+      // Clean up NODE_PATH environment variable using the working approach
       if (process.env.NODE_PATH) {
-        const pathArray = process.env.NODE_PATH.split(pathSeparator);
-        const filteredPaths = pathArray.filter(p => 
-          !p.includes('node_modules') || 
-          p.includes(this.nodeRequire('os').homedir()) || // Keep user data modules
-          !p.includes('/') // Keep relative paths
-        );
-        process.env.NODE_PATH = filteredPaths.join(pathSeparator);
+        // Set NODE_PATH to the actual require.paths (your working solution)
+        process.env.NODE_PATH = this.nodeRequire.paths.join(pathSeparator);
+        log.debug(`Updated NODE_PATH from require.paths after clearing: ${process.env.NODE_PATH}`);
         
         // Force Node to update its module paths
         try {
-          this.nodeRequire('module').Module._initPaths();
+          const Module = this.nodeRequire('module');
+          if (Module._pathCache) {
+            Module._pathCache = Object.create(null);
+          }
+          Module._initPaths();
+          log.debug('Successfully reinitialized module paths after clearing');
         } catch (error) {
           log.warn('Failed to reinitialize module paths after clearing:', error);
         }
@@ -247,13 +250,200 @@ export class ModuleRegistry {
     notebookModulePaths: string[];
     nodePathEnv: string;
     availableModules: string[];
+    moduleGlobalPaths: string[];
+    moduleNodeModulePaths: string[];
   } {
+    const Module = this.nodeRequire ? this.nodeRequire('module') : null;
+    
     return {
       nodeRequirePaths: this.nodeRequire?.paths || [],
       notebookModulePaths: this.getActiveNotebookModulePaths(),
       nodePathEnv: process.env.NODE_PATH || '',
-      availableModules: this.getAvailableModules()
+      availableModules: this.getAvailableModules(),
+      moduleGlobalPaths: Module?.globalPaths || [],
+      moduleNodeModulePaths: Module ? Module._nodeModulePaths(process.cwd()) : []
     };
+  }
+
+  /**
+   * Force module resolution paths update using multiple approaches
+   */
+  public forceModuleResolutionUpdate(): boolean {
+    if (!this.nodeRequire) {
+      log.error('Cannot force module resolution update: nodeRequire not available');
+      return false;
+    }
+
+    try {
+      const pathModule = this.nodeRequire('path');
+      const Module = this.nodeRequire('module');
+      
+      log.debug('=== Forcing Module Resolution Update ===');
+      log.debug(`Current require.paths: ${this.nodeRequire.paths?.join(', ') || 'none'}`);
+      log.debug(`Current NODE_PATH: ${process.env.NODE_PATH || 'not set'}`);
+      
+      // Method 1: Set NODE_PATH to require.paths (your working solution)
+      if (this.nodeRequire.paths && this.nodeRequire.paths.length > 0) {
+        const oldNodePath = process.env.NODE_PATH;
+        const newNodePath = this.nodeRequire.paths.join(pathModule.delimiter);
+        
+        // Try multiple approaches to set NODE_PATH
+        process.env.NODE_PATH = newNodePath;
+        
+        // Also try setting it on the global process object directly
+        if (typeof global !== 'undefined' && global.process && global.process.env) {
+          global.process.env.NODE_PATH = newNodePath;
+          log.debug('✓ Set NODE_PATH on global.process.env');
+        }
+        
+        // And on the window.process if available (Electron)
+        if (typeof window !== 'undefined' && (window as any).process && (window as any).process.env) {
+          (window as any).process.env.NODE_PATH = newNodePath;
+          log.debug('✓ Set NODE_PATH on window.process.env');
+        }
+        
+        log.info(`✓ Set NODE_PATH from: ${oldNodePath || 'unset'} to: ${newNodePath}`);
+        
+        // Immediate verification
+        const immediateVerification = process.env.NODE_PATH;
+        log.debug(`NODE_PATH immediate verification: ${immediateVerification || 'NOT SET'}`);
+        
+        // Delayed verification
+        setTimeout(() => {
+          const currentNodePath = process.env.NODE_PATH;
+          log.debug(`NODE_PATH verification after 100ms: ${currentNodePath || 'NOT SET'}`);
+          
+          // If NODE_PATH gets reset, try a more persistent approach
+          if (!currentNodePath || currentNodePath !== newNodePath) {
+            log.warn('NODE_PATH was reset! Trying persistent approach...');
+            this.setupPersistentNodePath(newNodePath);
+          }
+        }, 100);
+        
+        // Even more delayed verification
+        setTimeout(() => {
+          const currentNodePath = process.env.NODE_PATH;
+          log.debug(`NODE_PATH verification after 500ms: ${currentNodePath || 'NOT SET'}`);
+        }, 500);
+      }
+      
+      // Method 2: Clear module resolution caches
+      if (Module._pathCache) {
+        Module._pathCache = Object.create(null);
+        log.debug('✓ Cleared Module._pathCache');
+      }
+      
+      // Method 3: Force path reinitialization
+      try {
+        Module._initPaths();
+        log.info('✓ Called Module._initPaths()');
+      } catch (error) {
+        log.warn('Module._initPaths() failed:', error);
+      }
+      
+      // Method 4: Directly modify Module.globalPaths (more aggressive approach)
+      if (Module.globalPaths && this.nodeRequire.paths) {
+        const originalLength = Module.globalPaths.length;
+        
+        // Remove our paths first to avoid duplicates
+        for (const customPath of this.nodeRequire.paths) {
+          const index = Module.globalPaths.indexOf(customPath);
+          if (index !== -1) {
+            Module.globalPaths.splice(index, 1);
+          }
+        }
+        
+        // Add our paths to the beginning (highest priority)
+        for (let i = this.nodeRequire.paths.length - 1; i >= 0; i--) {
+          Module.globalPaths.unshift(this.nodeRequire.paths[i]);
+        }
+        
+        log.debug(`✓ Updated Module.globalPaths from ${originalLength} to ${Module.globalPaths.length} entries`);
+        log.debug(`New globalPaths (first 3): ${Module.globalPaths.slice(0, 3).join(', ')}`);
+      }
+      
+      // Method 5: Hook into Module._resolveFilename if possible (most aggressive)
+      try {
+        const originalResolveFilename = Module._resolveFilename;
+        const customPaths = [...(this.nodeRequire.paths || [])];
+        
+        // Only hook once
+        if (!Module._customResolveHooked && customPaths.length > 0) {
+          Module._resolveFilename = function(request: string, parent: any, isMain: boolean, options?: any) {
+            try {
+              // Try original resolution first
+              return originalResolveFilename.call(this, request, parent, isMain, options);
+            } catch (originalError) {
+              // If that fails, try our custom paths
+              for (const customPath of customPaths) {
+                try {
+                  const testPath = pathModule.join(customPath, request);
+                  if (originalResolveFilename.call(this, testPath, parent, isMain, options)) {
+                    log.debug(`✓ Resolved ${request} using custom path: ${customPath}`);
+                    return originalResolveFilename.call(this, testPath, parent, isMain, options);
+                  }
+                } catch (customError) {
+                  // Continue to next path
+                }
+              }
+              // If all custom paths fail, throw the original error
+              throw originalError;
+            }
+          };
+          
+          Module._customResolveHooked = true;
+          log.debug('✓ Hooked Module._resolveFilename for custom path resolution');
+        }
+      } catch (error) {
+        log.debug('Could not hook Module._resolveFilename:', error);
+      }
+      
+      // Method 6: Test if resolution actually works now
+      log.debug('Testing module resolution after update...');
+      const testResults = this.testModuleResolution();
+      log.debug(`Module resolution test results:`, testResults);
+      
+      return true;
+    } catch (error) {
+      log.error('Failed to force module resolution update:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Test if module resolution is working for common paths
+   */
+  private testModuleResolution(): { [path: string]: boolean } {
+    const results: { [path: string]: boolean } = {};
+    
+    if (!this.nodeRequire || !this.nodeRequire.paths) {
+      return results;
+    }
+    
+    // Test if we can resolve a hypothetical module from each path
+    for (const modulePath of this.nodeRequire.paths.slice(0, 3)) { // Test first 3 paths
+      try {
+        // Try to check if the path is being considered by Node.js
+        const fs = this.nodeRequire('fs');
+        const pathExists = fs.existsSync(modulePath);
+        results[modulePath] = pathExists;
+        
+        if (pathExists) {
+          // Try to see what packages are available
+          try {
+            const packages = fs.readdirSync(modulePath).filter((name: string) => !name.startsWith('.'));
+            log.debug(`Path ${modulePath} contains ${packages.length} packages`);
+          } catch (error) {
+            log.debug(`Cannot read ${modulePath}:`, error);
+          }
+        }
+      } catch (error) {
+        results[modulePath] = false;
+        log.debug(`Error testing path ${modulePath}:`, error);
+      }
+    }
+    
+    return results;
   }
 
   /**
@@ -575,14 +765,19 @@ export class ModuleRegistry {
       const path = this.nodeRequire('path');
       const resourcesPath = process.resourcesPath || __dirname;
       const resourcesNodeModulesPath = path.join(resourcesPath, 'node_modules');
-      // Add node_modules to require paths
+      
+      // Add to require.paths
       if (this.nodeRequire.paths) {
         this.nodeRequire.paths.unshift(resourcesNodeModulesPath);
       } else {
         // For older Node.js versions
         this.nodeRequire.paths = [resourcesNodeModulesPath];
       }
-      log.debug(`Added resources node_modules path: ${resourcesNodeModulesPath}`);
+      log.debug(`Added resources node_modules path to require.paths: ${resourcesNodeModulesPath}`);
+      
+      // Update NODE_PATH using the working approach (set it to the actual require.paths)
+      process.env.NODE_PATH = this.nodeRequire.paths.join(path.delimiter);
+      log.debug(`Set NODE_PATH from require.paths: ${process.env.NODE_PATH}`);
     } else {
       log.warn('Node.js require not available, cannot add resources node_modules path');
     }
@@ -673,40 +868,101 @@ const danfojs:any = this.nodeRequire('danfojs');
       const userDataModuleDir = pathModule.join(userDataPath, 'node_modules');
       log.debug(`User data node_modules path: ${userDataModuleDir}`);
       
-      // Add user data node_modules to require.paths for consistency with preloadCommonModules approach
+      // Check if the directory exists
+      const fsModule = this.nodeRequire('fs');
+      const dirExists = fsModule.existsSync(userDataModuleDir);
+      log.debug(`User data node_modules exists: ${dirExists}`);
+      
+      // Add to require.paths first
       if (this.nodeRequire.paths) {
+        log.debug(`Current require.paths before adding user data: ${this.nodeRequire.paths.slice(0, 3).join(', ')}...`);
+        
         // Remove if already present to avoid duplicates
         const existingIndex = this.nodeRequire.paths.indexOf(userDataModuleDir);
         if (existingIndex !== -1) {
           this.nodeRequire.paths.splice(existingIndex, 1);
+          log.debug(`Removed existing user data path at index ${existingIndex}`);
         }
-        // Add to paths for direct require.paths resolution (same approach as preloadCommonModules)
+        // Add to paths
         this.nodeRequire.paths.unshift(userDataModuleDir);
-        log.info(`✓ Added user data module path to require.paths: ${userDataModuleDir}`);
+        log.debug(`Added user data module path to require.paths: ${userDataModuleDir}`);
+        log.debug(`New require.paths: ${this.nodeRequire.paths.slice(0, 3).join(', ')}...`);
       } else {
         // For older Node.js versions
         this.nodeRequire.paths = [userDataModuleDir];
-        log.info(`✓ Initialized require.paths with user data module path: ${userDataModuleDir}`);
+        log.debug(`Initialized require.paths with user data module path: ${userDataModuleDir}`);
+      }
+
+      // Force comprehensive module resolution update
+      log.debug('=== Starting comprehensive module resolution update ===');
+      const updateSuccess = this.forceModuleResolutionUpdate();
+      
+      if (!updateSuccess) {
+        log.error('Failed to update module resolution - this may affect module loading');
       }
       
-      // Also set NODE_PATH to include the custom directory (fallback mechanism)
-      process.env.NODE_PATH = process.env.NODE_PATH ? 
-        `${process.env.NODE_PATH}${pathModule.delimiter}${userDataModuleDir}` : 
-        userDataModuleDir;
-      log.debug(`✓ Added user data module path to NODE_PATH: ${userDataModuleDir}`);
-
-      // Force Node to update its module paths
-      try {
-        this.nodeRequire('module').Module._initPaths();
-        log.debug('Successfully reinitialized module paths');
-      } catch (error) {
-        log.warn('Failed to reinitialize module paths:', error);
-      }
+      // Log final state
+      log.debug('=== Final module resolution state ===');
+      const debugInfo = this.getDebugInfo();
+      log.debug(`Final NODE_PATH: ${debugInfo.nodePathEnv}`);
+      log.debug(`Final require.paths: ${debugInfo.nodeRequirePaths.slice(0, 3).join(', ')}...`);
+      log.debug(`Module globalPaths: ${debugInfo.moduleGlobalPaths.slice(0, 3).join(', ')}...`);
 
       return true;
     } catch (error) {
       log.error('Failed to initialize module registry:', error);
       return false;
+    }
+  }
+
+  /**
+   * Setup a more persistent NODE_PATH that resists being reset
+   */
+  private setupPersistentNodePath(nodePath: string): void {
+    try {
+      log.debug('Setting up persistent NODE_PATH approach...');
+      
+      // Try to override the env property with a getter/setter
+      const originalDescriptor = Object.getOwnPropertyDescriptor(process.env, 'NODE_PATH');
+      
+      try {
+        Object.defineProperty(process.env, 'NODE_PATH', {
+          get: () => {
+            log.debug('NODE_PATH getter called, returning:', nodePath);
+            return nodePath;
+          },
+          set: (value) => {
+            log.debug(`NODE_PATH setter called with: ${value}, ignoring and keeping: ${nodePath}`);
+            // Ignore attempts to change it
+          },
+          enumerable: true,
+          configurable: true
+        });
+        log.debug('✓ Set up persistent NODE_PATH with getter/setter');
+      } catch (error) {
+        // If that fails, restore original descriptor
+        if (originalDescriptor) {
+          Object.defineProperty(process.env, 'NODE_PATH', originalDescriptor);
+        }
+        log.debug('Could not set up persistent NODE_PATH:', error);
+      }
+      
+      // Also try periodically resetting it
+      const intervalId = setInterval(() => {
+        if (process.env.NODE_PATH !== nodePath) {
+          log.debug(`NODE_PATH was changed from ${nodePath} to ${process.env.NODE_PATH}, restoring...`);
+          process.env.NODE_PATH = nodePath;
+        }
+      }, 1000);
+      
+      // Clear interval after 10 seconds to avoid memory leaks
+      setTimeout(() => {
+        clearInterval(intervalId);
+        log.debug('Stopped NODE_PATH monitoring');
+      }, 10000);
+      
+    } catch (error) {
+      log.error('Failed to setup persistent NODE_PATH:', error);
     }
   }
 }
