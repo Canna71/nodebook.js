@@ -122,12 +122,20 @@ const trace = {
 const plotDiv = createDiv({ style: 'width: 100%; height: 400px;' });
 Plotly.newPlot(plotDiv.id, [trace], { title: 'My Plot' });
 output(plotDiv);
+
+// Math.js - math is available globally
+exports.calculation = math.evaluate('sqrt(3^2 + 4^2)');
+exports.matrix = math.matrix([[1, 2], [3, 4]]);
+exports.complexNum = math.evaluate('(2 + 3i) * (1 - 2i)');
+exports.unitConversion = math.evaluate('5 km + 3 miles');
+exports.bigNumber = math.bignumber('1').div(3); // Precision arithmetic
 ```
 
 **Available Pre-bundled Library Globals:**
 - `dfd` - Danfo.js DataFrame library (pre-loaded)
 - `tf` - TensorFlow.js machine learning (from danfojs, pre-loaded)
 - `Plotly` - Interactive plotting library (pre-loaded)
+- `math` - Math.js mathematical functions and expressions (pre-loaded)
 
 ## Shell Scripting with zx
 
@@ -355,10 +363,13 @@ await sleep('2s'); // Wait 2 seconds
 These scientific and data libraries are available via `require()` but are **not** automatically injected as globals:
 
 ```javascript
-// Mathematical computing - need to require
-const math = require('mathjs');
+// Mathematical computing - now available globally as 'math'
 exports.result = math.evaluate('sqrt(3^2 + 4^2)');
 exports.matrix = math.matrix([[1, 2], [3, 4]]);
+
+// You can still require it if needed for compatibility:
+const mathjs = require('mathjs');
+console.log('Both are the same:', math === mathjs);
 
 // Data visualization with D3 - need to require
 const d3 = require('d3');
@@ -396,7 +407,6 @@ exports.tomorrow = moment().add(1, 'day').toDate();
 ```
 
 **Pre-bundled Libraries (Require-Available):**
-- `mathjs` - Mathematical functions and expressions
 - `lodash` - Utility functions
 - `moment` - Date/time manipulation
 - `d3` - Data visualization toolkit

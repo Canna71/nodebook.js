@@ -3,12 +3,7 @@
     {
       "type": "markdown",
       "id": "md_mbthsdfa_hv9vy",
-      "content": "# Mathjs Example\n\n\nThis Notebook shows how to do math with **Nodebook.js**\n\n"
-    },
-    {
-      "type": "code",
-      "id": "code_mbthu70i_bxyvx",
-      "code": "// importing mathjs\nconst mathjs = require('mathjs')\nexports.mathjs = mathjs;\n"
+      "content": "# Mathjs Example\n\n\nThis Notebook shows how to do math with **Nodebook.js**\n\n**Note**: Math.js is now preloaded as the global `math` variable. You can use it directly without requiring it, or use `require('mathjs')` as shown here for compatibility.\n\n"
     },
     {
       "type": "markdown",
@@ -18,17 +13,17 @@
     {
       "type": "code",
       "id": "code_mbthwfdu_el2vx",
-      "code": "const simplify = mathjs.simplify;\noutput(simplify('3 + 2 / 4').toString());\noutput(simplify('2x + 3x').toString());\noutput(simplify('2 * 3 * x', { x: 4 }).toString());\noutput(simplify('x^2 + x + 3 + x^2').toString());\noutput(simplify('x * y * -x / (x ^ 2)').toString());"
+      "code": "const simplify = math.simplify;\noutput(simplify('3 + 2 / 4').toString());\noutput(simplify('2x + 3x').toString());\noutput(simplify('2 * 3 * x', { x: 4 }).toString());\noutput(simplify('x^2 + x + 3 + x^2').toString());\noutput(simplify('x * y * -x / (x ^ 2)').toString());"
     },
     {
       "type": "markdown",
       "id": "md_mbti1j6a_3d4u0",
-      "content": "## work with an expression tree\n\n```c#\ninternal class() {\n\n}\n```"
+      "content": "## work with an expression tree\n\n"
     },
     {
       "type": "code",
       "id": "code_mbti1x72_wlawe",
-      "code": "const f = mathjs.parse('2x + x')\nconst simplified = mathjs.simplify(f);\noutput(simplified.toString());\noutput(simplified.evaluate({ x: 4 }));"
+      "code": "const f = math.parse('2x + x')\nconst simplified = math.simplify(f);\noutput(simplified.toString());\noutput(simplified.evaluate({ x: 4 }));"
     },
     {
       "type": "markdown",
@@ -38,7 +33,7 @@
     {
       "type": "code",
       "id": "code_mbti4nn0_53ohw",
-      "code": "\noutput(mathjs.derivative('2x^2 + 3x + 4', 'x').toString()) // '4 * x + 3'\noutput(mathjs.derivative('sin(2x)', 'x').toString()) // '2 * cos(2 * x)'"
+      "code": "\noutput(math.derivative('2x^2 + 3x + 4', 'x').toString()) // '4 * x + 3'\noutput(math.derivative('sin(2x)', 'x').toString()) // '2 * cos(2 * x)'"
     },
     {
       "type": "markdown",
@@ -48,7 +43,7 @@
     {
       "type": "code",
       "id": "code_mbtikuc4_1sv43",
-      "code": "const expr = 'sqrt(75 / 3) + det([[-1, 2], [3, 1]]) - sin(pi / 4)^2';\nconst node = mathjs.parse(expr);\noutput(\"$$\"+node.toTex()+\"$$\");\n\n\n"
+      "code": "const expr = 'sqrt(75 / 3) + det([[-1, 2], [3, 1]]) - sin(pi / 4)^2';\nconst node = math.parse(expr);\noutput(\"$$\"+node.toTex()+\"$$\");\n\n\n"
     },
     {
       "type": "markdown",

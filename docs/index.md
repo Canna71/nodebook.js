@@ -163,7 +163,7 @@ Understanding how the reactive system works and how to leverage it effectively.
 ## Advanced Features
 
 ### [Modules & Libraries](./modules.md)
-Access powerful libraries like Plotly, D3, Math.js, and data manipulation tools.
+Access powerful libraries like Plotly, D3, Math.js, and data manipulation tools. Many libraries like `math`, `dfd` (danfojs), `tf` (tensorflow), and `Plotly` are preloaded as global variables.
 
 ![Module Usage](./images/module-usage.png)
 *Examples of using different modules for data analysis and visualization*
