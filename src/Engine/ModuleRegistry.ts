@@ -15,7 +15,8 @@ import * as math from 'mathjs';
 // #if !DEV
 // @ts-ignore - danfojs module path resolution
 import * as danfojs from '/node_modules/danfojs/dist/danfojs-browser/src';
-import * as zx from 'zx';
+// import * as zx from 'zx';
+
 // #endif
 
 // case 5)
@@ -794,8 +795,8 @@ export class ModuleRegistry {
 
 // #if DEV
 const danfojs:any = this.nodeRequire('danfojs');
-const zx:any = this.nodeRequire('zx');
 // #endif
+const zx:any = this.nodeRequire('zx');
 
     // Register statically imported danfojs
     if (danfojs) {
