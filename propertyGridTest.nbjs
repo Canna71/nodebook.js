@@ -1,0 +1,24 @@
+{
+  "id": "property-grid-test",
+  "title": "PropertyGrid Test",
+  "cells": [
+    {
+      "id": "cell-1",
+      "type": "code",
+      "content": "// Test data for PropertyGrid\nexports.testObject = {\n  name: \"John Doe\",\n  age: 30,\n  active: true,\n  score: 95.5,\n  tags: [\"developer\", \"typescript\", \"react\"],\n  address: {\n    street: \"123 Main St\",\n    city: \"New York\",\n    country: \"USA\",\n    coordinates: {\n      lat: 40.7128,\n      lng: -74.0060\n    }\n  },\n  metadata: null,\n  settings: {\n    theme: \"dark\",\n    notifications: true,\n    privacy: {\n      shareData: false,\n      analytics: true\n    }\n  }\n};\n\noutput(testObject);",
+      "isStatic": false
+    },
+    {
+      "id": "cell-2", 
+      "type": "code",
+      "content": "// Test large array\nexports.largeArray = Array.from({length: 50}, (_, i) => ({\n  id: i + 1,\n  name: `Item ${i + 1}`,\n  value: Math.random() * 100,\n  category: ['A', 'B', 'C'][i % 3]\n}));\n\noutput(largeArray);",
+      "isStatic": false
+    },
+    {
+      "id": "cell-3",
+      "type": "code", 
+      "content": "// Test mixed data types\nexports.mixedData = {\n  string: \"Hello world\",\n  number: 42,\n  boolean: true,\n  nullValue: null,\n  undefinedValue: undefined,\n  array: [1, 2, 3, \"four\", true],\n  nestedObject: {\n    level1: {\n      level2: {\n        level3: {\n          deep: \"very deep value\"\n        }\n      }\n    }\n  },\n  longString: \"This is a very long string that should be truncated in the display to test how the PropertyGrid handles long text values that exceed the normal display width\"\n};\n\noutput(mixedData);",
+      "isStatic": false
+    }
+  ]
+}

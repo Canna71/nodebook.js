@@ -68,23 +68,23 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, path, onValueChange,
   if (!isEditing) {
     return (
       <div 
-        className={`flex items-center justify-between group w-full h-full ${
+        className={`flex items-center justify-between group w-full h-full py-0.5 ${
           isEditable ? 'cursor-pointer' : 'cursor-default'
         }`}
         onClick={() => isEditable && setIsEditing(true)}
       >
-        <span className="flex-1 pr-2">
+        <span className="flex-1 pr-2 text-xs">
           {formatValueWithSyntaxHighlighting(value)}
         </span>
         {isEditable && (
-          <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-40 text-muted-foreground flex-shrink-0" />
+          <Pencil className="h-2.5 w-2.5 opacity-0 group-hover:opacity-50 text-muted-foreground flex-shrink-0" />
         )}
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 py-0.5">
       <Input
         value={editValue}
         onChange={(e) => setEditValue(e.target.value)}
@@ -92,25 +92,25 @@ const EditableCell: React.FC<EditableCellProps> = ({ value, path, onValueChange,
           if (e.key === 'Enter') handleSave();
           if (e.key === 'Escape') handleCancel();
         }}
-        className="text-xs font-mono h-6 flex-1"
+        className="text-xs font-mono h-5 flex-1 py-0 px-1"
         autoFocus
         onBlur={handleSave}
       />
       <Button
         size="sm"
         variant="ghost"
-        className="h-5 w-5 p-0"
+        className="h-4 w-4 p-0"
         onClick={handleSave}
       >
-        <Check className="h-3 w-3" />
+        <Check className="h-2.5 w-2.5" />
       </Button>
       <Button
         size="sm"
         variant="ghost"
-        className="h-5 w-5 p-0"
+        className="h-4 w-4 p-0"
         onClick={handleCancel}
       >
-        <X className="h-3 w-3" />
+        <X className="h-2.5 w-2.5" />
       </Button>
     </div>
   );
@@ -128,29 +128,29 @@ function formatValueWithSyntaxHighlighting(value: any): React.ReactElement {
   const type = getValueType(value);
   
   if (value === null) {
-    return <span className="text-violet-600 dark:text-violet-400 font-mono text-sm">null</span>;
+    return <span className="text-violet-600 dark:text-violet-400 font-mono text-xs">null</span>;
   }
   if (value === undefined) {
-    return <span className="text-gray-500 dark:text-gray-400 font-mono text-sm italic">undefined</span>;
+    return <span className="text-gray-500 dark:text-gray-400 font-mono text-xs italic">undefined</span>;
   }
   if (type === 'string') {
     const displayValue = value.length > 50 ? `${value.substring(0, 47)}...` : value;
-    return <span className="text-green-600 dark:text-green-400 font-mono text-sm">"{displayValue}"</span>;
+    return <span className="text-green-600 dark:text-green-400 font-mono text-xs">"{displayValue}"</span>;
   }
   if (type === 'number') {
-    return <span className="text-blue-600 dark:text-blue-400 font-mono text-sm">{value}</span>;
+    return <span className="text-blue-600 dark:text-blue-400 font-mono text-xs">{value}</span>;
   }
   if (type === 'boolean') {
-    return <span className="text-orange-600 dark:text-orange-400 font-mono text-sm">{String(value)}</span>;
+    return <span className="text-orange-600 dark:text-orange-400 font-mono text-xs">{String(value)}</span>;
   }
   if (type === 'array') {
-    return <span className="text-purple-600 dark:text-purple-400 font-mono text-sm">Array({value.length})</span>;
+    return <span className="text-purple-600 dark:text-purple-400 font-mono text-xs">Array({value.length})</span>;
   }
   if (type === 'object') {
     const keys = Object.keys(value);
-    return <span className="text-indigo-600 dark:text-indigo-400 font-mono text-sm">Object({keys.length} {keys.length === 1 ? 'property' : 'properties'})</span>;
+    return <span className="text-indigo-600 dark:text-indigo-400 font-mono text-xs">Object({keys.length})</span>;
   }
-  return <span className="text-gray-600 dark:text-gray-400 font-mono text-sm">{String(value)}</span>;
+  return <span className="text-gray-600 dark:text-gray-400 font-mono text-xs">{String(value)}</span>;
 }
 
 function getValueType(value: any): string {
@@ -190,43 +190,43 @@ function PropertyRow({
   const isEditable = isEditableType(type) && isReactiveEditable;
   const isExpandable = isExpandableType(type) && level < (maxDepth || 3);
   
-  const paddingLeft = level * 16; // 16px per level of nesting
+  const paddingLeft = level * 12; // Reduced from 16px to 12px per level
 
   return (
     <>
       {/* Property Row */}
-      <div className="flex items-center hover:bg-muted/30 border-b border-border/30">
+      <tr className="border-b border-border/30 hover:bg-muted/20">
         {/* Property Name Column */}
-        <div 
-          className="flex-1 min-w-0 py-2 px-3 bg-slate-50 dark:bg-slate-900/50"
-          style={{ paddingLeft: paddingLeft + 12 }}
+        <td 
+          className="py-1.5 px-2 bg-muted/30 text-sm font-medium text-muted-foreground border-r border-border/30"
+          style={{ paddingLeft: paddingLeft + 8 }}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
             {isExpandable && (
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-4 w-4 p-0"
+                className="h-3 w-3 p-0 hover:bg-muted/50"
                 onClick={() => setIsExpanded(!isExpanded)}
               >
                 {isExpanded ? (
-                  <ChevronDown className="h-3 w-3" />
+                  <ChevronDown className="h-2.5 w-2.5" />
                 ) : (
-                  <ChevronRight className="h-3 w-3" />
+                  <ChevronRight className="h-2.5 w-2.5" />
                 )}
               </Button>
             )}
-            {!isExpandable && <div className="w-4" />}
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+            {!isExpandable && <div className="w-3" />}
+            <span className="truncate text-xs">
               {propertyKey}
             </span>
           </div>
-        </div>
+        </td>
         
         {/* Value Column */}
-        <div className="flex-1 min-w-0 py-2 px-3 bg-white dark:bg-slate-800">
+        <td className="py-1.5 px-2 bg-background">
           {isExpandable ? (
-            <div className="py-1">
+            <div className="py-0.5">
               {formatValueWithSyntaxHighlighting(value)}
             </div>
           ) : (
@@ -237,8 +237,8 @@ function PropertyRow({
               isEditable={isEditable}
             />
           )}
-        </div>
-      </div>
+        </td>
+      </tr>
 
       {/* Nested Properties */}
       {isExpandable && isExpanded && (
@@ -411,12 +411,12 @@ export function PropertyGrid({
     >
       {/* Header - only show for top level */}
       {level === 0 && (
-        <div className="flex items-center justify-between p-3 bg-muted/30 border-b border-border">
+        <div className="flex items-center justify-between py-2 px-3 bg-muted/40 border-b border-border">
           <div className="flex items-center gap-2">
             <Button
               size="sm"
               variant="ghost"
-              className="h-5 w-5 p-0"
+              className="h-4 w-4 p-0"
               onClick={() => setIsCollapsed(!isCollapsed)}
             >
               {isCollapsed ? (
@@ -426,63 +426,75 @@ export function PropertyGrid({
               )}
             </Button>
             <span className="font-medium text-sm">
-              {name ? `${name} Properties` : 'Object Properties'}
+              {name ? `${name}` : 'Object'}
             </span>
-            <Badge variant="secondary" className="text-xs">
-              {propertyCount} {propertyCount === 1 ? 'property' : 'properties'}
+            <Badge variant="secondary" className="text-xs py-0 px-1.5 h-4">
+              {propertyCount}
             </Badge>
+            {isReactiveEditable && (
+              <div title="Editable">
+                <Pencil className="h-3 w-3 text-muted-foreground ml-1" />
+              </div>
+            )}
           </div>
-          {isReactiveEditable && (
-            <Badge variant="default" className="text-xs">
-              Editable
-            </Badge>
-          )}
         </div>
       )}
 
-      {/* Properties */}
+      {/* Properties Table */}
       {!isCollapsed && (
-        <div className="max-h-96 overflow-y-auto">
-          {/* Column Headers - only show for top level */}
-          {level === 0 && (
-            <div className="flex items-center py-2 border-b border-border text-sm font-semibold text-muted-foreground">
-              <div className="flex-1 px-3 bg-slate-50 dark:bg-slate-900/50">Property</div>
-              <div className="flex-1 px-3 bg-white dark:bg-slate-800">Value</div>
-            </div>
-          )}
-          
-          {/* Property Rows */}
-          <div>
-            {Array.isArray(currentData) ? (
-              // Render array items
-              currentData.map((item, index) => (
-                <PropertyRow
-                  key={index}
-                  propertyKey={`[${index}]`}
-                  value={item}
-                  path={[String(index)]}
-                  onValueChange={handleValueChange}
-                  isReactiveEditable={isReactiveEditable}
-                  level={level}
-                  maxDepth={maxDepth}
-                />
-              ))
-            ) : (
-              // Render object properties
-              Object.entries(currentData).map(([key, value]) => (
-                <PropertyRow
-                  key={key}
-                  propertyKey={key}
-                  value={value}
-                  path={[key]}
-                  onValueChange={handleValueChange}
-                  isReactiveEditable={isReactiveEditable}
-                  level={level}
-                  maxDepth={maxDepth}
-                />
-              ))
+        <div className="max-h-80 overflow-y-auto">
+          <table className="w-full text-sm table-fixed">
+            <colgroup>
+              <col className="w-32" />
+              <col />
+            </colgroup>
+            {/* Column Headers - only show for top level */}
+            {level === 0 && (
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="py-1.5 px-2 bg-muted/40 text-left text-xs font-semibold text-muted-foreground border-r border-border/30">
+                    Property
+                  </th>
+                  <th className="py-1.5 px-2 bg-muted/20 text-left text-xs font-semibold text-muted-foreground">
+                    Value
+                  </th>
+                </tr>
+              </thead>
             )}
-          </div>
+            
+            {/* Property Rows */}
+            <tbody>
+              {Array.isArray(currentData) ? (
+                // Render array items
+                currentData.map((item, index) => (
+                  <PropertyRow
+                    key={index}
+                    propertyKey={`[${index}]`}
+                    value={item}
+                    path={[String(index)]}
+                    onValueChange={handleValueChange}
+                    isReactiveEditable={isReactiveEditable}
+                    level={level}
+                    maxDepth={maxDepth}
+                  />
+                ))
+              ) : (
+                // Render object properties
+                Object.entries(currentData).map(([key, value]) => (
+                  <PropertyRow
+                    key={key}
+                    propertyKey={key}
+                    value={value}
+                    path={[key]}
+                    onValueChange={handleValueChange}
+                    isReactiveEditable={isReactiveEditable}
+                    level={level}
+                    maxDepth={maxDepth}
+                  />
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

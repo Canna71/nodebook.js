@@ -1,0 +1,39 @@
+{
+  "cells": [
+    {
+      "id": "md_intro",
+      "type": "markdown",
+      "content": "# Compact PropertyGrid Design Test\n\nThis notebook showcases the new compact PropertyGrid design with table layout.\n\n## Design Improvements ✨\n- 📏 **Compact layout** - reduced vertical padding and spacing\n- 📊 **Table structure** - proper column widths, minimal property column\n- 🎨 **Theme colors** - backgrounds from theme variables\n- ✏️ **Subtle pencil icon** - replaces the \"Editable\" badge\n- 🖱️ **Hover effects** - pencil appears on value hover"
+    },
+    {
+      "id": "code_compact",
+      "type": "code",
+      "code": "// Compact configuration object to test table layout\nexports.settings = {\n  app: \"CoolApp\",\n  ver: \"3.1.4\",\n  debug: true,\n  port: 8080,\n  ssl: false,\n  timeout: 30000,\n  retries: 3,\n  cache: true,\n  \n  db: {\n    host: \"prod-db\",\n    port: 5432,\n    name: \"app_prod\",\n    pool: 20,\n    ssl: true\n  },\n  \n  api: {\n    v1: \"/api/v1\",\n    v2: \"/api/v2\",\n    health: \"/ping\",\n    metrics: \"/stats\"\n  },\n  \n  features: {\n    auth: true,\n    logs: true,\n    metrics: false,\n    cache: true,\n    beta: {\n      ui: false,\n      api: true,\n      perf: false\n    }\n  }\n};\n\noutput(exports.settings);"
+    },
+    {
+      "id": "md_test",
+      "type": "markdown",
+      "content": "## Design Features to Notice\n\n1. **Compact Table Layout**:\n   - Property names in narrow left column\n   - Values take remaining space\n   - Minimal vertical padding\n   - Clean borders and spacing\n\n2. **Theme Integration**:\n   - Property column uses `bg-muted/30`\n   - Value column uses `bg-background`\n   - Headers use theme colors\n   - Consistent with app theme\n\n3. **Subtle Editable Indicator**:\n   - Small pencil icon in header (instead of badge)\n   - Hover pencil icons on editable values\n   - No visual clutter\n\n4. **Hierarchical Display**:\n   - Click chevrons to expand/collapse\n   - Nested indentation\n   - Clean nesting visualization\n\n**Try editing some values** and notice the compact, clean interface!"
+    },
+    {
+      "id": "code_comparison",
+      "type": "code",
+      "code": "// Create a non-reactive object for comparison\nconst readOnlyConfig = {\n  name: \"Read-Only Config\",\n  value: 999,\n  enabled: false,\n  nested: {\n    prop1: \"cannot edit\",\n    prop2: 123\n  }\n};\n\noutput(readOnlyConfig);"
+    },
+    {
+      "id": "md_comparison",
+      "type": "markdown",
+      "content": "## Comparison\n\n**Editable (first grid)**:\n- ✏️ Small pencil icon in header\n- 🖱️ Hover pencil icons on values\n- 📝 Click anywhere on value to edit\n\n**Read-Only (second grid)**:\n- ❌ No pencil icon in header\n- 🚫 No hover pencil icons\n- 👀 Values are view-only\n\n## Verify Editing\n\nRun the cell below after making edits:"
+    },
+    {
+      "id": "code_verify",
+      "type": "code",
+      "code": "// Verify edits worked\nconsole.log('Current settings after editing:');\nconsole.log(JSON.stringify(settings, null, 2));\n\noutput({\n  'App Name': settings.app,\n  'Version': settings.ver,\n  'Debug': settings.debug,\n  'Port': settings.port,\n  'DB Host': settings.db.host,\n  'DB SSL': settings.db.ssl,\n  'API Health': settings.api.health,\n  'Auth Enabled': settings.features.auth,\n  'Beta UI': settings.features.beta.ui\n});"
+    },
+    {
+      "id": "md_summary",
+      "type": "markdown",
+      "content": "## Summary of Improvements\n\n✅ **Compact Design**: Reduced vertical spacing, smaller text, tighter layout  \n✅ **Table Structure**: Fixed column widths, proper property/value separation  \n✅ **Theme Colors**: Using CSS variables from theme system  \n✅ **Subtle Icons**: Pencil icon instead of prominent badge  \n✅ **Better UX**: Hover effects, clear visual hierarchy  \n✅ **Responsive**: Property column takes minimal width, values expand  \n✅ **Accessibility**: Proper table semantics, clear focus states\n\nThe PropertyGrid now provides a much cleaner, more professional interface for object editing!"
+    }
+  ]
+}
