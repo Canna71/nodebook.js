@@ -8,7 +8,7 @@
     {
       "id": "code_01",
       "type": "code",
-      "code": "// Create a sample object\nexports.testObject = {\n  user: {\n    id: 123,\n    name: \"Alice Johnson\",\n    email: \"alice@example.com\",\n    isAdmin: false,\n    lastLogin: \"2025-06-29T10:30:00Z\"\n  },\n  preferences: {\n    theme: \"dark\",\n    language: \"en\",\n    notifications: {\n      email: true,\n      push: false,\n      sms: true\n    }\n  },\n  stats: {\n    loginCount: 42,\n    averageSessionTime: 1800.5,\n    favoriteFeatures: [\"search\", \"export\", \"collaboration\"]\n  }\n};\n\noutput(testObject);"
+      "code": "// Create a sample object\nexports.testObject = {\n  user: {\n    id: 123,\n    name: \"Alice Johnson\",\n    email: \"alice@example.com\",\n    isAdmin: false,\n    lastLogin: \"2025-06-29T10:30:00Z\"\n  },\n  preferences: {\n    theme: \"dark\",\n    language: \"en\",\n    notifications: {\n      email: true,\n      push: false,\n      sms: true\n    }\n  },\n  stats: {\n    loginCount: 42,\n    averageSessionTime: 1800.5,\n    favoriteFeatures: [\"search\", \"export\", \"collaboration\"]\n  }\n};\n\noutput(exports.testObject);"
     },
     {
       "id": "md_02",

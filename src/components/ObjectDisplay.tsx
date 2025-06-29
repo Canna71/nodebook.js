@@ -148,13 +148,25 @@ export function ObjectDisplay({
   // Check if we should use PropertyGrid for generic objects
   if (showPropertyGrid && typeof data === 'object' && data !== null) {
     return (
-      <PropertyGrid
-        data={data}
-        name={typeof name === 'string' ? name : effectiveName}
-        editable={true}
-        collapsed={collapsed}
-        maxDepth={3}
-      />
+      <div 
+        className="object-display-wrapper"
+        onClick={(e) => {
+          // Stop propagation to prevent cell selection when clicking inside PropertyGrid
+          e.stopPropagation();
+        }}
+        onMouseDown={(e) => {
+          // Also stop mouse down to prevent any drag operations
+          e.stopPropagation();
+        }}
+      >
+        <PropertyGrid
+          data={data}
+          name={typeof name === 'string' ? name : effectiveName}
+          editable={true}
+          collapsed={collapsed}
+          maxDepth={3}
+        />
+      </div>
     );
   }
 

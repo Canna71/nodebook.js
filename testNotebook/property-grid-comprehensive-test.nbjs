@@ -8,7 +8,7 @@
     {
       "id": "code_simple",
       "type": "code",
-      "code": "// Simple test object\nexports.simple = {\n  name: \"Test Object\",\n  count: 42,\n  active: true,\n  price: 29.99\n};\n\noutput(simple);"
+      "code": "// Simple test object\nexports.simple = {\n  name: \"Test Object\",\n  count: 42,\n  active: true,\n  price: 29.99\n};\n\noutput(exports.simple);"
     },
     {
       "id": "md_instructions",
@@ -28,7 +28,7 @@
     {
       "id": "code_nested",
       "type": "code",
-      "code": "// Nested object for testing\nexports.config = {\n  app: {\n    name: \"My Application\",\n    version: \"1.0.0\",\n    debug: false\n  },\n  server: {\n    host: \"localhost\",\n    port: 3000,\n    ssl: false\n  },\n  database: {\n    host: \"db.example.com\",\n    port: 5432,\n    name: \"myapp\",\n    ssl: true\n  }\n};\n\noutput(config);"
+      "code": "// Nested object for testing\nexports.config = {\n  app: {\n    name: \"My Application\",\n    version: \"1.0.0\",\n    debug: false\n  },\n  server: {\n    host: \"localhost\",\n    port: 3000,\n    ssl: false\n  },\n  database: {\n    host: \"db.example.com\",\n    port: 5432,\n    name: \"myapp\",\n    ssl: true\n  }\n};\n\noutput(exports.config);"
     },
     {
       "id": "md_nested_test",
@@ -48,7 +48,7 @@
     {
       "id": "code_reactive",
       "type": "code",
-      "code": "// Create computed values that depend on config\nconst serverUrl = `http${config.server.ssl ? 's' : ''}://${config.server.host}:${config.server.port}`;\nconst appTitle = `${config.app.name} v${config.app.version}`;\nconst mode = config.app.debug ? 'Development' : 'Production';\n\nexports.computed = {\n  serverUrl,\n  appTitle,\n  mode,\n  timestamp: new Date().toISOString()\n};\n\noutput(computed);"
+      "code": "// Create computed values that depend on config\nconst serverUrl = `http${config.server.ssl ? 's' : ''}://${config.server.host}:${config.server.port}`;\nconst appTitle = `${config.app.name} v${config.app.version}`;\nconst mode = config.app.debug ? 'Development' : 'Production';\n\nexports.computed = {\n  serverUrl,\n  appTitle,\n  mode,\n  timestamp: new Date().toISOString()\n};\n\noutput(exports.computed);"
     },
     {
       "id": "md_final",

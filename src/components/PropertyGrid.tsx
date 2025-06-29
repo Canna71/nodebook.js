@@ -3,7 +3,7 @@ import { useReactiveSystem } from '@/Engine/ReactiveProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Edit3, Check, X, Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { Edit3, Check, X, Plus, Trash2, ChevronDown, ChevronRight, Pencil } from 'lucide-react';
 import { useTheme } from '@/lib/themeHelpers';
 
 interface PropertyValue {
@@ -70,17 +70,13 @@ const EditableCell: React.FC<EditableCellProps> = ({ property, onValueChange, on
 
   if (!property.isEditable || !isEditing) {
     return (
-      <div className="flex items-center justify-between group">
+      <div 
+        className="flex items-center justify-between group cursor-pointer w-full"
+        onClick={() => property.isEditable && setIsEditing(true)}
+      >
         <span className="text-sm font-mono flex-1 pr-2">{displayValue}</span>
         {property.isEditable && (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-5 w-5 p-0 opacity-0 group-hover:opacity-50 hover:opacity-100"
-            onClick={() => setIsEditing(true)}
-          >
-            <Edit3 className="h-3 w-3" />
-          </Button>
+          <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-40 text-muted-foreground" />
         )}
       </div>
     );
@@ -265,6 +261,9 @@ export function PropertyGrid({
   const reactiveContext = useReactiveSystem();
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
   
+  // Subscribe to reactive value changes to get current data
+  const [currentData, setCurrentData] = useState(data);
+  
   // Determine if this object is a reactive value that can be edited
   const isReactiveEditable = useMemo(() => {
     if (!editable || !name || !reactiveContext?.reactiveStore) {
@@ -284,10 +283,35 @@ export function PropertyGrid({
     }
   }, [editable, name, reactiveContext]);
 
-  // Flatten the object into properties
+  // Subscribe to reactive value changes
+  React.useEffect(() => {
+    if (name && reactiveContext?.reactiveStore && isReactiveEditable) {
+      try {
+        const unsubscribe = reactiveContext.reactiveStore.subscribe(name, (newValue) => {
+          console.log(`PropertyGrid: Reactive update for ${name}:`, newValue);
+          setCurrentData(newValue);
+        });
+        
+        // Get current value immediately
+        const currentValue = reactiveContext.reactiveStore.getValue(name);
+        if (currentValue !== undefined) {
+          setCurrentData(currentValue);
+        }
+        
+        return unsubscribe;
+      } catch (error) {
+        console.warn('PropertyGrid: Could not subscribe to reactive value:', error);
+      }
+    } else {
+      // If not reactive, use the provided data
+      setCurrentData(data);
+    }
+  }, [name, reactiveContext, isReactiveEditable, data]);
+
+  // Flatten the object into properties using current data
   const properties = useMemo(() => {
-    return flattenObject(data, [], maxDepth);
-  }, [data, maxDepth]);
+    return flattenObject(currentData, [], maxDepth);
+  }, [currentData, maxDepth]);
 
   const handleValueChange = useCallback((path: string[], newValue: any) => {
     if (onValueChange) {
@@ -299,24 +323,24 @@ export function PropertyGrid({
     if (isReactiveEditable && name && reactiveContext?.reactiveStore) {
       try {
         // Deep clone the current data to avoid mutations
-        const currentData = JSON.parse(JSON.stringify(data));
+        const updatedData = JSON.parse(JSON.stringify(currentData));
         
         // Navigate to the property and update it
-        let current = currentData;
+        let current = updatedData;
         for (let i = 0; i < path.length - 1; i++) {
           current = current[path[i]];
         }
         current[path[path.length - 1]] = newValue;
         
         // Update the reactive store with the modified object
-        reactiveContext.reactiveStore.define(name, currentData);
+        reactiveContext.reactiveStore.define(name, updatedData);
         
         console.log(`PropertyGrid: Updated ${name}.${path.join('.')} to`, newValue);
       } catch (error) {
         console.error('Failed to update reactive value:', error);
       }
     }
-  }, [onValueChange, isReactiveEditable, name, reactiveContext, data]);
+  }, [onValueChange, isReactiveEditable, name, reactiveContext, currentData]);
 
   if (properties.length === 0) {
     return (
@@ -327,7 +351,17 @@ export function PropertyGrid({
   }
 
   return (
-    <div className="property-grid border border-border rounded-lg overflow-hidden bg-background">
+    <div 
+      className="property-grid border border-border rounded-lg overflow-hidden bg-background"
+      onClick={(e) => {
+        // Stop propagation to prevent cell selection when clicking inside PropertyGrid
+        e.stopPropagation();
+      }}
+      onMouseDown={(e) => {
+        // Also stop mouse down to prevent any drag operations
+        e.stopPropagation();
+      }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-3 bg-muted/30 border-b border-border">
         <div className="flex items-center gap-2">
