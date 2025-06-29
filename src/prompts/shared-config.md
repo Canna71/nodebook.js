@@ -34,6 +34,13 @@ This document contains technical specifications shared between notebook generati
 
 ### Pre-bundled Scientific Libraries (Injected as Globals)
 **Available as global variables:**
+- **math**: Math.js mathematical functions and expressions
+  ```javascript
+  exports.result = math.evaluate('sqrt(3^2 + 4^2)');
+  exports.matrix = math.matrix([[1, 2], [3, 4]]);
+  exports.complex = math.evaluate('(2 + 3i) * (1 - 2i)');
+  exports.units = math.evaluate('5 km + 3 miles');
+  ```
 - **dfd**: Danfo.js DataFrame library for data manipulation
   ```javascript
   const df = new dfd.DataFrame(data);
@@ -45,6 +52,12 @@ This document contains technical specifications shared between notebook generati
   const model = tf.sequential({
     layers: [tf.layers.dense({inputShape: [1], units: 1})]
   });
+  ```
+- **Plotly**: Interactive plotting library for visualizations
+  ```javascript
+  const plotDiv = createDiv({ style: 'height: 400px;' });
+  Plotly.newPlot(plotDiv.id, data, layout);
+  output(plotDiv);
   ```
 
 ### Shell Integration (zx Library - Injected as Globals)
@@ -72,10 +85,8 @@ const files = await $`ls *.nbjs`;  // Lists notebook files
 
 ### Pre-bundled Libraries (Require-Available)
 **These need explicit `require()` calls:**
-- **mathjs**: Mathematical functions (`const math = require('mathjs')`)
 - **lodash**: Utility functions (`const _ = require('lodash')`)
 - **moment**: Date/time manipulation (`const moment = require('moment')`)
-- **plotly.js-dist-min**: Interactive plotting (`const Plotly = require('plotly.js-dist-min')`)
 - **d3**: Data visualization (`const d3 = require('d3')`)
 - **papaparse**: CSV parsing (`const Papa = require('papaparse')`)
 - **xlsx**: Excel file handling (`const XLSX = require('xlsx')`)
@@ -111,9 +122,9 @@ output("The quadratic formula $x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$ solves $
 // Console output with LaTeX
 console.log("Computing $\\sum_{i=1}^{n} i^2 = \\frac{n(n+1)(2n+1)}{6}$ for n=10");
 
-// MathJS integration for automatic LaTeX generation
+// MathJS integration for automatic LaTeX generation (math is global)
 const expr = 'derivative(x^3 + 2*x^2 + x + 1, x)';
-const node = mathjs.parse(expr);
+const node = math.parse(expr);
 output("$$" + node.toTex() + "$$"); // Renders: $$3 x^{2}+4 x+1$$
 ```
 
@@ -148,7 +159,7 @@ $$CV = \frac{s}{\bar{x}} = {{(stdDev/mean*100).toFixed(1)}}\%$$
 
 **When to Use Each Approach:**
 - **Markdown cells**: Static mathematical content, explanations, formulas with variable values
-- **Code cells**: Dynamic LaTeX generation (MathJS integration), computed mathematical results
+- **Code cells**: Dynamic LaTeX generation (Math.js global integration), computed mathematical results
 
 ### DOM Output Functions (Use Sparingly)
 - **output(...values)**: Output any value - objects get custom rendering, DOM elements are displayed. Arrays are shown as single-column tables.

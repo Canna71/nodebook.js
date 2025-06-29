@@ -847,11 +847,15 @@ outEl                         // Direct container access (advanced)
 ### Data Processing
 
 ```javascript
-// Available globally (if loaded)
-Math                          // Extended math functions (Math.js)
-_                            // Lodash utility functions  
-d3                          // D3.js for data manipulation
-Plotly                      // Plotly.js for visualization
+// Available globally (preloaded)
+math                         // Math.js mathematical functions and expressions
+dfd                         // Danfo.js DataFrames
+tf                          // TensorFlow.js machine learning
+Plotly                      // Plotly.js interactive visualization
+
+// Available via require()
+const _ = require('lodash');        // Lodash utility functions  
+const d3 = require('d3');          // D3.js for data manipulation
 
 // Standard JavaScript
 JSON.parse(), JSON.stringify()

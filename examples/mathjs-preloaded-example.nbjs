@@ -1,0 +1,45 @@
+{
+  "cells": [
+    {
+      "id": "intro-cell",
+      "type": "markdown",
+      "content": "# Math.js Preloaded Example\n\nMath.js is now preloaded as a global `math` variable, so you can use it directly without requiring it.\n\n## Features Available\n- **Expression Evaluation**: Parse and evaluate mathematical expressions\n- **Big Numbers**: Arbitrary precision arithmetic\n- **Complex Numbers**: Full complex number support\n- **Matrices**: Matrix operations and linear algebra\n- **Units**: Physical units and unit conversions\n- **Functions**: Extensive mathematical function library"
+    },
+    {
+      "id": "basic-math",
+      "type": "code",
+      "code": "// Math.js is preloaded as 'math' - no require() needed!\nconsole.log('Math.js version:', math.version);\n\n// Basic expression evaluation\nexports.basicResult = math.evaluate('sqrt(3^2 + 4^2)');\nconsole.log('Basic calculation:', exports.basicResult);\n\n// Multiple expressions\nexports.expressions = {\n  area: math.evaluate('pi * 5^2'),\n  factorial: math.evaluate('10!'),\n  logarithm: math.evaluate('log(100, 10)')\n};\n\noutput({\n  title: 'Basic Math.js Operations',\n  calculations: exports.expressions\n});"
+    },
+    {
+      "id": "complex-numbers",
+      "type": "code", 
+      "code": "// Complex number operations\nexports.complexNumbers = {\n  creation: math.evaluate('2 + 3i'),\n  multiplication: math.evaluate('(2 + 3i) * (1 - 2i)'),\n  magnitude: math.evaluate('abs(3 + 4i)'),\n  phase: math.evaluate('arg(1 + i)')\n};\n\n// Complex arithmetic with variables\nmath.evaluate('z1 = 3 + 4i');\nmath.evaluate('z2 = 1 - 2i');\nexports.complexOperations = {\n  sum: math.evaluate('z1 + z2'),\n  product: math.evaluate('z1 * z2'),\n  conjugate: math.evaluate('conj(z1)'),\n  power: math.evaluate('z1^2')\n};\n\noutput({\n  title: 'Complex Number Operations',\n  basic: exports.complexNumbers,\n  advanced: exports.complexOperations\n});"
+    },
+    {
+      "id": "matrices",
+      "type": "code",
+      "code": "// Matrix operations\nexports.matrices = {\n  creation: math.evaluate('[[1, 2], [3, 4]]'),\n  multiplication: math.evaluate('[[1, 2], [3, 4]] * [[5, 6], [7, 8]]'),\n  determinant: math.evaluate('det([[1, 2], [3, 4]])')\n};\n\n// Linear algebra\nconst A = math.matrix([[2, 1], [1, 3]]);\nconst b = math.matrix([5, 7]);\n\nexports.linearAlgebra = {\n  matrix_A: A.toArray(),\n  vector_b: b.toArray(),\n  solution: math.lusolve(A, b).toArray(), // Solve Ax = b\n  eigenvalues: math.eigs(A).values.toArray(),\n  inverse: math.inv(A).toArray()\n};\n\noutput({\n  title: 'Matrix Operations & Linear Algebra',\n  basic: exports.matrices,\n  advanced: exports.linearAlgebra\n});"
+    },
+    {
+      "id": "units",
+      "type": "code",
+      "code": "// Physical units and conversions\nexports.unitOperations = {\n  distance: math.evaluate('5 km + 3 miles'),\n  speed: math.evaluate('60 mph to m/s'),\n  energy: math.evaluate('1 kWh to J'),\n  temperature: math.evaluate('100 degC to degF')\n};\n\n// Unit calculations\nexports.physics = {\n  // Force = mass * acceleration\n  force: math.evaluate('10 kg * 9.81 m/s^2'),\n  // Power = voltage * current\n  power: math.evaluate('120 V * 15 A'),\n  // Area of circle\n  area: math.evaluate('pi * (5 m)^2')\n};\n\noutput({\n  title: 'Physical Units & Conversions',\n  conversions: exports.unitOperations,\n  calculations: exports.physics\n});"
+    },
+    {
+      "id": "big-numbers",
+      "type": "code",
+      "code": "// Configure Math.js for big numbers\nmath.config({\n  number: 'BigNumber',\n  precision: 64\n});\n\n// Big number arithmetic\nexports.bigNumbers = {\n  largeFibonacci: math.evaluate('fibonacci(100)'),\n  preciseCalculation: math.evaluate('1/3 * 3'),\n  largeFactorial: math.evaluate('50!'),\n  precisePi: math.evaluate('pi')\n};\n\n// Reset to normal numbers for other cells\nmath.config({\n  number: 'number'\n});\n\noutput({\n  title: 'Big Number Precision',\n  results: exports.bigNumbers,\n  note: 'Using 64-bit precision BigNumber arithmetic'\n});"
+    },
+    {
+      "id": "functions",
+      "type": "code",
+      "code": "// Mathematical functions and statistics\nexports.functions = {\n  trigonometry: {\n    sin_45: math.evaluate('sin(45 deg)'),\n    cos_pi_3: math.evaluate('cos(pi/3)'),\n    tan_30: math.evaluate('tan(30 deg)')\n  },\n  statistics: {\n    mean: math.mean([1, 2, 3, 4, 5, 6]),\n    median: math.median([1, 2, 3, 4, 5, 6]),\n    std: math.std([1, 2, 3, 4, 5, 6]),\n    variance: math.variance([1, 2, 3, 4, 5, 6])\n  },\n  special: {\n    gamma: math.gamma(5),\n    bessel: math.besseli(1, 2),\n    erf: math.erf(1)\n  }\n};\n\n// Custom function\nmath.import({\n  myFunction: function(x) {\n    return x * x + 2 * x + 1;\n  }\n});\n\nexports.customFunction = {\n  input: 5,\n  result: math.evaluate('myFunction(5)'),\n  formula: 'x^2 + 2x + 1'\n};\n\noutput({\n  title: 'Mathematical Functions',\n  built_in: exports.functions,\n  custom: exports.customFunction\n});"
+    },
+    {
+      "id": "expressions",
+      "type": "code",
+      "code": "// Advanced expression parsing and evaluation\nconst parser = math.parser();\n\n// Define variables in parser scope\nparser.evaluate('x = 10');\nparser.evaluate('y = 20');\nparser.evaluate('f(x) = x^2 + 2*x + 1');\n\nexports.parserResults = {\n  variable_x: parser.get('x'),\n  variable_y: parser.get('y'),\n  function_result: parser.evaluate('f(5)'),\n  expression: parser.evaluate('f(x) + f(y)')\n};\n\n// Compile expressions for performance\nconst compiled = math.compile('sqrt(x^2 + y^2)');\nexports.compiledResults = {\n  point1: compiled.evaluate({x: 3, y: 4}),\n  point2: compiled.evaluate({x: 5, y: 12}),\n  point3: compiled.evaluate({x: 8, y: 15})\n};\n\noutput({\n  title: 'Expression Parsing & Compilation',\n  parser: exports.parserResults,\n  compiled: exports.compiledResults,\n  performance_note: 'Compiled expressions are faster for repeated evaluation'\n});"
+    },
+    {
+      "id": "summary",
+      "type": "markdown",\n      \"content\": \"## Summary\\n\\nMath.js is now preloaded as the global `math` variable, providing:\\n\\n### ✅ Available Without Import\\n- **Expression evaluation**: `math.evaluate('2 + 3 * 4')`\\n- **Mathematical functions**: `math.sin()`, `math.cos()`, `math.sqrt()`, etc.\\n- **Matrix operations**: `math.matrix()`, `math.multiply()`, `math.inv()`\\n- **Complex numbers**: `math.complex()`, automatic complex arithmetic\\n- **Big numbers**: Configure with `math.config({number: 'BigNumber'})`\\n- **Physical units**: `math.evaluate('5 km + 3 miles')`\\n- **Statistics**: `math.mean()`, `math.std()`, `math.median()`\\n\\n### 📚 Key Methods\\n```javascript\\n// No require() needed - math is global!\\nmath.evaluate('sqrt(16)')     // Expression evaluation\\nmath.matrix([[1,2],[3,4]])   // Matrix creation\\nmath.unit('5 cm')            // Unit creation\\nmath.bignumber('0.1')        // Big number creation\\nmath.complex(2, 3)           // Complex number creation\\n```\\n\\n### 🔗 Resources\\n- [Math.js Documentation](https://mathjs.org/docs/)\\n- [Expression Syntax](https://mathjs.org/docs/expressions/syntax.html)\\n- [Function Reference](https://mathjs.org/docs/reference/functions.html)\"\n    }\n  ],\n  \"metadata\": {\n    \"title\": \"Math.js Preloaded Example\",\n    \"description\": \"Comprehensive example of Math.js functionality using the preloaded global 'math' variable\",\n    \"tags\": [\"mathjs\", \"mathematics\", \"preloaded\", \"expressions\", \"matrices\", \"units\"]\n  }\n}"
