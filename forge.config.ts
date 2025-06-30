@@ -177,8 +177,28 @@ const config: ForgeConfig = {
       if (platform === 'darwin') {
         console.log('Setting up macOS file association resources...');
         
+        // The buildPath for macOS points to: Nodebook.js.app/Contents/Resources/app
+        // So we need to go to: Nodebook.js.app/Contents/Resources/
+        const appResourcesDir = path.join(buildPath, '..');
+        
+        console.log('macOS buildPath:', buildPath);
+        console.log('macOS appResourcesDir:', appResourcesDir);
+        
+        // Ensure the Resources directory exists
+        await fs.ensureDir(appResourcesDir);
+        
+        // Copy main app icon
+        const appIconSrc = path.join(__dirname, 'build-resources', 'icons', 'icon.icns');
+        const appIconDest = path.join(appResourcesDir, 'icon.icns');
+        
+        if (await fs.pathExists(appIconSrc)) {
+          await fs.copy(appIconSrc, appIconDest);
+          console.log('✅ Copied icon.icns to app bundle');
+        } else {
+          console.warn('⚠️ icon.icns not found in build resources');
+        }
+        
         // Copy document icon to app bundle resources
-        const appResourcesDir = path.join(buildPath, 'Contents', 'Resources');
         const documentIconSrc = path.join(__dirname, 'build-resources', 'icons', 'document.icns');
         const documentIconDest = path.join(appResourcesDir, 'document.icns');
         
@@ -188,42 +208,54 @@ const config: ForgeConfig = {
         } else {
           console.warn('⚠️ document.icns not found in build resources');
           // Fallback: copy app icon as document icon
-          const appIconSrc = path.join(__dirname, 'build-resources', 'icons', 'icon.icns');
           if (await fs.pathExists(appIconSrc)) {
             await fs.copy(appIconSrc, documentIconDest);
             console.log('📄 Using app icon as document icon fallback');
           }
         }
         
-        // Copy Info.plist to app bundle
+        // Copy Info.plist to app bundle - buildPath is app/Contents/Resources/app, so Info.plist is at ../Info.plist
         const infoPlistSrc = path.join(__dirname, 'build-resources', 'Info.plist');
-        const infoPlistDest = path.join(buildPath, '../../Info.plist');
+        const infoPlistDest = path.join(buildPath, '..', 'Info.plist');
         
-        if (await fs.pathExists(infoPlistSrc)) {
-          // Read the existing Info.plist
-          const existingPlist = await fs.readFile(infoPlistDest, 'utf8');
-          const customPlist = await fs.readFile(infoPlistSrc, 'utf8');
-          
-          // Extract document types and UTI declarations from custom plist
-          const docTypesMatch = customPlist.match(/<key>CFBundleDocumentTypes<\/key>\s*<array>.*?<\/array>/s);
-          const utiMatch = customPlist.match(/<key>UTExportedTypeDeclarations<\/key>\s*<array>.*?<\/array>/s);
-          
-          if (docTypesMatch && utiMatch) {
-            let updatedPlist = existingPlist;
+        console.log('Info.plist source:', infoPlistSrc);
+        console.log('Info.plist dest:', infoPlistDest);
+        
+        if (await fs.pathExists(infoPlistSrc) && await fs.pathExists(infoPlistDest)) {
+          try {
+            // Read the existing Info.plist
+            const existingPlist = await fs.readFile(infoPlistDest, 'utf8');
+            const customPlist = await fs.readFile(infoPlistSrc, 'utf8');
             
-            // Add document types if not present
-            if (!updatedPlist.includes('CFBundleDocumentTypes')) {
-              updatedPlist = updatedPlist.replace(
-                '</dict>\n</plist>',
-                `    ${docTypesMatch[0]}\n    ${utiMatch[0]}\n</dict>\n</plist>`
-              );
+            // Extract document types and UTI declarations from custom plist
+            const docTypesMatch = customPlist.match(/<key>CFBundleDocumentTypes<\/key>\s*<array>.*?<\/array>/s);
+            const utiMatch = customPlist.match(/<key>UTExportedTypeDeclarations<\/key>\s*<array>.*?<\/array>/s);
+            
+            if (docTypesMatch && utiMatch) {
+              let updatedPlist = existingPlist;
               
-              await fs.writeFile(infoPlistDest, updatedPlist);
-              console.log('✅ Updated Info.plist with file associations');
+              // Add document types if not present
+              if (!updatedPlist.includes('CFBundleDocumentTypes')) {
+                updatedPlist = updatedPlist.replace(
+                  '</dict>\n</plist>',
+                  `    ${docTypesMatch[0]}\n    ${utiMatch[0]}\n</dict>\n</plist>`
+                );
+                
+                await fs.writeFile(infoPlistDest, updatedPlist);
+                console.log('✅ Updated Info.plist with file associations');
+              } else {
+                console.log('📄 Info.plist already contains file associations');
+              }
             } else {
-              console.log('📄 Info.plist already contains file associations');
+              console.warn('⚠️ Could not extract file associations from custom Info.plist');
             }
+          } catch (error) {
+            console.warn('⚠️ Error updating Info.plist:', error.message);
           }
+        } else {
+          console.warn('⚠️ Info.plist source or destination not found');
+          console.warn('Source exists:', await fs.pathExists(infoPlistSrc));
+          console.warn('Dest exists:', await fs.pathExists(infoPlistDest));
         }
       }
     },
