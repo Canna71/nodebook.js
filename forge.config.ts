@@ -56,6 +56,17 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     icon: './build-resources/icons/icon', // no file extension required - Forge auto-detects
+    // File associations for the packaged app
+    protocols: [
+      {
+        name: 'nodebook',
+        schemes: ['nodebook']
+      }
+    ],
+    // Platform-specific configurations
+    ...(process.platform === 'darwin' && {
+      extendInfo: './build-resources/Info.plist'
+    }),
     extraResource: [
     //   "./node_modules/danfojs/",
     //   "./node_modules/danfojs-node/",
@@ -74,9 +85,11 @@ const config: ForgeConfig = {
   rebuildConfig: {},
   makers: [
     new MakerSquirrel({
-      // Windows installer icons
+      // Windows installer icons and file associations
       iconUrl: 'https://raw.githubusercontent.com/your-username/nodebook.js/main/build-resources/icons/icon.png', // Change this URL
-      setupIcon: './build-resources/icons/icon.ico'
+      setupIcon: './build-resources/icons/icon.ico',
+      // Windows file associations - handled by the main process
+      setupExe: 'nodebook-setup.exe'
     }, ['win32']), 
     new MakerZIP({}, ['darwin', 'linux']), 
     new MakerRpm({

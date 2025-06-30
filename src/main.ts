@@ -615,6 +615,17 @@ const createWindow = async () => {
     mainWindowRef = mainWindow;
     // Create menu using new system
     createMenuWithManager(mainWindow);
+
+    // Handle file to open after window is ready
+    mainWindow.webContents.once('did-finish-load', () => {
+        if (fileToOpen) {
+            log.info('Opening file after window ready:', fileToOpen);
+            mainWindow.webContents.send('open-file-from-system', fileToOpen);
+            fileToOpen = null; // Clear the stored file
+        }
+    });
+
+    return mainWindow;
 };
 
 // This method will be called when Electron has finished
@@ -897,6 +908,50 @@ function registerHandlers() {
     });
 }
 
+// Global variable to store file to open
+let fileToOpen: string | null = null;
+
+// Handle file associations
+function setupFileAssociations() {
+    // Handle file opening on macOS and Linux
+    app.on('open-file', (event, filePath) => {
+        event.preventDefault();
+        log.info('File opened via association:', filePath);
+        
+        if (filePath.endsWith('.nbjs')) {
+            if (mainWindowRef && !mainWindowRef.isDestroyed()) {
+                // Window exists, send the file path to renderer
+                mainWindowRef.webContents.send('open-file-from-system', filePath);
+            } else {
+                // Store the file to open when window is ready
+                fileToOpen = filePath;
+            }
+        }
+    });
+
+    // Handle command line arguments (Windows and Linux)
+    app.on('second-instance', (event, commandLine, workingDirectory) => {
+        log.info('Second instance launched with args:', commandLine);
+        
+        // Find .nbjs file in command line arguments
+        const nbjsFile = commandLine.find(arg => arg.endsWith('.nbjs'));
+        if (nbjsFile && mainWindowRef && !mainWindowRef.isDestroyed()) {
+            // Focus the existing window and open the file
+            if (mainWindowRef.isMinimized()) mainWindowRef.restore();
+            mainWindowRef.focus();
+            mainWindowRef.webContents.send('open-file-from-system', nbjsFile);
+        }
+    });
+
+    // Check for .nbjs file in initial command line arguments
+    const args = process.argv.slice(app.isPackaged ? 1 : 2);
+    const initialFile = args.find(arg => arg.endsWith('.nbjs'));
+    if (initialFile) {
+        log.info('Initial file from command line:', initialFile);
+        fileToOpen = initialFile;
+    }
+}
+
 async function loadExtensions() {
     // Load extensions if needed
     const platform = process.platform === 'darwin' ? 'mac' : 'win';
@@ -914,22 +969,22 @@ async function loadExtensions() {
     await Promise.all(promises);
 }
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.
+// Ensure single instance for file associations
+const gotTheLock = app.requestSingleInstanceLock();
 
-app.whenReady().then(async () => {
-
+if (!gotTheLock) {
+    app.quit();
+} else {
     // Set the app name to the productName for proper menu display
     // if (process.platform === 'darwin') {
     app.setName('Nodebook.js');
     // }
 
     registerHandlers();
-    await loadExtensions();
+    setupFileAssociations();
+    loadExtensions();
 
-    // const res = await session.defaultSession.extensions.loadExtension(reactDevToolsPath, { allowFileAccess: true });
-    const win = createWindow();
-    // setTimeout(() => {
-    //     session.defaultSession.extensions.loadExtension(reactDevToolsPath, {allowFileAccess: true});
-    // },1000);
-})
+    app.whenReady().then(async () => {
+        const win = createWindow();
+    });
+}

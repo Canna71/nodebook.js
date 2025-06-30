@@ -4,6 +4,25 @@
   "version": "0.8.0",
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
+  "homepage": "https://github.com/gcannata/nodebook.js",
+  "build": {
+    "fileAssociations": [
+      {
+        "ext": "nbjs",
+        "name": "Nodebook.js Notebook", 
+        "description": "Nodebook.js Interactive Notebook",
+        "icon": "./build-resources/icons/icon",
+        "role": "Editor",
+        "isPackage": false
+      }
+    ],
+    "protocols": [
+      {
+        "name": "nodebook",
+        "schemes": ["nodebook"]
+      }
+    ]
+  },
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",

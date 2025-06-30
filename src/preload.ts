@@ -50,6 +50,15 @@ const api: ElectronApi = {
     updateApplicationContext: (updates: any) => ipcRenderer.invoke('update-application-context', updates),
     getApplicationContext: () => ipcRenderer.invoke('get-application-context'),
     
+    // File association handling
+    onOpenFileFromSystem: (callback: (filePath: string) => void) => {
+        ipcRenderer.on('open-file-from-system', (_, filePath) => callback(filePath));
+    },
+
+    removeOpenFileListener: () => {
+        ipcRenderer.removeAllListeners('open-file-from-system');
+    },
+
     isDev: memoize(() => {
         // Check if the app is running in development mode
         return process.env.ISDEV === '1';
