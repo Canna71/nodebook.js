@@ -61,6 +61,12 @@
       "code": "// Example: Handling shell command errors\ntry {\n  await $`cat not_a_real_file.txt`;\n  output('File exists!');\n} catch (err) {\n  output({ error: err.message });\n}"
     },
     {
+      "type": "code",
+      "id": "code_01",
+      "code": "const ps = await $`ps -A`;\noutput(ps.stdout);",
+      "isStatic": true
+    },
+    {
       "type": "markdown",
       "id": "zx-md-6",
       "content": "## 6. More Resources\n\n- [zx documentation](https://github.com/google/zx)\n- Nodebook.js documentation: Modules and Shell Integration\n\nYou are now ready to automate tasks and run shell scripts in Nodebook.js using zx!"
