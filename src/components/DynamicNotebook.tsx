@@ -284,7 +284,7 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
   };
 
   return (
-    <div className={`dynamic-notebook max-w-4xl mx-auto p-2 pt-6 ${readingMode ? 'reading-mode' : ''}`}>
+    <div className={`dynamic-notebook max-w-4xl mx-auto p-2 pt-6 pb-[500px] ${readingMode ? 'reading-mode' : ''}`}>
       <div className="notebook-cells">
         {model.cells.length === 0 ? (
           <div className="empty-notebook text-center py-12 text-secondary-foreground">
