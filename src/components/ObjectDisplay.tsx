@@ -114,7 +114,7 @@ export function ObjectDisplay({
         </div>
       );
     }
-    return <span>{data}</span>;
+    return <span className="whitespace-pre-wrap">{data}</span>;
   }
 
   if (typeof data === 'number' || typeof data === 'boolean') {

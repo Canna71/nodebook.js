@@ -1,0 +1,19 @@
+{
+  "cells": [
+    {
+      "id": "test-newlines",
+      "type": "code",
+      "code": "// Test newlines in text output\nconst multilineText = `Line 1\nLine 2\nLine 3\n\nLine 5 (after empty line)\n\\tTabbed line\n  Indented line`;\n\n// Test console output with newlines\nconsole.log('Console test:');\nconsole.log(multilineText);\n\n// Test code cell output with newlines\noutput(multilineText);\n\n// Test object with string properties containing newlines\nconst testObject = {\n  description: 'Object with multiline strings',\n  notes: `Note 1\nNote 2\nNote 3`,\n  instructions: `Step 1: Do this\nStep 2: Do that\n\nStep 3: Final step`\n};\n\noutput(testObject);\n\n// Export for other cells to verify\nexports.multilineText = multilineText;\nexports.testObject = testObject;"
+    },
+    {
+      "id": "verification",
+      "type": "code", 
+      "code": "// Verify the exported values maintain newlines\nconsole.log('Verification - multilineText:');\nconsole.log(multilineText);\n\nconsole.log('\\nVerification - testObject.notes:');\nconsole.log(testObject.notes);\n\n// Test string concatenation with newlines\nconst combined = `Header text\n${multilineText}\nFooter text`;\noutput(combined);"
+    },
+    {
+      "id": "mixed-content",
+      "type": "code",
+      "code": "// Test mixed array with strings containing newlines\nconst mixedArray = [\n  'Simple string',\n  `Multiline string\nwith several\nlines`,\n  42,\n  true,\n  {\n    name: 'Object item',\n    description: `This is a description\nwith multiple lines\nand proper formatting`\n  }\n];\n\noutput(mixedArray);\n\n// Test output.table with multiline content\nconst tableData = [\n  {\n    id: 1,\n    name: 'Item 1',\n    description: `First item\nwith multiline\ndescription`\n  },\n  {\n    id: 2,\n    name: 'Item 2',\n    description: `Second item\nalso with\nmultiple lines`\n  }\n];\n\noutput.table(tableData);"
+    }
+  ]
+}

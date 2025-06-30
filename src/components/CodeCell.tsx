@@ -343,7 +343,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                                         {renderMixedContent(value)}
                                     </div>
                                 ) : (
-                                    <span className="text-accent-foreground font-mono text-sm">
+                                    <span className="text-accent-foreground font-mono text-sm whitespace-pre-wrap">
                                         {value === null ? 'null' : String(value)}
                                     </span>
                                 )}
