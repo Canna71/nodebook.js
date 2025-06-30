@@ -222,7 +222,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
             error 
                 ? 'border-destructive bg-destructive/5 dark:bg-destructive/10' // Error state styling
                 : isStatic 
-                    ? 'border-orange-400 bg-orange-50/50 dark:bg-orange-950/20' 
+                    ? 'border-l-4 border-l-amber-400/60 border-border bg-background' 
                     : 'border-border bg-background'
         }`}>
             {/* Code Summary - hidden in reading mode via CSS */}
