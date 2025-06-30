@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, JSX } from 'react';
 import { useReactiveSystem } from '@/Engine/ReactiveProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
