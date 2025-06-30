@@ -234,6 +234,12 @@ export const mainProcessMenuConfig: MainProcessMenuConfig = {
                     commandId: 'cell.delete',
                     accelerator: 'CmdOrCtrl+Shift+D',
                     enabledWhen: menuHelpers.hasSelectedCell
+                },
+                {
+                    label: 'Duplicate Cell',
+                    commandId: 'cell.duplicate',
+                    accelerator: 'CmdOrCtrl+D',
+                    enabledWhen: menuHelpers.hasSelectedCell
                 }
             ]
         },

@@ -317,6 +317,63 @@ export class NotebookStateManager {
         );
     }
 
+    duplicateCell(cellId: string, description?: string): string | null {
+        if (!this.currentState.currentModel) return null;
+
+        const cells = this.currentState.currentModel.cells;
+        const cellIndex = cells.findIndex(cell => cell.id === cellId);
+        if (cellIndex === -1) return null;
+
+        const originalCell = cells[cellIndex];
+        const newCellId = this.generateCellId(originalCell.type);
+        
+        // Create a deep copy of the cell with a new ID
+        let duplicatedCell: CellDefinition;
+        
+        switch (originalCell.type) {
+            case 'code':
+                duplicatedCell = {
+                    ...originalCell as CodeCellDefinition,
+                    id: newCellId
+                };
+                break;
+            case 'markdown':
+                duplicatedCell = {
+                    ...originalCell as MarkdownCellDefinition,
+                    id: newCellId
+                };
+                break;
+            case 'formula':
+                const formulaCell = originalCell as FormulaCellDefinition;
+                duplicatedCell = {
+                    ...formulaCell,
+                    id: newCellId,
+                    variableName: this.generateVariableName('fx') // Generate unique variable name
+                };
+                break;
+            case 'input':
+                const inputCell = originalCell as InputCellDefinition;
+                duplicatedCell = {
+                    ...inputCell,
+                    id: newCellId,
+                    variableName: this.generateVariableName('var') // Generate unique variable name
+                };
+                break;
+            default:
+                return null;
+        }
+
+        const newCells = [...cells];
+        newCells.splice(cellIndex + 1, 0, duplicatedCell);
+
+        this.setNotebookModel(
+            { ...this.currentState.currentModel, cells: newCells },
+            description || 'Duplicate cell'
+        );
+
+        return newCellId;
+    }
+
     // Undo/Redo operations
     canUndo(): boolean {
         return this.undoStack.length > 0;

@@ -23,6 +23,7 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
     addCell: addCellToNotebook, 
     deleteCell: deleteCellFromNotebook, 
     moveCell: moveCellInNotebook, 
+    duplicateCell: duplicateCellInNotebook,
     selectedCellId, 
     setSelectedCellId 
   } = useApplication();
@@ -197,6 +198,17 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
     moveCellInNotebook(cellId, direction, `Move cell ${direction}`);
   };
 
+  const duplicateCell = (cellId: string) => {
+    // Use state manager's duplicateCell method
+    const newCellId = duplicateCellInNotebook(cellId, 'Duplicate cell');
+    
+    if (newCellId) {
+      // Select the new duplicated cell
+      setSelectedCellId(newCellId);
+      log.debug(`Cell duplicated successfully: ${cellId} -> ${newCellId}`);
+    }
+  };
+
   const selectCell = (cellId: string) => {
     const newSelectedId = selectedCellId === cellId ? null : cellId;
     setSelectedCellId(newSelectedId);
@@ -274,6 +286,7 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
         onSelect={() => selectCell(cell.id)}
         onToggleEditMode={() => toggleEditMode(cell.id)}
         onDelete={() => deleteCell(cell.id)}
+        onDuplicate={() => duplicateCell(cell.id)}
         onMoveUp={() => moveCell(cell.id, 'up')}
         onMoveDown={() => moveCell(cell.id, 'down')}
         initialized={initialized}

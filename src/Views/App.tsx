@@ -33,7 +33,7 @@ import { updateCloseMenuLabel, updateApplicationContext, buildApplicationContext
 import { PlotlyStyleProvider } from '@/lib/plotlyDark';
 
 function AppContent() {
-    const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook, clearNotebook } = useApplication();
+    const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook, clearNotebook, selectedCellId, isDirty, readingMode, canUndo, canRedo } = useApplication();
     const { currentView, setCurrentView } = useView();
     const { lines, clearLines, isSupported } = useStdoutCapture();
     const { entries, clearEntries, maxEntries } = useConsoleCapture();
@@ -95,17 +95,17 @@ function AppContent() {
         const context = buildApplicationContext(
             currentView,
             !!currentModel,
-            false, // TODO: Get actual dirty state
-            false, // TODO: Get actual undo state  
-            false, // TODO: Get actual redo state
-            false, // TODO: Get actual reading mode state
-            null,  // TODO: Get actual selected cell ID
+            isDirty,
+            canUndo(),
+            canRedo(),
+            readingMode,
+            selectedCellId,
             currentModel?.cells?.length || 0
         );
         
         updateApplicationContext(context);
         log.debug('Updated application context for menu:', context);
-    }, [currentView, currentModel]);
+    }, [currentView, currentModel, isDirty, canUndo, canRedo, readingMode, selectedCellId]);
 
     // Close view event handler (needs to be defined outside useEffect to avoid stale closure)
     const handleCloseViewEvent = useCallback(() => {

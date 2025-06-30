@@ -22,6 +22,7 @@ import {
   BookOpenIcon,
   PencilIcon
 } from 'lucide-react';
+import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { MarkdownIcon } from './icons/MarkdownIcon';
 import { JavascriptIcon } from './icons/JavascriptIcon';
 
@@ -244,6 +245,23 @@ export function Toolbar() {
                 </TooltipTrigger>
                 <TooltipContent>
                   Add Input Cell
+                </TooltipContent>
+              </Tooltip>
+
+              <Separator orientation="vertical" className="mx-1 h-4" />
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCommand('cell.duplicate')}
+                  >
+                    <DocumentDuplicateIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Duplicate Cell (Cmd+D)
                 </TooltipContent>
               </Tooltip>
 

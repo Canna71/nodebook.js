@@ -485,3 +485,43 @@ export class CloseNotebookCommand extends BaseCommand {
         }
     }
 }
+
+/**
+ * Duplicate cell command
+ */
+export class DuplicateCellCommand extends BaseCommand {
+    getDescription(): string {
+        return 'Duplicate the selected cell';
+    }
+
+    canExecute(): boolean {
+        const hasModel = !!this.context.applicationProvider.currentModel;
+        const hasSelectedCell = !!this.context.uiState.selectedCellId;
+        return hasModel && hasSelectedCell;
+    }
+
+    async execute(): Promise<void> {
+        try {
+            const selectedCellId = this.context.uiState.selectedCellId;
+            if (!selectedCellId) {
+                log.warn('No cell selected for duplication');
+                return;
+            }
+
+            // Use the state manager's duplicateCell method
+            const newCellId = this.context.applicationProvider.duplicateCell(selectedCellId, 'Duplicate cell');
+            
+            if (newCellId) {
+                log.debug(`Cell duplicated successfully: ${selectedCellId} -> ${newCellId}`);
+                
+                // Select the new duplicated cell
+                this.context.applicationProvider.setSelectedCellId(newCellId);
+            } else {
+                log.warn('Failed to duplicate cell');
+            }
+        } catch (error) {
+            log.error('Error duplicating cell:', error);
+            throw error;
+        }
+    }
+}

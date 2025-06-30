@@ -61,6 +61,7 @@ export interface CommandContext {
         isDirty: boolean;
         readingMode: boolean; // NEW: Reading mode state
         setReadingMode: (readingMode: boolean) => void; // NEW: Reading mode setter
+        setSelectedCellId: (cellId: string | null) => void;
         // Undo/Redo operations
         canUndo: () => boolean;
         canRedo: () => boolean;
@@ -73,6 +74,7 @@ export interface CommandContext {
         addCell: (cellType: string, insertIndex?: number, description?: string) => string | null;
         deleteCell: (cellId: string, description?: string) => void;
         moveCell: (cellId: string, direction: 'up' | 'down', description?: string) => void;
+        duplicateCell: (cellId: string, description?: string) => string | null;
     };
     
     // Reactive system

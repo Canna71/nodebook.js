@@ -6,6 +6,7 @@ import {
     TrashIcon, 
     ChevronUpIcon, 
     ChevronDownIcon,
+    DocumentDuplicateIcon
 } from '@heroicons/react/24/outline';
 import { CodeIcon, GripVertical, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -23,6 +24,7 @@ interface CellContainerProps {
     onSelect: () => void;
     onToggleEditMode: () => void;
     onDelete: () => void;
+    onDuplicate: () => void;
     onMoveUp: () => void;
     onMoveDown: () => void;
     children: React.ReactNode;
@@ -42,6 +44,7 @@ export function CellContainer({
     onSelect,
     onToggleEditMode,
     onDelete,
+    onDuplicate,
     onMoveUp,
     onMoveDown,
     initialized,
@@ -290,6 +293,18 @@ export function CellContainer({
                         ) : (
                             <PencilIcon className="w-4 h-4" />
                         )}
+                    </button>
+
+                    {/* Duplicate */}
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDuplicate();
+                        }}
+                        className="action-button p-1 rounded hover:bg-accent/20 text-foreground"
+                        title="Duplicate cell"
+                    >
+                        <DocumentDuplicateIcon className="w-4 h-4" />
                     </button>
 
                     {/* Delete */}

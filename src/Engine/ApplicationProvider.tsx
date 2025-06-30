@@ -540,6 +540,20 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             'menu-delete-cell': () => {
                 window.dispatchEvent(new CustomEvent('delete-cell'));
             },
+            'menu-duplicate-cell': async () => {
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('cell.duplicate');
+                    } catch (error) {
+                        log.error('Error executing duplicate cell command:', error);
+                        // Fallback to custom event
+                        window.dispatchEvent(new CustomEvent('duplicate-cell'));
+                    }
+                } else {
+                    // Fallback to custom event
+                    window.dispatchEvent(new CustomEvent('duplicate-cell'));
+                }
+            },
             'menu-find': () => {
                 // Implement find functionality
                 window.dispatchEvent(new CustomEvent('find-in-notebook'));
@@ -874,6 +888,8 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             stateManager.deleteCell(cellId, description),
         moveCell: (cellId: string, direction: 'up' | 'down', description?: string) => 
             stateManager.moveCell(cellId, direction, description),
+        duplicateCell: (cellId: string, description?: string) => 
+            stateManager.duplicateCell(cellId, description),
     };
 
     return (

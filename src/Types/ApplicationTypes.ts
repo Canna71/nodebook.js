@@ -42,6 +42,7 @@ export interface ApplicationContextType extends ApplicationState {
     addCell: (cellType: CellDefinition['type'], insertIndex?: number, description?: string) => string | null;
     deleteCell: (cellId: string, description?: string) => void;
     moveCell: (cellId: string, direction: 'up' | 'down', description?: string) => void;
+    duplicateCell: (cellId: string, description?: string) => string | null;
 }
 
 export interface ApplicationProviderProps {

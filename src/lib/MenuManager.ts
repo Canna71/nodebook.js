@@ -294,6 +294,12 @@ export class MenuManager {
                     enabled: this.stateContext.canDeleteCell 
                 };
 
+            case 'cell.duplicate':
+                return { 
+                    ...defaults, 
+                    enabled: this.stateContext.hasSelectedCell 
+                };
+
             case 'cell.moveUp':
             case 'cell.moveDown':
                 return { 

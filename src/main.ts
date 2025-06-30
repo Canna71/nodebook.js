@@ -93,6 +93,7 @@ function createMenuWithManager(mainWindow: BrowserWindow) {
             'cell.clearOutput': () => mainWindow.webContents.send('menu-clear-cell-output'),
             'cell.clearAllOutputs': () => mainWindow.webContents.send('menu-clear-all-outputs'),
             'cell.delete': () => mainWindow.webContents.send('menu-delete-cell'),
+            'cell.duplicate': () => mainWindow.webContents.send('menu-duplicate-cell'),
             'view.reload': () => mainWindow.reload(),
             'view.forceReload': () => mainWindow.webContents.reloadIgnoringCache(),
             'view.toggleDevTools': () => mainWindow.webContents.toggleDevTools(),

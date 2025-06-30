@@ -49,6 +49,7 @@ export function KeyboardShortcutsView({ onClose }: KeyboardShortcutsViewProps) {
           { keys: `${shiftKey}+${cmdKey}+M`, description: 'Insert Markdown Cell' },
           { keys: `${shiftKey}+${cmdKey}+F`, description: 'Insert Formula Cell' },
           { keys: `${shiftKey}+${cmdKey}+I`, description: 'Insert Input Cell' },
+          { keys: `${cmdKey}+D`, description: 'Duplicate Cell' },
           { keys: `${shiftKey}+${cmdKey}+D`, description: 'Delete Cell' },
         ]
       },

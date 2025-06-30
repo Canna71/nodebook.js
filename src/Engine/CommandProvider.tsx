@@ -16,7 +16,8 @@ import {
     ExecuteAllCellsCommand,
     ToggleSidebarCommand,
     UndoCommand,
-    RedoCommand
+    RedoCommand,
+    DuplicateCellCommand
 } from './Commands/NotebookCommands';
 import { 
     GenerateNotebookCommand, 
@@ -49,7 +50,8 @@ import {
     XMarkIcon,
     BookOpenIcon,
     EyeIcon, // NEW: Reading mode icon
-    CogIcon // NEW: Settings icon
+    CogIcon, // NEW: Settings icon
+    DocumentDuplicateIcon
 } from '@heroicons/react/24/outline';
 import { CellDefinition } from '@/Types/NotebookModel';
 import anylogger from 'anylogger';
@@ -213,6 +215,14 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
         });
 
         commandManager.registerCommand({
+            id: 'cell.duplicate',
+            command: new DuplicateCellCommand(getContext),
+            shortcut: 'Cmd+D',
+            icon: DocumentDuplicateIcon,
+            tooltip: 'Duplicate cell (Cmd+D)'
+        });
+
+        commandManager.registerCommand({
             id: 'ui.toggleSidebar',
             command: new ToggleSidebarCommand(getContext),
             shortcut: 'Cmd+B',
@@ -357,6 +367,7 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
                 isDirty: applicationProvider.isDirty,
                 readingMode: applicationProvider.readingMode, // NEW: Reading mode state
                 setReadingMode: applicationProvider.setReadingMode, // NEW: Reading mode setter
+                setSelectedCellId: applicationProvider.setSelectedCellId,
                 // Add undo/redo operations
                 canUndo: applicationProvider.canUndo,
                 canRedo: applicationProvider.canRedo,
@@ -368,7 +379,8 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
                 updateCell: applicationProvider.updateCell,
                 addCell: applicationProvider.addCell,
                 deleteCell: applicationProvider.deleteCell,
-                moveCell: applicationProvider.moveCell
+                moveCell: applicationProvider.moveCell,
+                duplicateCell: applicationProvider.duplicateCell
             },
             reactiveSystem: {
                 codeCellEngine: reactiveSystem.codeCellEngine,
