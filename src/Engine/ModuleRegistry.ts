@@ -827,6 +827,12 @@ const zx:any = this.nodeRequire('zx');
     }
 
     if( zx ) {
+        // if on windows, set Powershell as default shell
+        if (process.platform === 'win32') {
+            zx.usePowerShell();
+            log.debug('Set zx shell to powershell for Windows');
+        }
+
         this.modules.set('zx', zx);
         log.info('✓ Successfully loaded zx');
     } else {
