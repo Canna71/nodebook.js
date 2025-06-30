@@ -885,6 +885,52 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         }
     };
 
+    // Add file association handling
+    useEffect(() => {
+        if (!window.api) return;
+
+        const handleFileFromSystem = async (filePath: string) => {
+            log.info('Opening file from system file association:', filePath);
+            
+            try {
+                // Validate file extension
+                if (!filePath.endsWith('.nbjs') && !filePath.endsWith('.json')) {
+                    throw new Error('Invalid file type. Only .nbjs and .json files are supported.');
+                }
+                
+                // Load the notebook
+                await loadNotebook(filePath);
+                
+                // Show success message
+                const fileName = filePath.split('/').pop() || 'notebook';
+                toast.success(`Opened: ${fileName}`, {
+                    description: filePath,
+                    duration: 3000,
+                });
+                
+            } catch (error) {
+                log.error('Error opening file from system:', error);
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                toast.error('Failed to open file', {
+                    description: errorMessage,
+                    duration: 5000,
+                });
+                
+                await appDialogHelper.showError('Open Failed', 
+                    `Failed to open file: ${errorMessage}`,
+                    error instanceof Error ? error.stack : undefined);
+            }
+        };
+
+        // Set up file association listener
+        window.api.onOpenFileFromSystem(handleFileFromSystem);
+
+        // Cleanup
+        return () => {
+            window.api.removeOpenFileListener();
+        };
+    }, [loadNotebook]);
+
     const contextValue: ApplicationContextType = {
         ...state,
         loadNotebook,

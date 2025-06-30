@@ -10,7 +10,7 @@
                 <string>nbjs</string>
             </array>
             <key>CFBundleTypeIconFile</key>
-            <string>icon</string>
+            <string>document</string>
             <key>CFBundleTypeName</key>
             <string>Nodebook.js Notebook</string>
             <key>CFBundleTypeRole</key>
@@ -34,7 +34,7 @@
             <key>UTTypeDescription</key>
             <string>Nodebook.js Interactive Notebook</string>
             <key>UTTypeIconFile</key>
-            <string>icon</string>
+            <string>document</string>
             <key>UTTypeIdentifier</key>
             <string>com.nodebook.nbjs</string>
             <key>UTTypeTagSpecification</key>

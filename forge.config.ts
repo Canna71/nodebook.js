@@ -72,7 +72,10 @@ const config: ForgeConfig = {
     //   "./node_modules/danfojs-node/",
     //   "./node_modules/@tensorflow/",
     "./examples/",
-    "./docs/"
+    "./docs/",
+    // File association resources
+    "./build-resources/application-x-nodebook.xml",
+    "./build-resources/nodebook.desktop"
     ],
     // Support for different architectures
     ...(process.env.npm_config_target_arch && {
@@ -94,12 +97,18 @@ const config: ForgeConfig = {
     new MakerZIP({}, ['darwin', 'linux']), 
     new MakerRpm({
       options: {
-        icon: './build-resources/icons/icon.png'
+        icon: './build-resources/icons/icon.png',
+        // Categories and metadata for better integration
+        categories: ['Development', 'Science', 'Education'],
+        productDescription: 'Interactive notebook application for reactive computing'
       }
     }, ['linux']), 
     new MakerDeb({
       options: {
-        icon: './build-resources/icons/icon.png'
+        icon: './build-resources/icons/icon.png',
+        // Categories and metadata for better integration
+        categories: ['Development', 'Science', 'Education'],
+        productDescription: 'Interactive notebook application for reactive computing'
       }
     }, ['linux'])
     ],
@@ -163,7 +172,169 @@ const config: ForgeConfig = {
           console.warn(`⚠️ Module not found: ${moduleName}`);
         }
       }
-    }
+      
+      // macOS-specific setup for file associations
+      if (platform === 'darwin') {
+        console.log('Setting up macOS file association resources...');
+        
+        // Copy document icon to app bundle resources
+        const appResourcesDir = path.join(buildPath, 'Contents', 'Resources');
+        const documentIconSrc = path.join(__dirname, 'build-resources', 'icons', 'document.icns');
+        const documentIconDest = path.join(appResourcesDir, 'document.icns');
+        
+        if (await fs.pathExists(documentIconSrc)) {
+          await fs.copy(documentIconSrc, documentIconDest);
+          console.log('✅ Copied document.icns to app bundle');
+        } else {
+          console.warn('⚠️ document.icns not found in build resources');
+          // Fallback: copy app icon as document icon
+          const appIconSrc = path.join(__dirname, 'build-resources', 'icons', 'icon.icns');
+          if (await fs.pathExists(appIconSrc)) {
+            await fs.copy(appIconSrc, documentIconDest);
+            console.log('📄 Using app icon as document icon fallback');
+          }
+        }
+        
+        // Copy Info.plist to app bundle
+        const infoPlistSrc = path.join(__dirname, 'build-resources', 'Info.plist');
+        const infoPlistDest = path.join(buildPath, '../../Info.plist');
+        
+        if (await fs.pathExists(infoPlistSrc)) {
+          // Read the existing Info.plist
+          const existingPlist = await fs.readFile(infoPlistDest, 'utf8');
+          const customPlist = await fs.readFile(infoPlistSrc, 'utf8');
+          
+          // Extract document types and UTI declarations from custom plist
+          const docTypesMatch = customPlist.match(/<key>CFBundleDocumentTypes<\/key>\s*<array>.*?<\/array>/s);
+          const utiMatch = customPlist.match(/<key>UTExportedTypeDeclarations<\/key>\s*<array>.*?<\/array>/s);
+          
+          if (docTypesMatch && utiMatch) {
+            let updatedPlist = existingPlist;
+            
+            // Add document types if not present
+            if (!updatedPlist.includes('CFBundleDocumentTypes')) {
+              updatedPlist = updatedPlist.replace(
+                '</dict>\n</plist>',
+                `    ${docTypesMatch[0]}\n    ${utiMatch[0]}\n</dict>\n</plist>`
+              );
+              
+              await fs.writeFile(infoPlistDest, updatedPlist);
+              console.log('✅ Updated Info.plist with file associations');
+            } else {
+              console.log('📄 Info.plist already contains file associations');
+            }
+          }
+        }
+      }
+    },
+    // Post-package hook for Linux file associations and macOS verification
+    postPackage: async (config, packageResult) => {
+      const { platform, outputPaths } = packageResult;
+      const path = require('path');
+      const fs = require('fs-extra');
+      
+      if (platform === 'linux') {
+        console.log('Setting up Linux file associations...');
+        
+        for (const outputPath of outputPaths) {
+          try {
+            // Copy desktop file
+            const desktopSrc = path.join(__dirname, 'build-resources', 'nodebook.desktop');
+            const desktopDest = path.join(outputPath, 'nodebook.desktop');
+            if (await fs.pathExists(desktopSrc)) {
+              await fs.copy(desktopSrc, desktopDest);
+              console.log('✅ Copied desktop file to package');
+            }
+            
+            // Copy MIME type definition
+            const mimeSrc = path.join(__dirname, 'build-resources', 'application-x-nodebook.xml');
+            const mimeDest = path.join(outputPath, 'mime', 'application-x-nodebook.xml');
+            if (await fs.pathExists(mimeSrc)) {
+              await fs.ensureDir(path.dirname(mimeDest));
+              await fs.copy(mimeSrc, mimeDest);
+              console.log('✅ Copied MIME type definition to package');
+            }
+            
+            // Create post-install script
+            const postInstallScript = `#!/bin/bash
+# Nodebook.js post-install script for file associations
+
+# Install MIME type
+if [ -f "/usr/share/mime/packages/application-x-nodebook.xml" ]; then
+    xdg-mime install --mode system /usr/share/mime/packages/application-x-nodebook.xml 2>/dev/null || true
+fi
+
+# Install desktop file
+if [ -f "/usr/share/applications/nodebook.desktop" ]; then
+    desktop-file-install --mode 644 /usr/share/applications/nodebook.desktop 2>/dev/null || true
+fi
+
+# Update databases
+update-mime-database /usr/share/mime 2>/dev/null || true
+update-desktop-database /usr/share/applications 2>/dev/null || true
+
+# Set as default application for .nbjs files
+xdg-mime default nodebook.desktop application/x-nodebook 2>/dev/null || true
+
+echo "Nodebook.js file associations installed successfully!"
+`;
+            
+            const scriptPath = path.join(outputPath, 'post-install.sh');
+            await fs.writeFile(scriptPath, postInstallScript);
+            await fs.chmod(scriptPath, '755');
+            console.log('✅ Created post-install script for Linux file associations');
+            
+          } catch (error) {
+            console.warn('⚠️ Failed to setup Linux file associations:', error);
+          }
+        }
+      }
+      
+      if (platform === 'darwin') {
+        console.log('Verifying macOS file association setup...');
+        
+        for (const outputPath of outputPaths) {
+          try {
+            const appPath = path.join(outputPath, 'Nodebook.js.app');
+            const resourcesPath = path.join(appPath, 'Contents', 'Resources');
+            
+            // Check for required icons
+            const requiredIcons = ['icon.icns', 'document.icns'];
+            for (const iconFile of requiredIcons) {
+              const iconPath = path.join(resourcesPath, iconFile);
+              if (await fs.pathExists(iconPath)) {
+                console.log(`✅ Found ${iconFile} in app bundle`);
+              } else {
+                console.warn(`⚠️ Missing ${iconFile} in app bundle`);
+              }
+            }
+            
+            // Verify Info.plist contains file associations
+            const infoPlistPath = path.join(appPath, 'Contents', 'Info.plist');
+            if (await fs.pathExists(infoPlistPath)) {
+              const plistContent = await fs.readFile(infoPlistPath, 'utf8');
+              if (plistContent.includes('CFBundleDocumentTypes') && plistContent.includes('UTExportedTypeDeclarations')) {
+                console.log('✅ Info.plist contains file association declarations');
+              } else {
+                console.warn('⚠️ Info.plist missing file association declarations');
+              }
+            } else {
+              console.warn('⚠️ Info.plist missing from app bundle');
+            }
+            
+            console.log('');
+            console.log('📋 macOS Installation Instructions:');
+            console.log('1. Move Nodebook.js.app to /Applications/ folder');
+            console.log('2. Run: sudo /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f /Applications/Nodebook.js.app');
+            console.log('3. Right-click any .nbjs file → Get Info → Change default app to Nodebook.js');
+            console.log('4. See docs/macos-file-association-troubleshooting.md for detailed instructions');
+            
+          } catch (error) {
+            console.warn('⚠️ Failed to verify macOS file associations:', error);
+          }
+        }
+      }
+    },
   }
 
 };

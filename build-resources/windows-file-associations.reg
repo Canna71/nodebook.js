@@ -11,9 +11,14 @@ Windows Registry Editor Version 5.00
 [HKEY_CLASSES_ROOT\NodebookJS.Document\DefaultIcon]
 @="\"C:\\Program Files\\Nodebook.js\\Nodebook.js.exe\",0"
 
+; Alternative icon paths for different installation locations
+[HKEY_CLASSES_ROOT\NodebookJS.Document\DefaultIcon]
+@="\"C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\Nodebook.js\\Nodebook.js.exe\",0"
+
 [HKEY_CLASSES_ROOT\NodebookJS.Document\shell]
 
 [HKEY_CLASSES_ROOT\NodebookJS.Document\shell\open]
+@="Open with Nodebook.js"
 
 [HKEY_CLASSES_ROOT\NodebookJS.Document\shell\open\command]
 @="\"C:\\Program Files\\Nodebook.js\\Nodebook.js.exe\" \"%1\""
@@ -28,3 +33,16 @@ Windows Registry Editor Version 5.00
 ; Register MIME type
 [HKEY_CLASSES_ROOT\MIME\Database\Content Type\application/x-nodebook]
 "Extension"=".nbjs"
+
+; Alternative installation paths for user installations
+[HKEY_CURRENT_USER\Software\Classes\.nbjs]
+@="NodebookJS.Document"
+
+[HKEY_CURRENT_USER\Software\Classes\NodebookJS.Document]
+@="Nodebook.js Interactive Notebook"
+
+[HKEY_CURRENT_USER\Software\Classes\NodebookJS.Document\DefaultIcon]
+@="\"C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\Nodebook.js\\Nodebook.js.exe\",0"
+
+[HKEY_CURRENT_USER\Software\Classes\NodebookJS.Document\shell\open\command]
+@="\"C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\Nodebook.js\\Nodebook.js.exe\" \"%1\""
