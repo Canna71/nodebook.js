@@ -41,6 +41,9 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     // Subscribe to error state from reactive system
     const [error] = useReactiveValue(`__cell_${definition.id}_error`, null);
     
+    // Subscribe to execution state from reactive system
+    const [executionState] = useReactiveValue(`__cell_${definition.id}_state`, 'idle');
+    
     // Debug log error state changes
     useEffect(() => {
         log.debug('CodeCell error state changed for', definition.id, ':', error?.message || 'null');
@@ -191,20 +194,19 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     }, [isEditMode, isDirty, isStaticDirty, commitChanges, discardChanges]);
 
     const onExecute = async () => {
+        // Prevent double execution
+        if (executionState === 'running') {
+            log.debug(`Code cell ${definition.id} is already executing, skipping`);
+            return;
+        }
+        
         // Commit any unsaved changes before executing
         if (isDirty || isStaticDirty) {
             commitChanges();
         }
         
-        // Clear previous DOM output using predictable ID to avoid timing issues
-        const outputContainerId = `${definition.id}-outEl`;
-        const outputContainer = document.getElementById(outputContainerId);
-        if (outputContainer) {
-            outputContainer.innerHTML = '';
-        } else if (outputContainerRef.current) {
-            // Fallback to ref if ID lookup fails
-            outputContainerRef.current.innerHTML = '';
-        }
+        // DOM output clearing is now handled by the reactive system
+        // No need to manually clear here as executeCodeCell handles it
         
         // Execute with the current code and static flag
         try {

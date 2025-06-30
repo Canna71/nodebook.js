@@ -773,6 +773,7 @@ export class CodeCellEngine {
             // Initialize reactive values for the cell
             this.reactiveStore.define(`__cell_${id}_execution`, 0);
             this.reactiveStore.define(`__cell_${id}_error`, null);
+            this.reactiveStore.define(`__cell_${id}_state`, 'idle');
         }
     }
 
@@ -871,14 +872,24 @@ export class CodeCellEngine {
             return this.executedCells.get(cellId)?.exports || [];
         }
 
+        // Set execution state to 'running'
+        this.reactiveStore.define(`__cell_${cellId}_state`, 'running');
         this.executingCells.add(cellId);
         
-        // Clear previous DOM output using predictable ID to ensure clean state
+        // Clear all previous outputs to ensure clean state
         const containerId = `${cellId}-outEl`;
         const domContainer = document.getElementById(containerId);
         if (domContainer) {
             domContainer.innerHTML = '';
             log.debug(`Cleared DOM output container ${containerId} for cell ${cellId}`);
+        }
+        
+        // Clear any previous output values and console output from the cell
+        const previousCellInfo = this.executedCells.get(cellId);
+        if (previousCellInfo) {
+            previousCellInfo.outputValues = [];
+            previousCellInfo.lastOutput = [];
+            log.debug(`Cleared previous output values and console output for cell ${cellId}`);
         }
         
         const dependencies = new Set<string>();
@@ -1167,6 +1178,7 @@ export class CodeCellEngine {
             // Create reactive values for this cell's execution state
             this.reactiveStore.define(`__cell_${cellId}_execution`, executionCount);
             this.reactiveStore.define(`__cell_${cellId}_error`, null); // Clear error on success
+            this.reactiveStore.define(`__cell_${cellId}_state`, 'idle'); // Set state back to idle
             log.debug(`Code cell ${cellId} executed successfully - error cleared`);
 
             // Set up reactive execution for dependencies (only if not static and not already set up)
@@ -1213,6 +1225,7 @@ export class CodeCellEngine {
             // Create reactive values for this cell's execution and error state
             this.reactiveStore.define(`__cell_${cellId}_execution`, executionCount);
             this.reactiveStore.define(`__cell_${cellId}_error`, errorObj);
+            this.reactiveStore.define(`__cell_${cellId}_state`, 'idle'); // Set state back to idle even on error
             log.debug(`Code cell ${cellId} error stored in reactive system:`, errorObj.message);
 
             log.error(`Error executing code cell ${cellId}:`, error);

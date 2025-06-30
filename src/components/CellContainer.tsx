@@ -7,11 +7,12 @@ import {
     ChevronUpIcon, 
     ChevronDownIcon,
 } from '@heroicons/react/24/outline';
-import { CodeIcon, GripVertical } from 'lucide-react';
+import { CodeIcon, GripVertical, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PlayIcon } from '@heroicons/react/24/solid';
 import { Button } from './ui/button';
 import { CellTypeIcon } from './CellTypeIcon';
+import { useReactiveValue } from '@/Engine/ReactiveProvider';
 
 interface CellContainerProps {
     definition: CellDefinition;
@@ -48,7 +49,12 @@ export function CellContainer({
 }: CellContainerProps) {
     const [isHovered, setIsHovered] = useState(false);
     const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
-      // Refs for tracking play button position
+    
+    // Track execution state for code cells
+    const [executionState] = useReactiveValue(`__cell_${definition.id}_state`, 'idle');
+    const isExecuting = definition.type === 'code' && executionState === 'running';
+    
+    // Refs for tracking play button position
     const cellContainerRef = useRef<HTMLDivElement>(null);
     const playButtonRef = useRef<HTMLButtonElement>(null);
     const [playButtonTop, setPlayButtonTop] = useState<number | null>(null);
@@ -340,14 +346,21 @@ export function CellContainer({
                                     ref={playButtonRef}
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        onExecuteCode();
+                                        if (!isExecuting) {
+                                            onExecuteCode();
+                                        }
                                     }}
                                     variant="secondary" 
                                     size="sm" 
                                     className="w-6 h-6 execute-button p-1 mt-1.5 rounded bg-background border border-border hover:bg-accent/20 text-foreground transition-colors"
-                                    title="Execute cell"
+                                    title={isExecuting ? "Executing..." : "Execute cell"}
+                                    disabled={isExecuting}
                                 >
-                                    <PlayIcon className="w-2.5 h-2.5" />
+                                    {isExecuting ? (
+                                        <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                                    ) : (
+                                        <PlayIcon className="w-2.5 h-2.5" />
+                                    )}
                                 </Button>
                             )}
                             
@@ -361,7 +374,9 @@ export function CellContainer({
                                 <Button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        onExecuteCode();
+                                        if (!isExecuting) {
+                                            onExecuteCode();
+                                        }
                                     }}
                                     variant="secondary"
                                     size="sm"
@@ -375,9 +390,14 @@ export function CellContainer({
                                         minHeight: '24px',
                                         padding: '4px'
                                     }}
-                                    title="Execute cell"
+                                    title={isExecuting ? "Executing..." : "Execute cell"}
+                                    disabled={isExecuting}
                                 >
-                                    <PlayIcon className="w-2.5 h-2.5 flex-shrink-0" />
+                                    {isExecuting ? (
+                                        <Loader2 className="w-2.5 h-2.5 flex-shrink-0 animate-spin" />
+                                    ) : (
+                                        <PlayIcon className="w-2.5 h-2.5 flex-shrink-0" />
+                                    )}
                                 </Button>
                             )}
                         </>
