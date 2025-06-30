@@ -1,0 +1,71 @@
+{
+  "title": "Slider Performance Test",
+  "description": "Test throttled slider performance with reactive calculations",
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "test-header",
+      "content": "# 🎛️ Slider Performance Test\n\nThis notebook tests the throttled slider implementation. The slider should feel smooth while preventing excessive recalculation of dependent cells.\n\n## How It Works\n\n- **Slider movements**: Update UI immediately (smooth feedback)\n- **Reactive updates**: Throttled to ~100ms (prevents excessive recalculation)\n- **Final value**: Committed immediately when you stop dragging\n\nTry dragging the sliders below and watch the performance!"
+    },
+    {
+      "type": "input",
+      "id": "price-slider",
+      "label": "Price ($)",
+      "inputType": "range",
+      "variableName": "price",
+      "value": 100,
+      "props": {
+        "min": 50,
+        "max": 500,
+        "step": 5
+      }
+    },
+    {
+      "type": "input",
+      "id": "quantity-slider",
+      "label": "Quantity",
+      "inputType": "range",
+      "variableName": "quantity",
+      "value": 10,
+      "props": {
+        "min": 1,
+        "max": 100,
+        "step": 1
+      }
+    },
+    {
+      "type": "input",
+      "id": "discount-slider",
+      "label": "Discount (%)",
+      "inputType": "range",
+      "variableName": "discount",
+      "value": 10,
+      "props": {
+        "min": 0,
+        "max": 50,
+        "step": 1
+      }
+    },
+    {
+      "type": "code",
+      "id": "complex-calculation",
+      "code": "// This cell performs expensive calculations that would be slow if triggered on every slider movement\nconsole.log('🔄 Recalculating complex metrics...');\n\n// Simulate some expensive operations\nconst startTime = performance.now();\n\n// Calculate various metrics\nconst subtotal = price * quantity;\nconst discountAmount = subtotal * (discount / 100);\nconst total = subtotal - discountAmount;\nconst tax = total * 0.08;\nconst finalTotal = total + tax;\n\n// Simulate more complex operations\nconst scenarios = [];\nfor (let i = 1; i <= 10; i++) {\n  const scenarioQuantity = quantity * i;\n  const scenarioSubtotal = price * scenarioQuantity;\n  const scenarioDiscount = scenarioSubtotal * (discount / 100);\n  const scenarioTotal = scenarioSubtotal - scenarioDiscount;\n  \n  scenarios.push({\n    multiplier: i,\n    quantity: scenarioQuantity,\n    subtotal: scenarioSubtotal,\n    discount: scenarioDiscount,\n    total: scenarioTotal\n  });\n}\n\nconst calculationTime = performance.now() - startTime;\n\nexports.subtotal = subtotal;\nexports.discountAmount = discountAmount;\nexports.total = total;\nexports.tax = tax;\nexports.finalTotal = finalTotal;\nexports.scenarios = scenarios;\nexports.calculationTime = calculationTime;\n\nconsole.log(`✅ Calculation completed in ${calculationTime.toFixed(2)}ms`);\nconsole.log(`Current values: Price=$${price}, Quantity=${quantity}, Discount=${discount}%`);\nconsole.log(`Result: $${finalTotal.toFixed(2)} (including tax)`);"
+    },
+    {
+      "type": "markdown",
+      "id": "results-display",
+      "content": "## 📊 Live Results\n\n### Current Order\n- **Price per item**: ${{price}}\n- **Quantity**: {{quantity}} items\n- **Discount**: {{discount}}%\n\n### Calculations\n- **Subtotal**: ${{subtotal | number}}\n- **Discount Amount**: -${{discountAmount | number}}\n- **After Discount**: ${{total | number}}\n- **Tax (8%)**: +${{tax | number}}\n- **Final Total**: **${{finalTotal | number}}**\n\n### Performance\n- **Last calculation time**: {{calculationTime | round,2}}ms\n\n*Notice how the calculations update smoothly without lag, thanks to throttling!*",
+      "variables": ["price", "quantity", "discount", "subtotal", "discountAmount", "total", "tax", "finalTotal", "calculationTime"]
+    },
+    {
+      "type": "code",
+      "id": "scenarios-table",
+      "code": "// Display bulk order scenarios\nconsole.log('📋 Bulk Order Scenarios:');\noutput.table(scenarios.map(s => ({\n  'Multiplier': `${s.multiplier}x`,\n  'Quantity': s.quantity,\n  'Subtotal': `$${s.subtotal.toLocaleString()}`,\n  'Discount': `-$${s.discount.toLocaleString()}`,\n  'Total': `$${s.total.toLocaleString()}`\n})));\n\nconsole.log(`Generated ${scenarios.length} scenarios based on current parameters`);"
+    },
+    {
+      "type": "markdown",
+      "id": "performance-notes",
+      "content": "## 🚀 Performance Features\n\n### What You Should Notice\n\n1. **Smooth Slider Movement**: The sliders feel responsive and smooth\n2. **Throttled Calculations**: The expensive calculation doesn't run on every pixel of movement\n3. **Immediate Final Update**: When you stop dragging, the final value is committed immediately\n4. **No UI Lag**: The interface remains responsive even with complex calculations\n\n### Technical Implementation\n\n- **Range inputs** use a `useThrottledReactiveValue` hook with 100ms throttling\n- **Other input types** (text, number, checkbox) update immediately\n- **Slider UI feedback** is instant using local React state\n- **Reactive system** only gets updates after the throttle delay\n- **onValueCommit** ensures final values are set immediately when dragging stops\n\nThis approach provides the best of both worlds: smooth UI interaction and efficient reactive calculations!"
+    }
+  ]
+}

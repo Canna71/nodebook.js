@@ -754,11 +754,43 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         setAboutDialogOpen(true);
     };
 
-    const showWelcomeDialog = () => {
+    const showWelcomeDialog = async () => {
+        try {
+            // Load the welcome tutorial from the examples folder
+            const fs = getFileSystemHelpers();
+            const welcomePath = 'examples/welcome-tutorial.json';
+            
+            log.debug('Attempting to load welcome tutorial from:', welcomePath);
+            
+            // Try to load the welcome tutorial
+            const content = await fs.loadNotebook(welcomePath);
+            if (content.success) {
+                let model = content.data;
+                
+                // Process model to ensure all cells have IDs
+                model = ensureAllCellsHaveIds(model);
+                
+                setModel(model);
+                // Use state manager to preserve reading mode when showing welcome notebook
+                stateManager.saveNotebook(null, 'Load welcome tutorial');
+                
+                log.info('Welcome tutorial loaded successfully from:', welcomePath);
+            } else {
+                // Fallback to simple welcome notebook if file not found
+                log.warn('Could not load welcome tutorial, using fallback. Error:', content.error);
+                showFallbackWelcome();
+            }
+        } catch (error) {
+            log.error('Error loading welcome tutorial:', error);
+            showFallbackWelcome();
+        }
+    };
+
+    const showFallbackWelcome = () => {
         // Helper function to generate ID
         const generateId = () => `cell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         
-        // Create a welcome tutorial notebook
+        // Create a simple fallback welcome notebook
         const welcomeNotebook: NotebookModel = {
             cells: [
                 {
