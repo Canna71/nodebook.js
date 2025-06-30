@@ -66,7 +66,15 @@ When adding new internal documentation:
   - [ ] Optional OS keychain integration for additional security layer
   - [ ] Key rotation and expiration features
 
+## If issues on windows try these commands
+
+```powershell
 $env:PYTHON = 'C:\Users\gcann\miniconda3\envs\electron-build\python.exe'; npx @electron/rebuild
+```
+
+```powershell
+$env:NODE_OPTIONS="--max-old-space-size=8192"; pnpm run package
+```
 
 # Squirrel issues
 
