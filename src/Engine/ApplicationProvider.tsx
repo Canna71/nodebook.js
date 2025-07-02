@@ -756,15 +756,14 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
 
     const showWelcomeDialog = async () => {
         try {
-            // Load the welcome tutorial from the examples folder
+            // Load the welcome tutorial from the examples folder using FileSystemHelpers
             const fs = getFileSystemHelpers();
-            const welcomePath = 'examples/welcome-tutorial.json';
             
-            log.debug('Attempting to load welcome tutorial from:', welcomePath);
+            log.debug('Attempting to load welcome tutorial from examples folder');
             
-            // Try to load the welcome tutorial
-            const content = await fs.loadNotebook(welcomePath);
-            if (content.success) {
+            // Try to load the welcome tutorial using FileSystemHelpers
+            const content = await fs.loadExample('welcome-tutorial.json');
+            if (content.success && content.data) {
                 let model = content.data;
                 
                 // Process model to ensure all cells have IDs
@@ -774,56 +773,24 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 // Use state manager to preserve reading mode when showing welcome notebook
                 stateManager.saveNotebook(null, 'Load welcome tutorial');
                 
-                log.info('Welcome tutorial loaded successfully from:', welcomePath);
+                log.info('Welcome tutorial loaded successfully from examples folder');
             } else {
-                // Fallback to simple welcome notebook if file not found
-                log.warn('Could not load welcome tutorial, using fallback. Error:', content.error);
-                showFallbackWelcome();
+                log.error('Could not load welcome tutorial from examples folder. Error:', content.error);
+                throw new Error(`Failed to load welcome tutorial: ${content.error}`);
             }
         } catch (error) {
             log.error('Error loading welcome tutorial:', error);
-            showFallbackWelcome();
+            
+            // Show error dialog to user instead of using fallback
+            await appDialogHelper.showError(
+                'Welcome Tutorial Not Found',
+                'Could not load the welcome tutorial from the examples folder.',
+                error instanceof Error ? error.stack : undefined
+            );
         }
     };
 
-    const showFallbackWelcome = () => {
-        // Helper function to generate ID
-        const generateId = () => `cell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
-        // Create a simple fallback welcome notebook
-        const welcomeNotebook: NotebookModel = {
-            cells: [
-                {
-                    type: 'markdown',
-                    id: generateId(),
-                    content: '# Welcome to Nodebook.js!\n\nThis is a reactive notebook that lets you create interactive documents with code, formulas, and rich content.'
-                },
-                {
-                    type: 'input',
-                    id: generateId(),
-                    inputType: 'number',
-                    variableName: 'x',
-                    value: 10,
-                    label: 'Input Value'
-                },
-                {
-                    type: 'formula',
-                    id: generateId(),
-                    variableName: 'doubled',
-                    formula: '$x * 2',
-                },
-                {
-                    type: 'markdown',
-                    id: generateId(),
-                    content: 'The result is: **{{doubled}}**\n\nTry changing the input value above and watch the result update automatically!'
-                }
-            ]
-        };
-        
-        setModel(welcomeNotebook);
-        // Use state manager to preserve reading mode when showing welcome notebook
-        stateManager.saveNotebook(null, 'Load welcome notebook');
-    };
+
 
     const exportAsJson = async () => {
         if (!state.currentModel) return;
