@@ -9,6 +9,9 @@ import { Checkbox } from './ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Label } from './ui/label';
 import { Button } from './ui/button';
+import anylogger from 'anylogger';
+
+const log = anylogger('InputCell');
 
 interface InputCellProps {
   definition: InputCellDefinition;
@@ -32,6 +35,21 @@ export function InputCell({ definition, isEditMode = false, readingMode = false 
     definition.value, 
     isRangeInput ? 100 : 0 // 100ms throttle for sliders, immediate for others
   );
+  
+  // Add debugging for text inputs in packaged mode
+  useEffect(() => {
+    if (definition.inputType === 'text') {
+      log.debug('Text input cell initialized:', {
+        cellId: definition.id,
+        variableName: effectiveVariableName,
+        definitionValue: definition.value,
+        reactiveValue: value,
+        isPackaged: !process.env.VITE_DEV_SERVER_URL,
+        isDev: process.env.NODE_ENV === 'development',
+        setValueType: typeof setValue
+      });
+    }
+  }, [definition.inputType, definition.id, effectiveVariableName, definition.value, value, setValue]);
   
   const { updateCell } = useApplication();
 
@@ -254,8 +272,33 @@ export function InputCell({ definition, isEditMode = false, readingMode = false 
         return (
           <Input
             type="text"
-            value={value ?? definition.value}
-            onChange={(e) => setValue(e.target.value)} // Immediate update for text inputs
+            value={value ?? definition.value ?? ''} // Ensure we always have a string value
+            onChange={(e) => {
+              const inputValue = e.target.value;
+              log.debug('Text input onChange fired:', {
+                cellId: definition.id,
+                inputValue: inputValue,
+                currentValue: value,
+                definitionValue: definition.value,
+                isPackaged: !process.env.VITE_DEV_SERVER_URL,
+                isDev: process.env.NODE_ENV === 'development'
+              });
+              
+              // For packaged builds, add a small delay to ensure proper event handling
+              if (process.env.VITE_DEV_SERVER_URL) {
+                // Development mode - immediate update
+                setValue(inputValue);
+              } else {
+                // Packaged mode - slight delay to ensure proper event handling
+                setTimeout(() => setValue(inputValue), 0);
+              }
+            }} // Immediate update for text inputs
+            onFocus={() => {
+              log.debug('Text input focused:', { cellId: definition.id });
+            }}
+            onBlur={() => {
+              log.debug('Text input blurred:', { cellId: definition.id, value: value ?? definition.value });
+            }}
             placeholder={definition.props?.placeholder}
             className="input-max-width"
           />
