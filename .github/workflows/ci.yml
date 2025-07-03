@@ -1,11 +1,7 @@
 name: CI Build
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch: # Allow manual triggering only
 
 jobs:
   test-build:
