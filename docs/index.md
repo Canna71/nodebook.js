@@ -16,7 +16,7 @@ Nodebook.js is a reactive notebook application that combines the best of interac
 ⚡ **Live JavaScript**: Full ES6+ JavaScript execution with modern libraries  
 📝 **Enhanced Markdown**: Dynamic markdown with variable interpolation  
 🔧 **Modular System**: Easy access to popular data science libraries  
-🤖 **AI-Powered**: Generate code and notebooks with built-in AI assistance
+🤖 **AI-Powered**: Generate code and notebooks with built-in AI assistance (BYOK)
 
 ## Getting Started
 
@@ -66,25 +66,14 @@ The main editing area where you create and modify cells:
 ![Output Examples](./images/output-examples.png)
 *Various output types: tables, charts, images, and interactive visualizations*
 
-Each cell has a dedicated output area that can display:
-- **Console Output**: `console.log()` and error messages
-- **Data Tables**: Interactive, sortable tables with `output.table()`
-- **Visualizations**: Charts, plots, and custom graphics
+Each code cell has a dedicated output area that can display:
+- **Text Output**: For example `output("Hello, World!")`
+- **Data Tables**: Display an objects array data in tabular format: `output.table(data)`
+- ** Danfojs DataFrames**: Use `output(dataFrame)` for rich table views (works also with DataSeries)
+- **Visualizations**: Charts, plots, and custom graphics depending on the libraries used (Plotly, D3, etc.)
 - **DOM Elements**: Custom HTML and interactive components
 
-#### 4. **Sidebar and Navigation**
-![Sidebar](./images/sidebar.png)
-*Application sidebar with file management, settings, and help*
-
-- **File Operations**: Create, open, save notebooks
-- **Recent Files**: Quick access to recently opened notebooks
-- **Examples**: Pre-built notebooks to learn from
-- **Settings**: Configure application preferences
-
 ### Reactive System in Action
-
-![Reactive Flow](./images/reactive-flow.png)
-*Demonstration of reactive updates flowing through connected cells*
 
 The reactive system is what makes Nodebook.js special. When you change a value in one cell, all dependent cells automatically update:
 
