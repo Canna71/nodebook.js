@@ -68,13 +68,10 @@ The main editing area where you create and modify cells:
 - **Static mode**: Make the cell static (orange border) to prevent automatic updates
 
 #### 3. **Output Areas**
-![Output Examples](./images/output-examples.png)
-*Various output types: tables, charts, images, and interactive visualizations*
-
 Each code cell has a dedicated output area that can display:
 - **Text Output**: For example `output("Hello, World!")`
 - **Data Tables**: Display an objects array data in tabular format: `output.table(data)`
-- ** Danfojs DataFrames**: Use `output(dataFrame)` for rich table views (works also with DataSeries)
+- **Danfojs DataFrames**: Use `output(dataFrame)` for rich table views (works also with DataSeries)
 - **Visualizations**: Charts, plots, and custom graphics depending on the libraries used (Plotly, D3, etc.)
 - **DOM Elements**: Custom HTML and interactive components
 
@@ -88,20 +85,7 @@ The reactive system is what makes Nodebook.js special. When you change a value i
 
 When you change `price` in Cell A, Cells B and C automatically recalculate!
 
-## Getting Started
-
-### Quick Start Guide
-
-![Quick Start](./images/quick-start.png)
-*The quick start workflow from opening the app to running your first cell*
-
-1. **Launch Nodebook.js** and you'll see the homepage
-2. **Click "New file..."** to create a new notebook
-3. **Add your first code cell** and write some JavaScript
-4. **Press Shift+Enter** or click ▶️ to execute
-5. **Add more cells** and watch the reactive system work!
-
-### Your First Notebook
+## Your First Notebook
 
 Let's create a simple data analysis notebook:
 
@@ -136,58 +120,56 @@ This value updates automatically when the data changes!
 ### [Code Cells](./code-cells.md)
 Learn how to write powerful JavaScript code with reactive capabilities, DOM manipulation, and rich output options.
 
-![Code Cell Example](./images/code-cell-example.png)
-*A code cell showing JavaScript execution with reactive exports*
-
 ### [Markdown Cells](./markdown-cells.md)  
 Create rich documentation with dynamic variable interpolation that updates automatically.
-
-![Markdown Cell Example](./images/markdown-cell-example.png)
-*A markdown cell with dynamic variable interpolation showing live data*
 
 ### [Formula Syntax](./formula-syntax-guide.md)
 Use specialized formula cells for quick calculations and data transformations.
 
-### [Reactive System](./reactive-system.md)
-Understanding how the reactive system works and how to leverage it effectively.
-
-![Reactive Dependencies](./images/reactive-dependencies.png)
-*Visualization of reactive dependencies between cells*
+### [Async/Await Guide](./async-await-guide.md)
+Learn how to properly use async/await patterns in Nodebook.js for asynchronous operations.
 
 ## Advanced Features
 
 ### [Modules & Libraries](./modules.md)
 Access powerful libraries like Plotly, D3, Math.js, and data manipulation tools. Many libraries like `math`, `dfd` (danfojs), `tf` (tensorflow), and `Plotly` are preloaded as global variables.
 
-![Module Usage](./images/module-usage.png)
-*Examples of using different modules for data analysis and visualization*
-
-### [Data Visualization](./visualization.md)
-Create stunning charts, plots, and interactive visualizations with built-in libraries.
-
-![Visualization Gallery](./images/visualization-gallery.png)
-*Gallery of different visualization types available in Nodebook.js*
+### [Per-Notebook Modules](./per-notebook-modules.md)
+Learn how to install and use notebook-specific modules for specialized libraries and packages.
 
 ### [Storage System](./storage-system.md)
-Manage your notebooks, examples, and data files efficiently.
+Manage persistent data within your notebooks using the built-in key-value storage system.
 
 ### [Static Code Cells](./static-code-cells.md)
 Learn about static code cells for side effects and manual execution control.
 
-![Static Cell Example](./images/static-cell-example.png)
-*A static code cell with orange styling indicating manual execution mode*
+### [Reading Mode](./reading-mode.md)
+Discover how to use Reading Mode for clean, distraction-free viewing and presentation of notebooks.
 
 ## AI Integration
 
-![AI Assistant](./images/ai-assistant.png)
-*The AI assistant helping generate code and entire notebooks*
-
-Nodebook.js includes powerful AI features:
+Nodebook.js includes powerful AI features (Bring Your Own Key):
 
 - **Generate Code**: Get AI help writing complex data analysis code
 - **Create Notebooks**: Generate entire notebooks from natural language descriptions
 - **Debug Assistance**: Get help fixing errors and optimizing code
 - **Explain Code**: Understand complex code snippets with AI explanations
+
+## Technical Guides
+
+### [Formatting System](./formatting-system.md)
+Understanding the text formatting and styling capabilities in Nodebook.js.
+
+### [Property Grid](./property-grid.md)
+Learn about the property grid feature for object inspection and editing.
+
+## Platform-Specific Information
+
+### [File Associations](./file-associations.md)
+Set up file associations so you can double-click .nbjs files to open them in Nodebook.js.
+
+### [macOS File Association Troubleshooting](./macos-file-association-troubleshooting.md)
+Troubleshooting guide for file association issues on macOS.
 
 ## Examples & Tutorials
 
