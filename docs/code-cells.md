@@ -197,7 +197,7 @@ Nodebook.js provides several specialized output methods for different types of d
 - **Simple formatted output** → Use markdown cells with interpolations
 - **Tabular data** → Use `output.table(data)`
 - **DataFrames/Series** → Use `output(dataframe)` for grid rendering
-- **Objects/Arrays** → Use `output(object)` for interactive JSON view
+- **Objects/Arrays** → Use `output(object)` for interactive property grid (editable for reactive values)
 - **Charts** → Use library integration (Plotly, D3) when they require a DOM container
 
 ### Data Output Methods
@@ -231,8 +231,11 @@ const userData = {
     stats: { logins: 145, lastActive: '2024-01-15' }
 };
 
-// ✅ Correct: Direct output renders with interactive JSON viewer
+// ✅ Correct: Direct output renders with interactive property grid
 output(userData);
+
+// 💡 Pro tip: If userData is a reactive value, the property grid will be editable!
+// Example: exports.userData = userData; // Now editable in property grid
 
 // ❌ Don't create DOM elements to display objects
 ```

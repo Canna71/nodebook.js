@@ -69,11 +69,12 @@ The main editing area where you create and modify cells:
 
 #### 3. **Output Areas**
 Each code cell has a dedicated output area that can display:
-- **Text Output**: For example `output("Hello, World!")`
-- **Data Tables**: Display an objects array data in tabular format: `output.table(data)`
-- **Danfojs DataFrames**: Use `output(dataFrame)` for rich table views (works also with DataSeries)
-- **Visualizations**: Charts, plots, and custom graphics depending on the libraries used (Plotly, D3, etc.)
-- **DOM Elements**: Custom HTML and interactive components
+- **Text Output**: Simple text output with `output("Hello, World!")`
+- **Object Property Grid**: Interactive object inspector with `output(object)` - editable for reactive values
+- **Data Tables**: Display arrays of objects in tabular format with `output.table(data)`
+- **Danfojs DataFrames**: Rich table views with `output(dataFrame)` (works also with DataSeries)
+- **Visualizations**: Charts, plots, and custom graphics using libraries like Plotly, D3, etc.
+- **DOM Elements**: Custom HTML and interactive components using DOM helpers
 
 ### Reactive System in Action
 
@@ -122,6 +123,9 @@ Learn how to write powerful JavaScript code with reactive capabilities, DOM mani
 
 ### [Markdown Cells](./markdown-cells.md)  
 Create rich documentation with dynamic variable interpolation that updates automatically.
+
+### [Input Cells](./input-cells.md)
+Create interactive UI controls like sliders, inputs, and checkboxes that modify reactive values directly.
 
 ### [Formula Syntax](./formula-syntax-guide.md)
 Use specialized formula cells for quick calculations and data transformations.
