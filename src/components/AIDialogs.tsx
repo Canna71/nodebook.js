@@ -143,7 +143,7 @@ export function AIErrorDialog({
   error
 }: AIErrorDialogProps) {
   const titleWithIcon = (
-    <div className="flex items-center gap-2 text-red-600">
+    <div className="flex items-center gap-2 text-error">
       <AlertCircleIcon className="h-5 w-5" />
       {title}
     </div>
@@ -153,11 +153,11 @@ export function AIErrorDialog({
   const dialogDescription = description || message;
 
   const content = error ? (
-    <div className="bg-red-50 border border-red-200 rounded-md p-3">
-      <div className="text-sm text-red-800">
+    <div className="bg-error/10 border border-error/30 rounded-md p-3">
+      <div className="text-sm text-error">
         <strong>Error details:</strong>
       </div>
-      <div className="text-xs text-red-600 font-mono mt-1 max-h-32 overflow-y-auto">
+      <div className="text-xs text-error/80 font-mono mt-1 max-h-32 overflow-y-auto">
         {error}
       </div>
     </div>
@@ -196,7 +196,7 @@ export function AISuccessDialog({
   message
 }: AISuccessDialogProps) {
   const titleWithIcon = (
-    <div className="flex items-center gap-2 text-green-600">
+    <div className="flex items-center gap-2 text-success">
       <CheckIcon className="h-5 w-5" />
       {title}
     </div>

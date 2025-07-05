@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useApplication } from '@/Engine/ApplicationProvider';
+import { useCommands } from '@/Engine/CommandProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,9 +8,13 @@ import { FileText, FolderOpen, Sparkles, Clock, Monitor, Brain, Zap, Database, B
 import { RecentNotebooksManager, RecentNotebook } from '@/lib/recentNotebooks';
 import { moduleRegistry } from '@/Engine/ModuleRegistry';
 import { getFileSystemHelpers, NotebookFileInfo } from '@/lib/fileSystemHelpers';
+import NotebookCellsStack from '@/components/icons/NotebookCellsStack';
+
+const path = require('node:path');
 
 export function HomePage() {
   const { createNewNotebook, loadNotebook } = useApplication();
+  const { commandManager } = useCommands();
   const [recentNotebooks, setRecentNotebooks] = useState<RecentNotebook[]>([]);
   const [exampleNotebooks, setExampleNotebooks] = useState<NotebookFileInfo[]>([]);
   const [systemInfo, setSystemInfo] = useState({
@@ -17,7 +22,13 @@ export function HomePage() {
     moduleCount: 0,
     notebookCount: 0,
     storageSize: '0MB',
-    platform: 'Unknown'
+    platform: 'Unknown',
+    runtimeVersions: {
+      node: 'N/A',
+      chromium: 'N/A',
+      v8: 'N/A',
+      electron: 'N/A'
+    }
   });
 
   useEffect(() => {
@@ -50,6 +61,20 @@ export function HomePage() {
         console.warn('Could not get app version, using fallback:', error);
       }
 
+      // Get runtime versions
+      let runtimeVersions = {
+        node: 'N/A',
+        chromium: 'N/A',
+        v8: 'N/A',
+        electron: 'N/A'
+      };
+      try {
+        const versions = await window.api.getRuntimeVersions();
+        runtimeVersions = versions;
+      } catch (error) {
+        console.warn('Could not get runtime versions, using fallback:', error);
+      }
+
       // Get system information
       const moduleCount = moduleRegistry.getAvailableModules().length;
       const info = {
@@ -57,7 +82,8 @@ export function HomePage() {
         moduleCount,
         notebookCount: recentNotebooks.length, // Use current state
         storageSize: '2.3MB', // TODO: Calculate actual size
-        platform: navigator.platform
+        platform: navigator.platform,
+        runtimeVersions
       };
       setSystemInfo(info);
     } catch (error) {
@@ -89,13 +115,11 @@ export function HomePage() {
     } catch (error) {
       console.error('Failed to open recent notebook:', error);
     }
-  };
-
-  const handleOpenExample = async (example: NotebookFileInfo) => {
+  };  const handleOpenExample = async (example: NotebookFileInfo) => {
     try {
       await loadNotebook(example.filepath);
       // Add to recent notebooks for easy access
-      const fileName = example.filepath.split('/').pop() || example.filepath.split('\\').pop() || 'Unknown';
+      const fileName = path.basename(example.filepath);
       await RecentNotebooksManager.addRecentNotebook(example.filepath, fileName);
       loadRecentNotebooks(); // Refresh the list
     } catch (error) {
@@ -104,31 +128,22 @@ export function HomePage() {
   };
 
   const handleCreateWithAI = () => {
-    // Trigger AI notebook creation dialog
-    window.dispatchEvent(new CustomEvent('openAIDialog', { 
-      detail: { type: 'createNotebook' } 
-    }));
+    // Use the command manager directly like the toolbar does
+    commandManager.executeCommand('ai.generateNotebook');
   };
 
   const handleOpenFile = () => {
-    // Use the command system to open file dialog
-    window.dispatchEvent(new CustomEvent('executeCommand', { 
-      detail: { commandId: 'notebook.open' } 
-    }));
-  };
-
-  const extractFileName = (path: string): string => {
-    const fileName = path.split('/').pop() || path.split('\\').pop() || path;
+    // Use the command manager directly like the toolbar does
+    commandManager.executeCommand('notebook.open');
+  };  const extractFileName = (filePath: string): string => {
+    // Use path.basename to get the filename, then remove extension
+    const fileName = path.basename(filePath);
     return fileName.replace(/\.[^/.]+$/, ''); // Remove extension
   };
 
-  const extractDirectory = (path: string): string => {
-    const parts = path.split('/');
-    if (parts.length > 1) {
-      parts.pop(); // Remove filename
-      return parts.join('/');
-    }
-    return path;
+  const extractDirectory = (filePath: string): string => {
+    // Use path.dirname to get the directory path
+    return path.dirname(filePath);
   };
 
   const formatTimeAgo = (date: Date): string => {
@@ -151,7 +166,7 @@ export function HomePage() {
       {/* Header */}
       <div className="text-center space-y-6">
         <div className="flex items-center justify-center space-x-4">
-          <div className="text-5xl">🔬</div>
+          <NotebookCellsStack size={64} className="text-primary" />
           <div className="space-y-1">
             <h1 className="text-5xl font-bold text-foreground tracking-tight">Nodebook.js</h1>
             <p className="text-xl text-secondary-foreground">Interactive Reactive Notebooks</p>
@@ -178,13 +193,13 @@ export function HomePage() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 grid-rows-[auto_auto_auto] lg:grid-rows-[auto_auto_auto]">
-        {/* Start Section - Top Left */}
-        <div className="space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Start Section - Row 1, Col 1 */}
+        <div className="space-y-4 order-1 lg:order-1">
           <h2 className="text-lg font-semibold text-foreground">Start</h2>
           <div className="space-y-2">
             <button
-              onClick={createNewNotebook}
+              onClick={() => commandManager.executeCommand('notebook.new')}
               className="flex items-center space-x-3 text-left p-2 w-full text-primary hover:text-primary/80 hover:bg-accent/50 rounded transition-colors cursor-pointer"
             >
               <FileText className="w-4 h-4 text-primary flex-shrink-0" />
@@ -217,42 +232,8 @@ export function HomePage() {
           </div>
         </div>
 
-        {/* Examples Section - Top Right, spans 2 rows */}
-        <div className="space-y-4 lg:row-span-2">
-          <h2 className="text-lg font-semibold text-foreground">Examples</h2>
-          
-          {exampleNotebooks.length > 0 ? (
-            <div className="space-y-1 max-h-96 overflow-y-auto">
-              {exampleNotebooks.map((example, index) => {
-                const filename = extractFileName(example.filepath);
-                
-                return (
-                  <div
-                    key={example.filepath}
-                    className="flex items-center space-x-3 p-2 cursor-pointer hover:bg-accent/50 rounded transition-colors"
-                    onClick={() => handleOpenExample(example)}
-                  >
-                    <BookOpen className="w-4 h-4 text-primary flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm text-primary hover:text-primary/80 truncate">
-                        {filename}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-secondary-foreground">
-              <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No example notebooks found</p>
-              <p className="text-xs">Example notebooks will appear here</p>
-            </div>
-          )}
-        </div>
-
-        {/* Recent Section - Middle Left */}
-        <div className="space-y-4">
+        {/* Recent Section - Row 2 on mobile, Row 2 Col 1 on desktop */}
+        <div className="space-y-4 order-2 lg:order-3">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Recent</h2>
             {recentNotebooks.length > 0 && (
@@ -266,7 +247,7 @@ export function HomePage() {
           </div>
           
           {recentNotebooks.length > 0 ? (
-            <div className="space-y-1">
+            <div className="space-y-1 max-h-96 overflow-y-auto">
               {recentNotebooks.map((notebook, index) => (
                 <div
                   key={notebook.path}
@@ -299,8 +280,42 @@ export function HomePage() {
           )}
         </div>
 
-        {/* System Section - Bottom Left */}
-        <Card>
+        {/* Examples Section - Row 3 on mobile, Row 1-2 Col 2 on desktop */}
+        <div className="space-y-4 order-3 lg:order-2 lg:row-span-2">
+          <h2 className="text-lg font-semibold text-foreground">Examples</h2>
+          
+          {exampleNotebooks.length > 0 ? (
+            <div className="space-y-1 overflow-y-auto">
+              {exampleNotebooks.map((example, index) => {
+                const filename = extractFileName(example.filepath);
+                
+                return (
+                  <div
+                    key={example.filepath}
+                    className="flex items-center space-x-3 p-2 cursor-pointer hover:bg-accent/50 rounded transition-colors"
+                    onClick={() => handleOpenExample(example)}
+                  >
+                    <BookOpen className="w-4 h-4 text-primary flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm text-primary hover:text-primary/80 truncate">
+                        {filename}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-secondary-foreground">
+              <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No example notebooks found</p>
+              <p className="text-xs">Example notebooks will appear here</p>
+            </div>
+          )}
+        </div>
+
+        {/* System Section - Row 4 on mobile, Row 3 Col 1 on desktop */}
+        <Card className="order-4 lg:order-4">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-base">
               <Monitor className="w-4 h-4" />
@@ -314,8 +329,18 @@ export function HomePage() {
             </div>
             
             <div className="flex items-center justify-between text-sm">
-              <span>Recent files</span>
-              <Badge variant="secondary" className="text-xs">{systemInfo.notebookCount}</Badge>
+              <span>Node.js</span>
+              <Badge variant="secondary" className="text-xs">v{systemInfo.runtimeVersions.node}</Badge>
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <span>Chromium</span>
+              <Badge variant="secondary" className="text-xs">v{systemInfo.runtimeVersions.chromium}</Badge>
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <span>V8</span>
+              <Badge variant="secondary" className="text-xs">v{systemInfo.runtimeVersions.v8}</Badge>
             </div>
             
             <div className="flex items-center justify-between text-sm">
@@ -325,8 +350,8 @@ export function HomePage() {
           </CardContent>
         </Card>
 
-        {/* Modules Section - Bottom Right */}
-        <Card>
+        {/* Modules Section - Row 5 on mobile, Row 3 Col 2 on desktop */}
+        <Card className="order-5 lg:order-5">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-base">
               <Database className="w-4 h-4" />
@@ -372,7 +397,7 @@ export function HomePage() {
                     return (
                       <div key={`module-${index}-${safeModuleName}`} className="flex items-center justify-between">
                         <div className="flex items-center space-x-2 min-w-0 flex-1">
-                          <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                          <div className="w-2 h-2 bg-success rounded-full flex-shrink-0"></div>
                           <span className="font-mono text-xs truncate">{safeModuleName}</span>
                         </div>
                         {safeModuleVersion && (
@@ -396,7 +421,8 @@ export function HomePage() {
                 <div className="text-secondary-foreground text-xs">No modules loaded</div>
               )}
             </div>
-          </CardContent>        </Card>
+          </CardContent>
+        </Card>
       </div>
     </div>
     </>

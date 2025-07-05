@@ -5,11 +5,84 @@ import { getFileSystemHelpers } from '@/lib/fileSystemHelpers';
 import { RecentNotebooksManager } from '@/lib/recentNotebooks';
 import { toast } from 'sonner';
 import anylogger from 'anylogger';
-import { commandManagerSingleton } from './CommandManagerSingleton';
+import { commandManagerSingleton } from '@/Engine/CommandManagerSingleton';
 import { NotebookStateManager } from './NotebookStateManager';
 import { appDialogHelper } from '@/lib/AppDialogHelper';
+import NotebookCellsStack from '@/components/icons/NotebookCellsStack';
+import { AboutDialog } from '@/components/AboutDialog';
+import { moduleRegistry } from '@/Engine/ModuleRegistry';
+
+// State interface
 
 const log = anylogger('ApplicationProvider');
+
+/**
+ * Ensures all cells in a notebook model have IDs, assigning them if missing
+ * Uses the same ID generation logic as for new cells
+ */
+function ensureAllCellsHaveIds(model: NotebookModel): NotebookModel {
+    // Collect existing IDs from cells that already have them
+    const existingIds = new Set<string>();
+    model.cells.forEach(cell => {
+        if (cell.id) {
+            existingIds.add(cell.id);
+        }
+    });
+
+    // Track assigned IDs during processing to avoid duplicates
+    const assignedIds = new Set<string>(existingIds);
+
+    const cellsWithIds = model.cells.map(cell => {
+        if (!cell.id) {
+            // Generate ID that doesn't conflict with existing or already assigned IDs
+            const cellId = generateCellIdWithExistingIds(cell.type, assignedIds);
+            assignedIds.add(cellId);
+            log.debug(`Assigned missing cell ID: ${cellId} for ${cell.type} cell`);
+            return { ...cell, id: cellId };
+        }
+        return cell;
+    });
+
+    // Return new model with cells that all have IDs
+    return {
+        ...model,
+        cells: cellsWithIds
+    };
+}
+
+/**
+ * Generate a cell ID that doesn't conflict with the provided set of existing IDs
+ */
+function generateCellIdWithExistingIds(cellType: CellDefinition['type'], existingIds: Set<string>): string {
+    const prefix = getTypePrefix(cellType);
+    
+    // Find the first available number
+    for (let i = 1; i <= 999; i++) {
+        const paddedNumber = i.toString().padStart(2, '0');
+        const candidateId = `${prefix}_${paddedNumber}`;
+        
+        if (!existingIds.has(candidateId)) {
+            return candidateId;
+        }
+    }
+    
+    // Fallback if somehow we reach 999 cells of the same type
+    const timestamp = Date.now().toString(36);
+    return `${prefix}_${timestamp}`;
+}
+
+/**
+ * Get type prefix for cell ID generation
+ */
+function getTypePrefix(cellType: CellDefinition['type']): string {
+    switch (cellType) {
+        case 'markdown': return 'md';
+        case 'code': return 'code';
+        case 'formula': return 'fx';
+        case 'input': return 'var';
+        default: return 'cell';
+    }
+}
 
 const ApplicationContext = createContext<ApplicationContextType | undefined>(undefined);
 
@@ -21,10 +94,20 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         isLoading: false,
         error: null,
         selectedCellId: null,
+        readingMode: false, // Will be updated from settings
     });
 
     // Storage exporter function from ReactiveProvider
     const [storageExporter, setStorageExporter] = useState<(() => NotebookStorage) | null>(null);
+
+    // About dialog state
+    const [aboutDialogOpen, setAboutDialogOpen] = useState(false);
+    const [aboutDialogData, setAboutDialogData] = useState({
+        appName: 'Nodebook.js',
+        version: '0.8.0',
+        author: 'Nodebook.js Project',
+        license: 'MIT'
+    });
 
     // Initialize state manager
     const stateManagerRef = useRef<NotebookStateManager | null>(null);
@@ -45,12 +128,21 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     const stateManager = stateManagerRef.current;
 
     const setLoading = useCallback((loading: boolean) => {
-        setState((prev:ApplicationState) => ({ ...prev, isLoading: loading }));
-    }, []);
+        // Use state manager for loading state to avoid race conditions
+        stateManager.setLoadingState(loading, loading ? 'Start loading' : 'Stop loading');
+    }, [stateManager]);
 
     const setError = useCallback((error: string | null) => {
-        setState((prev:ApplicationState) => ({ ...prev, error }));
-    }, []);
+        // Use state manager for error state to avoid race conditions
+        stateManager.setErrorState(error, error ? 'Set error' : 'Clear error');
+        
+        // Auto-clear errors after 10 seconds to prevent stale error states
+        if (error) {
+            setTimeout(() => {
+                stateManager.setErrorState(null, 'Auto-clear error');
+            }, 10000);
+        }
+    }, [stateManager]);
 
     const clearError = useCallback(() => {
         setError(null);
@@ -61,13 +153,32 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         setError(null);
         
         try {
+            // Clear any existing notebook module paths first (in case switching notebooks)
+            try {
+                moduleRegistry.clearNotebookModulePaths();
+                log.debug('Cleared existing notebook module paths before loading new notebook');
+            } catch (error) {
+                log.warn('Failed to clear existing notebook module paths:', error);
+            }
+            
             const fs = getFileSystemHelpers();
             const content = await fs.loadNotebook(filePath);
             if (content.success) {
-                const model = content.data;
+                let model = content.data;
+            
+                // Process model to ensure all cells have IDs BEFORE setting it into state
+                model = ensureAllCellsHaveIds(model);
             
                 // Use state manager for loading notebook
                 stateManager.loadNotebook(filePath, model, `Load notebook: ${filePath.split('/').pop()}`);
+                
+                // Add notebook-specific module path for per-notebook node_modules resolution
+                try {
+                    moduleRegistry.addNotebookModulePath(filePath);
+                    log.debug('Added notebook module path for:', filePath);
+                } catch (error) {
+                    log.warn('Failed to add notebook module path:', error);
+                }
                 
                 // Add to recent notebooks
                 await RecentNotebooksManager.addRecentNotebook(filePath);
@@ -79,14 +190,36 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                 }
                 
                 log.info('Notebook loaded successfully:', filePath);
+                
+                // Clear any previous error state on successful load
+                setError(null);
+                
+                // Mark loading as complete after successful load
+                setLoading(false);
             } else {
+                const errorMessage = `Failed to load notebook: ${content.error}`;
                 log.error('Failed to load notebook:', content.error);
-                setError(`Failed to load notebook: ${content.error}`);
+                setError(errorMessage);
+                
+                // Show toast notification for immediate user feedback
+                toast.error('Failed to Load Notebook', {
+                    description: content.error,
+                    duration: 5000,
+                });
+                
                 setLoading(false);
             }
         } catch (error) {
+            const errorMessage = `Failed to load notebook: ${error instanceof Error ? error.message : 'Unknown error'}`;
             log.error('Error loading notebook:', error);
-            setError(`Failed to load notebook: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            setError(errorMessage);
+            
+            // Show toast notification for immediate user feedback
+            toast.error('Error Loading Notebook', {
+                description: error instanceof Error ? error.message : 'An unknown error occurred',
+                duration: 5000,
+            });
+            
             setLoading(false);
         }
     }, [stateManager]);    
@@ -162,6 +295,14 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     }, [state.currentModel, state.currentFilePath, stateManager, storageExporter]);
 
     const newNotebook = useCallback(() => {
+        // Clear notebook-specific module paths before creating new notebook
+        try {
+            moduleRegistry.clearNotebookModulePaths();
+            log.debug('Cleared notebook module paths for new notebook');
+        } catch (error) {
+            log.warn('Failed to clear notebook module paths:', error);
+        }
+        
         // Use state manager for creating new notebook
         stateManager.newNotebook('Create new notebook');
         
@@ -175,6 +316,14 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     }, [stateManager]);
 
     const clearNotebook = useCallback(() => {
+        // Clear notebook-specific module paths before clearing notebook
+        try {
+            moduleRegistry.clearNotebookModulePaths();
+            log.debug('Cleared notebook module paths');
+        } catch (error) {
+            log.warn('Failed to clear notebook module paths:', error);
+        }
+        
         // Clear the current notebook model to return to homepage
         stateManager.clearNotebook('Clear notebook');
         
@@ -200,6 +349,11 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     const setSelectedCellId = useCallback((cellId: string | null) => {
         // Use state manager for selection changes
         stateManager.setSelectedCell(cellId, cellId ? `Select cell: ${cellId}` : 'Clear selection');
+    }, [stateManager]);
+
+    const setReadingMode = useCallback((readingMode: boolean) => {
+        // Use state manager for reading mode updates
+        stateManager.setReadingMode(readingMode, readingMode ? 'Enter reading mode' : 'Exit reading mode');
     }, [stateManager]);
 
     // Update window title when dirty state, file path, or model changes
@@ -386,6 +540,20 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             'menu-delete-cell': () => {
                 window.dispatchEvent(new CustomEvent('delete-cell'));
             },
+            'menu-duplicate-cell': async () => {
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('cell.duplicate');
+                    } catch (error) {
+                        log.error('Error executing duplicate cell command:', error);
+                        // Fallback to custom event
+                        window.dispatchEvent(new CustomEvent('duplicate-cell'));
+                    }
+                } else {
+                    // Fallback to custom event
+                    window.dispatchEvent(new CustomEvent('duplicate-cell'));
+                }
+            },
             'menu-find': () => {
                 // Implement find functionality
                 window.dispatchEvent(new CustomEvent('find-in-notebook'));
@@ -462,18 +630,52 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
                     window.dispatchEvent(new CustomEvent('toggleConsolePanel'));
                 }
             },
-            'menu-toggle-output-panel': async () => {
+            'menu-toggle-reading-mode': async () => { // NEW: Reading mode menu handler
                 if (currentCommandManager) {
                     try {
-                        await currentCommandManager.executeCommand('view.toggleOutput');
+                        await currentCommandManager.executeCommand('view.toggleReadingMode');
                     } catch (error) {
-                        log.error('Error executing toggle output panel command:', error);
+                        log.error('Error executing toggle reading mode command:', error);
+                    }
+                } else {
+                    // Fallback to direct state change
+                    setReadingMode(!state.readingMode);
+                }
+            },
+            'menu-settings': async () => { // NEW: Settings menu handler
+                if (currentCommandManager) {
+                    try {
+                        await currentCommandManager.executeCommand('view.settings');
+                    } catch (error) {
+                        log.error('Error executing settings command:', error);
                     }
                 } else {
                     // Fallback to direct event dispatch
-                    window.dispatchEvent(new CustomEvent('toggleOutputPanel'));
+                    window.dispatchEvent(new CustomEvent('showSettings'));
                 }
-            }
+            },
+            'menu-close-notebook': async () => { // Close notebook menu handler
+                if (currentCommandManager) {
+                    try {
+                        // Check if we can close a notebook, otherwise use view.close
+                        if (await currentCommandManager.canExecuteCommand('notebook.close')) {
+                            await currentCommandManager.executeCommand('notebook.close');
+                        } else {
+                            await currentCommandManager.executeCommand('view.close');
+                        }
+                    } catch (error) {
+                        log.error('Error executing close command:', error);
+                    }
+                } else {
+                    // Fallback to direct close
+                    if (state.currentModel) {
+                        clearNotebook();
+                    } else {
+                        // Dispatch close view event
+                        window.dispatchEvent(new CustomEvent('closeView'));
+                    }
+                }
+            },
         };
 
         // Register all menu event listeners
@@ -488,6 +690,23 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             });
         };
     }, [loadNotebook, saveNotebook, newNotebook, commandManager, state.currentFilePath]); // Include commandManager and currentFilePath
+
+    // Load default reading mode setting on startup
+    useEffect(() => {
+        const loadDefaultReadingMode = async () => {
+            try {
+                const defaultReadingMode = await window.api.getAppSetting('defaultReadingMode', false);
+                if (defaultReadingMode) {
+                    stateManager.setReadingMode(true, 'Initialize with default reading mode');
+                    log.info('Application started with default reading mode enabled');
+                }
+            } catch (error) {
+                log.warn('Failed to load default reading mode setting:', error);
+            }
+        };
+        
+        loadDefaultReadingMode();
+    }, [stateManager]);
 
     // Helper function for Save As dialog
     const showSaveAsDialog = async () => {
@@ -516,57 +735,62 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
     const showAboutDialog = async () => {
         try {
             const appInfo = await window.api.getAppInfo();
-            await appDialogHelper.showInfo(
-                'About',
-                `${appInfo.name}\n\nVersion ${appInfo.version}\n\n© 2025 ${appInfo.author}\n\nLicense: ${appInfo.license}`
-            );
+            setAboutDialogData({
+                appName: appInfo.name,
+                version: appInfo.version,
+                author: appInfo.author,
+                license: appInfo.license
+            });
         } catch (error) {
             // Fallback if getAppInfo fails
             const version = await window.api.getAppVersion();
-            await appDialogHelper.showInfo(
-                'About',
-                `Nodebook.js\n\nVersion ${version}\n\n© 2025 Nodebook.js Project\n\nLicense: MIT`
+            setAboutDialogData({
+                appName: 'Nodebook.js',
+                version,
+                author: 'Nodebook.js Project',
+                license: 'MIT'
+            });
+        }
+        setAboutDialogOpen(true);
+    };
+
+    const showWelcomeDialog = async () => {
+        try {
+            // Load the welcome tutorial from the examples folder using FileSystemHelpers
+            const fs = getFileSystemHelpers();
+            
+            log.debug('Attempting to load welcome tutorial from examples folder');
+            
+            // Try to load the welcome tutorial using FileSystemHelpers
+            const content = await fs.loadExample('welcome-tutorial.json');
+            if (content.success && content.data) {
+                let model = content.data;
+                
+                // Process model to ensure all cells have IDs
+                model = ensureAllCellsHaveIds(model);
+                
+                setModel(model);
+                // Use state manager to preserve reading mode when showing welcome notebook
+                stateManager.saveNotebook(null, 'Load welcome tutorial');
+                
+                log.info('Welcome tutorial loaded successfully from examples folder');
+            } else {
+                log.error('Could not load welcome tutorial from examples folder. Error:', content.error);
+                throw new Error(`Failed to load welcome tutorial: ${content.error}`);
+            }
+        } catch (error) {
+            log.error('Error loading welcome tutorial:', error);
+            
+            // Show error dialog to user instead of using fallback
+            await appDialogHelper.showError(
+                'Welcome Tutorial Not Found',
+                'Could not load the welcome tutorial from the examples folder.',
+                error instanceof Error ? error.stack : undefined
             );
         }
     };
 
-    const showWelcomeDialog = () => {
-        // Helper function to generate ID
-        const generateId = () => `cell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
-        // Create a welcome tutorial notebook
-        const welcomeNotebook: NotebookModel = {
-            cells: [
-                {
-                    type: 'markdown',
-                    id: generateId(),
-                    content: '# Welcome to Nodebook.js!\n\nThis is a reactive notebook that lets you create interactive documents with code, formulas, and rich content.'
-                },
-                {
-                    type: 'input',
-                    id: generateId(),
-                    inputType: 'number',
-                    variableName: 'x',
-                    value: 10,
-                    label: 'Input Value'
-                },
-                {
-                    type: 'formula',
-                    id: generateId(),
-                    variableName: 'doubled',
-                    formula: '$x * 2',
-                },
-                {
-                    type: 'markdown',
-                    id: generateId(),
-                    content: 'The result is: **{{doubled}}**\n\nTry changing the input value above and watch the result update automatically!'
-                }
-            ]
-        };
-        
-        setModel(welcomeNotebook);
-        setState(prev => ({ ...prev, currentFilePath: null, isDirty: false }));
-    };
+
 
     const exportAsJson = async () => {
         if (!state.currentModel) return;
@@ -628,6 +852,52 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         }
     };
 
+    // Add file association handling
+    useEffect(() => {
+        if (!window.api) return;
+
+        const handleFileFromSystem = async (filePath: string) => {
+            log.info('Opening file from system file association:', filePath);
+            
+            try {
+                // Validate file extension
+                if (!filePath.endsWith('.nbjs') && !filePath.endsWith('.json')) {
+                    throw new Error('Invalid file type. Only .nbjs and .json files are supported.');
+                }
+                
+                // Load the notebook
+                await loadNotebook(filePath);
+                
+                // Show success message
+                const fileName = filePath.split('/').pop() || 'notebook';
+                toast.success(`Opened: ${fileName}`, {
+                    description: filePath,
+                    duration: 3000,
+                });
+                
+            } catch (error) {
+                log.error('Error opening file from system:', error);
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                toast.error('Failed to open file', {
+                    description: errorMessage,
+                    duration: 5000,
+                });
+                
+                await appDialogHelper.showError('Open Failed', 
+                    `Failed to open file: ${errorMessage}`,
+                    error instanceof Error ? error.stack : undefined);
+            }
+        };
+
+        // Set up file association listener
+        window.api.onOpenFileFromSystem(handleFileFromSystem);
+
+        // Cleanup
+        return () => {
+            window.api.removeOpenFileListener();
+        };
+    }, [loadNotebook]);
+
     const contextValue: ApplicationContextType = {
         ...state,
         loadNotebook,
@@ -641,6 +911,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
         clearError,
         setSelectedCellId,
         setStorageExporter,
+        setReadingMode, // NEW: Add reading mode setter
         
         // State manager for centralized operations
         stateManager,
@@ -662,11 +933,21 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             stateManager.deleteCell(cellId, description),
         moveCell: (cellId: string, direction: 'up' | 'down', description?: string) => 
             stateManager.moveCell(cellId, direction, description),
+        duplicateCell: (cellId: string, description?: string) => 
+            stateManager.duplicateCell(cellId, description),
     };
 
     return (
         <ApplicationContext.Provider value={contextValue}>
             {children}
+            <AboutDialog
+                open={aboutDialogOpen}
+                onOpenChange={setAboutDialogOpen}
+                appName={aboutDialogData.appName}
+                version={aboutDialogData.version}
+                author={aboutDialogData.author}
+                license={aboutDialogData.license}
+            />
         </ApplicationContext.Provider>
     );
 }

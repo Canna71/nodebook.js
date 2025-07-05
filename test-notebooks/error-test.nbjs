@@ -1,0 +1,39 @@
+{
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "md_01",
+      "content": "# Enhanced Error Handling Test\n\nThis notebook tests the improved error handling and display features.\n\n## Features Testing\n\n1. **Minimal cell error indication** - Red border, error message, console reference\n2. **Detailed console error display** - Full error with stack trace in console viewer\n3. **Error clearing** - Error indicators disappear when fixed and re-run\n\n## Instructions\n\n1. **Open Console Viewer**: Press `Ctrl+Shift+\\` (or Cmd+Shift+\\` on Mac)\n2. **Run all cells** to see error indicators\n3. **Check Console** to see full error details with stack traces\n4. **Fix errors** and re-run to see indicators clear\n5. **Compare**: Cell shows minimal error, Console shows full details"
+    },
+    {
+      "type": "code",
+      "id": "code_working",
+      "code": "// This cell should work fine\nconst message = \"Hello, world!\";\nconsole.log('Success:', message);\noutput(message);\n\nexports.working = true;"
+    },
+    {
+      "type": "code",
+      "id": "code_runtime_error",
+      "code": "// This cell will produce a runtime error\n// Fix by uncommenting the correct line below:\n\n// const result = \"This works!\";  // <-- Uncomment this line\nconst result = nonExistentFunction(); // <-- Comment out this line\n\nconsole.log('Result:', result);\noutput(result);\nexports.result = result;"
+    },
+    {
+      "type": "code",
+      "id": "code_type_error",
+      "code": "// This cell will produce a TypeError\n// Fix by uncommenting the correct line below:\n\nconst obj = null;\n// const obj = { name: 'test' };  // <-- Uncomment this line\n\nconsole.log('Object name:', obj.name); // This will throw TypeError\noutput('Name: ' + obj.name);\nexports.objName = obj.name;"
+    },
+    {
+      "type": "code",
+      "id": "code_syntax_error",
+      "code": "// This cell has a syntax error\n// Fix by adding the missing closing brace:\n\nconst config = {\n  name: 'test',\n  version: 1\n// }; // <-- Uncomment this line\n\nconsole.log('Config:', config);\noutput(config);\nexports.config = config;"
+    },
+    {
+      "type": "code",
+      "id": "code_dependent",
+      "code": "// This cell depends on previous cells\n// Shows how errors propagate through dependencies\n\nconsole.log('=== Dependency Check ===');\n\nif (typeof result !== 'undefined' && result) {\n    console.log('✓ result available:', result);\n    output('Success with result: ' + result);\n} else {\n    console.log('✗ result not available (previous cell had error)');\n    output('Previous cell had error - result unavailable');\n}\n\nif (typeof objName !== 'undefined' && objName) {\n    console.log('✓ objName available:', objName);\n} else {\n    console.log('✗ objName not available (previous cell had error)');\n}\n\nif (typeof config !== 'undefined' && config) {\n    console.log('✓ config available:', config);\n} else {\n    console.log('✗ config not available (previous cell had error)');\n}\n\nexports.dependencyStatus = {\n    hasResult: typeof result !== 'undefined',\n    hasObjName: typeof objName !== 'undefined',\n    hasConfig: typeof config !== 'undefined'\n};"
+    },
+    {
+      "type": "markdown",
+      "id": "md_02",
+      "content": "## Expected Behavior\n\n### Visual Indicators\n- **Working cell**: Green checkmark, no error styling\n- **Error cells**: Red border, minimal error message, \"Check console for details\"\n- **Console viewer**: Full error details with stack traces and red background\n\n### Error Types Tested\n1. **Runtime Error**: `ReferenceError: nonExistentFunction is not defined`\n2. **Type Error**: `TypeError: Cannot read properties of null`\n3. **Syntax Error**: Missing closing brace\n4. **Dependency Error**: Shows how errors affect dependent cells\n\n### To Test Error Clearing\n1. Fix any error by following the comments in the code\n2. Re-run the cell (click the play button or use Ctrl+Enter)\n3. **Expected**: Error indicator disappears from cell\n4. **Expected**: Console shows successful execution\n5. **Expected**: Dependent cells now work correctly\n\n### Console Viewer Features\n- Press `Ctrl+Shift+\\` to toggle console\n- Error entries have red background\n- Click \"Stack trace\" to expand full error details\n- Use \"Clear\" button to clear console history"
+    }
+  ]
+}

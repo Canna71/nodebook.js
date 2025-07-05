@@ -3,7 +3,7 @@ import {
     NotebookModel, 
     CellDefinition, 
     CodeCellDefinition, 
-    MarkdownCellDefinition, 
+    MarkdownCellDefinition,
     FormulaCellDefinition, 
     InputCellDefinition 
 } from '@/Types/NotebookModel';
@@ -83,7 +83,8 @@ export class NotebookStateManager {
             isDirty: this.currentState.isDirty,
             isLoading: this.currentState.isLoading, // Include but won't be restored
             error: this.currentState.error, // Include but won't be restored
-            selectedCellId: this.currentState.selectedCellId
+            selectedCellId: this.currentState.selectedCellId,
+            readingMode: this.currentState.readingMode // Preserve reading mode in history
         };
 
         this.undoStack.push({
@@ -119,6 +120,22 @@ export class NotebookStateManager {
         log.debug(`State updated: ${description}`);
     }
 
+    /**
+     * Update state without saving to history (for UI-only state changes like reading mode)
+     */
+    private updateStateWithoutHistory(updates: Partial<ApplicationState>): void {
+        // Apply updates without saving to history
+        this.currentState = {
+            ...this.currentState,
+            ...updates
+        };
+
+        // Notify subscribers
+        this.notifyStateChange();
+
+        log.debug(`State updated without history: ${Object.keys(updates).join(', ')}`);
+    }
+
     // High-level operations that automatically handle history
     setNotebookModel(model: NotebookModel, description: string = 'Update notebook model'): void {
         this.updateState({
@@ -144,34 +161,70 @@ export class NotebookStateManager {
         }
     }
 
+    setReadingMode(readingMode: boolean, description: string = 'Toggle reading mode'): void {
+        console.log('🔍 NotebookStateManager.setReadingMode:', {
+            requested: readingMode,
+            current: this.currentState.readingMode,
+            description
+        });
+        
+        if (this.currentState.readingMode !== readingMode) {
+            this.updateStateWithoutHistory({
+                readingMode
+            });
+            
+            console.log('🔍 NotebookStateManager.setReadingMode - UPDATED:', {
+                newReadingMode: this.currentState.readingMode
+            });
+        } else {
+            console.log('🔍 NotebookStateManager.setReadingMode - NO CHANGE');
+        }
+    }
+
     loadNotebook(filePath: string, model: NotebookModel, description: string = 'Load notebook'): void {
+        // Model should already have all cell IDs assigned by ApplicationProvider
+        // Only update notebook-specific state, completely avoid touching UI state
+        const currentState = this.currentState;
         this.updateState({
             currentFilePath: filePath,
             currentModel: model,
             isDirty: false,
             error: null,
-            selectedCellId: null
+            selectedCellId: null,
+            // Explicitly preserve ALL other state
+            readingMode: currentState.readingMode,
+            isLoading: currentState.isLoading
         }, description);
     }
 
     newNotebook(description: string = 'New notebook'): void {
         const emptyNotebook: NotebookModel = { cells: [] };
+        // Preserve UI state when creating a new notebook
+        const currentState = this.currentState;
         this.updateState({
             currentFilePath: null,
             currentModel: emptyNotebook,
             isDirty: false,
             error: null,
-            selectedCellId: null
+            selectedCellId: null,
+            // Preserve UI state
+            readingMode: currentState.readingMode,
+            isLoading: currentState.isLoading
         }, description);
     }
 
     clearNotebook(description: string = 'Clear notebook'): void {
+        // Preserve UI state (like reading mode) when clearing notebook
+        const currentState = this.currentState;
         this.updateState({
             currentFilePath: null,
             currentModel: null,
             isDirty: false,
             error: null,
-            selectedCellId: null
+            selectedCellId: null,
+            // Preserve reading mode and other UI state
+            readingMode: currentState.readingMode,
+            isLoading: currentState.isLoading
         }, description);
     }
 
@@ -264,6 +317,63 @@ export class NotebookStateManager {
         );
     }
 
+    duplicateCell(cellId: string, description?: string): string | null {
+        if (!this.currentState.currentModel) return null;
+
+        const cells = this.currentState.currentModel.cells;
+        const cellIndex = cells.findIndex(cell => cell.id === cellId);
+        if (cellIndex === -1) return null;
+
+        const originalCell = cells[cellIndex];
+        const newCellId = this.generateCellId(originalCell.type);
+        
+        // Create a deep copy of the cell with a new ID
+        let duplicatedCell: CellDefinition;
+        
+        switch (originalCell.type) {
+            case 'code':
+                duplicatedCell = {
+                    ...originalCell as CodeCellDefinition,
+                    id: newCellId
+                };
+                break;
+            case 'markdown':
+                duplicatedCell = {
+                    ...originalCell as MarkdownCellDefinition,
+                    id: newCellId
+                };
+                break;
+            case 'formula':
+                const formulaCell = originalCell as FormulaCellDefinition;
+                duplicatedCell = {
+                    ...formulaCell,
+                    id: newCellId,
+                    variableName: this.generateVariableName('fx') // Generate unique variable name
+                };
+                break;
+            case 'input':
+                const inputCell = originalCell as InputCellDefinition;
+                duplicatedCell = {
+                    ...inputCell,
+                    id: newCellId,
+                    variableName: this.generateVariableName('var') // Generate unique variable name
+                };
+                break;
+            default:
+                return null;
+        }
+
+        const newCells = [...cells];
+        newCells.splice(cellIndex + 1, 0, duplicatedCell);
+
+        this.setNotebookModel(
+            { ...this.currentState.currentModel, cells: newCells },
+            description || 'Duplicate cell'
+        );
+
+        return newCellId;
+    }
+
     // Undo/Redo operations
     canUndo(): boolean {
         return this.undoStack.length > 0;
@@ -334,6 +444,25 @@ export class NotebookStateManager {
 
     getRedoDescription(): string | null {
         return this.redoStack.length > 0 ? this.redoStack[this.redoStack.length - 1].description : null;
+    }
+
+    // Transient state updates (no history)
+    setLoadingState(isLoading: boolean, description: string = 'Update loading state'): void {
+        // Don't save loading state changes to history as they're transient
+        this.currentState = {
+            ...this.currentState,
+            isLoading
+        };
+        this.notifyStateChange();
+    }
+
+    setErrorState(error: string | null, description: string = 'Update error state'): void {
+        // Don't save error state changes to history as they're transient
+        this.currentState = {
+            ...this.currentState,
+            error
+        };
+        this.notifyStateChange();
     }
 
     // Helper methods

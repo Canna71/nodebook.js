@@ -29,6 +29,49 @@
   [role="button"]:not([disabled]) {
     cursor: pointer;
   }
+  
+  /* Custom scrollbar styles for all platforms - macOS-like appearance */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(from var(--color-muted-foreground) r g b / 0.3) transparent;
+  }
+  
+  /* WebKit scrollbar styles (Chrome, Safari, Edge) */
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  *::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background: rgb(from var(--color-muted-foreground) r g b / 0.3);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgb(from var(--color-muted-foreground) r g b / 0.5);
+    background-clip: content-box;
+  }
+  
+  *::-webkit-scrollbar-thumb:active {
+    background: rgb(from var(--color-muted-foreground) r g b / 0.7);
+    background-clip: content-box;
+  }
+  
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  
+  /* Hide scrollbar arrows */
+  *::-webkit-scrollbar-button {
+    display: none;
+  }
 }
 
 @layer utilities {
@@ -109,8 +152,7 @@
     /* overflowY: auto !important; */
     overscroll-behavior-y: contain !important;
   }
-  
-  /* Cell container state styling */
+    /* Cell container state styling */
   .cell-container {
     @apply border-transparent;
   }
@@ -120,8 +162,7 @@
   .cell-container.edit-mode {
     @apply border-border;
   }
-  
-  /* Ensure selected cells have proper visual feedback */
+    /* Ensure selected cells have proper visual feedback */
   .cell-container.selected {
     @apply border-accent shadow-lg bg-accent/10;
   }
@@ -168,19 +209,23 @@
   
   /* Console log level styling */
   .console-output [data-log-level="error"] {
-    @apply text-red-400;
+    @apply text-error;
   }
   
   .console-output [data-log-level="warn"] {
-    @apply text-yellow-400;
+    @apply text-warning;
   }
   
   .console-output [data-log-level="info"] {
-    @apply text-blue-400;
+    @apply text-info;
   }
   
   .console-output [data-log-level="log"] {
-    @apply text-muted-foreground;
+    @apply text-success;
+  }
+  
+  .console-output [data-log-level="debug"] {
+    @apply text-debug;
   }
   
   /* Code summary styling - terminal/comment-like appearance */
@@ -190,12 +235,12 @@
   }
   
   /* Add subtle syntax highlighting to code summary */
-  .code-summary .text-blue-400 {
-    @apply text-blue-400/90;
+  .code-summary .text-info {
+    @apply text-info/90;
   }
   
-  .code-summary .text-green-400 {
-    @apply text-green-400/90;
+  .code-summary .text-success {
+    @apply text-success/90;
   }
   
   /* Code summary hover effect */
@@ -211,7 +256,7 @@
     top: 0;
     bottom: 0;
     width: 2px;
-    background: linear-gradient(to bottom, rgba(59, 130, 246, 0.3), rgba(34, 197, 94, 0.3));
+    background: linear-gradient(to bottom, rgb(from var(--color-info) r g b / 0.3), rgb(from var(--color-success) r g b / 0.3));
   }
 
   .prose {
@@ -226,9 +271,9 @@
 } */
 
 /* Utility classes for dark mode */
-.dark .plot-container { 
-	 filter: invert(100%) hue-rotate(180deg); 
- }
+/* .dark .plot-container {  */
+	 /* filter: invert(100%) hue-rotate(180deg);  */
+ /* } */
 
 .dark .plot-container g.cartesianlayer  g.gridlayer path {
     stroke: var(--color-muted-foreground) !important;
@@ -256,9 +301,9 @@ svg text {
 }
 
 /* Exclude SVG text from plot container filters if needed */
-.dark .plot-container svg text {
-  filter: invert(100%) hue-rotate(180deg);
-}
+/* .dark .plot-container svg text { */
+  /* filter: invert(100%) hue-rotate(180deg); */
+/* } */
 
 /* Line clamp utilities for text truncation */
 .line-clamp-1 {
@@ -284,3 +329,111 @@ svg text {
   line-clamp: 3;
   overflow: hidden;
 }
+  
+/* ======================================
+     READING MODE - PURE CSS SOLUTION
+     ====================================== */
+  
+  /* Hide elements in reading mode */
+  .reading-mode .reading-mode-hide {
+    display: none !important;
+  }
+  
+  /* Cell container adjustments for reading mode */
+  .reading-mode .cell-container {
+    /* Remove borders, shadows, and hover effects */
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    margin-bottom: 0.75rem !important; /* Consistent, smaller spacing */
+    padding: 0 !important;
+  }
+  
+  .reading-mode .cell-container:hover,
+  .reading-mode .cell-container.selected,
+  .reading-mode .cell-container.edit-mode {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+  
+  /* Hide all cell controls in reading mode */
+  .reading-mode .cell-controls,
+  .reading-mode .cell-type-indicator,
+  .reading-mode .cell-grip-indicator {
+    display: none !important;
+  }
+  
+  /* Code cell reading mode adjustments */
+  .reading-mode .code-cell {
+    border: none !important;
+    background: transparent !important;
+    margin-bottom: 0 !important; /* Remove extra margin, rely on container spacing */
+  }
+  
+  /* Hide code editor and summary in reading mode */
+  .reading-mode .code-cell .code-content,
+  .reading-mode .code-cell .code-summary,
+  .reading-mode .code-cell .flex.items-center.justify-between {
+    display: none !important;
+  }
+  
+  /* Keep code outputs visible but clean */
+  .reading-mode .code-cell .dom-output-container {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+  
+  .reading-mode .code-cell .output-values {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+  
+  .reading-mode .code-cell .output-item {
+    padding: 0.25rem 0 !important;
+    border: none !important;
+  }
+  
+  /* Error display in reading mode - keep visible but clean */
+  .reading-mode .code-cell .code-error {
+    border: 1px solid var(--color-destructive) !important;
+    border-radius: 0.375rem !important;
+    background: rgb(from var(--color-destructive) r g b / 0.1) !important;
+    padding: 0.75rem !important;
+    margin: 0.5rem 0 !important;
+  }
+  
+  /* Markdown cell reading mode - clean display */
+  .reading-mode .markdown-cell {
+    border: none !important;
+    background: transparent !important;
+    margin-bottom: 0 !important; /* Remove extra margin, rely on container spacing */
+  }
+  
+  .reading-mode .markdown-cell .markdown-content {
+    padding: 0 !important;
+  }
+  
+  /* Formula cell reading mode - show results only */
+  .reading-mode .formula-cell {
+    border: none !important;
+    background: transparent !important;
+    margin-bottom: 0 !important; /* Remove extra margin, rely on container spacing */
+  }
+  
+  .reading-mode .formula-cell .formula-editor {
+    display: none !important;
+  }
+  
+  /* Input cell reading mode - minimal display */
+  .reading-mode .input-cell {
+    border: none !important;
+    background: transparent !important;
+    margin-bottom: 0 !important; /* Remove extra margin, rely on container spacing */
+  }
+  
+  .reading-mode .input-cell .input-controls {
+    display: none !important;
+  }

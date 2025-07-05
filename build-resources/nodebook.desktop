@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Application
+Name=Nodebook.js
+GenericName=Interactive Notebook
+Comment=Reactive notebook application for interactive computing
+Exec=nodebook %F
+Icon=nodebook
+Terminal=false
+Categories=Development;Science;Education;
+MimeType=application/x-nodebook;
+StartupNotify=true
+StartupWMClass=Nodebook.js
+
+[Desktop Action Open]
+Name=Open Notebook
+Exec=nodebook %F
+
+[Desktop Action New]
+Name=New Notebook
+Exec=nodebook

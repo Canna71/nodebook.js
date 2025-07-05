@@ -16,7 +16,8 @@ import {
     ExecuteAllCellsCommand,
     ToggleSidebarCommand,
     UndoCommand,
-    RedoCommand
+    RedoCommand,
+    DuplicateCellCommand
 } from './Commands/NotebookCommands';
 import { 
     GenerateNotebookCommand, 
@@ -26,7 +27,12 @@ import {
 import {
     ToggleConsoleViewerCommand,
     ToggleOutputPanelCommand,
-    ViewDocumentationCommand
+    ViewDocumentationCommand,
+    ViewSettingsCommand,
+    CloseViewCommand,
+    ToggleReadingModeCommand,
+    EnterReadingModeCommand,
+    ExitReadingModeCommand
 } from './Commands/ViewCommands';
 import {
     DocumentArrowDownIcon as SaveIcon,
@@ -42,7 +48,10 @@ import {
     CommandLineIcon,
     DocumentTextIcon,
     XMarkIcon,
-    BookOpenIcon
+    BookOpenIcon,
+    EyeIcon, // NEW: Reading mode icon
+    CogIcon, // NEW: Settings icon
+    DocumentDuplicateIcon
 } from '@heroicons/react/24/outline';
 import { CellDefinition } from '@/Types/NotebookModel';
 import anylogger from 'anylogger';
@@ -206,6 +215,14 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
         });
 
         commandManager.registerCommand({
+            id: 'cell.duplicate',
+            command: new DuplicateCellCommand(getContext),
+            shortcut: 'Cmd+D',
+            icon: DocumentDuplicateIcon,
+            tooltip: 'Duplicate cell (Cmd+D)'
+        });
+
+        commandManager.registerCommand({
             id: 'ui.toggleSidebar',
             command: new ToggleSidebarCommand(getContext),
             shortcut: 'Cmd+B',
@@ -278,6 +295,30 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
             tooltip: 'View Documentation (F1)'
         });
 
+        commandManager.registerCommand({
+            id: 'view.settings',
+            command: new ViewSettingsCommand(getContext),
+            icon: CogIcon,
+            tooltip: 'Open Settings'
+        });
+
+        commandManager.registerCommand({
+            id: 'view.close',
+            command: new CloseViewCommand(getContext),
+            shortcut: 'Escape',
+            icon: XMarkIcon,
+            tooltip: 'Close (Escape)'
+        });
+
+        // Reading mode commands
+        commandManager.registerCommand({
+            id: 'view.toggleReadingMode',
+            command: new ToggleReadingModeCommand(getContext),
+            shortcut: 'Ctrl+R',
+            icon: EyeIcon,
+            tooltip: 'Toggle Reading Mode (Ctrl+R)'
+        });
+
         log.debug('Commands registered successfully');
 
         // Cleanup function to unregister commands when component unmounts
@@ -324,6 +365,9 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
                 setModel: applicationProvider.setModel,
                 setDirty: applicationProvider.setDirty,
                 isDirty: applicationProvider.isDirty,
+                readingMode: applicationProvider.readingMode, // NEW: Reading mode state
+                setReadingMode: applicationProvider.setReadingMode, // NEW: Reading mode setter
+                setSelectedCellId: applicationProvider.setSelectedCellId,
                 // Add undo/redo operations
                 canUndo: applicationProvider.canUndo,
                 canRedo: applicationProvider.canRedo,
@@ -335,7 +379,8 @@ export function CommandProvider({ children, onAddCell, onToggleSidebar }: Comman
                 updateCell: applicationProvider.updateCell,
                 addCell: applicationProvider.addCell,
                 deleteCell: applicationProvider.deleteCell,
-                moveCell: applicationProvider.moveCell
+                moveCell: applicationProvider.moveCell,
+                duplicateCell: applicationProvider.duplicateCell
             },
             reactiveSystem: {
                 codeCellEngine: reactiveSystem.codeCellEngine,

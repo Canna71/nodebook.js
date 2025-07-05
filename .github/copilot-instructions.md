@@ -167,7 +167,7 @@ const htmlDiv = createDiv({ innerHTML: `<h3>Results</h3><p>Revenue: $${revenue}<
 
 #### Styling
 - Use Tailwind CSS classes for styling
-- Try not to use explicit color, but use one from variables defined in `src/styles.css`
+- Try not to use explicit color, but use one from variables defined in `src/styles/globals.css`
 - Follow consistent color scheme:
   - `text-foreground` for main text
   - `text-secondary-foreground` for secondary text

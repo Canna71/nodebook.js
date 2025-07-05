@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, BookOpen, ExternalLink } from 'lucide-react';
 import { initializeDocumentationHelpers, getDocumentationHelpers, DocumentationFileInfo } from '@/lib/documentationHelpers';
+import { useCommands } from '@/Engine/CommandProvider';
 import anylogger from 'anylogger';
 
 const log = anylogger('DocumentationViewer');
@@ -28,6 +29,7 @@ export function DocumentationViewer({ onClose, initialDocument = 'index.md' }: D
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [availableDocs, setAvailableDocs] = useState<DocumentationFileInfo[]>([]);
+  const { commandManager } = useCommands();
 
   useEffect(() => {
     initializeDocumentationSystem();
@@ -176,12 +178,6 @@ export function DocumentationViewer({ onClose, initialDocument = 'index.md' }: D
             )}
           </div>
         </div>
-        {onClose && (
-          <Button variant="outline" onClick={onClose}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to App
-          </Button>
-        )}
       </div>
 
       {/* Quick Navigation */}
@@ -210,7 +206,7 @@ export function DocumentationViewer({ onClose, initialDocument = 'index.md' }: D
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <div className="max-w-4xl mx-auto p-8">
+        <div className="max-w-4xl mx-auto p-8 pb-24">
           <div 
             className="prose prose-slate dark:prose-invert max-w-none
                        prose-headings:text-foreground prose-p:text-foreground 
@@ -222,6 +218,18 @@ export function DocumentationViewer({ onClose, initialDocument = 'index.md' }: D
           />
         </div>
       </div>
+
+      {/* Fixed Bottom Actions */}
+      {onClose && (
+        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4">
+          <div className="max-w-4xl mx-auto flex justify-start">
+            <Button variant="outline" onClick={onClose}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

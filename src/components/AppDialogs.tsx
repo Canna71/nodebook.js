@@ -75,11 +75,11 @@ export function AppErrorDialog({
             Show technical details
           </Button>
           {showDetails && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3">
-              <div className="text-sm text-red-800 mb-1">
+            <div className="bg-error/10 border border-error/30 rounded-md p-3">
+              <div className="text-sm text-error mb-1">
                 <strong>Error details:</strong>
               </div>
-              <div className="text-xs text-red-600 font-mono max-h-32 overflow-y-auto whitespace-pre-wrap">
+              <div className="text-xs text-error/80 font-mono max-h-32 overflow-y-auto whitespace-pre-wrap">
                 {error}
               </div>
             </div>
@@ -194,7 +194,8 @@ export function AppInfoDialog({
       description={message}
       variant="info"
       size={size}
-      footer={footer}    >
+      footer={footer}
+    >
       {details && (
         <div className="space-y-2">
           <Button 
@@ -211,8 +212,8 @@ export function AppInfoDialog({
             Show details
           </Button>
           {showDetails && (
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-              <div className="text-sm text-blue-800 whitespace-pre-wrap">
+            <div className="bg-info/10 border border-info/30 rounded-md p-3">
+              <div className="text-sm text-info whitespace-pre-wrap">
                 {details}
               </div>
             </div>
@@ -332,7 +333,7 @@ export function AppPromptDialog({
             autoFocus
           />
           {error && (
-            <div className="text-sm text-red-600">
+            <div className="text-sm text-error">
               {error}
             </div>
           )}

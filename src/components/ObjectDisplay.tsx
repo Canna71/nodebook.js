@@ -4,8 +4,10 @@ import ReactJson, { ThemeKeys, ThemeObject } from 'react-json-view';
 import SeriesRenderer from './SeriesRenderer';
 import DataFrameRenderer from './DataFrameRenderer';
 import { TabularRenderer } from './TabularRenderer';
+import PropertyGrid from './PropertyGrid';
 import { useReactiveSystem } from '../Engine/ReactiveProvider';
 import { LatexRenderer, isLatexContent, renderMixedContent } from './LatexRenderer';
+import { useTheme, getReactJsonTheme } from '@/lib/themeHelpers';
 
 
 interface ObjectDisplayProps {
@@ -16,6 +18,7 @@ interface ObjectDisplayProps {
   displayDataTypes?: boolean;
   displayObjectSize?: boolean;
   enableClipboard?: boolean;
+  usePropertyGrid?: boolean; // New option to use PropertyGrid instead of ReactJson
 }
 
 // Type detection functions
@@ -53,9 +56,17 @@ export function ObjectDisplay({
   displayDataTypes = true, 
   displayObjectSize = true,
   enableClipboard = true,
-  theme = 'codeschool'
+  usePropertyGrid = true, // Default to using PropertyGrid
+  theme
 }: ObjectDisplayProps) {
   const reactiveContext = useReactiveSystem();
+  const [showPropertyGrid, setShowPropertyGrid] = useState(usePropertyGrid);
+  
+  // Use centralized theme detection
+  const currentTheme = useTheme();
+  
+  // Determine theme - use provided theme or auto-detect based on current mode
+  const effectiveTheme = theme || getReactJsonTheme();
 
   // Reverse lookup function to find variable name by object reference
   const findVariableNameByReference = useMemo(() => {
@@ -103,7 +114,7 @@ export function ObjectDisplay({
         </div>
       );
     }
-    return <span>{data}</span>;
+    return <span className="whitespace-pre-wrap">{data}</span>;
   }
 
   if (typeof data === 'number' || typeof data === 'boolean') {
@@ -134,7 +145,32 @@ export function ObjectDisplay({
   //   return <TensorRenderer data={data} name={typeof name === 'string' ? name : undefined} />;
   // }
 
-  // Default fallback to ReactJson for generic objects and arrays
+  // Check if we should use PropertyGrid for generic objects
+  if (showPropertyGrid && typeof data === 'object' && data !== null) {
+    return (
+      <div 
+        className="object-display-wrapper"
+        onClick={(e) => {
+          // Stop propagation to prevent cell selection when clicking inside PropertyGrid
+          e.stopPropagation();
+        }}
+        onMouseDown={(e) => {
+          // Also stop mouse down to prevent any drag operations
+          e.stopPropagation();
+        }}
+      >
+        <PropertyGrid
+          data={data}
+          name={typeof name === 'string' ? name : effectiveName}
+          editable={true}
+          collapsed={collapsed}
+          maxDepth={3}
+        />
+      </div>
+    );
+  }
+
+  // Fallback to ReactJson for when PropertyGrid is disabled or for primitive values
   return (
     <div className="object-display">
       <div 
@@ -155,7 +191,7 @@ export function ObjectDisplay({
           displayDataTypes={displayDataTypes}
           displayObjectSize={displayObjectSize}
           enableClipboard={enableClipboard}
-          theme={theme}
+          theme={effectiveTheme}
           style={{
             backgroundColor: 'transparent',
             fontSize: '13px',
@@ -182,5 +218,15 @@ export function ObjectDisplay({
 
 // Utility function to render object inline
 export const renderObjectInline = (data: any): JSX.Element => {
-  return <ObjectDisplay data={data} collapsed={true} displayDataTypes={false} name={false} />;
+  return <ObjectDisplay data={data} collapsed={true} displayDataTypes={false} name={false} usePropertyGrid={false} />;
+};
+
+// Utility function to render object with PropertyGrid
+export const renderObjectAsPropertyGrid = (data: any, name?: string): JSX.Element => {
+  return <ObjectDisplay data={data} name={name} usePropertyGrid={true} />;
+};
+
+// Utility function to render object with ReactJson (legacy)
+export const renderObjectAsJson = (data: any, name?: string): JSX.Element => {
+  return <ObjectDisplay data={data} name={name} usePropertyGrid={false} />;
 };

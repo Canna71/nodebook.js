@@ -1,0 +1,45 @@
+{
+  "metadata": {
+    "title": "Cell Execution Lifecycle Test",
+    "description": "Testing the cell execution lifecycle with spinner and output clearing",
+    "version": "1.0"
+  },
+  "cells": [
+    {
+      "id": "test-1",
+      "type": "markdown",
+      "content": "# Cell Execution Lifecycle Test\n\nThis notebook tests the new cell execution lifecycle features:\n\n1. **Spinner replaces play button** during execution\n2. **All outputs cleared** before execution starts\n3. **Play button restored** on completion or error\n4. **Double execution prevention**"
+    },
+    {
+      "id": "test-2",
+      "type": "code",
+      "code": "// Test 1: Quick execution\nconsole.log('Hello from quick test!');\nexports.quickResult = 42;"
+    },
+    {
+      "id": "test-3",
+      "type": "code",
+      "code": "// Test 2: Slow execution with spinner\nconsole.log('Starting slow operation...');\n\n// Simulate a slow operation\nconst start = Date.now();\nwhile (Date.now() - start < 2000) {\n  // Wait 2 seconds\n}\n\nconsole.log('Slow operation completed!');\nexports.slowResult = 'Done after 2 seconds';"
+    },
+    {
+      "id": "test-4",
+      "type": "code",
+      "code": "// Test 3: Output clearing test\nconsole.log('This is output line 1');\nconsole.log('This is output line 2');\n\noutput('Previous output should be cleared');\noutput('Only this execution\\'s output should show');\n\nexports.outputTest = 'Output cleared successfully';"
+    },
+    {
+      "id": "test-5",
+      "type": "code",
+      "code": "// Test 4: Error handling\nconsole.log('About to throw an error...');\n\nthrow new Error('Test error - play button should be restored');"
+    },
+    {
+      "id": "test-6",
+      "type": "code",
+      "code": "// Test 5: DOM output clearing\n\nfunction waitTwoSeconds() {\n  return new Promise((resolve) => {\n    setTimeout(() => {\n      resolve('Success after 2 seconds');\n    }, 2000);\n  });\n}\n\nawait waitTwoSeconds();\n\nconst div1 = createDiv({ \n  innerHTML: `DOM changed at ${new Date()}`, \n  style: 'background: red; padding: 10px; margin: 5px;' \n});\noutput(div1);\n\n",
+      "isStatic": true
+    },
+    {
+      "id": "test-7",
+      "type": "markdown",
+      "content": "## Testing Instructions\n\n1. **Quick Execution**: Click the play button on Test 2 - should show spinner briefly\n2. **Slow Execution**: Click the play button on Test 3 - spinner should show for 2 seconds\n3. **Output Clearing**: Run Test 4 multiple times - previous output should be cleared each time\n4. **Error Handling**: Run Test 5 - spinner should show, then play button should return after error\n5. **DOM Clearing**: Run Test 6 multiple times - only the latest DOM content should show\n6. **Double Execution**: Try clicking the play button multiple times quickly - should only execute once"
+    }
+  ]
+}

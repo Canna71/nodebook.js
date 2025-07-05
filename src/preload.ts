@@ -3,12 +3,12 @@
 import { ElectronApi } from "./lib/electronHelpers";
 
 
-
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 // const { ipcRenderer } = require('electron');
-import {  ipcRenderer } from 'electron';
+import { ipcRenderer } from 'electron';
+import { memoize } from "./lib/utils";
 
-const api : ElectronApi = {
+const api: ElectronApi = {
     getUserDataPath: () => ipcRenderer.invoke('get-user-data-path'),
     isPackaged: () => ipcRenderer.invoke('is-packaged'),
     openFileDialog: (options?: Electron.OpenDialogOptions) => ipcRenderer.invoke('open-file-dialog', options),
@@ -20,24 +20,50 @@ const api : ElectronApi = {
     getEnvironmentVariables: (variableNames) => ipcRenderer.invoke('get-environment-variables', variableNames),
     getAppVersion: () => ipcRenderer.invoke('get-app-version'),
     getAppInfo: () => ipcRenderer.invoke('get-app-info'),
+    getRuntimeVersions: () => ipcRenderer.invoke('get-runtime-versions'),
     getAppPath: () => ipcRenderer.invoke('get-app-path'),
     getAppName: () => ipcRenderer.invoke('get-app-name'),
     getAppLocale: () => ipcRenderer.invoke('get-app-locale'),
     setWindowTitle: (title: string) => ipcRenderer.invoke('set-window-title', title),
-    
+
     // API Key storage
     saveAPIKeys: (keys) => ipcRenderer.invoke('save-api-keys', keys),
     getStoredAPIKeys: () => ipcRenderer.invoke('get-stored-api-keys'),
     getApiKeyStorageInfo: () => ipcRenderer.invoke('get-api-key-storage-info'),
-    
+
+    // Application settings
+    getAppSetting: (key: string, defaultValue?: any) => ipcRenderer.invoke('get-app-setting', key, defaultValue),
+    setAppSetting: (key: string, value: any) => ipcRenderer.invoke('set-app-setting', key, value),
+    getAllAppSettings: () => ipcRenderer.invoke('get-all-app-settings'),
+
     // Menu event handling
     onMenuAction: (event: string, callback: (...args: any[]) => void) => {
         ipcRenderer.on(event, (_, ...args) => callback(...args));
     },
-    
+
     removeMenuListener: (event: string) => {
         ipcRenderer.removeAllListeners(event);
-    }
+    },
+    
+    // Dynamic menu updates
+    updateCloseMenuLabel: (label: string) => ipcRenderer.invoke('update-close-menu-label', label),
+    updateApplicationContext: (updates: any) => ipcRenderer.invoke('update-application-context', updates),
+    getApplicationContext: () => ipcRenderer.invoke('get-application-context'),
+    
+    // File association handling
+    onOpenFileFromSystem: (callback: (filePath: string) => void) => {
+        ipcRenderer.on('open-file-from-system', (_, filePath) => callback(filePath));
+    },
+
+    removeOpenFileListener: () => {
+        ipcRenderer.removeAllListeners('open-file-from-system');
+    },
+
+    isDev: memoize(() => {
+        // Check if the app is running in development mode
+        return process.env.ISDEV === '1';
+    })
 };
 
 window.api = api;
+

@@ -32,7 +32,10 @@ import 'anylogger-loglevel';
 import anylogger from 'anylogger';
 const log = anylogger('Renderer');
 import loglevel from "loglevel";
-loglevel.enableAll();
+// if (window.api.isDev()) {
+    loglevel.enableAll();
+// }
+(window as any).log = loglevel;
 log.log('👋 This message is being logged by "renderer.ts", included via Vite');
 
 import './root';

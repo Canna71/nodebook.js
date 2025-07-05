@@ -1,0 +1,29 @@
+{
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "md_intro",
+      "content": "# Enhanced Module Resolution Debug Test\n\nThis test checks the enhanced module resolution debugging to see why NODE_PATH isn't being set."
+    },
+    {
+      "type": "code",
+      "id": "code_debug_info",
+      "code": "// Test 1: Get comprehensive debug info\nconsole.log('=== Enhanced Module Resolution Debug ===');\n\n// Get the module registry instance\nconst { moduleRegistry } = require('@/Engine/ModuleRegistry');\n\n// Get comprehensive debug information\nconst debugInfo = moduleRegistry.getDebugInfo();\n\nconsole.log('Debug Info:');\nconsole.log('- nodeRequirePaths:', debugInfo.nodeRequirePaths);\nconsole.log('- nodePathEnv:', debugInfo.nodePathEnv || 'NOT SET');\nconsole.log('- moduleGlobalPaths:', debugInfo.moduleGlobalPaths);\nconsole.log('- moduleNodeModulePaths (first 5):', debugInfo.moduleNodeModulePaths.slice(0, 5));\n\n// Test the force update method\nconsole.log('\\n=== Testing Force Module Resolution Update ===');\nconst updateResult = moduleRegistry.forceModuleResolutionUpdate();\nconsole.log('Force update result:', updateResult);\n\n// Check NODE_PATH after force update\nconsole.log('NODE_PATH after force update:', process.env.NODE_PATH || 'STILL NOT SET');\n\nexports.debugInfo = debugInfo;\nexports.updateResult = updateResult;"
+    },
+    {
+      "type": "code",
+      "id": "code_manual_fix",
+      "code": "// Test 2: Manual application of your working solution\nconsole.log('=== Manual Application of Working Solution ===');\n\nconsole.log('Current require.paths:', require.paths);\nconsole.log('Current NODE_PATH before manual fix:', process.env.NODE_PATH || 'not set');\n\n// Apply your exact working solution\nif (require.paths && require.paths.length > 0) {\n    process.env.NODE_PATH = require.paths.join(\":\");\n    require(\"module\").Module._initPaths();\n    \n    console.log('✓ Applied manual fix');\n    console.log('NODE_PATH after manual fix:', process.env.NODE_PATH);\n    \n    // Test module resolution\n    const testModules = ['zx', 'lodash', 'axios'];\n    \n    for (const moduleName of testModules) {\n        try {\n            const module = require(moduleName);\n            console.log(`✅ ${moduleName} loaded successfully`);\n        } catch (error) {\n            console.log(`❌ ${moduleName} failed:`, error.message);\n        }\n    }\n} else {\n    console.log('❌ require.paths is empty or not available');\n}\n\nexports.manualFixApplied = true;"
+    },
+    {
+      "type": "code",
+      "id": "code_test_persistence",
+      "code": "// Test 3: Check if NODE_PATH persists\nconsole.log('=== Testing NODE_PATH Persistence ===');\n\n// Wait a bit and check again\nsetTimeout(() => {\n    console.log('NODE_PATH after timeout:', process.env.NODE_PATH || 'LOST');\n    \n    if (global.process && global.process.env) {\n        console.log('global.process.env.NODE_PATH:', global.process.env.NODE_PATH || 'NOT SET');\n    }\n    \n    if (typeof window !== 'undefined' && window.process && window.process.env) {\n        console.log('window.process.env.NODE_PATH:', window.process.env.NODE_PATH || 'NOT SET');\n    }\n    \n    // Try the persistent setup\n    const { moduleRegistry } = require('@/Engine/ModuleRegistry');\n    moduleRegistry.setupPersistentNodePath();\n    \n    console.log('After persistent setup:', process.env.NODE_PATH || 'STILL NOT SET');\n}, 1000);\n\nexports.persistenceTest = 'initiated';"
+    },
+    {
+      "type": "code",
+      "id": "code_comprehensive_test",
+      "code": "// Test 4: Comprehensive module loading test\nconsole.log('=== Comprehensive Module Loading Test ===');\n\nconst testModules = [\n    'zx',\n    'lodash', \n    'axios',\n    'moment',\n    'cheerio',\n    'uuid'\n];\n\nconst results = {};\n\nfor (const moduleName of testModules) {\n    try {\n        const startTime = Date.now();\n        const module = require(moduleName);\n        const loadTime = Date.now() - startTime;\n        \n        results[moduleName] = {\n            status: 'success',\n            loadTime: loadTime,\n            hasVersion: !!(module.version || module.VERSION),\n            type: typeof module\n        };\n        \n        console.log(`✅ ${moduleName}: loaded in ${loadTime}ms`);\n        \n    } catch (error) {\n        results[moduleName] = {\n            status: 'failed',\n            error: error.message,\n            code: error.code\n        };\n        \n        console.log(`❌ ${moduleName}: ${error.message}`);\n    }\n}\n\noutput('Module Loading Results:');\noutput(results);\n\nexports.moduleResults = results;"
+    }
+  ]
+}

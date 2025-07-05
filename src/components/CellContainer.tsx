@@ -1,4 +1,4 @@
-import React, { JSX, useState, useEffect } from 'react';
+import React, { JSX, useState, useEffect, useRef } from 'react';
 import { CellDefinition } from '@/Types/NotebookModel';
 import { 
     PencilIcon, 
@@ -6,12 +6,14 @@ import {
     TrashIcon, 
     ChevronUpIcon, 
     ChevronDownIcon,
+    DocumentDuplicateIcon
 } from '@heroicons/react/24/outline';
-import { CodeIcon, GripVertical } from 'lucide-react';
+import { CodeIcon, GripVertical, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PlayIcon } from '@heroicons/react/24/solid';
 import { Button } from './ui/button';
 import { CellTypeIcon } from './CellTypeIcon';
+import { useReactiveValue } from '@/Engine/ReactiveProvider';
 
 interface CellContainerProps {
     definition: CellDefinition;
@@ -22,6 +24,7 @@ interface CellContainerProps {
     onSelect: () => void;
     onToggleEditMode: () => void;
     onDelete: () => void;
+    onDuplicate: () => void;
     onMoveUp: () => void;
     onMoveDown: () => void;
     children: React.ReactNode;
@@ -41,6 +44,7 @@ export function CellContainer({
     onSelect,
     onToggleEditMode,
     onDelete,
+    onDuplicate,
     onMoveUp,
     onMoveDown,
     initialized,
@@ -48,6 +52,71 @@ export function CellContainer({
 }: CellContainerProps) {
     const [isHovered, setIsHovered] = useState(false);
     const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
+    
+    // Track execution state for code cells
+    const [executionState] = useReactiveValue(`__cell_${definition.id}_state`, 'idle');
+    const isExecuting = definition.type === 'code' && executionState === 'running';
+    
+    // Refs for tracking play button position
+    const cellContainerRef = useRef<HTMLDivElement>(null);
+    const playButtonRef = useRef<HTMLButtonElement>(null);
+    const [playButtonTop, setPlayButtonTop] = useState<number | null>(null);
+    const [playButtonLeft, setPlayButtonLeft] = useState<number | null>(null);
+    const [showFloatingButton, setShowFloatingButton] = useState(false);// VSCode-style floating play button logic
+    useEffect(() => {
+        if (definition.type !== 'code' || !onExecuteCode) return;        const handleScroll = () => {
+            if (!cellContainerRef.current) return;
+
+            const cellRect = cellContainerRef.current.getBoundingClientRect();
+            const toolbarHeight = 48; // h-12 = 48px
+            const buttonHeight = 24; // w-6 h-6 = 24px
+            const minTop = toolbarHeight + 8; // 8px margin below toolbar
+            
+            // Check if cell is partially visible and scrolled
+            const cellTop = cellRect.top;
+            const cellBottom = cellRect.bottom;
+            const cellLeft = cellRect.left;
+            
+            // Show floating button when:
+            // 1. Cell top is above the toolbar (scrolled up)
+            // 2. Cell bottom is still below the minimum position (cell is tall enough)
+            const shouldShowFloating = cellTop < minTop && cellBottom > minTop + buttonHeight + 20;            if (shouldShowFloating) {
+                // Calculate the optimal position within the cell bounds
+                const maxTop = Math.min(cellBottom - buttonHeight - 8, window.innerHeight - buttonHeight - 8);
+                
+                // Account for cell type indicator height when positioning at the top
+                // Cell type indicator has: py-1.5 (6px) + badge height (~20px) + py-1.5 (6px) = ~32px
+                const typeIndicatorHeight = 32;
+                const minTopWithIndicator = minTop + typeIndicatorHeight + 4; // 4px additional margin
+                
+                const calculatedTop = Math.max(minTopWithIndicator, Math.min(minTop, maxTop));
+                
+                // Calculate left position to align with the cell type indicator center
+                // Position it within the cell type indicator area, similar to the normal button
+                const calculatedLeft = cellLeft + 8; // 8px from cell edge, inside the type indicator
+                
+                setPlayButtonTop(calculatedTop);
+                setPlayButtonLeft(calculatedLeft);
+                setShowFloatingButton(true);
+            } else {
+                setShowFloatingButton(false);
+                setPlayButtonTop(null);
+                setPlayButtonLeft(null);
+            }
+        };
+
+        // Initial check
+        handleScroll();
+
+        // Add scroll listener
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('resize', handleScroll, { passive: true });
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', handleScroll);
+        };
+    }, [definition.type, onExecuteCode]);
 
     // Add escape key listener for edit mode
     useEffect(() => {
@@ -176,13 +245,11 @@ export function CellContainer({
     };
 
     const cellTypeInfo = getCellTypeInfo();
-    
-    return (
+      return (
         <div 
             className="cell-container-wrapper relative"
             onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-        >
+            onMouseLeave={() => setIsHovered(false)}        >
             {/* Floating Action Buttons - moved left to avoid overlap with grip */}
             {(isSelected || isHovered) && (
                 <div className="absolute -top-2 right-10 z-10 flex items-center gap-1 bg-background border border-border rounded-lg px-2 py-1 shadow-lg">
@@ -228,6 +295,18 @@ export function CellContainer({
                         )}
                     </button>
 
+                    {/* Duplicate */}
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDuplicate();
+                        }}
+                        className="action-button p-1 rounded hover:bg-accent/20 text-foreground"
+                        title="Duplicate cell"
+                    >
+                        <DocumentDuplicateIcon className="w-4 h-4" />
+                    </button>
+
                     {/* Delete */}
                     <button
                         onClick={(e) => {
@@ -240,9 +319,8 @@ export function CellContainer({
                         <TrashIcon className="w-4 h-4" />
                     </button>
                 </div>
-            )}
-
-            <div
+            )}            <div
+                ref={cellContainerRef}
                 className={`cell-container relative flex border rounded-lg transition-all duration-200 ml-1 border-l-4 ${
                     isSelected 
                         ? 'border-accent shadow-lg bg-accent/10 selected !border-l-primary' 
@@ -252,16 +330,14 @@ export function CellContainer({
                 } ${isEditMode ? 'edit-mode' : ''}`}
                 onClick={handleClick}
                 onDoubleClick={handleDoubleClick}
-            >
-                {/* Left Cell Type Indicator - always takes up space, visibility controlled by opacity */}
-                <div className={`cell-type-indicator flex flex-col items-center justify-start px-1 py-2 bg-background-secondary border-r border-border rounded-l-lg transition-opacity duration-200 ${
+            >                {/* Left Cell Type Indicator - always takes up space, visibility controlled by opacity */}
+                <div className={`cell-type-indicator flex flex-col items-center justify-start px-1 py-1.5 bg-background-secondary border-r border-border rounded-l-lg transition-opacity duration-200 ${
                     isSelected || isHovered ? 'opacity-100' : 'opacity-0'
-                }`}>
-                    {/* Cell Type Badge with Tooltip */}
+                }`}>                    {/* Cell Type Badge with Tooltip */}
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <div className={`cell-type-badge text-xs font-medium px-1.5 py-1 rounded cursor-help ${getCellTypeColor(definition.type)}`}>
+                                <div className={`cell-type-badge text-xs font-medium px-0.5 py-0.5 rounded cursor-help ${getCellTypeColor(definition.type)}`}>
                                     <CellTypeIcon type={definition.type} />
                                 </div>
                             </TooltipTrigger>
@@ -276,20 +352,70 @@ export function CellContainer({
                         </Tooltip>
                     </TooltipProvider>
                     
-                    {/* Execute Button for Code Cells */}
+                    {/* Smart Execute Button for Code Cells */}
                     {definition.type === 'code' && onExecuteCode && (
-                        <Button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onExecuteCode();
-                            }}
-                            variant="secondary" 
-                            size="icon" 
-                            className="size-8 execute-button p-1 mt-2 rounded bg-background border border-border hover:bg-accent/20 text-foreground transition-colors"
-                            title="Execute cell"
-                        >
-                            <PlayIcon className="w-3 h-3" />
-                        </Button>
+                        <>
+                            {/* Normal position button (hidden when floating) */}
+                            {!showFloatingButton && (
+                                <Button
+                                    ref={playButtonRef}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (!isExecuting) {
+                                            onExecuteCode();
+                                        }
+                                    }}
+                                    variant="secondary" 
+                                    size="sm" 
+                                    className="w-6 h-6 execute-button p-1 mt-1.5 rounded bg-background border border-border hover:bg-accent/20 text-foreground transition-colors"
+                                    title={isExecuting ? "Executing..." : "Execute cell"}
+                                    disabled={isExecuting}
+                                >
+                                    {isExecuting ? (
+                                        <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                                    ) : (
+                                        <PlayIcon className="w-2.5 h-2.5" />
+                                    )}
+                                </Button>
+                            )}
+                            
+                            {/* Placeholder to maintain layout when floating */}
+                            {showFloatingButton && (
+                                <div className="w-6 h-6 p-1 mt-1.5 rounded opacity-0 pointer-events-none" />
+                            )}
+                            
+                            {/* Floating position button (portal to fixed position) */}
+                            {showFloatingButton && playButtonTop !== null && playButtonLeft !== null && (
+                                <Button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (!isExecuting) {
+                                            onExecuteCode();
+                                        }
+                                    }}
+                                    variant="secondary"
+                                    size="sm"
+                                    className="fixed z-50 shadow-lg border-2 backdrop-blur-sm bg-background/95 hover:bg-accent/20 transition-all duration-200"
+                                    style={{
+                                        top: `${playButtonTop}px`,
+                                        left: `${playButtonLeft}px`,
+                                        width: '24px',
+                                        height: '24px',
+                                        minWidth: '24px',
+                                        minHeight: '24px',
+                                        padding: '4px'
+                                    }}
+                                    title={isExecuting ? "Executing..." : "Execute cell"}
+                                    disabled={isExecuting}
+                                >
+                                    {isExecuting ? (
+                                        <Loader2 className="w-2.5 h-2.5 flex-shrink-0 animate-spin" />
+                                    ) : (
+                                        <PlayIcon className="w-2.5 h-2.5 flex-shrink-0" />
+                                    )}
+                                </Button>
+                            )}
+                        </>
                     )}
                 </div>
 

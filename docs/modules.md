@@ -2,8 +2,20 @@
 
 Nodebook.js provides a comprehensive module system that allows you to use Node.js modules, scientific computing libraries, and custom modules in your code cells. This guide explains what modules are available and how to use them.
 
+## New: Per-Notebook Module Resolution
+
+**🎉 New Feature**: Nodebook.js now supports per-notebook module resolution! Each notebook can have its own `node_modules` directory with packages specific to that notebook's needs.
+
+👉 **[Read the full Per-Notebook Modules Guide](./per-notebook-modules.md)** for detailed setup instructions and examples.
+
+**Quick Start:**
+1. Create a `node_modules` directory in the same folder as your notebook
+2. Install packages: `npm install lodash moment`
+3. Use in your notebook: `const _ = require('lodash');`
+
 ## Table of Contents
 
+- [Per-Notebook Module Resolution (NEW)](#new-per-notebook-module-resolution)
 - [Module Availability](#module-availability)
 - [Injected Global Variables](#injected-global-variables)
 - [Require-Available Modules](#require-available-modules)
@@ -110,26 +122,52 @@ const trace = {
 const plotDiv = createDiv({ style: 'width: 100%; height: 400px;' });
 Plotly.newPlot(plotDiv.id, [trace], { title: 'My Plot' });
 output(plotDiv);
+
+// Math.js - math is available globally
+exports.calculation = math.evaluate('sqrt(3^2 + 4^2)');
+exports.matrix = math.matrix([[1, 2], [3, 4]]);
+exports.complexNum = math.evaluate('(2 + 3i) * (1 - 2i)');
+exports.unitConversion = math.evaluate('5 km + 3 miles');
+exports.bigNumber = math.bignumber('1').div(3); // Precision arithmetic
 ```
 
 **Available Pre-bundled Library Globals:**
 - `dfd` - Danfo.js DataFrame library (pre-loaded)
 - `tf` - TensorFlow.js machine learning (from danfojs, pre-loaded)
 - `Plotly` - Interactive plotting library (pre-loaded)
+- `math` - Math.js mathematical functions and expressions (pre-loaded)
 
-## Shell Scripting with zx
+## Shell Scripting with zx (Per-Notebook Installation Required)
 
-The `zx` library is preloaded and all its globals are automatically injected, providing a powerful shell scripting environment:
+**Note:** The `zx` library is **not** preloaded globally. To use `zx`, you need to install it per-notebook or in your user data directory.
 
-### Core Shell Execution
+### Installing zx
+
+**Option 1: Per-notebook installation (recommended)**
+```bash
+# In your notebook's directory
+npm install zx
+```
+
+**Option 2: Global user data installation**
+```bash
+# Navigate to user data node_modules directory first
+npm install zx
+```
+
+### Using zx after installation
 
 ```javascript
+// Require zx first (not available as global)
+const { $, cd, question, echo, sleep } = require('zx');
+
 // Execute shell commands (always async)
 const result = await $`ls -la`;
 const files = await $`find . -name "*.js"`;
 
-// Synchronous execution
-const currentDir = $.sync`pwd`;
+// Note: $.sync is not available in newer zx versions
+// Use regular $ with await instead
+const currentDir = await $`pwd`;
 
 // Command options
 const output = await $({nothrow: true})`exit 1`; // Don't throw on error
@@ -343,10 +381,13 @@ await sleep('2s'); // Wait 2 seconds
 These scientific and data libraries are available via `require()` but are **not** automatically injected as globals:
 
 ```javascript
-// Mathematical computing - need to require
-const math = require('mathjs');
+// Mathematical computing - now available globally as 'math'
 exports.result = math.evaluate('sqrt(3^2 + 4^2)');
 exports.matrix = math.matrix([[1, 2], [3, 4]]);
+
+// You can still require it if needed for compatibility:
+const mathjs = require('mathjs');
+console.log('Both are the same:', math === mathjs);
 
 // Data visualization with D3 - need to require
 const d3 = require('d3');
@@ -384,7 +425,6 @@ exports.tomorrow = moment().add(1, 'day').toDate();
 ```
 
 **Pre-bundled Libraries (Require-Available):**
-- `mathjs` - Mathematical functions and expressions
 - `lodash` - Utility functions
 - `moment` - Date/time manipulation
 - `d3` - Data visualization toolkit
@@ -580,13 +620,37 @@ if (optionalModule) {
 
 ## Module Resolution
 
-Nodebook.js resolves modules in this order:
+Nodebook.js resolves modules using a priority-based system. As of the latest version, the resolution order is:
 
-1. **Cache check**: Previously loaded modules
-2. **Built-in modules**: Node.js standard library
-3. **Pre-bundled modules**: Application resources
-4. **User modules**: User data directory
-5. **System modules**: System-wide npm modules
+### Priority Order (Highest to Lowest)
+
+1. **Notebook-specific node_modules** 🆕 - Modules installed in the notebook's directory
+2. **Cache check** - Previously loaded modules in memory
+3. **Built-in modules** - Node.js standard library (fs, path, crypto, etc.)
+4. **Pre-bundled modules** - Application resources (danfojs, plotly, etc.)
+5. **User data modules** - User-installed global modules
+6. **System modules** - System-wide npm modules
+
+### Per-Notebook Module Resolution 🆕
+
+The highest priority goes to modules installed in the same directory as your notebook:
+
+```
+my-notebook-project/
+├── my-notebook.nbjs       # Your notebook
+├── package.json           # Dependencies
+└── node_modules/          # Notebook-specific modules (highest priority)
+    ├── lodash/
+    ├── moment/
+    └── axios/
+```
+
+**Benefits:**
+- **Isolation**: Each notebook can use different package versions
+- **Reproducibility**: Dependencies travel with the notebook
+- **Flexibility**: Install packages only where needed
+
+👉 **[Full Per-Notebook Modules Guide](./per-notebook-modules.md)**
 
 ### Checking Module Availability
 
@@ -710,6 +774,53 @@ function getExpensiveModule() {
 }
 
 exports.expensiveResult = getExpensiveModule().process(data);
+```
+
+### Per-Notebook Module Issues 🆕
+
+**Module not found despite being installed:**
+```javascript
+// Debug notebook module paths
+const { moduleRegistry } = require('@/Engine/ModuleRegistry');
+const debugInfo = moduleRegistry.getDebugInfo();
+
+console.log('Notebook module paths:', debugInfo.notebookModulePaths);
+console.log('Total paths:', debugInfo.nodeRequirePaths.length);
+console.log('NODE_PATH:', debugInfo.nodePathEnv);
+
+// Check if module exists in notebook directory
+const fs = require('fs');
+const path = require('path');
+const modulePath = path.join(process.cwd(), 'node_modules', 'your-module');
+console.log('Module exists locally:', fs.existsSync(modulePath));
+```
+
+**Module conflicts between notebook and global:**
+```javascript
+// Check which version is being loaded
+const pkg = require('your-module');
+console.log('Module version:', pkg.version || 'unknown');
+
+// Check module path
+console.log('Module path:', require.resolve('your-module'));
+```
+
+**Installing packages in notebook directory:**
+```javascript
+// Method 1: Using zx (if available)
+try {
+  await $`cd ${process.cwd()} && npm install your-package`;
+  console.log('Package installed successfully');
+} catch (error) {
+  console.error('Installation failed:', error.message);
+}
+
+// Method 2: Using child_process
+const { spawn } = require('child_process');
+const npm = spawn('npm', ['install', 'your-package'], { 
+  cwd: process.cwd(),
+  stdio: 'inherit' 
+});
 ```
 
 ## Best Practices

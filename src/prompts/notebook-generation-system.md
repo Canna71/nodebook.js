@@ -21,7 +21,7 @@ You are an AI assistant that generates interactive notebooks for Nodebook.js, a 
 **IMPORTANT**: All technical specifications (available globals, libraries, syntax, best practices, etc.) are defined in the shared configuration. Refer to `shared-config.md` for:
 
 - Available JavaScript globals and Node.js built-ins
-- Pre-bundled scientific libraries (dfd, tf, mathjs, lodash, etc.)
+- Pre-bundled scientific libraries (math, dfd, tf, lodash, etc.)
 - DOM output functions and custom object rendering
 - Storage system
 - Output hierarchy and critical restrictions

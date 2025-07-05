@@ -222,13 +222,13 @@ export class FileSystemHelpers {
             }
             
             const files = await fs.promises.readdir(this.examplesPath);
-            const jsonFiles = files.filter(file => file.endsWith('.json'));
+            const notebookFiles = files.filter(file => file.endsWith('.json') || file.endsWith('.nbjs'));
             
-            log.debug(`Found ${jsonFiles.length} JSON files in examples directory: ${this.examplesPath}`);
+            log.debug(`Found ${notebookFiles.length} notebook files (.json and .nbjs) in examples directory: ${this.examplesPath}`);
 
             const examples: NotebookFileInfo[] = [];
 
-            for (const file of jsonFiles) {
+            for (const file of notebookFiles) {
                 const filePath = path.join(this.examplesPath, file);
                 const stats = await fs.promises.stat(filePath);
 
@@ -348,11 +348,11 @@ export class FileSystemHelpers {
     public async listNotebooks(): Promise<FileSystemResult<NotebookFileInfo[]>> {
         try {
             const files = await fs.promises.readdir(this.userNotebooksPath);
-            const jsonFiles = files.filter(file => file.endsWith('.json'));
+            const notebookFiles = files.filter(file => file.endsWith('.json') || file.endsWith('.nbjs'));
 
             const notebooks: NotebookFileInfo[] = [];
 
-            for (const file of jsonFiles) {
+            for (const file of notebookFiles) {
                 const filePath = path.join(this.userNotebooksPath, file);
                 const stats = await fs.promises.stat(filePath);
 
@@ -360,8 +360,8 @@ export class FileSystemHelpers {
                     const content = await fs.promises.readFile(filePath, 'utf8');
                     const notebook = JSON.parse(content) as NotebookModel;
 
-                    // Use filename as fallback for description
-                    const baseFileName = path.basename(file, '.json');
+                    // Use filename as fallback for description (remove extension)
+                    const baseFileName = path.basename(file, path.extname(file));
 
                     notebooks.push({
                         description: baseFileName.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
@@ -371,9 +371,9 @@ export class FileSystemHelpers {
                     });
                 } catch (parseError) {
                     log.warn(`Failed to parse notebook file ${file}:`, parseError);
-                    const baseFileName = path.basename(file, '.json');
+                    const baseFileName = path.basename(file, path.extname(file));
                     notebooks.push({
-                        description: 'Invalid JSON file',
+                        description: 'Invalid notebook file',
                         filepath: filePath,
                         lastModified: stats.mtime,
                         size: stats.size
@@ -470,8 +470,8 @@ export class FileSystemHelpers {
                 const content = await fs.promises.readFile(filePath, 'utf8');
                 const notebook = JSON.parse(content) as NotebookModel;
 
-                // Use filename as fallback for name
-                const baseFileName = path.basename(filename, '.json');
+                // Use filename as fallback for name (remove extension)
+                const baseFileName = path.basename(filename, path.extname(filename));
 
                 const fileInfo: NotebookFileInfo = {
                     filepath: filePath,

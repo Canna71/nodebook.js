@@ -2,16 +2,49 @@
   "name": "nodebookjs",
   "productName": "Nodebook.js",
   "version": "0.8.0",
-  "description": "My Electron application description",
+  "description": "Interactive reactive notebooks with live JavaScript, data visualization, and real-time updates.",
   "main": ".vite/build/main.js",
+  "homepage": "https://github.com/gcannata/nodebook.js",
+  "build": {
+    "fileAssociations": [
+      {
+        "ext": "nbjs",
+        "name": "Nodebook.js Notebook", 
+        "description": "Nodebook.js Interactive Notebook",
+        "icon": "./build-resources/icons/icon",
+        "role": "Editor",
+        "isPackage": false
+      }
+    ],
+    "protocols": [
+      {
+        "name": "nodebook",
+        "schemes": ["nodebook"]
+      }
+    ]
+  },
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "pnpm run prebuild && electron-forge make",
+    "make":"pnpm run prebuild && electron-forge make",
+    "make:darwin:x64": "pnpm run prebuild && electron-forge make --platform=darwin --arch=x64",
+    "make:darwin:arm64": "pnpm run prebuild && electron-forge make --platform=darwin --arch=arm64",
+    "make:win32:x64": "pnpm run prebuild && electron-forge make --platform=win32 --arch=x64",
+    "make:linux:x64": "pnpm run prebuild && electron-forge make --platform=linux --arch=x64",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx .",
     "prebuild": "node scripts/generate-module-manifest.js",
-    "postinstall": "pnpm run prebuild"
+    "postinstall": "pnpm run prebuild",
+    "check:colors": "./find-hardcoded-colors.sh",
+    "check:signing": "./check-signing.sh",
+    "version:patch": "pnpm version patch --no-git-tag-version",
+    "version:minor": "pnpm version minor --no-git-tag-version",
+    "version:major": "pnpm version major --no-git-tag-version",
+    "version:prerelease": "pnpm version prerelease --preid=beta --no-git-tag-version",
+    "release:patch": "./bump-version.sh patch",
+    "release:minor": "./bump-version.sh minor",
+    "release:major": "./bump-version.sh major",
+    "release:beta": "./bump-version.sh prerelease beta"
   },
   "keywords": [],
   "author": {
@@ -56,6 +89,7 @@
     "eslint": "9.26.0",
     "eslint-plugin-import": "^2.25.0",
     "tailwindcss": "^4.1.8",
+    "terser": "^5.43.1",
     "ts-node": "^10.0.0",
     "typescript": "5.8.3",
     "unplugin-preprocessor-directives": "^1.0.3",

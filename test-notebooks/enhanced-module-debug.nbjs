@@ -1,0 +1,106 @@
+````xml
+<VSCode.Cell language="markdown">
+# Enhanced Module Resolution Debug Test
+
+This test checks the enhanced module resolution debugging to see why NODE_PATH isn't being set.
+</VSCode.Cell>
+<VSCode.Cell language="javascript">
+// Test 1: Get comprehensive debug info
+console.log('=== Enhanced Module Resolution Debug ===');
+
+// Get the module registry instance
+const { moduleRegistry } = require('@/Engine/ModuleRegistry');
+
+// Get comprehensive debug information
+const debugInfo = moduleRegistry.getDebugInfo();
+
+console.log('Debug Info:');
+console.log('- nodeRequirePaths:', debugInfo.nodeRequirePaths);
+console.log('- nodePathEnv:', debugInfo.nodePathEnv || 'NOT SET');
+console.log('- moduleGlobalPaths:', debugInfo.moduleGlobalPaths);
+console.log('- moduleNodeModulePaths (first 5):', debugInfo.moduleNodeModulePaths.slice(0, 5));
+
+// Test the force update method
+console.log('\n=== Testing Force Module Resolution Update ===');
+const updateResult = moduleRegistry.forceModuleResolutionUpdate();
+console.log('Force update result:', updateResult);
+
+// Check NODE_PATH after force update
+console.log('NODE_PATH after force update:', process.env.NODE_PATH || 'STILL NOT SET');
+
+exports.debugInfo = debugInfo;
+exports.updateResult = updateResult;
+</VSCode.Cell>
+<VSCode.Cell language="javascript">
+// Test 2: Manual application of your working solution
+console.log('=== Manual Application of Working Solution ===');
+
+console.log('Current require.paths:', require.paths);
+console.log('Current NODE_PATH before manual fix:', process.env.NODE_PATH || 'not set');
+
+// Apply your exact working solution
+if (require.paths && require.paths.length > 0) {
+    process.env.NODE_PATH = require.paths.join(":");
+    require("module").Module._initPaths();
+    
+    console.log('✓ Applied manual fix');
+    console.log('NODE_PATH after manual fix:', process.env.NODE_PATH);
+    
+    // Test module resolution
+    const testModules = ['zx', 'lodash', 'axios'];
+    console.log('\nTesting module resolution after manual fix:');
+    
+    for (const moduleName of testModules) {
+        try {
+            const resolved = require.resolve(moduleName);
+            console.log(`✓ ${moduleName} resolves to: ${resolved}`);
+        } catch (error) {
+            console.log(`✗ ${moduleName} not found: ${error.message}`);
+        }
+    }
+} else {
+    console.log('No require.paths available');
+}
+</VSCode.Cell>
+<VSCode.Cell language="javascript">
+// Test 3: Compare what's different
+console.log('=== Analyzing the Difference ===');
+
+const Module = require('module');
+
+console.log('Module resolution analysis:');
+console.log('- Module.globalPaths:', Module.globalPaths);
+console.log('- Module._nodeModulePaths(cwd):', Module._nodeModulePaths(process.cwd()).slice(0, 5));
+console.log('- require.paths:', require.paths);
+console.log('- NODE_PATH:', process.env.NODE_PATH || 'not set');
+
+// Check if Module._initPaths is actually updating anything
+console.log('\nTesting Module._initPaths behavior:');
+
+const beforeGlobalPaths = [...Module.globalPaths];
+console.log('globalPaths before _initPaths:', beforeGlobalPaths.slice(0, 3));
+
+try {
+    Module._initPaths();
+    console.log('✓ Module._initPaths() executed successfully');
+    
+    const afterGlobalPaths = [...Module.globalPaths];
+    console.log('globalPaths after _initPaths:', afterGlobalPaths.slice(0, 3));
+    
+    const pathsChanged = JSON.stringify(beforeGlobalPaths) !== JSON.stringify(afterGlobalPaths);
+    console.log('globalPaths changed:', pathsChanged);
+    
+} catch (error) {
+    console.log('✗ Module._initPaths() failed:', error.message);
+}
+</VSCode.Cell>
+<VSCode.Cell language="markdown">
+## Expected Results
+
+1. **First cell** should show comprehensive debug info including why NODE_PATH might not be set
+2. **Second cell** should demonstrate your working manual solution
+3. **Third cell** should help identify what's different between the automatic approach and manual approach
+
+If NODE_PATH is still not being set by the automatic methods, we need to understand why `Module._initPaths()` isn't working as expected in the Electron environment.
+</VSCode.Cell>
+````

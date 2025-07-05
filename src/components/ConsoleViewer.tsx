@@ -42,16 +42,16 @@ export function ConsoleViewer({ isVisible, onToggle, entries, onClear, maxEntrie
     const getLevelColor = (level: ConsoleEntry['level']) => {
         switch (level) {
             case 'error':
-                return 'text-red-400';
+                return 'text-error';
             case 'warn':
-                return 'text-yellow-400';
+                return 'text-warning';
             case 'info':
-                return 'text-blue-400';
+                return 'text-info';
             case 'debug':
-                return 'text-gray-400';
+                return 'text-debug';
             case 'log':
             default:
-                return 'text-green-400';
+                return 'text-success';
         }
     };
 
@@ -73,7 +73,7 @@ export function ConsoleViewer({ isVisible, onToggle, entries, onClear, maxEntrie
 
     const renderArgs = (args: any[]) => {
         if (args.length === 0) {
-            return <span className="text-gray-500 italic">empty</span>;
+            return <span className="text-console-muted italic">empty</span>;
         }
 
         return (
@@ -81,7 +81,24 @@ export function ConsoleViewer({ isVisible, onToggle, entries, onClear, maxEntrie
                 {args.map((arg, index) => (
                     <div key={index} className="console-arg">
                         {typeof arg === 'string' || typeof arg === 'number' || typeof arg === 'boolean' ? (
-                            <span className="text-gray-100">{String(arg)}</span>
+                            <span className="text-foreground">{String(arg)}</span>
+                        ) : arg instanceof Error ? (
+                            // Special handling for Error objects
+                            <div className="error-display bg-error/10 border border-error/30 rounded p-2 mt-1">
+                                <div className="text-foreground font-medium text-sm mb-1">
+                                    <span className="text-error">{arg.name}:</span> {arg.message}
+                                </div>
+                                {arg.stack && (
+                                    <details className="mt-2">
+                                        <summary className="text-muted-foreground text-xs cursor-pointer hover:text-foreground">
+                                            Stack trace
+                                        </summary>
+                                        <pre className="text-muted-foreground text-xs font-mono mt-1 overflow-x-auto whitespace-pre-wrap bg-error/5 p-2 rounded">
+                                            {arg.stack}
+                                        </pre>
+                                    </details>
+                                )}
+                            </div>
                         ) : (
                             <div className="ml-2">
                                 <ObjectDisplay 
@@ -103,17 +120,17 @@ export function ConsoleViewer({ isVisible, onToggle, entries, onClear, maxEntrie
     if (!isVisible) return null;
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 bg-gray-900 text-gray-100 border-t border-gray-700 z-40"
+        <div className="fixed bottom-0 left-0 right-0 bg-console-background text-console-foreground border-t border-console-border z-40"
              style={{ zIndex: 40 }}>
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+            <div className="flex items-center justify-between px-4 py-2 bg-console-background border-b border-console-border">
                 <div className="flex items-center space-x-4">
-                    <h3 className="text-sm font-medium text-gray-200">Console</h3>
-                    <span className="text-xs text-gray-400">
+                    <h3 className="text-sm font-medium text-console-foreground">Console</h3>
+                    <span className="text-xs text-console-muted">
                         {entries.length} / {maxEntries} entries
                     </span>
                     {!autoScroll && (
-                        <span className="text-xs text-yellow-400">
+                        <span className="text-xs text-warning">
                             Auto-scroll disabled
                         </span>
                     )}
@@ -121,14 +138,14 @@ export function ConsoleViewer({ isVisible, onToggle, entries, onClear, maxEntrie
                 <div className="flex items-center space-x-2">
                     <button
                         onClick={onClear}
-                        className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
+                        className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded text-muted-foreground hover:text-foreground transition-colors"
                         title="Clear console"
                     >
                         Clear
                     </button>
                     <button
                         onClick={() => setAutoScroll(true)}
-                        className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
+                        className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded text-muted-foreground hover:text-foreground transition-colors"
                         title="Auto-scroll to bottom"
                         disabled={autoScroll}
                     >
@@ -136,7 +153,7 @@ export function ConsoleViewer({ isVisible, onToggle, entries, onClear, maxEntrie
                     </button>
                     <button
                         onClick={onToggle}
-                        className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-gray-300"
+                        className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded text-muted-foreground hover:text-foreground transition-colors"
                         title="Close (Ctrl+Shift+`)"
                     >
                         ✕
@@ -147,16 +164,18 @@ export function ConsoleViewer({ isVisible, onToggle, entries, onClear, maxEntrie
             {/* Content */}
             <div
                 ref={containerRef}
-                className="h-64 overflow-y-auto px-4 py-2 bg-gray-900"
+                className="h-64 overflow-y-auto px-4 py-2 bg-console-background"
                 onScroll={handleScroll}
             >
                 {entries.length === 0 ? (
-                    <div className="text-gray-500 italic">No console output yet...</div>
+                    <div className="text-console-muted italic">No console output yet...</div>
                 ) : (
                     entries.map((entry) => (
-                        <div key={entry.id} className="py-1 border-b border-gray-800 last:border-b-0">
+                        <div key={entry.id} className={`py-1 border-b border-console-border/50 last:border-b-0 ${
+                            entry.level === 'error' ? 'bg-error/5 border-error/20' : ''
+                        }`}>
                             <div className="flex items-start space-x-2 mb-1">
-                                <span className="text-gray-500 text-xs font-mono">
+                                <span className="text-console-muted text-xs font-mono">
                                     {entry.timestamp.toLocaleTimeString()}
                                 </span>
                                 <span className={`text-xs font-mono font-bold ${getLevelColor(entry.level)}`}>

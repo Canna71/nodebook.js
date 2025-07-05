@@ -9,18 +9,21 @@ import { CodeCell } from './CodeCell';
 import { FormulaCell } from './FormulaCell';
 import { CellContainer } from './CellContainer';
 import { CellSeparator } from './CellSeparator';
+import useMutationObserver from '@/lib/plotlyDark';
 export const log = anylogger("DynamicNotebook");
 
 interface DynamicNotebookProps {
   model: NotebookModel;
+  readingMode?: boolean; // NEW: Reading mode flag - hides editing UI elements
 }
 
-export function DynamicNotebook({ model }: DynamicNotebookProps) {
+export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookProps) {
   const { reactiveStore, formulaEngine, enhancedFormulaEngine, codeCellEngine } = useReactiveSystem();
   const { 
     addCell: addCellToNotebook, 
     deleteCell: deleteCellFromNotebook, 
     moveCell: moveCellInNotebook, 
+    duplicateCell: duplicateCellInNotebook,
     selectedCellId, 
     setSelectedCellId 
   } = useApplication();
@@ -35,6 +38,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
 
   // Track previous cells to detect newly added cells
   const [previousCellIds, setPreviousCellIds] = useState<Set<string>>(new Set());
+  useMutationObserver({}); // Initialize mutation observer for dynamic updates
 
   // Initialize reactive values and formulas from cells - ONLY ONCE on mount
   useEffect(() => {
@@ -90,7 +94,6 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
       setPreviousCellIds(initialCellIds);
 
       log.debug('Notebook initialized with reactive values and formulas from cells.');
-
       // Mark as initialized to trigger component rendering
       setInitialized(true);
     };
@@ -156,10 +159,6 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
   }, [initialized, model?.cells, enhancedFormulaEngine]); // Removed previousFormulas from dependencies to avoid loops
 
   // Cell management functions
-  const generateCellId = (): string => {
-    return `cell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  };
-
   const addCell = (cellType: CellDefinition['type'], insertIndex?: number) => {
     console.log(`DynamicNotebook.addCell called with:`, { cellType, insertIndex });
     
@@ -199,6 +198,17 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     moveCellInNotebook(cellId, direction, `Move cell ${direction}`);
   };
 
+  const duplicateCell = (cellId: string) => {
+    // Use state manager's duplicateCell method
+    const newCellId = duplicateCellInNotebook(cellId, 'Duplicate cell');
+    
+    if (newCellId) {
+      // Select the new duplicated cell
+      setSelectedCellId(newCellId);
+      log.debug(`Cell duplicated successfully: ${cellId} -> ${newCellId}`);
+    }
+  };
+
   const selectCell = (cellId: string) => {
     const newSelectedId = selectedCellId === cellId ? null : cellId;
     setSelectedCellId(newSelectedId);
@@ -220,13 +230,14 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
   };
 
   const renderCell = (cell: CellDefinition, index: number) => {
-    const isSelected = selectedCellId === cell.id;
-    const isEditMode = editingState.editModeCells.has(cell.id);
+    // In reading mode, disable selection and edit mode
+    const isSelected = readingMode ? false : selectedCellId === cell.id;
+    const isEditMode = readingMode ? false : editingState.editModeCells.has(cell.id);
 
     // Get exports for code cells
     const exports = cell.type === 'code' ? codeCellEngine.getCellExports(cell.id) : undefined;
 
-    // Create execute callback for code cells
+    // Create execute callback for code cells (still available in reading mode for reactive updates)
     const handleExecuteCode = cell.type === 'code' ? async () => {
       const codeCell = cell as CodeCellDefinition;
       const currentCode = codeCellEngine.getCurrentCode(cell.id) || codeCell.code;
@@ -241,15 +252,19 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
     let cellComponent: React.ReactNode;
     switch (cell.type) {
       case 'input':
+        // Remove readingMode prop - handle via CSS
         cellComponent = <InputCell definition={cell} isEditMode={isEditMode} />;
         break;
       case 'markdown':
+        // Remove readingMode prop - handle via CSS
         cellComponent = <MarkdownCell definition={cell} initialized={initialized} isEditMode={isEditMode} />;
         break;
       case 'formula':
+        // Remove readingMode prop - handle via CSS
         cellComponent = <FormulaCell definition={cell} initialized={initialized} isEditMode={isEditMode} />;
         break;
       case 'code':
+        // Remove readingMode prop - handle via CSS
         cellComponent = <CodeCell definition={cell} initialized={initialized} isEditMode={isEditMode} />;
         break;
       default:
@@ -257,6 +272,7 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
         return null;
     }
 
+    // Always render the same structure - use CSS to control reading mode appearance
     return (
       <CellContainer
         key={cell.id}
@@ -266,10 +282,11 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
         isSelected={isSelected}
         isEditMode={isEditMode}
         exports={exports}
-        onExecuteCode={handleExecuteCode} // NEW: Pass execute callback
+        onExecuteCode={handleExecuteCode}
         onSelect={() => selectCell(cell.id)}
         onToggleEditMode={() => toggleEditMode(cell.id)}
         onDelete={() => deleteCell(cell.id)}
+        onDuplicate={() => duplicateCell(cell.id)}
         onMoveUp={() => moveCell(cell.id, 'up')}
         onMoveDown={() => moveCell(cell.id, 'down')}
         initialized={initialized}
@@ -280,18 +297,22 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
   };
 
   return (
-    <div className="dynamic-notebook max-w-4xl mx-auto p-2 pt-6">
+    <div className={`dynamic-notebook max-w-4xl mx-auto p-2 pt-6 pb-[500px] ${readingMode ? 'reading-mode' : ''}`}>
       <div className="notebook-cells">
         {model.cells.length === 0 ? (
           <div className="empty-notebook text-center py-12 text-secondary-foreground">
             <div className="text-lg mb-4">Your notebook is empty</div>
-            <div className="text-sm mb-6">Hover over the line below to add your first cell</div>
-            <CellSeparator onAddCell={addCell} insertIndex={0} isFirst isLast />
+            <div className="text-sm mb-6 reading-mode-hide">Hover over the line below to add your first cell</div>
+            <div className="reading-mode-hide">
+              <CellSeparator onAddCell={addCell} insertIndex={0} isFirst isLast />
+            </div>
           </div>
         ) : (
-          <div className="cells-with-separators">
-            {/* Add cell separator at the beginning */}
-            <CellSeparator onAddCell={addCell} insertIndex={0} isFirst />
+          <div className="cells-container">
+            {/* Cell separator at the top - hidden in reading mode */}
+            <div className="reading-mode-hide">
+              <CellSeparator onAddCell={addCell} insertIndex={0} isFirst />
+            </div>
             
             {model.cells.map((cell, index) => (
               <React.Fragment key={cell.id}>
@@ -300,12 +321,14 @@ export function DynamicNotebook({ model }: DynamicNotebookProps) {
                   {renderCell(cell, index)}
                 </div>
                 
-                {/* Add separator after each cell (except the last one gets a special separator) */}
-                <CellSeparator 
-                  onAddCell={addCell} 
-                  insertIndex={index + 1}
-                  isLast={index === model.cells.length - 1}
-                />
+                {/* Add separator after each cell - hidden in reading mode */}
+                <div className="reading-mode-hide">
+                  <CellSeparator 
+                    onAddCell={addCell} 
+                    insertIndex={index + 1}
+                    isLast={index === model.cells.length - 1}
+                  />
+                </div>
               </React.Fragment>
             ))}
           </div>

@@ -31,10 +31,9 @@ const SeriesRenderer: React.FC<{ data: any; name?: string | false }> = ({ data, 
       const columns: ColumnDef<{ index: number; value: any }>[] = [
         columnHelper.accessor('index', {
           header: 'Index',
-          cell: (info) => (
-            <div className="text-xs text-gray-500 font-mono text-right px-2">
-              {info.getValue()}
-            </div>
+          cell: (info) => (          <div className="text-xs text-console-muted font-mono text-right px-2">
+            {info.getValue()}
+          </div>
           ),
           size: 80,
         }),
@@ -74,11 +73,11 @@ const SeriesRenderer: React.FC<{ data: any; name?: string | false }> = ({ data, 
 
   if (error) {
     return (
-      <div className="series-error border border-red-200 rounded p-3 bg-red-50">
-        <div className="text-sm font-medium text-red-800 mb-2">
+      <div className="series-error border border-error/30 rounded p-3 bg-error/10">
+        <div className="text-sm font-medium text-error mb-2">
           {name && <span>{String(name)}: </span>}Series Rendering Error
         </div>
-        <div className="text-xs text-red-600">{error}</div>
+        <div className="text-xs text-error/80">{error}</div>
         <div className="mt-2">
           <ReactJson
             src={data}
@@ -94,27 +93,27 @@ const SeriesRenderer: React.FC<{ data: any; name?: string | false }> = ({ data, 
   }
 
   return (
-    <div className="series-display border border-green-200 rounded-lg p-3 bg-green-50">
+    <div className="series-display border border-success/30 rounded-lg p-3 bg-success/10">
       <div className="series-header mb-3">
-        <div className="text-sm font-medium text-green-800 mb-1">
+        <div className="text-sm font-medium text-success mb-1">
           {name && <span>{String(name)}: </span>}Series
         </div>
         {info && (
-          <div className="text-xs text-green-600">
+          <div className="text-xs text-success/80">
             Length: {info.length} | Type: {info.dtype || 'unknown'}
           </div>
         )}
       </div>
       
-      <div className="series-table-container overflow-auto max-h-80 border border-gray-300 rounded bg-white">
+      <div className="series-table-container overflow-auto max-h-80 border border-border rounded bg-background">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-muted border-b border-border">
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map(header => (
                   <th
                     key={header.id}
-                    className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-r border-gray-200 last:border-r-0"
+                    className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider border-r border-border last:border-r-0"
                     style={{ width: header.getSize() }}
                   >
                     {header.isPlaceholder

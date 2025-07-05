@@ -172,8 +172,9 @@ export class ReactiveStore {
             if (computeFn) {
                 (reactiveValue as ReactiveValue<T>).setComputeFn(computeFn);
                 this.setupDependencies(reactiveValue as ReactiveValue<T>, dependencies);
-            } else if (value !== null) {
-                reactiveValue.setValue(value);
+            } else {
+                // Always update the value, even if it's null (important for clearing errors)
+                reactiveValue.setValue(value as T);
             }
         } else {
             reactiveValue = new ReactiveValue<T>(value as T, computeFn);
@@ -585,6 +586,7 @@ export class CodeCellEngine {
         executionCount: number;
         lastOutputContainer?: HTMLElement; // Add this to remember the container
         unsubscribeFunctions?: (() => void)[]; // Track unsubscribe functions for cleanup
+        lastError?: Error | null; // Track last execution error
     }>;
     private executingCells: Set<string>;
     private moduleCache: Map<string, any>;
@@ -607,8 +609,9 @@ export class CodeCellEngine {
             '@tensorflow/tfjs': 'tf',
             'tensorflow': 'tf',
             "plotly.js-dist-min": 'Plotly',
-            // Shell scripting
-            'zx': 'zx',
+            'mathjs': 'math',
+            // Shell scripting - main export as '$'
+            'zx': '$',
             // Node.js built-ins (always available)
             'fs': 'fs',
             'path': 'path',
@@ -662,8 +665,8 @@ export class CodeCellEngine {
                             'question', 'echo', 'stdin',
                             // Timing
                             'sleep',
-                            // File system and utilities
-                            'glob', 'which', 'minimist', 'argv', 'fs', 'os', 'path',
+                            // File system and utilities (avoid conflicts with Node.js built-ins)
+                            'glob', 'which', 'minimist', 'argv',
                             // Styling and formatting
                             'chalk',
                             // Data formats
@@ -763,8 +766,14 @@ export class CodeCellEngine {
                 lastOutput: [],
                 outputValues: [],
                 executionCount: 0,
-                unsubscribeFunctions: []
+                unsubscribeFunctions: [],
+                lastError: null
             });
+            
+            // Initialize reactive values for the cell
+            this.reactiveStore.define(`__cell_${id}_execution`, 0);
+            this.reactiveStore.define(`__cell_${id}_error`, null);
+            this.reactiveStore.define(`__cell_${id}_state`, 'idle');
         }
     }
 
@@ -863,14 +872,24 @@ export class CodeCellEngine {
             return this.executedCells.get(cellId)?.exports || [];
         }
 
+        // Set execution state to 'running'
+        this.reactiveStore.define(`__cell_${cellId}_state`, 'running');
         this.executingCells.add(cellId);
         
-        // Clear previous DOM output using predictable ID to ensure clean state
+        // Clear all previous outputs to ensure clean state
         const containerId = `${cellId}-outEl`;
         const domContainer = document.getElementById(containerId);
         if (domContainer) {
             domContainer.innerHTML = '';
             log.debug(`Cleared DOM output container ${containerId} for cell ${cellId}`);
+        }
+        
+        // Clear any previous output values and console output from the cell
+        const previousCellInfo = this.executedCells.get(cellId);
+        if (previousCellInfo) {
+            previousCellInfo.outputValues = [];
+            previousCellInfo.lastOutput = [];
+            log.debug(`Cleared previous output values and console output for cell ${cellId}`);
         }
         
         const dependencies = new Set<string>();
@@ -1152,11 +1171,15 @@ export class CodeCellEngine {
                 outputValues: [...outputValues],
                 executionCount,
                 lastOutputContainer: outputContainer, // Store the container for reactive execution
-                unsubscribeFunctions: previousCellInfo?.unsubscribeFunctions || [] // Preserve existing subscriptions
+                unsubscribeFunctions: previousCellInfo?.unsubscribeFunctions || [], // Preserve existing subscriptions
+                lastError: null // Clear any previous error on successful execution
             });
 
-            // Create a reactive value for this cell's execution state
+            // Create reactive values for this cell's execution state
             this.reactiveStore.define(`__cell_${cellId}_execution`, executionCount);
+            this.reactiveStore.define(`__cell_${cellId}_error`, null); // Clear error on success
+            this.reactiveStore.define(`__cell_${cellId}_state`, 'idle'); // Set state back to idle
+            log.debug(`Code cell ${cellId} executed successfully - error cleared`);
 
             // Set up reactive execution for dependencies (only if not static and not already set up)
             if (!isStatic && (!previousCellInfo || JSON.stringify(previousCellInfo.dependencies) !== JSON.stringify(dependencyArray))) {
@@ -1169,13 +1192,12 @@ export class CodeCellEngine {
             return exportsArray;
 
         } catch (error) {
-            // Capture error in console output
+            // Use wrapped console to capture error with full details (this will go to ConsoleViewer)
+            const consoleErrorObj = error instanceof Error ? error : new Error(String(error));
+            wrappedConsole.error(`Execution Error in cell ${cellId}:`, consoleErrorObj);
+            
+            // Capture any final console output after the error
             const lastOutput = getOutput();
-            lastOutput.push({
-                type: 'error',
-                message: `Execution Error: ${error instanceof Error ? error.message : String(error)}`,
-                timestamp: new Date()
-            });
 
             // Store error state
             const exportsArray = Array.from(exportedVars);
@@ -1184,6 +1206,9 @@ export class CodeCellEngine {
             const previousCellInfo = this.executedCells.get(cellId);
             const executionCount = (previousCellInfo?.executionCount || 0) + 1;
 
+            // Store error in cell info
+            const errorObj = error instanceof Error ? error : new Error(String(error));
+            
             this.executedCells.set(cellId, {
                 code,
                 exports: exportsArray,
@@ -1193,8 +1218,15 @@ export class CodeCellEngine {
                 outputValues: [], // Empty output values on error
                 executionCount,
                 lastOutputContainer: outputContainer, // Store container even on error
-                unsubscribeFunctions: previousCellInfo?.unsubscribeFunctions || [] // Preserve existing subscriptions
+                unsubscribeFunctions: previousCellInfo?.unsubscribeFunctions || [], // Preserve existing subscriptions
+                lastError: errorObj // Store the error
             });
+
+            // Create reactive values for this cell's execution and error state
+            this.reactiveStore.define(`__cell_${cellId}_execution`, executionCount);
+            this.reactiveStore.define(`__cell_${cellId}_error`, errorObj);
+            this.reactiveStore.define(`__cell_${cellId}_state`, 'idle'); // Set state back to idle even on error
+            log.debug(`Code cell ${cellId} error stored in reactive system:`, errorObj.message);
 
             log.error(`Error executing code cell ${cellId}:`, error);
             throw new Error(`Code execution error: ${error instanceof Error ? error.message : String(error)}`);
@@ -1313,6 +1345,13 @@ export class CodeCellEngine {
     }
 
     /**
+     * Get last error from a code cell
+     */
+    public getCellError(cellId: string): Error | null {
+        return this.executedCells.get(cellId)?.lastError || null;
+    }
+
+    /**
      * Get return value from a code cell (for backward compatibility)
      */
     public getCellReturnValue(cellId: string): any {
@@ -1416,12 +1455,14 @@ export class CodeCellEngine {
     /**
      * Evaluate code in a cell's context and return the result
      * Used for runtime introspection and completions
+     * This method is designed to be safe for live evaluation while typing,
+     * so errors are returned as part of the result instead of being thrown
      */
-    public async evaluateInCellContext(cellId: string, code: string): Promise<any> {
+    public async evaluateInCellContext(cellId: string, code: string): Promise<{ success: boolean; result?: any; error?: string }> {
         try {
             // Prevent circular execution
             if (this.executingCells.has(cellId)) {
-                throw new Error(`Cell ${cellId} is currently executing`);
+                return { success: false, error: `Cell ${cellId} is currently executing` };
             }
 
             // Create a temporary execution context similar to executeCodeCell
@@ -1495,40 +1536,38 @@ export class CodeCellEngine {
             const workingDir = this.getWorkingDirectory();
             const currentCwd = process.cwd();
             const hasNotebookPath = this.currentNotebookPath || (typeof window !== 'undefined' && (window as any).__notebookCurrentPath);
-            log.debug(`Evaluation working directory check: notebookPath=${this.currentNotebookPath}, workingDir=${workingDir}, currentCwd=${currentCwd}, hasNotebook=${!!hasNotebookPath}`);
             
             if (hasNotebookPath && workingDir !== currentCwd) {
                 try {
                     originalCwd = currentCwd;
                     process.chdir(workingDir);
-                    log.debug(`Changed working directory for evaluation to: ${workingDir}`);
                 } catch (error) {
-                    log.warn(`Failed to change working directory for evaluation to ${workingDir}:`, error);
+                    // Silently fail - this is just for convenience
                     originalCwd = undefined;
                 }
-            } else {
-                log.debug(`Skipping evaluation working directory change: hasNotebook=${!!hasNotebookPath}, same directory=${workingDir === currentCwd}`);
             }
             
             try {
                 // Execute and return the result (now awaits the async execution)
                 const result = await executeCode(smartProxy);
-                return result;
+                return { success: true, result };
             } finally {
                 // Restore original working directory
                 if (originalCwd) {
                     try {
                         process.chdir(originalCwd);
-                        log.debug(`Restored working directory after evaluation to: ${originalCwd}`);
                     } catch (error) {
-                        log.warn(`Failed to restore working directory after evaluation to ${originalCwd}:`, error);
+                        // Silently fail - this is just cleanup
                     }
                 }
             }
 
         } catch (error) {
-            log.error(`Error evaluating code in cell ${cellId}:`, error);
-            throw error;
+            // Don't log errors for live evaluation - they are expected while typing
+            return { 
+                success: false, 
+                error: error instanceof Error ? error.message : String(error) 
+            };
         }
     }
 

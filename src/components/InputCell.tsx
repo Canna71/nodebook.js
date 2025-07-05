@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useReactiveValue } from '@/Engine/ReactiveProvider';
+import { useThrottledReactiveValue } from '@/hooks/useThrottledReactiveValue';
 import { useApplication } from '@/Engine/ApplicationProvider';
 import { InputCellDefinition, InputType } from '@/Types/NotebookModel';
 import { Input } from './ui/input';
@@ -12,9 +13,10 @@ import { Button } from './ui/button';
 interface InputCellProps {
   definition: InputCellDefinition;
   isEditMode?: boolean;
+  readingMode?: boolean; // NEW: Reading mode flag
 }
 
-export function InputCell({ definition, isEditMode = false }: InputCellProps) {
+export function InputCell({ definition, isEditMode = false, readingMode = false }: InputCellProps) {
   // Helper function to generate auto variable name from cell type and ID
   const generateAutoVariableName = (cellId: string): string => {
     return `input-${cellId}`;
@@ -23,7 +25,14 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
   // Determine the effective variable name - use automatic naming if empty
   const effectiveVariableName = definition.variableName.trim() || generateAutoVariableName(definition.id);
   
-  const [value, setValue] = useReactiveValue(effectiveVariableName, definition.value);
+  // Use throttled reactive value for range inputs to improve performance
+  const isRangeInput = definition.inputType === 'range';
+  const [value, setValue, setValueImmediate] = useThrottledReactiveValue(
+    effectiveVariableName, 
+    definition.value, 
+    isRangeInput ? 100 : 0 // 100ms throttle for sliders, immediate for others
+  );
+  
   const { updateCell } = useApplication();
 
   // Calculate edit config from definition (no state needed!)
@@ -63,6 +72,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
   }, [definition.props?.min, definition.props?.max, definition.props?.step]);
 
   // NEW: Save value back to definition whenever it changes
+  // This works with throttled values - the final committed value gets saved to the cell definition
   useEffect(() => {
     if (value === undefined || value === definition.value) return;
 
@@ -186,7 +196,8 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
           <div className="flex items-center gap-2 input-max-width">
             <Slider
               value={[value ?? definition.value]}
-              onValueChange={(values) => setValue(values[0])} // This will trigger the useEffect above
+              onValueChange={(values) => setValue(values[0])} // Throttled updates during drag
+              onValueCommit={setValueImmediate ? (values) => setValueImmediate(values[0]) : undefined} // Immediate update on release
               min={definition.props?.min ?? 0}
               max={definition.props?.max ?? 100}
               step={definition.props?.step ?? 1}
@@ -203,7 +214,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
           <div className="flex items-center space-x-2">
             <Checkbox
               checked={value ?? definition.value}
-              onCheckedChange={(checked) => setValue(checked)} // This will trigger the useEffect above
+              onCheckedChange={(checked) => setValue(checked)} // Immediate update for checkboxes
               id={`checkbox-${definition.id}`}
             />
             <Label 
@@ -222,7 +233,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
             onValueChange={(selectedValue) => {
               // Convert back to appropriate type based on the option value type
               const option = definition.props?.options?.find(opt => String(opt.value) === selectedValue);
-              setValue(option ? option.value : selectedValue); // This will trigger the useEffect above
+              setValue(option ? option.value : selectedValue); // Immediate update for select inputs
             }}
           >
             <SelectTrigger className="input-max-width">
@@ -243,8 +254,25 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
         return (
           <Input
             type="text"
-            value={value ?? definition.value}
-            onChange={(e) => setValue(e.target.value)} // This will trigger the useEffect above
+            value={value ?? definition.value ?? ''} // Ensure we always have a string value
+            onChange={(e) => {
+              const inputValue = e.target.value;
+              
+              // For packaged builds, add a small delay to ensure proper event handling
+              if (process.env.VITE_DEV_SERVER_URL) {
+                // Development mode - immediate update
+                setValue(inputValue);
+              } else {
+                // Packaged mode - slight delay to ensure proper event handling
+                setTimeout(() => setValue(inputValue), 0);
+              }
+            }}
+            onFocus={() => {
+              // Text input focused
+            }}
+            onBlur={() => {
+              // Text input blurred
+            }}
             placeholder={definition.props?.placeholder}
             className="input-max-width"
           />
@@ -377,7 +405,7 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
   };
 
   return (
-    <div className="cell input-cell p-2">
+    <div className={readingMode ? "cell input-cell-reading py-2" : "cell input-cell p-2"}>
       {/* Horizontal layout for label and input */}
       <div className="flex items-center gap-2 mb-2">
         {/* Label - show for all input types except checkbox (which handles its own label) */}
@@ -396,8 +424,8 @@ export function InputCell({ definition, isEditMode = false }: InputCellProps) {
         </div>
       </div>
 
-      {/* Only show configuration interface in edit mode */}
-      {isEditMode && (
+      {/* Only show configuration interface in edit mode and not in reading mode */}
+      {isEditMode && !readingMode && (
         <div className="edit-mode-container">
           {renderEditMode()}
         </div>

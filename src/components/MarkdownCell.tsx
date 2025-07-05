@@ -10,11 +10,13 @@ import mathjax3 from 'markdown-it-mathjax3';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/vs2015.css'; // Import highlight.js theme
 import { useMarkdownCompletions } from '@/hooks/useMarkdownCompletions';
+import { useTheme } from '@/lib/themeHelpers';
 
 interface MarkdownCellProps {
   definition: MarkdownCellDefinition;
   initialized: boolean;
   isEditMode?: boolean;
+  readingMode?: boolean; // NEW: Reading mode flag
 }
 
 // Initialize markdown-it instance
@@ -46,10 +48,14 @@ md.use(mathjax3, {
 //     fontCache: 'global'
 //   }
 });
-export function MarkdownCell({ definition, initialized, isEditMode = false }: MarkdownCellProps) {
+export function MarkdownCell({ definition, initialized, isEditMode = false, readingMode = false }: MarkdownCellProps) {
   const { reactiveStore, codeCellEngine } = useReactiveSystem();
   const { updateCell } = useApplication();
   const [renderedContent, setRenderedContent] = React.useState('');
+  
+  // Get current theme for CodeMirror
+  const currentTheme = useTheme();
+  const editorTheme = currentTheme === 'dark' ? oneDark : undefined; // undefined for light mode (default)
   
   // Local state for content being edited
   const [currentContent, setCurrentContent] = useState(definition.content);
@@ -217,7 +223,8 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
     }
   }, [isEditMode, currentContent, definition.content, definition.id, updateCell]);
 
-  if (isEditMode) {
+  // In reading mode, always show view mode (never edit mode)
+  if (isEditMode && !readingMode) {
     // Edit mode: show markdown editor
     return (
       <div className="cell markdown-cell p-2">
@@ -225,7 +232,7 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
           <Editor
             value={currentContent}
             language="markdown"
-            theme={oneDark}
+            theme={editorTheme}
             onChange={onContentChange}
             showLineNumbers={false}
             markdownCompletions={markdownCompletionSource}
@@ -242,14 +249,15 @@ export function MarkdownCell({ definition, initialized, isEditMode = false }: Ma
     );
   }
 
-  // View mode: show rendered markdown using markdown-it
+  // View mode: show rendered markdown (always used in reading mode)
   return (
-    <div className="cell markdown-cell p-2">
+    <div className={readingMode ? "cell markdown-cell-reading" : "cell markdown-cell p-2"}>
       <div 
         className="markdown-content markdown-rendered-content prose prose-sm max-w-none dark:prose-invert"
         dangerouslySetInnerHTML={{ __html: renderedContent }}
-        onDoubleClick={(e) => {
+        onDoubleClick={readingMode ? undefined : (e) => {
           // Prevent text selection on double-click and let the event bubble to CellContainer
+          // Only active in edit mode, not reading mode
           e.preventDefault();
         }}
         style={{ userSelect: 'text' }} // Keep text selectable for single clicks and drag selections

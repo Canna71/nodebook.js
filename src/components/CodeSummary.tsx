@@ -1,10 +1,11 @@
-import { CodeIcon } from 'lucide-react';
+import { AlertTriangleIcon } from 'lucide-react';
 import React from 'react';
 
 interface CodeSummaryProps {
   code: string;
   exports?: string[];
   dependencies?: string[];
+  error?: Error | null; // Add error prop
 }
 
 interface CodeMetadata {
@@ -75,7 +76,7 @@ function parseCodeMetadata(code: string): CodeMetadata {
   };
 }
 
-export function CodeSummary({ code, exports = [], dependencies = [] }: CodeSummaryProps) {
+export function CodeSummary({ code, exports = [], dependencies = [], error = null }: CodeSummaryProps) {
   const metadata = parseCodeMetadata(code);
   
   // Determine what to display as the main summary
@@ -84,13 +85,17 @@ export function CodeSummary({ code, exports = [], dependencies = [] }: CodeSumma
   return (
     <div className="code-summary bg-muted/20 px-4 py-2 border-b border-border font-mono text-sm">
       <div className="flex items-center gap-2 text-muted-foreground">
-        {/* Language indicator with code icon */}
-        <CodeIcon className="w-3 h-3" />
+        {/* Error indicator */}
+        {error && (
+          <>
+            <AlertTriangleIcon className="w-3 h-3 text-destructive" />
+            <span className="text-xs text-destructive font-medium">Error</span>
+          </>
+        )}
         
         {/* Code preview with comment styling */}
         {displayText && (
           <>
-            <span className="text-muted-foreground/60">{'•'}</span>
             <span className="text-xs text-muted-foreground/80 italic">
               {displayText}
             </span>
@@ -106,7 +111,7 @@ export function CodeSummary({ code, exports = [], dependencies = [] }: CodeSumma
               <span className="text-muted-foreground/60">depends:</span>
               <div className="flex gap-1">
                 {dependencies.map((dep, index) => (
-                  <span key={dep} className="text-blue-400 font-medium">
+                  <span key={dep} className="text-info font-medium">
                     {dep}{index < dependencies.length - 1 && ','}
                   </span>
                 ))}
@@ -119,7 +124,7 @@ export function CodeSummary({ code, exports = [], dependencies = [] }: CodeSumma
               <span className="text-muted-foreground/60">exports:</span>
               <div className="flex gap-1">
                 {exports.map((exp, index) => (
-                  <span key={exp} className="text-green-400 font-medium">
+                  <span key={exp} className="text-success font-medium">
                     {exp}{index < exports.length - 1 && ','}
                   </span>
                 ))}

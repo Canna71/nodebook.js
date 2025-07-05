@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 
 import { ReactiveProvider } from '../Engine/ReactiveProvider';
 import { ApplicationProvider, useApplication } from '@/Engine/ApplicationProvider';
@@ -29,14 +29,108 @@ import { ConsoleViewer } from '@/components/ConsoleViewer';
 import { useConsoleCapture } from '@/hooks/useConsoleCapture';
 import { DocumentationViewer } from '@/components/DocumentationViewer';
 import { KeyboardShortcutsView } from './KeyboardShortcutsView';
+import { updateCloseMenuLabel, updateApplicationContext, buildApplicationContext } from '@/lib/electronHelpers';
+import { PlotlyStyleProvider } from '@/lib/plotlyDark';
 
 function AppContent() {
-    const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook } = useApplication();
+    const { currentModel, loadNotebook, isLoading, error, currentFilePath, addCell: addCellToNotebook, clearNotebook, selectedCellId, isDirty, readingMode, canUndo, canRedo } = useApplication();
     const { currentView, setCurrentView } = useView();
     const { lines, clearLines, isSupported } = useStdoutCapture();
     const { entries, clearEntries, maxEntries } = useConsoleCapture();
     const [stdoutVisible, setStdoutVisible] = useState(false);
     const [consoleVisible, setConsoleVisible] = useState(false);
+
+    // Initialize theme on app start
+    useEffect(() => {
+        const initializeTheme = async () => {
+            try {
+                const savedTheme = await window.api.getAppSetting('theme', 'system');
+                applyTheme(savedTheme);
+                
+                // Listen for system theme changes if using system theme
+                if (savedTheme === 'system') {
+                    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                    const handleSystemThemeChange = () => {
+                        applyTheme('system');
+                    };
+                    
+                    mediaQuery.addEventListener('change', handleSystemThemeChange);
+                    
+                    // Cleanup function
+                    return () => {
+                        mediaQuery.removeEventListener('change', handleSystemThemeChange);
+                    };
+                }
+            } catch (error) {
+                log.warn('Failed to load theme setting, using system default:', error);
+                applyTheme('system');
+            }
+        };
+        
+        initializeTheme();
+    }, []);
+
+    const applyTheme = (theme: 'light' | 'dark' | 'system') => {
+        const root = document.documentElement;
+        
+        if (theme === 'system') {
+            // Remove manual theme classes and let CSS media query handle it
+            root.classList.remove('dark', 'light');
+            // Check system preference
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDark) {
+                root.classList.add('dark');
+            }
+        } else if (theme === 'dark') {
+            root.classList.remove('light');
+            root.classList.add('dark');
+        } else {
+            root.classList.remove('dark');
+            root.classList.add('light');
+        }
+    };
+
+    // Update application context for menu system when state changes
+    useEffect(() => {
+        const context = buildApplicationContext(
+            currentView,
+            !!currentModel,
+            isDirty,
+            canUndo(),
+            canRedo(),
+            readingMode,
+            selectedCellId,
+            currentModel?.cells?.length || 0
+        );
+        
+        updateApplicationContext(context);
+        log.debug('Updated application context for menu:', context);
+    }, [currentView, currentModel, isDirty, canUndo, canRedo, readingMode, selectedCellId]);
+
+    // Close view event handler (needs to be defined outside useEffect to avoid stale closure)
+    const handleCloseViewEvent = useCallback(() => {
+        log.debug('handleCloseViewEvent: Event received. Current view:', currentView, 'Current model:', !!currentModel);
+        log.debug('handleCloseViewEvent: All views - current:', currentView, 'expected in settings: "settings"');
+        
+        // Smart close logic based on current view
+        if (currentView === 'notebook' && currentModel) {
+            // If we're in notebook view with a notebook loaded, close the notebook
+            clearNotebook();
+            log.debug('Closed notebook, returned to home');
+        } else if (currentView !== 'notebook') {
+            // If we're in any other view (settings, docs, shortcuts), go back to notebook/home
+            if (currentModel) {
+                setCurrentView('notebook');
+                log.debug('Closed view, returning to notebook with model');
+            } else {
+                setCurrentView('notebook');
+                log.debug('Closed view, returning to home without model');
+            }
+        } else {
+            log.debug('handleCloseViewEvent: No action taken - already in notebook without model');
+        }
+        // If we're in notebook view with no notebook loaded, do nothing (already at home)
+    }, [currentView, currentModel, clearNotebook, setCurrentView]);
 
     // Keyboard shortcut handler
     useEffect(() => {
@@ -84,11 +178,18 @@ function AppContent() {
             log.debug('Switching to shortcuts view');
         };
 
+        const handleShowSettingsEvent = () => {
+            setCurrentView('settings');
+            log.debug('Switching to settings view');
+        };
+
         document.addEventListener('keydown', handleKeyDown);
         window.addEventListener('toggleOutputPanel', handleToggleEvent);
         window.addEventListener('toggleConsolePanel', handleToggleConsoleEvent);
         window.addEventListener('showDocumentation', handleShowDocumentationEvent);
         window.addEventListener('showShortcuts', handleShowShortcutsEvent);
+        window.addEventListener('showSettings', handleShowSettingsEvent);
+        window.addEventListener('closeView', handleCloseViewEvent);
         
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
@@ -96,76 +197,37 @@ function AppContent() {
             window.removeEventListener('toggleConsolePanel', handleToggleConsoleEvent);
             window.removeEventListener('showDocumentation', handleShowDocumentationEvent);
             window.removeEventListener('showShortcuts', handleShowShortcutsEvent);
+            window.removeEventListener('showSettings', handleShowSettingsEvent);
+            window.removeEventListener('closeView', handleCloseViewEvent);
         };
-    }, []);
+    }, [handleCloseViewEvent]);
 
     useEffect(() => {
-        log.debug("AppContent mounted, currentModel:", currentModel);
+        log.debug("Is this effect needed?:", currentModel);
         // Load default example on startup
         if (!currentModel) {
             const fs = getFileSystemHelpers();
-            // fs.loadNotebook("../../examples/danfojs-plotting-example.json")
-            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/danfojs-plotting-example.json");
-            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/danfojs-example.json");
-            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/d3-visualization-example.json");
-            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/pricingModel.json");
-            // loadNotebook("/Users/gcannata/Projects/notebookjs/examples/reactive-system-test.json");
-            
         }
     }, [currentModel, loadNotebook]);
+
+    // Update close menu label when view or notebook state changes
+    useEffect(() => {
+        updateCloseMenuLabel(currentView, !!currentModel);
+    }, [currentView, currentModel]);
 
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-info mx-auto mb-4"></div>
                     <div>Loading notebook...</div>
                 </div>
             </div>
         );
     }
 
-    if (error) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center text-red-500">
-                    <div className="text-xl mb-4">Error</div>
-                    <div>{error}</div>
-                </div>
-            </div>
-        );
-    }
-
-    // Cell management function - generates IDs with type-based prefixes and progressive numbering
-    const generateCellId = (cellType: CellDefinition['type']): string => {
-        if (!currentModel?.cells) {
-            return `${getTypePrefix(cellType)}_01`;
-        }
-
-        const prefix = getTypePrefix(cellType);
-        const existingIds = new Set(currentModel.cells.map(cell => cell.id));
-        
-        let counter = 1;
-        let candidateId: string;
-        
-        do {
-            const paddedNumber = counter.toString().padStart(2, '0');
-            candidateId = `${prefix}_${paddedNumber}`;
-            counter++;
-        } while (existingIds.has(candidateId));
-        
-        return candidateId;
-    };
-
-    const getTypePrefix = (cellType: CellDefinition['type']): string => {
-        switch (cellType) {
-            case 'markdown': return 'md';
-            case 'code': return 'code';
-            case 'formula': return 'fx';
-            case 'input': return 'var';
-            default: return 'cell';
-        }
-    };
+    // Note: We don't render a full-screen error view here anymore.
+    // Errors are handled via modal dialogs and toasts, allowing users to stay in their current view.
 
     const addCell = (cellType: CellDefinition['type'], insertIndex?: number) => {
         // Use state manager's addCell method
@@ -245,7 +307,7 @@ export default function App() {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-info mx-auto mb-4"></div>
                     <div>Initializing Nodebook.js...</div>
                 </div>
             </div>
@@ -255,7 +317,9 @@ export default function App() {
             <ApplicationProvider commandManager={commandManagerSingleton}>
                 <AppDialogProvider>
                     <AIDialogProvider>
-                        <AppContent />
+                        <PlotlyStyleProvider>
+                          <AppContent />
+                        </PlotlyStyleProvider>
                     </AIDialogProvider>
                 </AppDialogProvider>
             </ApplicationProvider>

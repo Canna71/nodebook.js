@@ -13,17 +13,22 @@ import { CodeSummary } from './CodeSummary';
 import { useCodeCompletions, useModuleCompletions } from '@/hooks/useCodeCompletions';
 import { useEnhancedCompletions } from '@/hooks/useRuntimeCompletions';
 import { LatexRenderer, isLatexContent, renderMixedContent } from './LatexRenderer';
+import { useTheme } from '@/lib/themeHelpers';
 
 interface CodeCellProps {
   definition: CodeCellDefinition;
   initialized: boolean;
-  isEditMode?: boolean; // NEW: Add isEditMode prop
+  isEditMode?: boolean;
 }
 
 // Add CodeCell component for display purposes
 export function CodeCell({ definition, initialized, isEditMode = false }: CodeCellProps) {
     const { codeCellEngine } = useReactiveSystem();
     const { updateCell } = useApplication();
+    
+    // Get current theme for CodeMirror
+    const currentTheme = useTheme();
+    const editorTheme = currentTheme === 'dark' ? oneDark : undefined; // undefined for light mode (default)
 
     // Get code completions for IntelliSense
     const codeCompletions = useCodeCompletions();
@@ -32,6 +37,17 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
 
     // Subscribe to execution count to know when cell re-executes
     const [executionCount] = useReactiveValue(`__cell_${definition.id}_execution`, 0);
+    
+    // Subscribe to error state from reactive system
+    const [error] = useReactiveValue(`__cell_${definition.id}_error`, null);
+    
+    // Subscribe to execution state from reactive system
+    const [executionState] = useReactiveValue(`__cell_${definition.id}_state`, 'idle');
+    
+    // Debug log error state changes
+    useEffect(() => {
+        log.debug('CodeCell error state changed for', definition.id, ':', error?.message || 'null');
+    }, [error, definition.id]);
     
     // Debug log execution count changes (using log instead of console to avoid capture)
     useEffect(() => {
@@ -50,7 +66,6 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     const outputContainerRef = React.useRef<HTMLDivElement>(null);
 
     const [exports, setExports] = React.useState<string[]>([]);
-    const [error, setError] = React.useState<Error | null>(null);
     const [dependencies, setDependencies] = React.useState<string[]>([]);
     const [outputValues, setOutputValues] = React.useState<any[]>([]);
 
@@ -79,7 +94,6 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         if (!initialized) return;
 
         try {
-            setError(null);
             const newExports = codeCellEngine.getCellExports(definition.id);
             const newDependencies = codeCellEngine.getCellDependencies(definition.id);
             const cellOutputValues = codeCellEngine.getCellOutputValues(definition.id);
@@ -96,7 +110,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
             });
 
         } catch (err) {
-            setError(err as Error);
+            // Error state is now handled reactively, just reset the display state
             setExports([]);
             setDependencies([]);
             setOutputValues([]);
@@ -180,20 +194,19 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     }, [isEditMode, isDirty, isStaticDirty, commitChanges, discardChanges]);
 
     const onExecute = async () => {
+        // Prevent double execution
+        if (executionState === 'running') {
+            log.debug(`Code cell ${definition.id} is already executing, skipping`);
+            return;
+        }
+        
         // Commit any unsaved changes before executing
         if (isDirty || isStaticDirty) {
             commitChanges();
         }
         
-        // Clear previous DOM output using predictable ID to avoid timing issues
-        const outputContainerId = `${definition.id}-outEl`;
-        const outputContainer = document.getElementById(outputContainerId);
-        if (outputContainer) {
-            outputContainer.innerHTML = '';
-        } else if (outputContainerRef.current) {
-            // Fallback to ref if ID lookup fails
-            outputContainerRef.current.innerHTML = '';
-        }
+        // DOM output clearing is now handled by the reactive system
+        // No need to manually clear here as executeCodeCell handles it
         
         // Execute with the current code and static flag
         try {
@@ -206,33 +219,36 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
 
     return (
         <div className={`cell code-cell border rounded-lg mb-4 overflow-hidden ${
-            isStatic 
-                ? 'border-orange-400 bg-orange-50/50 dark:bg-orange-950/20' 
-                : 'border-border bg-background'
+            error 
+                ? 'border-destructive bg-destructive/5 dark:bg-destructive/10' // Error state styling
+                : isStatic 
+                    ? 'border-l-4 border-l-amber-400/60 border-border bg-background' 
+                    : 'border-border bg-background'
         }`}>
-            {/* Code Summary - styled like code comments */}
+            {/* Code Summary - hidden in reading mode via CSS */}
             <div className="flex items-center justify-between">
                 <CodeSummary 
                     code={currentCode}
                     exports={exports}
                     dependencies={dependencies}
+                    error={error}
                 />
                 {(isDirty || isStaticDirty) && isEditMode && (
                     <div className="px-4 py-2">
-                        <span className="text-orange-500 text-xs font-medium">
+                        <span className="text-warning-accent text-xs font-medium">
                             • Unsaved changes
                         </span>
                     </div>
                 )}
             </div>
 
-            {/* Code Editor (Edit Mode) */}
+            {/* Code Editor (Edit Mode) - hidden in reading mode via CSS */}
             {isEditMode && (
                 <div className="code-content bg-background-secondary px-4 py-3 overflow-x-auto">
                     <Editor
                         value={currentCode}
                         language="javascript"
-                        theme={oneDark}
+                        theme={editorTheme}
                         onChange={onCodeChange}
                         customCompletions={codeCompletions}
                         objectCompletions={moduleCompletions}
@@ -253,13 +269,13 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                                     type="checkbox"
                                     checked={isStatic}
                                     onChange={(e) => onStaticToggle(e.target.checked)}
-                                    className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                                    className="rounded border-border text-warning-accent focus:ring-warning-accent"
                                 />
                                 <span className="text-secondary-foreground">
                                     Static mode (manual execution only)
                                 </span>
                                 {isStatic && (
-                                    <span className="text-xs text-orange-600 bg-orange-100 dark:bg-orange-900/30 px-1.5 py-0.5 rounded">
+                                    <span className="text-xs text-warning-accent bg-warning-accent/10 px-1.5 py-0.5 rounded">
                                         Static
                                     </span>
                                 )}
@@ -305,8 +321,8 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
 
             {/* Output Values Display - No explicit label */}
             {outputValues.length > 0 && (
-                <div className="output-values bg-background-secondary  border-t border-border">
-                    <div className="output-content ">
+                <div className="output-values bg-background-secondary border-t border-border">
+                    <div className="output-content">
                         {outputValues.map((value, index) => (
                             <div key={index} className="output-item px-4 py-1 [&:not(:last-child)]:border-b">
                                 {/* {outputValues.length > 1 && (
@@ -329,7 +345,7 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
                                         {renderMixedContent(value)}
                                     </div>
                                 ) : (
-                                    <span className="text-accent-foreground font-mono text-sm">
+                                    <span className="text-accent-foreground font-mono text-sm whitespace-pre-wrap">
                                         {value === null ? 'null' : String(value)}
                                     </span>
                                 )}
@@ -341,8 +357,13 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
 
             {error && (
                 <div className="code-error bg-destructive/10 border-t border-destructive px-4 py-3">
-                    <div className="text-xs font-medium text-destructive mb-1">Execution Error:</div>
-                    <div className="text-sm text-destructive">{error.message}</div>
+                    <div className="flex items-center gap-2">
+                        <div className="text-xs font-medium text-destructive">Execution Error:</div>
+                        <div className="text-xs text-muted-foreground">Check console for details</div>
+                    </div>
+                    <div className="text-sm text-foreground font-mono mt-1">
+                        {error.message}
+                    </div>
                 </div>
             )}
         </div>

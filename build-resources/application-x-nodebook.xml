@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+    <mime-type type="application/x-nodebook">
+        <comment>Nodebook.js Interactive Notebook</comment>
+        <comment xml:lang="en">Nodebook.js Interactive Notebook</comment>
+        <icon name="nodebook"/>
+        <glob pattern="*.nbjs"/>
+        <generic-icon name="text-x-script"/>
+        <sub-class-of type="application/json"/>
+        <alias type="application/x-nbjs"/>
+    </mime-type>
+</mime-info>

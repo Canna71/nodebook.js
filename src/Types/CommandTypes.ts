@@ -1,5 +1,24 @@
 
 /**
+ * Current view type for context-aware menu management
+ */
+export type CurrentViewType = 'home' | 'notebook' | 'settings' | 'documentation' | 'shortcuts';
+
+/**
+ * Application context for menu and command state management
+ */
+export interface ApplicationContext {
+    currentView: CurrentViewType;
+    hasOpenNotebook: boolean;
+    isNotebookDirty: boolean;
+    canUndo: boolean;
+    canRedo: boolean;
+    readingMode: boolean;
+    selectedCellId: string | null;
+    totalCells: number;
+}
+
+/**
  * Command interface for implementing the Command Pattern
  */
 export interface ICommand {
@@ -40,6 +59,9 @@ export interface CommandContext {
         setModel: (model: any) => void;
         setDirty: (dirty: boolean) => void;
         isDirty: boolean;
+        readingMode: boolean; // NEW: Reading mode state
+        setReadingMode: (readingMode: boolean) => void; // NEW: Reading mode setter
+        setSelectedCellId: (cellId: string | null) => void;
         // Undo/Redo operations
         canUndo: () => boolean;
         canRedo: () => boolean;
@@ -52,6 +74,7 @@ export interface CommandContext {
         addCell: (cellType: string, insertIndex?: number, description?: string) => string | null;
         deleteCell: (cellId: string, description?: string) => void;
         moveCell: (cellId: string, direction: 'up' | 'down', description?: string) => void;
+        duplicateCell: (cellId: string, description?: string) => string | null;
     };
     
     // Reactive system

@@ -2,7 +2,8 @@
 
 Welcome to **Nodebook.js** - the next generation of interactive notebooks with reactive programming, rich data visualization, and seamless JavaScript execution. This documentation will guide you through all features and capabilities.
 
-![Nodebook.js Main Interface](./images/main-interface.png)
+<img src="CleanShot 2025-07-03 at 18.21.10@2x.png" alt="Nodebook.js Main Interface" width="600">
+
 *The main Nodebook.js interface showing code cells, markdown cells, and live output*
 
 ## What is Nodebook.js?
@@ -39,7 +40,8 @@ You can access this documentation in several ways:
 
 ## User Interface Overview
 
-![Homepage Interface](./images/homepage.png)
+<img src="CleanShot 2025-07-03 at 18.28.35@2x.png" alt="Nodebook.js Homepage" width="600">
+
 *The Nodebook.js homepage with quick start options, recent files, and examples*
 
 ### Main Interface Components
@@ -47,20 +49,23 @@ You can access this documentation in several ways:
 #### 1. **Notebook Editor**
 The main editing area where you create and modify cells:
 
-![Cell Types](./images/cell-types.png)
+<img src="CleanShot 2025-07-03 at 18.32.12@2x.png" alt="Nodebook.js Notebook Editor" width="600">
+
 *Different cell types: Code cells (JavaScript), Markdown cells, and Formula cells*
 
+- **Input Cells**: Allow to edit variable directly
 - **Code Cells**: Execute JavaScript with full reactive capabilities
 - **Markdown Cells**: Rich text with dynamic variable interpolation  
 - **Formula Cells**: Specialized cells for calculations and expressions
 
-#### 2. **Cell Controls**
-![Cell Controls](./images/cell-controls.png)
+#### 2. **Code Cell Controls**
+
+<img src="CleanShot 2025-07-03 at 18.36.04@2x.png" alt="Nodebook.js Code Cell Controls" width="600">
+
 *Cell controls showing execute button, cell type selector, and options*
 
 - **Execute Button (▶️)**: Run the current cell
-- **Cell Type Dropdown**: Switch between code, markdown, and formula
-- **Cell Options**: Access advanced cell settings
+- **Static mode**: Make the cell static (orange border) to prevent automatic updates
 
 #### 3. **Output Areas**
 ![Output Examples](./images/output-examples.png)
@@ -79,7 +84,7 @@ The reactive system is what makes Nodebook.js special. When you change a value i
 
 1. **Cell A** exports a value: `exports.price = 100`
 2. **Cell B** uses that value: `exports.total = price * 1.08`
-3. **Cell C** displays the result: `console.log("Total: $" + total)`
+3. **Cell C** displays the result: `output("Total: $" + total)`
 
 When you change `price` in Cell A, Cells B and C automatically recalculate!
 
@@ -152,7 +157,7 @@ Understanding how the reactive system works and how to leverage it effectively.
 ## Advanced Features
 
 ### [Modules & Libraries](./modules.md)
-Access powerful libraries like Plotly, D3, Math.js, and data manipulation tools.
+Access powerful libraries like Plotly, D3, Math.js, and data manipulation tools. Many libraries like `math`, `dfd` (danfojs), `tf` (tensorflow), and `Plotly` are preloaded as global variables.
 
 ![Module Usage](./images/module-usage.png)
 *Examples of using different modules for data analysis and visualization*

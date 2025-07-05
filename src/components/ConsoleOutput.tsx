@@ -44,7 +44,7 @@ const ConsoleOutput = (output: any, index: number): JSX.Element => {
                                     {renderMixedContent(item.data)}
                                 </span>
                             ) : (
-                                <span className="console-primitive">
+                                <span className="console-primitive whitespace-pre-wrap">
                                     {item.message}
                                 </span>
                             )}
@@ -77,7 +77,7 @@ const ConsoleOutput = (output: any, index: number): JSX.Element => {
                     {prefix}
                 </span>
             )}
-            <span className="log-message font-mono break-all">
+            <span className="log-message font-mono break-all whitespace-pre-wrap">
                 {output.message}
             </span>
         </div>

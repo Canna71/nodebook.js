@@ -181,7 +181,7 @@ export function AISettings({ children }: AISettingsProps) {
                                         href="https://platform.openai.com/api-keys" 
                                         target="_blank" 
                                         rel="noopener noreferrer"
-                                        className="text-blue-500 hover:underline"
+                                        className="text-info hover:underline"
                                     >
                                         OpenAI Platform
                                     </a>
@@ -203,7 +203,7 @@ export function AISettings({ children }: AISettingsProps) {
                                         href="https://console.anthropic.com/" 
                                         target="_blank" 
                                         rel="noopener noreferrer"
-                                        className="text-blue-500 hover:underline"
+                                        className="text-info hover:underline"
                                     >
                                         Anthropic Console
                                     </a>
@@ -232,8 +232,8 @@ export function AISettings({ children }: AISettingsProps) {
                         </div>
 
                         {hasKeys && (
-                            <div className="bg-green-50 border border-green-200 rounded-md p-3">
-                                <div className="flex items-center gap-2 text-sm text-green-800">
+                            <div className="bg-success/10 border border-success/30 rounded-md p-3">
+                                <div className="flex items-center gap-2 text-sm text-success">
                                     <CheckIcon className="h-4 w-4" />
                                     <span>API keys configured for: {availableProviders.join(', ')}</span>
                                 </div>

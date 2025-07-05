@@ -1,0 +1,201 @@
+{
+  "title": "Welcome to Nodebook.js - Interactive Tutorial",
+  "description": "A comprehensive guide to Nodebook.js features and capabilities",
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "welcome-header",
+      "content": "# 🎉 Welcome to Nodebook.js!\n\n**Nodebook.js** is a reactive notebook application that combines interactive computing with modern web technologies. Unlike traditional notebooks, Nodebook.js features a **reactive system** where cells automatically update when their dependencies change.\n\n## 🚀 Key Features\n\n- 🔬 **Reactive Programming**: Variables automatically update throughout your notebook\n- 📊 **Rich Data Visualization**: Built-in support for Plotly, D3, and custom visualizations\n- ⚡ **Live JavaScript**: Full ES6+ JavaScript execution with modern libraries\n- 📝 **Enhanced Markdown**: Dynamic markdown with variable interpolation\n- 🔧 **Modular System**: Easy access to popular data science libraries\n- 📱 **Interactive Inputs**: Sliders, dropdowns, and form controls\n\n---\n\n## 📖 How to Use This Tutorial\n\n1. **Read** the explanations in markdown cells (like this one)\n2. **Execute** code cells by clicking the ▶️ button or pressing `Shift+Enter`\n3. **Experiment** by changing values and watching the reactive updates\n4. **Try** editing the code to see how it affects other cells\n\nLet's start exploring! 👇"
+    },
+    {
+      "type": "markdown",
+      "id": "reactive-intro",
+      "content": "## 🔗 Understanding Reactivity\n\nThe magic of Nodebook.js is in its **reactive system**. When you change a value in one cell, all dependent cells automatically update. Let's see this in action:"
+    },
+    {
+      "type": "input",
+      "id": "base-value-input",
+      "label": "Base Value",
+      "inputType": "range",
+      "variableName": "baseValue",
+      "value": 50,
+      "props": {
+        "min": 0,
+        "max": 100,
+        "step": 1
+      }
+    },
+    {
+      "type": "formula",
+      "id": "doubled-formula",
+      "variableName": "doubled",
+      "formula": "$baseValue * 2"
+    },
+    {
+      "type": "formula",
+      "id": "percentage-formula",
+      "variableName": "percentage",
+      "formula": "$baseValue / 100"
+    },
+    {
+      "type": "markdown",
+      "id": "reactive-display",
+      "content": "### ✨ Live Results\n\n- **Base Value**: {{baseValue}}\n- **Doubled**: {{doubled}}\n- **As Percentage**: {{percentage | percent}}\n\n**Try it**: Move the slider above and watch these values update automatically! This is the reactive system in action.",
+      "variables": ["baseValue", "doubled", "percentage"]
+    },
+    {
+      "type": "markdown",
+      "id": "input-types-intro",
+      "content": "---\n\n## 🎛️ Interactive Input Types\n\nNodebook.js supports various input types for creating interactive interfaces:"
+    },
+    {
+      "type": "input",
+      "id": "name-input",
+      "label": "Your Name",
+      "inputType": "text",
+      "variableName": "userName",
+      "value": "Explorer",
+      "props": {
+        "placeholder": "Enter your name"
+      }
+    },
+    {
+      "type": "input",
+      "id": "age-input",
+      "label": "Age",
+      "inputType": "number",
+      "variableName": "userAge",
+      "value": 25,
+      "props": {
+        "min": 0,
+        "max": 150,
+        "step": 1
+      }
+    },
+    {
+      "type": "input",
+      "id": "theme-input",
+      "label": "Favorite Color Theme",
+      "inputType": "select",
+      "variableName": "colorTheme",
+      "value": "blue",
+      "props": {
+        "options": [
+          {"value": "blue", "label": "Ocean Blue"},
+          {"value": "green", "label": "Forest Green"},
+          {"value": "purple", "label": "Royal Purple"},
+          {"value": "orange", "label": "Sunset Orange"}
+        ]
+      }
+    },
+    {
+      "type": "input",
+      "id": "notifications-input",
+      "label": "Enable Notifications",
+      "inputType": "checkbox",
+      "variableName": "notifications",
+      "value": true
+    },
+    {
+      "type": "markdown",
+      "id": "greeting-display",
+      "content": "### 👋 Personal Greeting\n\nHello **{{userName}}**! You are {{userAge}} years old, prefer **{{colorTheme}}** themes, and have notifications **{{notifications}}**.\n\n*This text updates automatically as you change the inputs above!*",
+      "variables": ["userName", "userAge", "colorTheme", "notifications"]
+    },
+    {
+      "type": "markdown",
+      "id": "code-cells-intro",
+      "content": "---\n\n## 💻 Code Cells & Data Processing\n\nCode cells execute full JavaScript with reactive capabilities. Let's process some sample data:"
+    },
+    {
+      "type": "code",
+      "id": "sample-data",
+      "code": "// Generate sample sales data\nconst months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];\nconst products = ['Widget A', 'Widget B', 'Widget C'];\n\nconst salesData = [];\nfor (let month of months) {\n  for (let product of products) {\n    salesData.push({\n      month,\n      product,\n      sales: Math.floor(Math.random() * 1000) + 500,\n      cost: Math.floor(Math.random() * 300) + 200\n    });\n  }\n}\n\nexports.salesData = salesData;\nconsole.log(`Generated ${salesData.length} sales records`);\nconsole.log('Sample record:', salesData[0]);"
+    },
+    {
+      "type": "code",
+      "id": "data-analysis",
+      "code": "// Calculate key metrics (automatically updates when salesData changes)\nconst totalSales = salesData.reduce((sum, item) => sum + item.sales, 0);\nconst totalCost = salesData.reduce((sum, item) => sum + item.cost, 0);\nconst profit = totalSales - totalCost;\nconst profitMargin = (profit / totalSales) * 100;\n\n// Group by product\nconst productTotals = salesData.reduce((acc, item) => {\n  if (!acc[item.product]) {\n    acc[item.product] = { sales: 0, cost: 0, profit: 0 };\n  }\n  acc[item.product].sales += item.sales;\n  acc[item.product].cost += item.cost;\n  acc[item.product].profit += (item.sales - item.cost);\n  return acc;\n}, {});\n\nexports.totalSales = totalSales;\nexports.totalCost = totalCost;\nexports.profit = profit;\nexports.profitMargin = profitMargin;\nexports.productTotals = productTotals;\n\nconsole.log('📊 Business Metrics:');\nconsole.log(`Total Sales: $${totalSales.toLocaleString()}`);\nconsole.log(`Total Cost: $${totalCost.toLocaleString()}`);\nconsole.log(`Profit: $${profit.toLocaleString()}`);\nconsole.log(`Profit Margin: ${profitMargin.toFixed(1)}%`);"
+    },
+    {
+      "type": "markdown",
+      "id": "metrics-display",
+      "content": "### 📈 Business Dashboard\n\n| Metric | Value |\n|--------|-------|\n| **Total Sales** | ${{totalSales | number}} |\n| **Total Cost** | ${{totalCost | number}} |\n| **Profit** | ${{profit | number}} |\n| **Profit Margin** | {{profitMargin | round,1}}% |\n\n*These metrics automatically recalculate when the data changes!*",
+      "variables": ["totalSales", "totalCost", "profit", "profitMargin"]
+    },
+    {
+      "type": "code",
+      "id": "tabular-output",
+      "code": "// Display data in an interactive table\nconsole.log('📋 Raw Sales Data:');\noutput.table(salesData);\n\nconsole.log('\\n🏆 Product Performance:');\noutput.table(Object.entries(productTotals).map(([product, data]) => ({\n  Product: product,\n  Sales: `$${data.sales.toLocaleString()}`,\n  Cost: `$${data.cost.toLocaleString()}`,\n  Profit: `$${data.profit.toLocaleString()}`,\n  'Profit Margin': `${((data.profit / data.sales) * 100).toFixed(1)}%`\n})));"
+    },
+    {
+      "type": "markdown",
+      "id": "visualization-intro",
+      "content": "---\n\n## 📊 Data Visualization\n\nNodebook.js provides powerful visualization libraries as **global variables** - no imports needed! \n\n**Available globally:**\n- 🎯 **Plotly**: Interactive charts and graphs (`Plotly.newPlot()`)\n- 📈 **D3.js**: Custom data visualizations (via `require('d3')`)\n- 📊 **Chart.js**: Beautiful charts (via `require('chart.js')`)\n\nLet's create an interactive chart with our sales data:"
+    },
+    {
+      "type": "code",
+      "id": "chart-visualization",
+      "code": "// Create a bar chart showing product performance using Plotly (available globally)\nconst chartData = [{\n  x: Object.keys(productTotals),\n  y: Object.values(productTotals).map(data => data.profit),\n  type: 'bar',\n  marker: {\n    color: ['#2E86AB', '#A23B72', '#F18F01']\n  },\n  name: 'Profit by Product'\n}];\n\nconst layout = {\n  title: {\n    text: 'Product Profit Comparison',\n    font: { size: 16 }\n  },\n  xaxis: { title: 'Product' },\n  yaxis: { title: 'Profit ($)' },\n  plot_bgcolor: 'rgba(0,0,0,0)',\n  paper_bgcolor: 'rgba(0,0,0,0)',\n  margin: { t: 50, b: 50, l: 60, r: 30 }\n};\n\nconst config = {\n  responsive: true,\n  displayModeBar: true,\n  displaylogo: false\n};\n\n// Create container for the plot\nconst plotDiv = createDiv({ \n  id: 'profit-chart', \n  style: 'width: 100%; height: 400px; border: 1px solid #ddd; border-radius: 4px;' \n});\noutput(plotDiv);\n\n// Create the interactive chart using Plotly (global variable)\nif (typeof Plotly !== 'undefined') {\n  Plotly.newPlot('profit-chart', chartData, layout, config);\n  console.log('📊 Interactive Plotly chart created successfully!');\n} else {\n  console.warn('⚠️ Plotly not available - chart container created but not rendered');\n}\n\nconsole.log('Chart data prepared for:', Object.keys(productTotals).map((product, i) => \n  `${product}: $${Object.values(productTotals)[i].profit.toLocaleString()}`\n));"
+    },
+    {
+      "type": "markdown",
+      "id": "modules-intro",
+      "content": "---\n\n## 📦 Module System & Advanced Features\n\nNodebook.js provides access to powerful libraries in two ways:\n\n### 🌟 Global Variables (No imports needed!)\n- **math** (Math.js): Mathematical functions and expressions\n- **dfd** (Danfo.js): DataFrame operations and data manipulation  \n- **tf** (TensorFlow.js): Machine learning capabilities\n- **Plotly**: Interactive plotting and visualization\n- **Node.js built-ins**: fs, path, os, crypto, util, and more!\n\n### 📚 Require-Available Libraries\n- **lodash**: Utility functions (`require('lodash')`)\n- **d3**: Data visualization toolkit (`require('d3')`)\n- **moment**: Date/time manipulation (`require('moment')`)\n- **axios**: HTTP client (`require('axios')`)\n- And many more scientific computing libraries!\n\n*Check the [Module System Guide](modules.md) for the complete list.*"
+    },
+    {
+      "type": "code",
+      "id": "modules-demo",
+      "code": "// Pre-loaded global libraries (no require needed!)\nconsole.log('📦 Available Global Libraries:');\nconsole.log('✅ math (Math.js):', typeof math !== 'undefined' ? 'Available' : 'Not found');\nconsole.log('✅ dfd (Danfo.js):', typeof dfd !== 'undefined' ? 'Available' : 'Not found');\nconsole.log('✅ tf (TensorFlow.js):', typeof tf !== 'undefined' ? 'Available' : 'Not found');\nconsole.log('✅ Plotly:', typeof Plotly !== 'undefined' ? 'Available' : 'Not found');\nconsole.log('\\n🔧 Node.js Built-ins (global):');\nconsole.log('✅ fs, path, os, crypto, util, and more...');\n\n// Demonstrate Math.js capabilities (available globally)\nconst mathExample = {\n  // Basic statistics\n  mean: salesData.reduce((sum, item) => sum + item.sales, 0) / salesData.length,\n  max: Math.max(...salesData.map(item => item.sales)),\n  min: Math.min(...salesData.map(item => item.sales)),\n  \n  // Advanced math with Math.js global\n  standardDeviation: (() => {\n    const values = salesData.map(item => item.sales);\n    try {\n      // Use math.js standard deviation function\n      return typeof math !== 'undefined' ? math.std(values) : calculateStdDev(values);\n    } catch {\n      return calculateStdDev(values);\n    }\n  })(),\n  \n  // Math.js expression evaluation\n  mathExpression: typeof math !== 'undefined' ? \n    math.evaluate('sqrt(400)') : 'Math.js not available'\n};\n\n// Fallback standard deviation calculation\nfunction calculateStdDev(values) {\n  const mean = values.reduce((a, b) => a + b) / values.length;\n  const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;\n  return Math.sqrt(variance);\n}\n\nexports.mathExample = mathExample;\nconsole.log('\\n🔢 Enhanced Statistics:');\nconsole.log(`Mean: $${mathExample.mean.toFixed(0)}`);\nconsole.log(`Standard Deviation: ${typeof mathExample.standardDeviation === 'number' ? mathExample.standardDeviation.toFixed(0) : mathExample.standardDeviation}`);\nconsole.log(`Range: $${mathExample.min} - $${mathExample.max}`);\nconsole.log(`Math.js Expression: ${mathExample.mathExpression}`);"
+    },
+    {
+      "type": "markdown",
+      "id": "formula-cells-intro",
+      "content": "### 🧮 Formula Cells\n\nFormula cells provide reactive calculations with both `$variable` and natural JavaScript syntax:"
+    },
+    {
+      "type": "formula",
+      "id": "math-formula-1",
+      "variableName": "complexCalculation",
+      "formula": "Math.sqrt(totalSales / 1000) + Math.round(profitMargin)"
+    },
+    {
+      "type": "formula",
+      "id": "math-formula-2", 
+      "variableName": "conditionalValue",
+      "formula": "profitMargin > 20 ? 'Excellent' : profitMargin > 10 ? 'Good' : 'Needs Improvement'"
+    },
+    {
+      "type": "markdown",
+      "id": "formula-display",
+      "content": "**Formula Results:**\n- Complex Calculation: {{complexCalculation | round,2}}\n- Performance Rating: {{conditionalValue}}\n\n*These formulas automatically recalculate when dependent values change!*",
+      "variables": ["complexCalculation", "conditionalValue"]
+    },
+    {
+      "type": "markdown",
+      "id": "storage-intro",
+      "content": "---\n\n## 💾 Data Storage & Persistence\n\nNodebook.js can work with various data sources and storage options:"
+    },
+    {
+      "type": "code",
+      "id": "storage-demo",
+      "code": "// Demonstrate data persistence and storage\nconst storageExample = {\n  timestamp: new Date().toISOString(),\n  sessionData: {\n    userName,\n    userAge,\n    colorTheme,\n    notifications,\n    calculatedValues: {\n      baseValue,\n      doubled,\n      percentage\n    }\n  },\n  businessMetrics: {\n    totalSales,\n    profit,\n    profitMargin\n  }\n};\n\nexports.storageExample = storageExample;\n\nconsole.log('💾 Session Data Snapshot:');\nconsole.log('Captured at:', storageExample.timestamp);\nconsole.log('User:', storageExample.sessionData.userName);\nconsole.log('Metrics captured successfully!');\n\n// This data could be saved to files, databases, or shared with other notebooks\noutput(storageExample);"
+    },
+    {
+      "type": "markdown",
+      "id": "advanced-features",
+      "content": "---\n\n## 🔬 Advanced Features\n\n### Static Code Cells ⚡\nToggle cells to \"static mode\" to prevent automatic re-execution. Perfect for:\n- Expensive operations or API calls\n- Side effects (file operations, database updates)\n- Debug logging that shouldn't run automatically\n\n*Look for the orange border when a cell is in static mode!*\n\n### Reading Mode 📖\nPress `Ctrl+R` or click the reading mode button to:\n- Hide all editing controls for a clean presentation view\n- Focus on content and outputs without distractions\n- Perfect for sharing notebooks or presenting results\n\n### Formula Cell Flexibility 🧮\nFormulas support both syntaxes:\n- Legacy: `$baseValue * 2` (explicit reactive variables)\n- Modern: `baseValue * Math.sqrt(age)` (natural JavaScript)\n\n### Export & Integration 📤\n- Save notebooks as `.nbjs` (Nodebook.js format) or `.json`\n- Export data to CSV, JSON, or other formats\n- Share interactive notebooks with colleagues"
+    },
+    {
+      "type": "code",
+      "id": "summary-generator",
+      "code": "// Generate a summary of this tutorial session\nconst summary = {\n  tutorial: 'Welcome to Nodebook.js',\n  featuresExplored: [\n    'Reactive Programming',\n    'Interactive Inputs',\n    'Data Processing',\n    'Visualization',\n    'Module System',\n    'Data Storage'\n  ],\n  userProfile: {\n    name: userName,\n    age: userAge,\n    preferences: {\n      theme: colorTheme,\n      notifications\n    }\n  },\n  sampleAnalysis: {\n    recordsProcessed: salesData.length,\n    totalRevenue: totalSales,\n    profitMargin: Math.round(profitMargin * 100) / 100\n  },\n  completedAt: new Date().toLocaleString()\n};\n\nexports.tutorialSummary = summary;\n\nconsole.log('🎓 Tutorial Complete!');\nconsole.log('Summary:', summary);\noutput(summary);"
+    },
+    {
+      "type": "markdown",
+      "id": "next-steps",
+      "content": "---\n\n## 🚀 Next Steps\n\nCongratulations! You've explored the core features of Nodebook.js. Here's what you can do next:\n\n### 📚 Explore Documentation\n- **Press `F1`** to access the complete documentation\n- **[Code Cells Guide](code-cells.md)**: JavaScript execution, modules, DOM helpers\n- **[Markdown Cells](markdown-cells.md)**: Rich text with variable interpolation  \n- **[Formula Syntax](formula-syntax-guide.md)**: Mathematical expressions and calculations\n- **[Module System](modules.md)**: Global libraries, require-available packages, and per-notebook modules\n- **[Static Code Cells](static-code-cells.md)**: Manual execution control\n- **[Storage System](storage-system.md)**: Data persistence and file operations\n- **[Reading Mode](reading-mode.md)**: Clean presentation views\n\n### 🎯 Try More Examples\nExplore the **Examples** section on the homepage:\n- **Data Analysis**: Real datasets with statistical analysis\n- **Visualizations**: Charts with Plotly, D3.js, and Chart.js\n- **Machine Learning**: TensorFlow.js integration examples\n- **Mathematical Computing**: Advanced math with Math.js\n- **DOM Manipulation**: Interactive UI components\n\n### 🛠️ Build Something Amazing\n- **Create a new notebook** (`Ctrl+N`) and start experimenting\n- **Import real data** (CSV, JSON, APIs) for analysis\n- **Build interactive dashboards** with sliders and controls\n- **Create data visualizations** with built-in libraries\n- **Develop computational notebooks** for research or education\n\n### 💡 Pro Tips for Success\n- **🔗 Embrace reactivity**: Design cells to depend on each other for automatic updates\n- **📝 Use descriptive names**: `totalRevenue` is better than `x` for exported variables\n- **🎨 Mix cell types**: Combine code, markdown, inputs, and formulas for rich documents\n- **💾 Save frequently**: Use `Ctrl+S` to save your work regularly\n- **📖 Use reading mode**: Toggle with `Ctrl+R` for clean presentations\n- **🏃‍♂️ Keep it reactive**: Prefer computed values over manual updates\n- **🌟 Use global libraries**: `math`, `dfd`, `Plotly` are available without imports!\n\n### 🆘 Need Help?\n- **Help Menu**: Access keyboard shortcuts and quick references\n- **Documentation Button**: 📖 icon in the toolbar for instant access\n- **Examples Library**: Pre-built notebooks for learning patterns\n- **AI Assistant**: Use the built-in AI for code generation and help\n\n### 🧪 Advanced Techniques\n- **Static cells**: For expensive operations or side effects\n- **Formula cells**: For mathematical computations and transformations\n- **DOM helpers**: For custom visualizations and interactive elements\n- **Module system**: Access to scientific libraries and external packages\n- **Shell integration**: Run command-line tools with `$` syntax\n- **Per-notebook modules**: Install packages specific to each notebook\n\n---\n\n## 🙏 Welcome to the Community!\n\nYou're now ready to create amazing interactive notebooks with Nodebook.js. Whether you're doing data analysis, building educational content, creating presentations, or prototyping ideas, the reactive system will make your work more dynamic and engaging.\n\n**Happy coding and exploring!** 🎉✨",
+      "variables": ["userName"]
+    }
+  ]
+}

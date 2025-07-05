@@ -1,0 +1,59 @@
+{
+  "cells": [
+    {
+      "id": "md_01",
+      "type": "markdown",
+      "content": "# PropertyGrid Editing Test\n\nThis notebook tests the editing functionality of the PropertyGrid component.\n\n## New Features ✨\n- 🌳 **Hierarchical display** - nested objects are expandable\n- 🎨 **Syntax highlighting** - values styled like code with colors\n- 🖱️ **Click anywhere to edit** - no need to find the pencil icon\n- 🎯 **Better styling** - distinct backgrounds for properties vs values\n- 📏 **Compact design** - reduced padding and spacing\n- 📊 **Table layout** - proper column sizing with minimal property width\n- ✏️ **Subtle pencil icons** - instead of prominent badges"
+    },
+    {
+      "id": "code_01",
+      "type": "code",
+      "code": "// Create an editable configuration object\nexports.appConfig = {\n  name: \"My App\",\n  version: \"1.0.0\",\n  debug: true,\n  port: 3000,\n  database: {\n    host: \"localhost\",\n    port: 5432,\n    name: \"myapp_db\",\n    ssl: false\n  },\n  features: {\n    authentication: true,\n    logging: true,\n    analytics: false\n  }\n};\n\noutput(exports.appConfig);"
+    },
+    {
+      "id": "md_02",
+      "type": "markdown",
+      "content": "## Test Editing Instructions\n\nTry editing the following properties in the PropertyGrid above:\n\n1. **App name**: Change \"My App\" to something else\n2. **Version**: Update to \"2.0.0\"\n3. **Debug**: Toggle from true to false\n4. **Port**: Change from 3000 to 8080\n5. **Database settings**: Modify host, port, or toggle SSL\n6. **Features**: Enable/disable different features\n\nAfter making changes, run the next cell to verify the updates."
+    },
+    {
+      "id": "code_02",
+      "type": "code",
+      "code": "// Display the current values to verify editing worked\nconsole.log('Current appConfig:');\nconsole.log(JSON.stringify(appConfig, null, 2));\n\n// Show specific values\noutput({\n  'App Name': appConfig.name,\n  'Version': appConfig.version,\n  'Debug Mode': appConfig.debug,\n  'Port': appConfig.port,\n  'Database Host': appConfig.database.host,\n  'Database Port': appConfig.database.port,\n  'SSL Enabled': appConfig.database.ssl,\n  'Auth Enabled': appConfig.features.authentication,\n  'Logging Enabled': appConfig.features.logging,\n  'Analytics Enabled': appConfig.features.analytics\n});"
+    },
+    {
+      "id": "md_03",
+      "type": "markdown",
+      "content": "## Testing Different Data Types\n\nLet's test editing with various data types:"
+    },
+    {
+      "id": "code_03",
+      "type": "code",
+      "code": "// Create an object with different data types for testing\nexports.dataTypes = {\n  // Strings\n  message: \"Hello, World!\",\n  email: \"user@example.com\",\n  \n  // Numbers\n  integer: 42,\n  float: 3.14159,\n  negative: -100,\n  \n  // Booleans\n  isActive: true,\n  isComplete: false,\n  \n  // Null and undefined\n  nullValue: null,\n  undefinedValue: undefined,\n  \n  // Nested object\n  user: {\n    id: 123,\n    name: \"John Doe\",\n    age: 30,\n    isAdmin: false\n  }\n};\n\noutput(exports.dataTypes);"
+    },
+    {
+      "id": "md_04",
+      "type": "markdown",
+      "content": "## Edit the values above and check results\n\nTry editing different types of values and then run the cell below to see the results:"
+    },
+    {
+      "id": "code_04",
+      "type": "code",
+      "code": "// Check that types are preserved correctly\nconsole.log('Type checking results:');\nconsole.log('message type:', typeof dataTypes.message, '- value:', dataTypes.message);\nconsole.log('integer type:', typeof dataTypes.integer, '- value:', dataTypes.integer);\nconsole.log('float type:', typeof dataTypes.float, '- value:', dataTypes.float);\nconsole.log('isActive type:', typeof dataTypes.isActive, '- value:', dataTypes.isActive);\nconsole.log('nullValue type:', typeof dataTypes.nullValue, '- value:', dataTypes.nullValue);\nconsole.log('user.age type:', typeof dataTypes.user.age, '- value:', dataTypes.user.age);\n\n// Display summary\noutput({\n  'String message': dataTypes.message,\n  'Integer (should be number)': dataTypes.integer,\n  'Float (should be number)': dataTypes.float,\n  'Boolean (should be boolean)': dataTypes.isActive,\n  'Null value': dataTypes.nullValue,\n  'User name': dataTypes.user.name,\n  'User age (should be number)': dataTypes.user.age\n});"
+    },
+    {
+      "id": "md_05",
+      "type": "markdown",
+      "content": "## Reactive Updates Test\n\nThis tests that changes in one cell are reflected in other cells that depend on the same data:"
+    },
+    {
+      "id": "code_05",
+      "type": "code",
+      "code": "// Create a computed value based on appConfig\nconst serverUrl = `http://${appConfig.database.host}:${appConfig.port}`;\nconst isProduction = !appConfig.debug;\nconst enabledFeatures = Object.entries(appConfig.features)\n  .filter(([key, enabled]) => enabled)\n  .map(([key]) => key);\n\nexports.computedValues = {\n  serverUrl,\n  isProduction,\n  enabledFeatures,\n  timestamp: new Date().toISOString()\n};\n\noutput(exports.computedValues);"
+    },
+    {
+      "id": "md_06",
+      "type": "markdown",
+      "content": "## Instructions for Testing\n\n1. **Edit appConfig values** in the first PropertyGrid (change port, host, debug mode, etc.)\n2. **Re-run this cell** - you should see the computed values update automatically\n3. **Verify reactivity** - changes to appConfig should be reflected in computedValues\n\nThe serverUrl should change when you modify database.host or port.  \nThe isProduction flag should toggle when you change the debug setting.  \nThe enabledFeatures array should update when you toggle feature flags.\n\n## Expected Behavior\n\n- ✅ **PropertyGrid shows editable interface** for reactive variables (exported)\n- ✅ **Click edit icon** to modify values\n- ✅ **Type conversion works** - strings that look like numbers become numbers\n- ✅ **Boolean conversion** - \"true\"/\"false\" strings become boolean values\n- ✅ **Reactive updates** - changes trigger re-execution of dependent cells\n- ✅ **Visual feedback** - clean property/value layout with different backgrounds"
+    }
+  ]
+}

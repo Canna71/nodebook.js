@@ -1,0 +1,208 @@
+name: Build and Release
+
+on:
+  workflow_dispatch: # Allow manual triggering only
+    inputs:
+      create_release:
+        description: 'Create a GitHub release after successful build'
+        required: false
+        default: false
+        type: boolean
+      release_tag:
+        description: 'Release tag (e.g., v1.0.0) - if empty, will use package.json version'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # macOS builds
+          - os: macos-latest
+            arch: x64
+            platform: darwin
+            artifact_name: darwin-x64
+          - os: macos-latest
+            arch: arm64
+            platform: darwin
+            artifact_name: darwin-arm64
+          # Windows builds
+          - os: windows-latest
+            arch: x64
+            platform: win32
+            artifact_name: win32-x64
+          # Note: Windows ARM64 cross-compilation can be challenging
+          # Uncomment if you want to try Windows ARM64
+          # - os: windows-latest
+          #   arch: arm64
+          #   platform: win32
+          #   artifact_name: win32-arm64
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      
+
+      - name: Free up disk space (Ubuntu/Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        env:
+          NODE_OPTIONS: --max_old_space_size=8912
+
+      - name: Rebuild native modules for target architecture
+        run: pnpm run postinstall
+        env:
+          NODE_OPTIONS: --max_old_space_size=8912
+
+      - name: Build application
+        run: pnpm run make
+        env:
+          # Set target architecture for Electron
+          npm_config_target_arch: ${{ matrix.arch }}
+          npm_config_target_platform: ${{ matrix.platform }}
+          # Disable native module rebuilding during make (already done above)
+          ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+          # Additional memory optimization
+          NODE_OPTIONS: --max_old_space_size=8912
+
+      - name: List build outputs (Debug)
+        shell: bash
+        run: |
+          echo "Build outputs:"
+          if [ -d "out" ]; then
+            find out -name "*.exe" -o -name "*.dmg" -o -name "*.zip" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" | head -20
+            
+            # Check code signing status for macOS builds
+            if [ "${{ matrix.platform }}" = "darwin" ]; then
+              echo ""
+              echo "🔍 Checking macOS app signature status:"
+              for app in $(find out -name "*.app" -type d); do
+                echo "Checking: $app"
+                if command -v codesign >/dev/null 2>&1; then
+                  codesign -dv "$app" 2>&1 | head -5 || echo "❌ App is unsigned"
+                else
+                  echo "⚠️  codesign not available (Linux runner)"
+                fi
+              done
+              echo ""
+              echo "📋 Note: macOS apps built on GitHub Actions are currently unsigned."
+              echo "📋 Users will need to right-click → Open to run the app initially."
+              echo "📋 See MACOS_INSTALL.md for detailed installation instructions."
+            fi
+          else
+            echo "No 'out' directory found"
+            ls -la
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.artifact_name }}
+          path: |
+            out/make/**/*.exe
+            out/make/**/*.dmg
+            out/make/**/*.zip
+            out/make/**/*.deb
+            out/make/**/*.rpm
+            out/make/**/*.AppImage
+          retention-days: 30
+          if-no-files-found: warn
+
+  release:
+    if: ${{ inputs.create_release == true }}
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Get version from package.json
+        id: get_version
+        run: |
+          if [ -n "${{ inputs.release_tag }}" ]; then
+            echo "tag=${{ inputs.release_tag }}" >> $GITHUB_OUTPUT
+            echo "version=${{ inputs.release_tag }}" >> $GITHUB_OUTPUT
+          else
+            VERSION=$(node -p "require('./package.json').version")
+            echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
+            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create and push tag
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag ${{ steps.get_version.outputs.tag }}
+          git push origin ${{ steps.get_version.outputs.tag }}
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Display structure of downloaded files
+        run: |
+          echo "Downloaded artifacts structure:"
+          find dist -type f | head -20
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release-files
+          find dist -name "*.exe" -exec cp {} release-files/ \;
+          find dist -name "*.dmg" -exec cp {} release-files/ \;
+          find dist -name "*.zip" -exec cp {} release-files/ \;
+          find dist -name "*.deb" -exec cp {} release-files/ \;
+          find dist -name "*.rpm" -exec cp {} release-files/ \;
+          find dist -name "*.AppImage" -exec cp {} release-files/ \;
+          echo "Release files:"
+          ls -la release-files/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.tag }}
+          name: Release ${{ steps.get_version.outputs.version }}
+          files: release-files/*
+          draft: false
+          prerelease: ${{ contains(steps.get_version.outputs.tag, 'alpha') || contains(steps.get_version.outputs.tag, 'beta') || contains(steps.get_version.outputs.tag, 'rc') }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

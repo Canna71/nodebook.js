@@ -19,15 +19,16 @@ import {
   TerminalIcon,
   ScrollTextIcon,
   XIcon,
-  BookOpenIcon
+  BookOpenIcon,
+  PencilIcon
 } from 'lucide-react';
+import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { MarkdownIcon } from './icons/MarkdownIcon';
 import { JavascriptIcon } from './icons/JavascriptIcon';
-import { AISettings } from './AISettings';
 
 export function Toolbar() {
   const { commandManager } = useCommands();
-  const { currentModel } = useApplication();
+  const { currentModel, readingMode } = useApplication(); // Get reading mode state
   // Removed outputPanelVisible and consolePanelVisible state since buttons are now in View menu
 
   const handleCommand = (commandId: string) => {
@@ -247,6 +248,23 @@ export function Toolbar() {
                 </TooltipContent>
               </Tooltip>
 
+              <Separator orientation="vertical" className="mx-1 h-4" />
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCommand('cell.duplicate')}
+                  >
+                    <DocumentDuplicateIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Duplicate Cell (Cmd+D)
+                </TooltipContent>
+              </Tooltip>
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -304,12 +322,44 @@ export function Toolbar() {
 
         <Separator orientation="vertical" className="mx-2 h-6" />
 
-        {/* AI Settings */}
-        <AISettings>
-          <Button variant="ghost" size="sm">
-            <SettingsIcon className="h-4 w-4" />
-          </Button>
-        </AISettings>
+        {/* Settings */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCommand('view.settings')}
+            >
+              <SettingsIcon className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            Open Settings
+          </TooltipContent>
+        </Tooltip>
+
+        <Separator orientation="vertical" className="mx-2 h-6" />
+
+        {/* Reading Mode Toggle */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCommand('view.toggleReadingMode')}
+              disabled={!currentModel}
+            >
+              {readingMode ? (
+                <PencilIcon className="h-4 w-4" />
+              ) : (
+                <BookOpenIcon className="h-4 w-4" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {readingMode ? 'Exit Reading Mode (Ctrl+R)' : 'Enter Reading Mode (Ctrl+R)'} {!currentModel && "(No notebook loaded)"}
+          </TooltipContent>
+        </Tooltip>
 
         <Separator orientation="vertical" className="mx-2 h-6" />
 

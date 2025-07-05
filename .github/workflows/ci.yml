@@ -1,0 +1,49 @@
+name: CI Build
+
+on:
+  workflow_dispatch: # Allow manual triggering only
+
+jobs:
+  test-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.18.0'  # Use a stable LTS version
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        env:
+            npm_config_tfjs_node_prebuilt: true    
+      - name: Run prebuild script
+        run: pnpm run prebuild
+
+      - name: Test package (without make)
+        run: pnpm run package
+        env:
+          NODE_OPTIONS: "--max-old-space-size=8192"
+
+      - name: List package outputs
+        shell: bash
+        run: |
+          echo "Package outputs:"
+          if [ -d "out" ]; then
+            find out -type d -name "*" | head -10 || true
+          else
+            echo "No 'out' directory found"
+          fi
