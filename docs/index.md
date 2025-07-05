@@ -72,7 +72,6 @@ The main editing area where you create and modify cells:
 *Various output types: tables, charts, images, and interactive visualizations*
 
 Each cell has a dedicated output area that can display:
-- **Console Output**: `console.log()` and error messages
 - **Data Tables**: Interactive, sortable tables with `output.table()`
 - **Visualizations**: Charts, plots, and custom graphics
 - **DOM Elements**: Custom HTML and interactive components
@@ -95,7 +94,7 @@ The reactive system is what makes Nodebook.js special. When you change a value i
 
 1. **Cell A** exports a value: `exports.price = 100`
 2. **Cell B** uses that value: `exports.total = price * 1.08`
-3. **Cell C** displays the result: `console.log("Total: $" + total)`
+3. **Cell C** displays the result: `output("Total: $" + total)`
 
 When you change `price` in Cell A, Cells B and C automatically recalculate!
 
