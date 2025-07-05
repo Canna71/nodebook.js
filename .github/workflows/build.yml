@@ -2,6 +2,17 @@ name: Build and Release
 
 on:
   workflow_dispatch: # Allow manual triggering only
+    inputs:
+      create_release:
+        description: 'Create a GitHub release after successful build'
+        required: false
+        default: false
+        type: boolean
+      release_tag:
+        description: 'Release tag (e.g., v1.0.0) - if empty, will use package.json version'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   build:
@@ -128,7 +139,7 @@ jobs:
           if-no-files-found: warn
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: ${{ inputs.create_release == true }}
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -137,6 +148,30 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Get version from package.json
+        id: get_version
+        run: |
+          if [ -n "${{ inputs.release_tag }}" ]; then
+            echo "tag=${{ inputs.release_tag }}" >> $GITHUB_OUTPUT
+            echo "version=${{ inputs.release_tag }}" >> $GITHUB_OUTPUT
+          else
+            VERSION=$(node -p "require('./package.json').version")
+            echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
+            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create and push tag
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag ${{ steps.get_version.outputs.tag }}
+          git push origin ${{ steps.get_version.outputs.tag }}
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -163,9 +198,11 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.get_version.outputs.tag }}
+          name: Release ${{ steps.get_version.outputs.version }}
           files: release-files/*
           draft: false
-          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+          prerelease: ${{ contains(steps.get_version.outputs.tag, 'alpha') || contains(steps.get_version.outputs.tag, 'beta') || contains(steps.get_version.outputs.tag, 'rc') }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
