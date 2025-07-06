@@ -8,7 +8,7 @@
     {
       "type": "code",
       "id": "setup-data",
-      "content": "// Setup some data for markdown interpolation\nexports.companyName = \"TechCorp Inc.\";\nexports.currentYear = new Date().getFullYear();\nexports.revenue = 2500000;\nexports.employees = 150;\nexports.growthRate = 12.5;\nexports.projects = [\n  { name: \"Project Alpha\", status: \"Completed\" },\n  { name: \"Project Beta\", status: \"In Progress\" },\n  { name: \"Project Gamma\", status: \"Planning\" }\n];\n\noutput(\"✅ Data prepared for markdown interpolation\");"
+      "code": "// Setup some data for markdown interpolation\nexports.companyName = \"TechCorp Inc.\";\nexports.currentYear = new Date().getFullYear();\nexports.revenue = 2500000;\nexports.employees = 150;\nexports.growthRate = 12.5;\nexports.projects = [\n  { name: \"Project Alpha\", status: \"Completed\" },\n  { name: \"Project Beta\", status: \"In Progress\" },\n  { name: \"Project Gamma\", status: \"Planning\" }\n];\n\noutput(\"✅ Data prepared for markdown interpolation\");"
     },
     {
       "type": "markdown",
