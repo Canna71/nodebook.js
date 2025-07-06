@@ -10,12 +10,25 @@ const log = anylogger('DocumentationViewer');
 
 // Enhanced markdown-it setup for documentation
 import MarkdownIt from 'markdown-it';
+import hljs from 'highlight.js';
+import 'highlight.js/styles/vs2015.css'; // Import highlight.js theme
 
 const markdown = new MarkdownIt({
   html: true,
   linkify: true,
   typographer: true,
-  breaks: true
+  breaks: true,
+  highlight: function (str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return hljs.highlight(lang, str, true).value;
+      } catch (__) {
+        console.warn(`Failed to highlight code block with language "${lang}":`, __);
+      }
+    }
+
+    return ''; // use external default escaping
+  }
 });
 
 interface DocumentationViewerProps {
