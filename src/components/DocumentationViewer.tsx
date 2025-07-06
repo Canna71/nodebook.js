@@ -225,30 +225,6 @@ export function DocumentationViewer({ onClose, initialDocument = 'index.md' }: D
         </div>
       </div>
 
-      {/* Quick Navigation */}
-      {availableDocs.length > 1 && (
-        <div className="px-6 py-4 border-b border-border bg-background-secondary/50">
-          <div className="flex flex-wrap gap-2">
-            {availableDocs.slice(0, 8).map((doc) => (
-              <Button
-                key={doc.filename}
-                variant={currentDoc === doc.filename ? "default" : "outline"}
-                size="sm"
-                onClick={() => setCurrentDoc(doc.filename)}
-                className="text-xs"
-              >
-                {doc.title}
-              </Button>
-            ))}
-            {availableDocs.length > 8 && (
-              <span className="text-xs text-secondary-foreground self-center">
-                +{availableDocs.length - 8} more...
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
         <div className="max-w-4xl mx-auto p-8 pb-24">
