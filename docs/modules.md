@@ -11,7 +11,7 @@ Nodebook.js provides a comprehensive module system that allows you to use Node.j
 **Quick Start:**
 1. Create a `node_modules` directory in the same folder as your notebook
 2. Install packages: `npm install lodash moment`
-3. Use in your notebook: `const _ = require('lodash');` (or use global `_`, `Papa`, `XLSX`)
+3. Use in your notebook: `const _ = require('lodash');` (or use globals `_`, `Papa`, `XLSX`, `$`)
 
 ## Table of Contents
 
@@ -167,6 +167,18 @@ const workbook = XLSX.utils.book_new();
 const worksheet = XLSX.utils.json_to_sheet(worksheetData);
 XLSX.utils.book_append_sheet(workbook, worksheet, 'Employees');
 exports.excelWorkbook = workbook;
+
+// ZX - Shell scripting ($ and all zx globals are available)
+// Execute shell commands directly
+const result = await $`ls -la`;
+const files = await $`find . -name "*.js"`;
+exports.directoryListing = result.stdout;
+exports.jsFiles = files.stdout;
+
+// Use other zx globals directly
+echo`Current directory: ${await $`pwd`}`;
+const tempFile = tmpfile('data.json', JSON.stringify({ hello: 'world' }));
+exports.tempFilePath = tempFile;
 ```
 
 **Available Pre-bundled Library Globals:**
@@ -177,31 +189,16 @@ exports.excelWorkbook = workbook;
 - `_` - Lodash utility library (pre-loaded)
 - `Papa` - PapaParse CSV parsing library (pre-loaded)
 - `XLSX` - Excel file handling library (pre-loaded)
+- `$` - ZX shell scripting library (pre-loaded, with all globals available)
 
-## Shell Scripting with zx (Per-Notebook Installation Required)
+## Shell Scripting with zx (Pre-loaded Global)
 
-**Note:** The `zx` library is **not** preloaded globally. To use `zx`, you need to install it per-notebook or in your user data directory.
+**Note:** The `zx` library is now preloaded globally! All zx functions are available as global variables without requiring installation.
 
-### Installing zx
-
-**Option 1: Per-notebook installation (recommended)**
-```bash
-# In your notebook's directory
-npm install zx
-```
-
-**Option 2: Global user data installation**
-```bash
-# Navigate to user data node_modules directory first
-npm install zx
-```
-
-### Using zx after installation
+### Using zx (Available as Globals)
 
 ```javascript
-// Require zx first (not available as global)
-const { $, cd, question, echo, sleep } = require('zx');
-
+// No require needed - all zx functions are available globally
 // Execute shell commands (always async)
 const result = await $`ls -la`;
 const files = await $`find . -name "*.js"`;

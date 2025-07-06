@@ -858,6 +858,7 @@ Plotly                      // Plotly.js interactive visualization
 _                           // Lodash utility functions
 Papa                        // PapaParse CSV parsing
 XLSX                        // Excel file handling
+$                           // ZX shell scripting (with all zx globals)
 
 // Available via require()
 const d3 = require('d3');          // D3.js for data manipulation

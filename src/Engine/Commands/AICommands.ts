@@ -558,7 +558,7 @@ export class GenerateCodeCellCommand extends BaseAICommand {
 
         // TODO: Add available modules from module registry
         // This will be implemented when we have access to the module registry
-        context.modules = ['tf', 'd3', 'plotly', 'Math', '_', 'Papa', 'XLSX', 'moment']; // Common modules - lodash, papaparse, xlsx now global
+        context.modules = ['tf', 'd3', 'plotly', 'Math', '_', 'Papa', 'XLSX', '$', 'moment']; // Common modules - lodash, papaparse, xlsx, zx now global
 
         log.info(`[${contextId}] Notebook context built successfully`, {
             variableCount: context.variables.length,
@@ -904,7 +904,7 @@ export class GenerateCellCommand extends BaseAICommand {
 
         // TODO: Add available modules from module registry
         // This will be implemented when we have access to the module registry
-        context.modules = ['tf', 'd3', 'plotly', 'Math', '_', 'Papa', 'XLSX', 'moment']; // Common modules - lodash, papaparse, xlsx now global
+        context.modules = ['tf', 'd3', 'plotly', 'Math', '_', 'Papa', 'XLSX', '$', 'moment']; // Common modules - lodash, papaparse, xlsx, zx now global
 
         log.info(`[${contextId}] Notebook context built successfully (GenerateNotebook)`, {
             variableCount: context.variables.length,

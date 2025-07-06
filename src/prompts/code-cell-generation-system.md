@@ -68,6 +68,11 @@ You are an AI assistant that generates JavaScript code cells for Nodebook.js, a 
   const workbook = XLSX.utils.book_new();
   const worksheet = XLSX.utils.json_to_sheet(data);
   ```
+- **$**: ZX shell scripting (available globally, with all zx globals)
+  ```javascript
+  const result = await $`ls -la`;
+  const files = await $`find . -name "*.js"`;
+  ```
 
 ### Pre-bundled Libraries (Require-Available)
 **These need explicit `require()` calls:**

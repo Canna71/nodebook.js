@@ -1,0 +1,18 @@
+{
+  "cells": [
+    {
+      "id": "test-zx-globals",
+      "type": "code",
+      "code": "// Test that ZX is available as $ globally and all zx globals work\n\n// Test basic $ command\nconst result = await $`echo \"Hello from ZX!\"`;\nexports.basicCommand = result.stdout.trim();\n\n// Test other zx globals directly (no require needed)\necho`ZX echo function works!`;\nconst tempFile = tmpfile('test.txt', 'Hello ZX!');\nexports.tempFilePath = tempFile;\n\n// Test path utilities\nexports.currentDir = process.cwd();\nexports.homePath = os.homedir();\n\n// Test process utilities  \nconst processes = await ps.lookup({ command: 'node' }).catch(() => []);\nexports.nodeProcessCount = processes.length;\n\nconsole.log('$ (ZX) is available as global:', typeof $ !== 'undefined');\nconsole.log('echo is available as global:', typeof echo !== 'undefined');\nconsole.log('tmpfile is available as global:', typeof tmpfile !== 'undefined');\nconsole.log('ps is available as global:', typeof ps !== 'undefined');\nconsole.log('Basic command result:', exports.basicCommand);"
+    },
+    {
+      "id": "test-zx-compatibility",
+      "type": "code",
+      "code": "// Test that zx is still available via require() for compatibility\nconst zx = require('zx');\n\n// Verify both are the same instance\nexports.dollarSameAsZxDollar = ($ === zx.$);\nexports.echoSameAsZxEcho = (echo === zx.echo);\n\n// Test some zx utilities\nconst quoted = zx.quote('path with spaces');\nexports.quotedPath = quoted;\n\n// Test that we can access zx module directly\nexports.zxModuleAvailable = typeof zx !== 'undefined';\nexports.zxHasDollar = typeof zx.$ !== 'undefined';\n\nconsole.log('Global $ and zx.$ are the same:', exports.dollarSameAsZxDollar);\nconsole.log('Global echo and zx.echo are the same:', exports.echoSameAsZxEcho);\nconsole.log('ZX module available via require:', exports.zxModuleAvailable);\nconsole.log('Quoted path example:', exports.quotedPath);"
+    }
+  ],
+  "metadata": {
+    "title": "Test ZX Global Availability",
+    "description": "Test that zx is available as $ and all zx globals work without require()"
+  }
+}
