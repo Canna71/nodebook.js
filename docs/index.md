@@ -133,6 +133,9 @@ Create interactive UI controls like sliders, inputs, and checkboxes that modify 
 ### [Formula Syntax](./formula-syntax-guide.md)
 Use specialized formula cells for quick calculations and data transformations.
 
+### [Best Practices](./best-practices.md)
+Essential guidelines for creating effective, maintainable, and performant notebooks.
+
 ### [Async/Await Guide](./async-await-guide.md)
 Learn how to properly use async/await patterns in Nodebook.js for asynchronous operations.
 
@@ -180,89 +183,46 @@ Troubleshooting guide for file association issues on macOS.
 
 ## Examples & Tutorials
 
-### Data Analysis Examples
-![Data Analysis Example](./images/data-analysis-example.png)
-*A complete data analysis workflow with data loading, processing, and visualization*
+Nodebook.js includes a rich collection of interactive example notebooks that demonstrate key features and common patterns.
 
-- **Sales Analysis**: Process sales data and create interactive dashboards
-- **Time Series**: Analyze temporal data with trend detection
-- **Statistical Analysis**: Perform statistical tests and generate reports
+### [📚 Browse All Examples](./examples.md)
+Explore our comprehensive collection of example notebooks covering data analysis, visualization, machine learning, and more.
 
-### Visualization Examples  
-![Chart Examples](./images/chart-examples.png)
-*Various chart types created with Plotly integration*
+**Popular Examples:**
+- **Welcome Tutorial** - Perfect starting point for new users
+- **Linear Regression Analysis** - Complete ML workflow with visualization  
+- **D3 Visualizations** - Advanced interactive graphics
+- **Shopping List Demo** - Full interactive application example
 
-- **Interactive Charts**: Create responsive, interactive visualizations
-- **Dashboard Creation**: Build multi-panel dashboards
-- **Custom Visualizations**: Use D3.js for specialized graphics
+### Quick Start Recommendations
 
-### Machine Learning Examples
-![ML Example](./images/ml-example.png)
-*A machine learning workflow with data preparation and model training*
+**New to Nodebook.js?** Start with:
+1. `welcome-tutorial.json` - Learn the basics
+2. `employees.nbjs` - Try data manipulation  
+3. `storage-example.json` - Understand persistence
 
-- **Linear Regression**: Implement and visualize regression models
-- **Data Preprocessing**: Clean and prepare data for analysis
-- **Model Evaluation**: Assess model performance with metrics and plots
+**Data Analysis Focus?** Try:
+1. `danfojs-example.json` - Data processing
+2. `linear-regression-analysis.json` - ML workflows
+3. `d3-visualization-example.json` - Advanced charts
 
-## Tips for Success
+## Reference & Help
 
-### Best Practices
-![Best Practices](./images/best-practices.png)
-*Examples of well-structured notebooks with clear organization*
+### [⌨️ Keyboard Shortcuts](./keyboard-shortcuts.md)
+Complete reference for all keyboard shortcuts and productivity tips.
 
-1. **Structure Your Notebook**: Use markdown cells to create clear sections
-2. **Name Your Variables**: Use descriptive names for exported variables
-3. **Document Your Code**: Add comments and markdown explanations
-4. **Use the Reactive System**: Let cells update automatically instead of copying values
-5. **Leverage AI**: Use the AI assistant to speed up development
+### In-App Help
+Press `F1` anywhere in the application for instant help and documentation.
 
-### Common Patterns
-![Common Patterns](./images/common-patterns.png)
-*Demonstration of common notebook patterns and workflows*
+## Support
 
-- **Data Pipeline**: Load → Transform → Analyze → Visualize
-- **Iterative Analysis**: Explore → Hypothesis → Test → Refine
-- **Reporting**: Analysis → Summary → Export
-
-### Performance Tips
-- Use static cells for expensive operations
-- Cache large datasets in exported variables
-- Use efficient data structures and algorithms
-- Leverage built-in modules for heavy computations
-
-## Keyboard Shortcuts
-
-![Keyboard Shortcuts](./images/keyboard-shortcuts.png)
-*Visual guide to essential keyboard shortcuts*
-
-| Shortcut | Action |
-|----------|--------|
-| `Shift + Enter` | Execute current cell |
-| `Ctrl/Cmd + Enter` | Execute cell and stay |
-| `Alt + Enter` | Execute and insert new cell |
-| `Ctrl/Cmd + S` | Save notebook |
-| `Ctrl/Cmd + O` | Open notebook |
-| `Ctrl/Cmd + N` | New notebook |
-
-## Getting Help
-
-### Community Resources
-- **GitHub Issues**: Report bugs and request features
-- **Documentation**: This comprehensive guide
-- **Examples**: Learn from pre-built notebooks
-- **AI Assistant**: Get instant help within the application
-
-### Support
-If you need help:
-1. Check this documentation first
-2. Try the examples to see working code
-3. Use the AI assistant for code generation
-4. Search existing GitHub issues
-5. Create a new issue with details about your problem
+### Getting Help
+1. **Examples First**: Check the [examples collection](./examples.md) for working code
+2. **Documentation**: Browse the focused guides above  
+3. **AI Assistant**: Use the built-in AI for instant code help
+4. **In-App Help**: Press `F1` for context-sensitive assistance
+5. **GitHub Issues**: Report bugs or request features
 
 ---
 
-**Ready to start?** Click "New file..." on the homepage and create your first notebook!
-
-![Get Started](./images/get-started.png)
-*Your journey with Nodebook.js begins here*
+**Ready to start?** Open the application and try the `welcome-tutorial.json` example!
