@@ -9,7 +9,7 @@
     "fileAssociations": [
       {
         "ext": "nbjs",
-        "name": "Nodebook.js Notebook", 
+        "name": "Nodebook.js Notebook",
         "description": "Nodebook.js Interactive Notebook",
         "icon": "./build-resources/icons/icon",
         "role": "Editor",
@@ -19,14 +19,16 @@
     "protocols": [
       {
         "name": "nodebook",
-        "schemes": ["nodebook"]
+        "schemes": [
+          "nodebook"
+        ]
       }
     ]
   },
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make":"pnpm run prebuild && electron-forge make",
+    "make": "pnpm run prebuild && electron-forge make",
     "make:darwin:x64": "pnpm run prebuild && electron-forge make --platform=darwin --arch=x64",
     "make:darwin:arm64": "pnpm run prebuild && electron-forge make --platform=darwin --arch=arm64",
     "make:win32:x64": "pnpm run prebuild && electron-forge make --platform=win32 --arch=x64",
@@ -103,6 +105,9 @@
     "@codemirror/lang-markdown": "^6.3.2",
     "@codemirror/lang-xml": "^6.1.0",
     "@codemirror/theme-one-dark": "^6.1.2",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@heroicons/react": "^2.2.0",
     "@radix-ui/react-checkbox": "^1.3.2",
     "@radix-ui/react-dialog": "^1.1.14",

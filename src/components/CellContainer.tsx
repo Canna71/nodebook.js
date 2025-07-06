@@ -14,6 +14,8 @@ import { PlayIcon } from '@heroicons/react/24/solid';
 import { Button } from './ui/button';
 import { CellTypeIcon } from './CellTypeIcon';
 import { useReactiveValue } from '@/Engine/ReactiveProvider';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface CellContainerProps {
     definition: CellDefinition;
@@ -56,6 +58,21 @@ export function CellContainer({
     // Track execution state for code cells
     const [executionState] = useReactiveValue(`__cell_${definition.id}_state`, 'idle');
     const isExecuting = definition.type === 'code' && executionState === 'running';
+    
+    // Drag and drop functionality
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: definition.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
     
     // Refs for tracking play button position
     const cellContainerRef = useRef<HTMLDivElement>(null);
@@ -247,9 +264,12 @@ export function CellContainer({
     const cellTypeInfo = getCellTypeInfo();
       return (
         <div 
-            className="cell-container-wrapper relative"
+            ref={setNodeRef}
+            style={style}
+            className={`cell-container-wrapper relative ${isDragging ? 'opacity-50' : ''}`}
             onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}        >
+            onMouseLeave={() => setIsHovered(false)}
+        >
             {/* Floating Action Buttons - moved left to avoid overlap with grip */}
             {(isSelected || isHovered) && (
                 <div className="absolute -top-2 right-10 z-10 flex items-center gap-1 bg-background border border-border rounded-lg px-2 py-1 shadow-lg">
@@ -429,6 +449,8 @@ export function CellContainer({
                     isSelected || isHovered ? 'opacity-100' : 'opacity-0'
                 }`}>
                     <Button
+                        {...attributes}
+                        {...listeners}
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"

@@ -933,6 +933,8 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             stateManager.deleteCell(cellId, description),
         moveCell: (cellId: string, direction: 'up' | 'down', description?: string) => 
             stateManager.moveCell(cellId, direction, description),
+        moveCellToPosition: (cellId: string, newPosition: number, description?: string) => 
+            stateManager.moveCellToPosition(cellId, newPosition, description),
         duplicateCell: (cellId: string, description?: string) => 
             stateManager.duplicateCell(cellId, description),
     };

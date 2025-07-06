@@ -10,6 +10,21 @@ import { FormulaCell } from './FormulaCell';
 import { CellContainer } from './CellContainer';
 import { CellSeparator } from './CellSeparator';
 import useMutationObserver from '@/lib/plotlyDark';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 export const log = anylogger("DynamicNotebook");
 
 interface DynamicNotebookProps {
@@ -23,12 +38,38 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
     addCell: addCellToNotebook, 
     deleteCell: deleteCellFromNotebook, 
     moveCell: moveCellInNotebook, 
+    moveCellToPosition: moveCellToPositionInNotebook,
     duplicateCell: duplicateCellInNotebook,
     selectedCellId, 
     setSelectedCellId 
   } = useApplication();
   const { getAvailableModules } = useCodeCellModules();
   const [initialized, setInitialized] = React.useState(false);
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle drag end
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const activeIndex = model.cells.findIndex(cell => cell.id === active.id);
+    const overIndex = model.cells.findIndex(cell => cell.id === over.id);
+
+    if (activeIndex !== -1 && overIndex !== -1) {
+      // Use the moveCellToPosition method from NotebookStateManager
+      moveCellToPositionInNotebook(active.id as string, overIndex, 'Drag and drop cell');
+    }
+  };
 
   // Editing state - only track local state, selectedCellId comes from application context
   const [editingState, setEditingState] = useState<Pick<NotebookEditingState, 'editModeCells' | 'focusedCellId'>>({
@@ -308,30 +349,41 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
             </div>
           </div>
         ) : (
-          <div className="cells-container">
-            {/* Cell separator at the top - hidden in reading mode */}
-            <div className="reading-mode-hide">
-              <CellSeparator onAddCell={addCell} insertIndex={0} isFirst />
-            </div>
-            
-            {model.cells.map((cell, index) => (
-              <React.Fragment key={cell.id}>
-                {/* Render the cell */}
-                <div className="cell-wrapper">
-                  {renderCell(cell, index)}
+          <DndContext 
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext 
+              items={model.cells.map(cell => cell.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="cells-container">
+                {/* Cell separator at the top - hidden in reading mode */}
+                <div className="reading-mode-hide">
+                  <CellSeparator onAddCell={addCell} insertIndex={0} isFirst />
                 </div>
                 
-                {/* Add separator after each cell - hidden in reading mode */}
-                <div className="reading-mode-hide">
-                  <CellSeparator 
-                    onAddCell={addCell} 
-                    insertIndex={index + 1}
-                    isLast={index === model.cells.length - 1}
-                  />
-                </div>
-              </React.Fragment>
-            ))}
-          </div>
+                {model.cells.map((cell, index) => (
+                  <React.Fragment key={cell.id}>
+                    {/* Render the cell */}
+                    <div className="cell-wrapper">
+                      {renderCell(cell, index)}
+                    </div>
+                    
+                    {/* Add separator after each cell - hidden in reading mode */}
+                    <div className="reading-mode-hide">
+                      <CellSeparator 
+                        onAddCell={addCell} 
+                        insertIndex={index + 1}
+                        isLast={index === model.cells.length - 1}
+                      />
+                    </div>
+                  </React.Fragment>
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </div>
     </div>

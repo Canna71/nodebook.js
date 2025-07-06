@@ -317,6 +317,29 @@ export class NotebookStateManager {
         );
     }
 
+    moveCellToPosition(cellId: string, newPosition: number, description?: string): void {
+        if (!this.currentState.currentModel) return;
+
+        const cells = this.currentState.currentModel.cells;
+        const cellIndex = cells.findIndex(cell => cell.id === cellId);
+        if (cellIndex === -1) return;
+
+        // Ensure new position is within bounds
+        const clampedPosition = Math.max(0, Math.min(newPosition, cells.length - 1));
+        
+        // No need to move if position hasn't changed
+        if (cellIndex === clampedPosition) return;
+
+        const newCells = [...cells];
+        const [movedCell] = newCells.splice(cellIndex, 1);
+        newCells.splice(clampedPosition, 0, movedCell);
+
+        this.setNotebookModel(
+            { ...this.currentState.currentModel, cells: newCells },
+            description || `Move cell to position ${clampedPosition}`
+        );
+    }
+
     duplicateCell(cellId: string, description?: string): string | null {
         if (!this.currentState.currentModel) return null;
 
