@@ -614,6 +614,9 @@ export class CodeCellEngine {
             'zx': '$',
             // Utility libraries
             'lodash': '_',
+            // Data processing libraries
+            'papaparse': 'Papa',
+            'xlsx': 'XLSX',
             // Node.js built-ins (always available)
             'fs': 'fs',
             'path': 'path',

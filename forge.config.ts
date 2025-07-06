@@ -35,9 +35,9 @@ import fs from 'fs-extra';
     // 'escape-latex',
     // 'tiny-emitter',
     // 'table',
-    'papaparse',
+    // 'papaparse', // Now preloaded
     // 'plotly.js-dist-min',
-    'xlsx',
+    // 'xlsx', // Now preloaded
     // 'string-width',
     // 'strip-ansi',
     // 'is-fullwidth-code-point',

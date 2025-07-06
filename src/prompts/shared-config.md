@@ -87,12 +87,10 @@ const files = await $`ls *.nbjs`;  // Lists notebook files
 **These need explicit `require()` calls:**
 - **moment**: Date/time manipulation (`const moment = require('moment')`)
 - **d3**: Data visualization (`const d3 = require('d3')`)
-- **papaparse**: CSV parsing (`const Papa = require('papaparse')`)
-- **xlsx**: Excel file handling (`const XLSX = require('xlsx')`)
 - **node-fetch**: HTTP requests (`const fetch = require('node-fetch')`)
 - **axios**: HTTP client (`const axios = require('axios')`)
 
-**Note**: Lodash is now available as a global `_` variable - no require() needed!
+**Note**: Lodash (`_`), PapaParse (`Papa`), and XLSX (`XLSX`) are now available as global variables - no require() needed!
 
 ### Custom Object Rendering
 When using `output()` with objects, Nodebook.js provides special rendering for:

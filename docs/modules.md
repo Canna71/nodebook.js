@@ -11,7 +11,7 @@ Nodebook.js provides a comprehensive module system that allows you to use Node.j
 **Quick Start:**
 1. Create a `node_modules` directory in the same folder as your notebook
 2. Install packages: `npm install lodash moment`
-3. Use in your notebook: `const _ = require('lodash');` (or use global `_` for lodash)
+3. Use in your notebook: `const _ = require('lodash');` (or use global `_`, `Papa`, `XLSX`)
 
 ## Table of Contents
 
@@ -146,6 +146,27 @@ exports.avgAge = _.meanBy(data, 'age');
 exports.uniqueDepartments = _.uniq(_.map(data, 'department'));
 exports.oldestPerson = _.maxBy(data, 'age');
 exports.youngEmployees = _.filter(data, person => person.age < 30);
+
+// PapaParse - Papa is available globally
+const csvData = `name,age,department
+Alice,25,Engineering
+Bob,30,Sales
+Charlie,35,Engineering`;
+
+exports.parsedCsv = Papa.parse(csvData, { header: true });
+exports.csvAsArray = Papa.parse(csvData).data;
+
+// XLSX - Excel file handling (XLSX is available globally)
+const worksheetData = [
+    { Name: 'Alice', Age: 25, Department: 'Engineering' },
+    { Name: 'Bob', Age: 30, Department: 'Sales' },
+    { Name: 'Charlie', Age: 35, Department: 'Engineering' }
+];
+
+const workbook = XLSX.utils.book_new();
+const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+XLSX.utils.book_append_sheet(workbook, worksheet, 'Employees');
+exports.excelWorkbook = workbook;
 ```
 
 **Available Pre-bundled Library Globals:**
@@ -154,6 +175,8 @@ exports.youngEmployees = _.filter(data, person => person.age < 30);
 - `Plotly` - Interactive plotting library (pre-loaded)
 - `math` - Math.js mathematical functions and expressions (pre-loaded)
 - `_` - Lodash utility library (pre-loaded)
+- `Papa` - PapaParse CSV parsing library (pre-loaded)
+- `XLSX` - Excel file handling library (pre-loaded)
 
 ## Shell Scripting with zx (Per-Notebook Installation Required)
 
@@ -415,16 +438,6 @@ const svg = d3.create("svg")
     .attr("width", 400)
     .attr("height", 200);
 
-// CSV parsing - need to require
-const Papa = require('papaparse');
-exports.csvData = Papa.parse(csvString, { header: true });
-
-// Excel files - need to require
-const XLSX = require('xlsx');
-const workbook = XLSX.utils.book_new();
-const worksheet = XLSX.utils.json_to_sheet(data);
-XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
-
 // HTTP requests - need to require
 const axios = require('axios');
 const fetch = require('node-fetch');
@@ -440,8 +453,6 @@ exports.tomorrow = moment().add(1, 'day').toDate();
 **Pre-bundled Libraries (Require-Available):**
 - `moment` - Date/time manipulation
 - `d3` - Data visualization toolkit
-- `papaparse` - CSV parsing
-- `xlsx` - Excel file handling
 - `node-fetch` - HTTP requests
 - `axios` - HTTP client
 

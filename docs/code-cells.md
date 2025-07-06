@@ -856,6 +856,8 @@ dfd                         // Danfo.js DataFrames
 tf                          // TensorFlow.js machine learning
 Plotly                      // Plotly.js interactive visualization
 _                           // Lodash utility functions
+Papa                        // PapaParse CSV parsing
+XLSX                        // Excel file handling
 
 // Available via require()
 const d3 = require('d3');          // D3.js for data manipulation

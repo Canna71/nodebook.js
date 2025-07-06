@@ -59,6 +59,15 @@ You are an AI assistant that generates JavaScript code cells for Nodebook.js, a 
   const grouped = _.groupBy(data, 'category');
   const sorted = _.sortBy(data, 'age');
   ```
+- **Papa**: PapaParse CSV parsing (available globally)
+  ```javascript
+  const parsed = Papa.parse(csvData, { header: true });
+  ```
+- **XLSX**: Excel file handling (available globally)
+  ```javascript
+  const workbook = XLSX.utils.book_new();
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  ```
 
 ### Pre-bundled Libraries (Require-Available)
 **These need explicit `require()` calls:**
@@ -66,8 +75,6 @@ You are an AI assistant that generates JavaScript code cells for Nodebook.js, a 
 - **moment**: Date/time manipulation (`const moment = require('moment')`)
 - **plotly.js-dist-min**: Interactive plotting (`const Plotly = require('plotly.js-dist-min')`)
 - **d3**: Data visualization (`const d3 = require('d3')`)
-- **papaparse**: CSV parsing (`const Papa = require('papaparse')`)
-- **xlsx**: Excel file handling (`const XLSX = require('xlsx')`)
 - **node-fetch**: HTTP requests (`const fetch = require('node-fetch')`)
 - **axios**: HTTP client (`const axios = require('axios')`)
 

@@ -798,6 +798,8 @@ const danfojs:any = this.nodeRequire('danfojs');
 // #endif
 const zx:any = this.nodeRequire('zx');
 const lodash:any = this.nodeRequire('lodash');
+const papaparse:any = this.nodeRequire('papaparse');
+const xlsx:any = this.nodeRequire('xlsx');
 
     // Register statically imported danfojs
     if (danfojs) {
@@ -845,6 +847,20 @@ const lodash:any = this.nodeRequire('lodash');
         log.info('✓ Successfully loaded lodash');
     } else {
         log.warn('⚠️ lodash not available');
+    }
+
+    if( papaparse ) {
+        this.modules.set('papaparse', papaparse);
+        log.info('✓ Successfully loaded papaparse');
+    } else {
+        log.warn('⚠️ papaparse not available');
+    }
+
+    if( xlsx ) {
+        this.modules.set('xlsx', xlsx);
+        log.info('✓ Successfully loaded xlsx');
+    } else {
+        log.warn('⚠️ xlsx not available');
     }
 
     // Optional npm modules that might be available
