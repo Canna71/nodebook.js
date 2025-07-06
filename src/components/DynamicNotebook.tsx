@@ -37,6 +37,7 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
   const { 
     addCell: addCellToNotebook, 
     deleteCell: deleteCellFromNotebook, 
+    updateCell,
     moveCell: moveCellInNotebook, 
     moveCellToPosition: moveCellToPositionInNotebook,
     duplicateCell: duplicateCellInNotebook,
@@ -278,13 +279,42 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
     // Get exports for code cells
     const exports = cell.type === 'code' ? codeCellEngine.getCellExports(cell.id) : undefined;
 
+    // Get or create ref for code cell execute function (stable across renders)
     // Create execute callback for code cells (still available in reading mode for reactive updates)
     const handleExecuteCode = cell.type === 'code' ? async () => {
       const codeCell = cell as CodeCellDefinition;
-      const currentCode = codeCellEngine.getCurrentCode(cell.id) || codeCell.code;
+      
+      // Check if the cell has unsaved changes by reading from reactive state
+      const isDirty = reactiveStore.getValue(`__cell_${cell.id}_dirty`) || false;
+      const currentCode = (reactiveStore.getValue(`__cell_${cell.id}_currentCode`) as string) || codeCell.code;
+      const isStatic = (reactiveStore.getValue(`__cell_${cell.id}_isStatic`) as boolean) || codeCell.isStatic || false;
+      
+      // If there are unsaved changes, update the cell first
+      if (isDirty) {
+        const updates: Partial<CodeCellDefinition> = {};
+        
+        // Check what changed
+        if (currentCode !== codeCell.code) {
+          updates.code = currentCode;
+          codeCellEngine.updateCodeCell(cell.id, currentCode);
+        }
+        
+        if (isStatic !== (codeCell.isStatic || false)) {
+          updates.isStatic = isStatic;
+        }
+        
+        // Update the notebook model
+        if (Object.keys(updates).length > 0) {
+          updateCell(cell.id, updates, 'Auto-commit changes before execution');
+        }
+        
+        // Clear dirty state
+        reactiveStore.define(`__cell_${cell.id}_dirty`, false);
+      }
+      
       try {
-        await codeCellEngine.executeCodeCell(cell.id, currentCode, undefined, codeCell.isStatic || false);
-        log.debug(`Code cell ${cell.id} executed from header button (static: ${codeCell.isStatic || false})`);
+        await codeCellEngine.executeCodeCell(cell.id, currentCode, undefined, isStatic);
+        log.debug(`Code cell ${cell.id} executed from header button (static: ${isStatic})`);
       } catch (error) {
         log.error(`Error executing code cell ${cell.id} from header button:`, error);
       }

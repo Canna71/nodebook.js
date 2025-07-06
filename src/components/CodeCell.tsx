@@ -62,6 +62,11 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     const [isStatic, setIsStatic] = useState(definition.isStatic || false);
     const [isStaticDirty, setIsStaticDirty] = useState(false);
 
+    // Expose dirty state to reactive system for external access
+    const [, setDirtyState] = useReactiveValue(`__cell_${definition.id}_dirty`, false);
+    const [, setCurrentCodeState] = useReactiveValue(`__cell_${definition.id}_currentCode`, definition.code || '');
+    const [, setIsStaticState] = useReactiveValue(`__cell_${definition.id}_isStatic`, definition.isStatic || false);
+
     // Add ref for DOM output container
     const outputContainerRef = React.useRef<HTMLDivElement>(null);
 
@@ -125,13 +130,23 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         const hasChanges = newCode !== definition.code;
         setIsDirty(hasChanges);
         
+        // Update reactive state for external access
+        setCurrentCodeState(newCode);
+        setDirtyState(hasChanges || isStaticDirty);
+        
         log.debug(`Code cell ${definition.id} code editing (dirty: ${hasChanges})`);
     };
 
     // Handle static mode toggle
     const onStaticToggle = (newIsStatic: boolean) => {
         setIsStatic(newIsStatic);
-        setIsStaticDirty(newIsStatic !== (definition.isStatic || false));
+        const staticDirty = newIsStatic !== (definition.isStatic || false);
+        setIsStaticDirty(staticDirty);
+        
+        // Update reactive state for external access
+        setIsStaticState(newIsStatic);
+        setDirtyState(isDirty || staticDirty);
+        
         log.debug(`Code cell ${definition.id} static mode toggle (static: ${newIsStatic})`);
     };
 
@@ -157,6 +172,10 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         
         setIsDirty(false);
         setIsStaticDirty(false);
+        
+        // Update reactive state
+        setDirtyState(false);
+        
         log.debug(`Code cell ${definition.id} changes committed`, updates);
     }, [isDirty, isStaticDirty, currentCode, isStatic, definition.id, codeCellEngine, updateCell]);
 
@@ -166,6 +185,12 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         setIsStatic(definition.isStatic || false);
         setIsDirty(false);
         setIsStaticDirty(false);
+        
+        // Update reactive state
+        setCurrentCodeState(definition.code);
+        setIsStaticState(definition.isStatic || false);
+        setDirtyState(false);
+        
         log.debug(`Code cell ${definition.id} changes discarded`);
     }, [definition.code, definition.isStatic, definition.id]);
 
