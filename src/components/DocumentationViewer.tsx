@@ -101,10 +101,18 @@ export function DocumentationViewer({ onClose, initialDocument = 'index.md' }: D
       'href="#" data-internal-link="$1" onclick="event.preventDefault(); window.navigateToDoc && window.navigateToDoc(\'$1\')"'
     );
     
-    // Add image placeholders for documentation images
+    // Process image sources to ensure they work with the documentation system
     html = html.replace(
       /<img([^>]*?)src="([^"]*?)"([^>]*?)>/g,
-      '<div class="documentation-image-placeholder border-2 border-dashed border-border rounded-lg p-8 text-center text-secondary-foreground my-4">📷 Image Placeholder: $2<br><small>Image will be added here</small></div>'
+      (match, beforeSrc, src, afterSrc) => {
+        // If the image source is relative and doesn't start with http/https, 
+        // it should be handled by the documentation system
+        if (!src.startsWith('http') && !src.startsWith('data:')) {
+          // Keep the image tag but ensure it's styled properly for documentation
+          return `<img${beforeSrc}src="${src}"${afterSrc} style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">`;
+        }
+        return match;
+      }
     );
     
     return html;
