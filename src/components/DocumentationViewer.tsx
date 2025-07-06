@@ -77,7 +77,7 @@ export function DocumentationViewer({ onClose, initialDocument = 'index.md' }: D
       
       if (result.success && result.data) {
         // Process markdown content and handle internal links
-        const processedContent = processMarkdownContent(result.data);
+        const processedContent = await processMarkdownContent(result.data);
         setContent(processedContent);
       } else {
         setError(result.error || 'Failed to load document');
@@ -91,7 +91,7 @@ export function DocumentationViewer({ onClose, initialDocument = 'index.md' }: D
     }
   };
 
-  const processMarkdownContent = (markdownContent: string): string => {
+  const processMarkdownContent = async (markdownContent: string): Promise<string> => {
     // Convert markdown to HTML
     let html = markdown.render(markdownContent);
     
@@ -101,19 +101,56 @@ export function DocumentationViewer({ onClose, initialDocument = 'index.md' }: D
       'href="#" data-internal-link="$1" onclick="event.preventDefault(); window.navigateToDoc && window.navigateToDoc(\'$1\')"'
     );
     
-    // Process image sources to ensure they work with the documentation system
-    html = html.replace(
-      /<img([^>]*?)src="([^"]*?)"([^>]*?)>/g,
-      (match, beforeSrc, src, afterSrc) => {
-        // If the image source is relative and doesn't start with http/https, 
-        // it should be handled by the documentation system
-        if (!src.startsWith('http') && !src.startsWith('data:')) {
-          // Keep the image tag but ensure it's styled properly for documentation
-          return `<img${beforeSrc}src="${src}"${afterSrc} style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">`;
-        }
-        return match;
+    // Process image sources to load them as data URLs
+    const imageRegex = /<img([^>]*?)src="([^"]*?)"([^>]*?)>/g;
+    let match;
+    const imagePromises: Promise<void>[] = [];
+    
+    while ((match = imageRegex.exec(html)) !== null) {
+      const [fullMatch, beforeSrc, src, afterSrc] = match;
+      
+      // If the image source is relative and doesn't start with http/https/data:
+      if (!src.startsWith('http') && !src.startsWith('data:')) {
+        imagePromises.push(
+          (async () => {
+            try {
+              const docHelpers = getDocumentationHelpers();
+              const result = await docHelpers.loadImage(src);
+              
+              if (result.success && result.data) {
+                // Replace the image src with the data URL
+                html = html.replace(
+                  fullMatch,
+                  `<img${beforeSrc}src="${result.data}"${afterSrc} style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">`
+                );
+              } else {
+                // If image loading fails, show a placeholder
+                html = html.replace(
+                  fullMatch,
+                  `<div class="documentation-image-placeholder border-2 border-dashed border-border rounded-lg p-8 text-center text-secondary-foreground my-4">
+                    📷 Image not found: ${src}
+                    <br><small>Could not load image file</small>
+                  </div>`
+                );
+              }
+            } catch (error) {
+              log.warn(`Failed to load image ${src}:`, error);
+              // Replace with placeholder on error
+              html = html.replace(
+                fullMatch,
+                `<div class="documentation-image-placeholder border-2 border-dashed border-border rounded-lg p-8 text-center text-secondary-foreground my-4">
+                  📷 Image error: ${src}
+                  <br><small>Error loading image</small>
+                </div>`
+              );
+            }
+          })()
+        );
       }
-    );
+    }
+    
+    // Wait for all image loading to complete
+    await Promise.all(imagePromises);
     
     return html;
   };

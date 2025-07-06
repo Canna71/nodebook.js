@@ -225,6 +225,65 @@ export class DocumentationHelpers {
     }
 
     /**
+     * Load an image file as a data URL for embedding in documentation
+     */
+    public async loadImage(filename: string): Promise<DocumentationResult<string>> {
+        try {
+            const filePath = path.join(this.docsPath, filename);
+
+            if (!fs.existsSync(filePath)) {
+                return {
+                    success: false,
+                    error: `Image file not found: ${filename}`
+                };
+            }
+
+            // Read the image file as a buffer
+            const imageBuffer = await fs.promises.readFile(filePath);
+            
+            // Determine MIME type from file extension
+            const ext = path.extname(filename).toLowerCase();
+            let mimeType = 'image/png'; // default
+            
+            switch (ext) {
+                case '.jpg':
+                case '.jpeg':
+                    mimeType = 'image/jpeg';
+                    break;
+                case '.png':
+                    mimeType = 'image/png';
+                    break;
+                case '.gif':
+                    mimeType = 'image/gif';
+                    break;
+                case '.svg':
+                    mimeType = 'image/svg+xml';
+                    break;
+                case '.webp':
+                    mimeType = 'image/webp';
+                    break;
+            }
+
+            // Convert to data URL
+            const base64 = imageBuffer.toString('base64');
+            const dataUrl = `data:${mimeType};base64,${base64}`;
+
+            log.debug(`Image loaded successfully as data URL: ${filename}`);
+            return {
+                success: true,
+                data: dataUrl
+            };
+        } catch (error) {
+            const errorMsg = `Failed to load image ${filename}: ${error instanceof Error ? error.message : String(error)}`;
+            log.error(errorMsg, error);
+            return {
+                success: false,
+                error: errorMsg
+            };
+        }
+    }
+
+    /**
      * Debug method to check paths and existence
      */
     public async debugPaths(): Promise<{
