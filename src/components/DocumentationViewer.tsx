@@ -29,6 +29,7 @@ export function DocumentationViewer({ onClose, initialDocument = 'index.md' }: D
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [availableDocs, setAvailableDocs] = useState<DocumentationFileInfo[]>([]);
+  const [navigationHistory, setNavigationHistory] = useState<string[]>([]);
   const { commandManager } = useCommands();
 
   useEffect(() => {
@@ -155,16 +156,33 @@ export function DocumentationViewer({ onClose, initialDocument = 'index.md' }: D
     return html;
   };
 
+  const navigateToDocument = (filename: string) => {
+    // Don't add to history if we're navigating to the same document
+    if (filename !== currentDoc) {
+      // Add current document to history before navigating
+      setNavigationHistory(prev => [...prev, currentDoc]);
+      setCurrentDoc(filename);
+    }
+  };
+
+  const navigateBack = () => {
+    if (navigationHistory.length > 0) {
+      const previousDoc = navigationHistory[navigationHistory.length - 1];
+      setNavigationHistory(prev => prev.slice(0, -1));
+      setCurrentDoc(previousDoc);
+    }
+  };
+
+  const canGoBack = navigationHistory.length > 0;
+
   // Make navigation function available globally for link clicks
   useEffect(() => {
-    (window as any).navigateToDoc = (filename: string) => {
-      setCurrentDoc(filename);
-    };
+    (window as any).navigateToDoc = navigateToDocument;
     
     return () => {
       delete (window as any).navigateToDoc;
     };
-  }, []);
+  }, [currentDoc]);
 
   const getCurrentDocInfo = () => {
     return availableDocs.find(doc => doc.filename === currentDoc);
@@ -223,11 +241,31 @@ export function DocumentationViewer({ onClose, initialDocument = 'index.md' }: D
             )}
           </div>
         </div>
+        
+        {/* Navigation Controls */}
+        <div className="flex items-center space-x-2">
+          {canGoBack && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={navigateBack}
+              className="flex items-center space-x-1"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </Button>
+          )}
+          {onClose && (
+            <Button variant="outline" size="sm" onClick={onClose}>
+              Close
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <div className="max-w-4xl mx-auto p-8 pb-24">
+        <div className="max-w-4xl mx-auto p-8 pb-8">
           <div 
             className="prose prose-slate dark:prose-invert max-w-none
                        prose-headings:text-foreground prose-p:text-foreground 
@@ -239,18 +277,6 @@ export function DocumentationViewer({ onClose, initialDocument = 'index.md' }: D
           />
         </div>
       </div>
-
-      {/* Fixed Bottom Actions */}
-      {onClose && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4">
-          <div className="max-w-4xl mx-auto flex justify-start">
-            <Button variant="outline" onClick={onClose}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Close
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
