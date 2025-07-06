@@ -762,7 +762,7 @@ export function ApplicationProvider({ children, commandManager }: ApplicationPro
             log.debug('Attempting to load welcome tutorial from examples folder');
             
             // Try to load the welcome tutorial using FileSystemHelpers
-            const content = await fs.loadExample('welcome-tutorial.json');
+            const content = await fs.loadExample('welcome-tutorial.nbjs');
             if (content.success && content.data) {
                 let model = content.data;
                 

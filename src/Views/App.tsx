@@ -12,7 +12,6 @@ import { AIService } from '@/Engine/AIService';
 const log = anylogger("App");
 log.debug("Initializing App");
 
-import danfojsPlottingExample from "../../examples/danfojs-plotting-example.json";
 import { NotebookViewer } from './NotebookViewer';
 import { SettingsView } from './SettingsView';
 import { HomePage } from './HomePage';

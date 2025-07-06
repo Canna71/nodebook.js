@@ -5,7 +5,7 @@ This page showcases the example notebooks included with Nodebook.js. These are l
 ## Getting Started Examples
 
 ### Welcome Tutorial
-**File**: `welcome-tutorial.json`  
+**File**: `welcome-tutorial.nbjs`  
 **Perfect for**: First-time users  
 **Shows**: Basic concepts, cell types, and reactive programming fundamentals
 
@@ -17,41 +17,41 @@ This page showcases the example notebooks included with Nodebook.js. These are l
 ## Data Analysis & Visualization
 
 ### Linear Regression Analysis
-**File**: `linear-regression-analysis.json`  
+**File**: `linear-regression-analysis.nbjs`  
 **Perfect for**: Data scientists and analysts  
 **Shows**: Complete ML workflow with data preparation, model training, and visualization
 
 ### Danfojs Data Analysis
-**File**: `danfojs-example.json`  
+**File**: `danfojs-example.nbjs`  
 **Perfect for**: Data manipulation and analysis  
 **Shows**: Using Danfojs (pandas-like library) for data processing
 
 ### Danfojs Plotting
-**File**: `danfojs-plotting-example.json`  
+**File**: `danfojs-plotting-example.nbjs`  
 **Perfect for**: Data visualization  
 **Shows**: Creating charts and plots with Danfojs integration
 
 ### Tabular Output Examples
-**File**: `tabular-output-example.json`  
+**File**: `tabular-output-example.nbjs`  
 **Perfect for**: Data presentation  
 **Shows**: Different ways to display tabular data
 
 ## Advanced Visualizations
 
 ### D3 Visualization
-**File**: `d3-visualization-example.json`  
+**File**: `d3-visualization-example.nbjs`  
 **Perfect for**: Custom data visualizations  
 **Shows**: Using D3.js for advanced, interactive graphics
 
 ### DOM Output Patterns
-**File**: `dom-output-patterns-example.json`  
+**File**: `dom-output-patterns-example.nbjs`  
 **Perfect for**: Custom UI components  
 **Shows**: Different patterns for DOM manipulation and output
 
 ## Machine Learning
 
 ### TensorFlow Example
-**File**: `tensorflow-example.json`  
+**File**: `tensorflow-example.nbjs`  
 **Perfect for**: ML practitioners  
 **Shows**: Using TensorFlow.js for machine learning in the browser
 
@@ -70,36 +70,36 @@ This page showcases the example notebooks included with Nodebook.js. These are l
 **Shows**: Using ZX for shell commands and system integration
 
 ### Filesystem Operations
-**File**: `filesystem-example.json`  
+**File**: `filesystem-example.nbjs`  
 **Perfect for**: File operations  
 **Shows**: Working with files and directories
 
 ## Storage & State Management
 
 ### Storage System Demo
-**File**: `storage-example.json`  
+**File**: `storage-example.nbjs`  
 **Perfect for**: Persistent data  
 **Shows**: Using the built-in storage system for data persistence
 
 ### Comprehensive Storage Test
-**File**: `comprehensive-storage-test.json`  
+**File**: `comprehensive-storage-test.nbjs`  
 **Perfect for**: Advanced storage patterns  
 **Shows**: Complex storage scenarios and patterns
 
 ## Interactive Demos
 
 ### Shopping List Demo
-**File**: `shopping-list-demo.json`  
+**File**: `shopping-list-demo.nbjs`  
 **Perfect for**: Interactive applications  
 **Shows**: Building a complete interactive shopping list application
 
 ### Pricing Model
-**File**: `pricing-model.json`  
+**File**: `pricing-model.nbjs`  
 **Perfect for**: Business applications  
 **Shows**: Building dynamic pricing models with reactive updates
 
 ### Performance Testing
-**File**: `slider-performance-test.json`  
+**File**: `slider-performance-test.nbjs`  
 **Perfect for**: Performance optimization  
 **Shows**: Testing and optimizing reactive performance
 
@@ -112,24 +112,24 @@ This page showcases the example notebooks included with Nodebook.js. These are l
 ## Learning Path Recommendations
 
 ### Beginner Path
-1. Start with `welcome-tutorial.json`
+1. Start with `welcome-tutorial.nbjs`
 2. Try `employees.nbjs` for data basics
-3. Explore `storage-example.json` for persistence
+3. Explore `storage-example.nbjs` for persistence
 
 ### Data Analysis Path
-1. Begin with `danfojs-example.json`
-2. Move to `tabular-output-example.json`
-3. Try `linear-regression-analysis.json`
+1. Begin with `danfojs-example.nbjs`
+2. Move to `tabular-output-example.nbjs`
+3. Try `linear-regression-analysis.nbjs`
 
 ### Visualization Path
-1. Start with `danfojs-plotting-example.json`
-2. Explore `dom-output-patterns-example.json`
-3. Advanced: `d3-visualization-example.json`
+1. Start with `danfojs-plotting-example.nbjs`
+2. Explore `dom-output-patterns-example.nbjs`
+3. Advanced: `d3-visualization-example.nbjs`
 
 ### Advanced Path
-1. Try `tensorflow-example.json` for ML
+1. Try `tensorflow-example.nbjs` for ML
 2. Explore `zx-tutorial.nbjs` for system integration
-3. Build with `shopping-list-demo.json` patterns
+3. Build with `shopping-list-demo.nbjs` patterns
 
 ## Contributing Examples
 

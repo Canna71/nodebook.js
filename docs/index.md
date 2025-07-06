@@ -197,14 +197,14 @@ Explore our comprehensive collection of example notebooks covering data analysis
 ### Quick Start Recommendations
 
 **New to Nodebook.js?** Start with:
-1. `welcome-tutorial.json` - Learn the basics
+1. `welcome-tutorial.nbjs` - Learn the basics
 2. `employees.nbjs` - Try data manipulation  
-3. `storage-example.json` - Understand persistence
+3. `storage-example.nbjs` - Understand persistence
 
 **Data Analysis Focus?** Try:
-1. `danfojs-example.json` - Data processing
-2. `linear-regression-analysis.json` - ML workflows
-3. `d3-visualization-example.json` - Advanced charts
+1. `danfojs-example.nbjs` - Data processing
+2. `linear-regression-analysis.nbjs` - ML workflows
+3. `d3-visualization-example.nbjs` - Advanced charts
 
 ## Reference & Help
 
@@ -225,4 +225,4 @@ Press `F1` anywhere in the application for instant help and documentation.
 
 ---
 
-**Ready to start?** Open the application and try the `welcome-tutorial.json` example!
+**Ready to start?** Open the application and try the `welcome-tutorial.nbjs` example!

@@ -226,7 +226,7 @@ storage.set('experiment_2_results', results2);
 ## Examples in Practice
 
 See the following example notebooks:
-- `storage-example.json` - Basic storage operations
+- `storage-example.nbjs` - Basic storage operations
 - `storage-integration-test.json` - Testing save/load functionality
 
 *Note: Example notebooks may have either `.json` or `.nbjs` file extensions.*
