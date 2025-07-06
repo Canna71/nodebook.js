@@ -279,44 +279,26 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
     // Get exports for code cells
     const exports = cell.type === 'code' ? codeCellEngine.getCellExports(cell.id) : undefined;
 
-    // Get or create ref for code cell execute function (stable across renders)
+    // Store execute callback for code cells
+    let codeExecuteCallback: (() => Promise<void>) | null = null;
+
     // Create execute callback for code cells (still available in reading mode for reactive updates)
     const handleExecuteCode = cell.type === 'code' ? async () => {
-      const codeCell = cell as CodeCellDefinition;
-      
-      // Check if the cell has unsaved changes by reading from reactive state
-      const isDirty = reactiveStore.getValue(`__cell_${cell.id}_dirty`) || false;
-      const currentCode = (reactiveStore.getValue(`__cell_${cell.id}_currentCode`) as string) || codeCell.code;
-      const isStatic = (reactiveStore.getValue(`__cell_${cell.id}_isStatic`) as boolean) || codeCell.isStatic || false;
-      
-      // If there are unsaved changes, update the cell first
-      if (isDirty) {
-        const updates: Partial<CodeCellDefinition> = {};
+      if (codeExecuteCallback) {
+        // Use the CodeCell's own execute function which handles auto-commit
+        await codeExecuteCallback();
+      } else {
+        // Fallback to direct engine call (shouldn't happen in normal flow)
+        const codeCell = cell as CodeCellDefinition;
+        const currentCode = codeCellEngine.getCurrentCode(cell.id) || codeCell.code;
+        const isStatic = codeCell.isStatic || false;
         
-        // Check what changed
-        if (currentCode !== codeCell.code) {
-          updates.code = currentCode;
-          codeCellEngine.updateCodeCell(cell.id, currentCode);
+        try {
+          await codeCellEngine.executeCodeCell(cell.id, currentCode, undefined, isStatic);
+          log.debug(`Code cell ${cell.id} executed from header button (static: ${isStatic})`);
+        } catch (error) {
+          log.error(`Error executing code cell ${cell.id} from header button:`, error);
         }
-        
-        if (isStatic !== (codeCell.isStatic || false)) {
-          updates.isStatic = isStatic;
-        }
-        
-        // Update the notebook model
-        if (Object.keys(updates).length > 0) {
-          updateCell(cell.id, updates, 'Auto-commit changes before execution');
-        }
-        
-        // Clear dirty state
-        reactiveStore.define(`__cell_${cell.id}_dirty`, false);
-      }
-      
-      try {
-        await codeCellEngine.executeCodeCell(cell.id, currentCode, undefined, isStatic);
-        log.debug(`Code cell ${cell.id} executed from header button (static: ${isStatic})`);
-      } catch (error) {
-        log.error(`Error executing code cell ${cell.id} from header button:`, error);
       }
     } : undefined;
 
@@ -336,7 +318,12 @@ export function DynamicNotebook({ model, readingMode = false }: DynamicNotebookP
         break;
       case 'code':
         // Remove readingMode prop - handle via CSS
-        cellComponent = <CodeCell definition={cell} initialized={initialized} isEditMode={isEditMode} />;
+        cellComponent = <CodeCell 
+          definition={cell} 
+          initialized={initialized} 
+          isEditMode={isEditMode}
+          onExecuteRequested={(callback) => { codeExecuteCallback = callback; }}
+        />;
         break;
       default:
         log.warn(`Unknown cell type: ${(cell as any).type}`);

@@ -19,10 +19,11 @@ interface CodeCellProps {
   definition: CodeCellDefinition;
   initialized: boolean;
   isEditMode?: boolean;
+  onExecuteRequested?: (executeCallback: () => Promise<void>) => void;
 }
 
 // Add CodeCell component for display purposes
-export function CodeCell({ definition, initialized, isEditMode = false }: CodeCellProps) {
+export function CodeCell({ definition, initialized, isEditMode = false, onExecuteRequested }: CodeCellProps) {
     const { codeCellEngine } = useReactiveSystem();
     const { updateCell } = useApplication();
     
@@ -61,11 +62,6 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
     // Static mode state management
     const [isStatic, setIsStatic] = useState(definition.isStatic || false);
     const [isStaticDirty, setIsStaticDirty] = useState(false);
-
-    // Expose dirty state to reactive system for external access
-    const [, setDirtyState] = useReactiveValue(`__cell_${definition.id}_dirty`, false);
-    const [, setCurrentCodeState] = useReactiveValue(`__cell_${definition.id}_currentCode`, definition.code || '');
-    const [, setIsStaticState] = useReactiveValue(`__cell_${definition.id}_isStatic`, definition.isStatic || false);
 
     // Add ref for DOM output container
     const outputContainerRef = React.useRef<HTMLDivElement>(null);
@@ -130,10 +126,6 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         const hasChanges = newCode !== definition.code;
         setIsDirty(hasChanges);
         
-        // Update reactive state for external access
-        setCurrentCodeState(newCode);
-        setDirtyState(hasChanges || isStaticDirty);
-        
         log.debug(`Code cell ${definition.id} code editing (dirty: ${hasChanges})`);
     };
 
@@ -142,10 +134,6 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         setIsStatic(newIsStatic);
         const staticDirty = newIsStatic !== (definition.isStatic || false);
         setIsStaticDirty(staticDirty);
-        
-        // Update reactive state for external access
-        setIsStaticState(newIsStatic);
-        setDirtyState(isDirty || staticDirty);
         
         log.debug(`Code cell ${definition.id} static mode toggle (static: ${newIsStatic})`);
     };
@@ -173,9 +161,6 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         setIsDirty(false);
         setIsStaticDirty(false);
         
-        // Update reactive state
-        setDirtyState(false);
-        
         log.debug(`Code cell ${definition.id} changes committed`, updates);
     }, [isDirty, isStaticDirty, currentCode, isStatic, definition.id, codeCellEngine, updateCell]);
 
@@ -185,11 +170,6 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
         setIsStatic(definition.isStatic || false);
         setIsDirty(false);
         setIsStaticDirty(false);
-        
-        // Update reactive state
-        setCurrentCodeState(definition.code);
-        setIsStaticState(definition.isStatic || false);
-        setDirtyState(false);
         
         log.debug(`Code cell ${definition.id} changes discarded`);
     }, [definition.code, definition.isStatic, definition.id]);
@@ -225,13 +205,28 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
             return;
         }
         
-        // Commit any unsaved changes before executing
-        if (isDirty || isStaticDirty) {
-            commitChanges();
+        // Always commit current changes before executing (simplified approach)
+        // Update the engine's internal tracking if code changed
+        if (currentCode !== definition.code) {
+            codeCellEngine.updateCodeCell(definition.id, currentCode);
         }
         
-        // DOM output clearing is now handled by the reactive system
-        // No need to manually clear here as executeCodeCell handles it
+        // Update the notebook model through state manager
+        const updates: Partial<CodeCellDefinition> = {};
+        if (currentCode !== definition.code) {
+            updates.code = currentCode;
+        }
+        if (isStatic !== (definition.isStatic || false)) {
+            updates.isStatic = isStatic;
+        }
+        
+        if (Object.keys(updates).length > 0) {
+            updateCell(definition.id, updates, 'Auto-commit changes before execution');
+        }
+        
+        // Reset dirty flags since we just committed
+        setIsDirty(false);
+        setIsStaticDirty(false);
         
         // Execute with the current code and static flag
         try {
@@ -241,6 +236,13 @@ export function CodeCell({ definition, initialized, isEditMode = false }: CodeCe
             log.error(`Error executing code cell ${definition.id}:`, error);
         }
     };
+
+    // Register execute callback for external use (play button)
+    useEffect(() => {
+        if (onExecuteRequested) {
+            onExecuteRequested(onExecute);
+        }
+    }, [onExecuteRequested, onExecute]);
 
     return (
         <div className={`cell code-cell border rounded-lg mb-4 overflow-hidden ${
