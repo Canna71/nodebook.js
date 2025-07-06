@@ -76,6 +76,9 @@ Each code cell has a dedicated output area that can display:
 - **Visualizations**: Charts, plots, and custom graphics using libraries like Plotly, D3, etc.
 - **DOM Elements**: Custom HTML and interactive components using DOM helpers
 
+
+<img src="CleanShot 2025-07-06 at 17.31.09@2x.png" alt="Nodebook.js Output Areas" width="600">
+
 ### Reactive System in Action
 
 The reactive system is what makes Nodebook.js special. When you change a value in one cell, all dependent cells automatically update:
