@@ -558,7 +558,7 @@ export class GenerateCodeCellCommand extends BaseAICommand {
 
         // TODO: Add available modules from module registry
         // This will be implemented when we have access to the module registry
-        context.modules = ['tf', 'd3', 'plotly', 'Math', 'lodash', 'moment']; // Common modules
+        context.modules = ['tf', 'd3', 'plotly', 'Math', '_', 'moment']; // Common modules - lodash is now global as _
 
         log.info(`[${contextId}] Notebook context built successfully`, {
             variableCount: context.variables.length,
@@ -904,7 +904,7 @@ export class GenerateCellCommand extends BaseAICommand {
 
         // TODO: Add available modules from module registry
         // This will be implemented when we have access to the module registry
-        context.modules = ['tf', 'd3', 'plotly', 'Math', 'lodash', 'moment']; // Common modules
+        context.modules = ['tf', 'd3', 'plotly', 'Math', '_', 'moment']; // Common modules - lodash is now global as _
 
         log.info(`[${contextId}] Notebook context built successfully (GenerateNotebook)`, {
             variableCount: context.variables.length,

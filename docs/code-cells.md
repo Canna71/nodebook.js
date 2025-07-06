@@ -855,9 +855,9 @@ math                         // Math.js mathematical functions and expressions
 dfd                         // Danfo.js DataFrames
 tf                          // TensorFlow.js machine learning
 Plotly                      // Plotly.js interactive visualization
+_                           // Lodash utility functions
 
 // Available via require()
-const _ = require('lodash');        // Lodash utility functions  
 const d3 = require('d3');          // D3.js for data manipulation
 
 // Standard JavaScript

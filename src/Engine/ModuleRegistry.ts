@@ -797,6 +797,7 @@ export class ModuleRegistry {
 const danfojs:any = this.nodeRequire('danfojs');
 // #endif
 const zx:any = this.nodeRequire('zx');
+const lodash:any = this.nodeRequire('lodash');
 
     // Register statically imported danfojs
     if (danfojs) {
@@ -837,6 +838,13 @@ const zx:any = this.nodeRequire('zx');
         log.info('✓ Successfully loaded zx');
     } else {
         log.warn('⚠️ zx not available');
+    }
+
+    if( lodash ) {
+        this.modules.set('lodash', lodash);
+        log.info('✓ Successfully loaded lodash');
+    } else {
+        log.warn('⚠️ lodash not available');
     }
 
     // Optional npm modules that might be available

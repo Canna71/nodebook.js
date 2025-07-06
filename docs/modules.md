@@ -11,7 +11,7 @@ Nodebook.js provides a comprehensive module system that allows you to use Node.j
 **Quick Start:**
 1. Create a `node_modules` directory in the same folder as your notebook
 2. Install packages: `npm install lodash moment`
-3. Use in your notebook: `const _ = require('lodash');`
+3. Use in your notebook: `const _ = require('lodash');` (or use global `_` for lodash)
 
 ## Table of Contents
 
@@ -129,6 +129,23 @@ exports.matrix = math.matrix([[1, 2], [3, 4]]);
 exports.complexNum = math.evaluate('(2 + 3i) * (1 - 2i)');
 exports.unitConversion = math.evaluate('5 km + 3 miles');
 exports.bigNumber = math.bignumber('1').div(3); // Precision arithmetic
+
+// Lodash - _ is available globally
+const data = [
+    { name: 'Alice', age: 25, department: 'Engineering' },
+    { name: 'Bob', age: 30, department: 'Sales' },
+    { name: 'Charlie', age: 35, department: 'Engineering' }
+];
+
+exports.grouped = _.groupBy(data, 'department');
+exports.sorted = _.sortBy(data, 'age');
+exports.names = _.map(data, 'name');
+exports.avgAge = _.meanBy(data, 'age');
+
+// You can also use lodash methods directly
+exports.uniqueDepartments = _.uniq(_.map(data, 'department'));
+exports.oldestPerson = _.maxBy(data, 'age');
+exports.youngEmployees = _.filter(data, person => person.age < 30);
 ```
 
 **Available Pre-bundled Library Globals:**
@@ -136,6 +153,7 @@ exports.bigNumber = math.bignumber('1').div(3); // Precision arithmetic
 - `tf` - TensorFlow.js machine learning (from danfojs, pre-loaded)
 - `Plotly` - Interactive plotting library (pre-loaded)
 - `math` - Math.js mathematical functions and expressions (pre-loaded)
+- `_` - Lodash utility library (pre-loaded)
 
 ## Shell Scripting with zx (Per-Notebook Installation Required)
 
@@ -397,11 +415,6 @@ const svg = d3.create("svg")
     .attr("width", 400)
     .attr("height", 200);
 
-// Utility libraries - need to require
-const _ = require('lodash');
-exports.grouped = _.groupBy(data, 'category');
-exports.sorted = _.sortBy(data, 'timestamp');
-
 // CSV parsing - need to require
 const Papa = require('papaparse');
 exports.csvData = Papa.parse(csvString, { header: true });
@@ -425,7 +438,6 @@ exports.tomorrow = moment().add(1, 'day').toDate();
 ```
 
 **Pre-bundled Libraries (Require-Available):**
-- `lodash` - Utility functions
 - `moment` - Date/time manipulation
 - `d3` - Data visualization toolkit
 - `papaparse` - CSV parsing
@@ -570,11 +582,13 @@ Some scientific libraries still need explicit `require()`:
 ```javascript
 // ✅ Use require() for libraries not injected as globals
 const math = require('mathjs');
-const _ = require('lodash');
 const d3 = require('d3');
 
 const result = math.evaluate('2 + 3 * 4');
-const grouped = _.groupBy(items, 'category');
+
+// Note: lodash is now available as global _, but require() still works for compatibility
+const lodash = require('lodash'); // Same as global _
+const grouped = _.groupBy(items, 'category'); // Using global _
 
 // Export computed results
 exports.calculation = result;

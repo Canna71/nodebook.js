@@ -612,6 +612,8 @@ export class CodeCellEngine {
             'mathjs': 'math',
             // Shell scripting - main export as '$'
             'zx': '$',
+            // Utility libraries
+            'lodash': '_',
             // Node.js built-ins (always available)
             'fs': 'fs',
             'path': 'path',

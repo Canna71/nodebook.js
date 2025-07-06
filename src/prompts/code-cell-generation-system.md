@@ -54,11 +54,15 @@ You are an AI assistant that generates JavaScript code cells for Nodebook.js, a 
     layers: [tf.layers.dense({inputShape: [1], units: 1})]
   });
   ```
+- **_**: Lodash utility functions (available globally)
+  ```javascript
+  const grouped = _.groupBy(data, 'category');
+  const sorted = _.sortBy(data, 'age');
+  ```
 
 ### Pre-bundled Libraries (Require-Available)
 **These need explicit `require()` calls:**
 - **mathjs**: Mathematical functions (`const math = require('mathjs')`)
-- **lodash**: Utility functions (`const _ = require('lodash')`)
 - **moment**: Date/time manipulation (`const moment = require('moment')`)
 - **plotly.js-dist-min**: Interactive plotting (`const Plotly = require('plotly.js-dist-min')`)
 - **d3**: Data visualization (`const d3 = require('d3')`)

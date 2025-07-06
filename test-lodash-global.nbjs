@@ -1,0 +1,18 @@
+{
+  "cells": [
+    {
+      "id": "test-lodash-global",
+      "type": "code",
+      "code": "// Test that lodash is available as _ globally\nconst testData = [\n  { name: 'Alice', age: 25, department: 'Engineering' },\n  { name: 'Bob', age: 30, department: 'Sales' },\n  { name: 'Charlie', age: 35, department: 'Engineering' },\n  { name: 'Diana', age: 28, department: 'Marketing' }\n];\n\n// Test lodash functions as global _\nexports.groupedByDept = _.groupBy(testData, 'department');\nexports.sortedByAge = _.sortBy(testData, 'age');\nexports.names = _.map(testData, 'name');\nexports.avgAge = _.meanBy(testData, 'age');\nexports.engineeringCount = _.filter(testData, {department: 'Engineering'}).length;\n\nconsole.log('Lodash is available as global _:', typeof _ !== 'undefined');\nconsole.log('Grouped by department:', exports.groupedByDept);\nconsole.log('Average age:', exports.avgAge);"
+    },
+    {
+      "id": "test-lodash-require",
+      "type": "code", 
+      "code": "// Test that lodash is also available via require() for compatibility\nconst lodash = require('lodash');\n\n// Verify both are the same instance\nexports.sameInstance = (_ === lodash);\nexports.lodashVersion = lodash.VERSION || 'unknown';\n\nconsole.log('Global _ and require(\"lodash\") are the same:', exports.sameInstance);\nconsole.log('Lodash version:', exports.lodashVersion);"
+    }
+  ],
+  "metadata": {
+    "title": "Test Lodash Global Availability",
+    "description": "Test that lodash is available as _ globally and via require()"
+  }
+}

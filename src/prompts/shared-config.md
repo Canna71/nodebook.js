@@ -85,13 +85,14 @@ const files = await $`ls *.nbjs`;  // Lists notebook files
 
 ### Pre-bundled Libraries (Require-Available)
 **These need explicit `require()` calls:**
-- **lodash**: Utility functions (`const _ = require('lodash')`)
 - **moment**: Date/time manipulation (`const moment = require('moment')`)
 - **d3**: Data visualization (`const d3 = require('d3')`)
 - **papaparse**: CSV parsing (`const Papa = require('papaparse')`)
 - **xlsx**: Excel file handling (`const XLSX = require('xlsx')`)
 - **node-fetch**: HTTP requests (`const fetch = require('node-fetch')`)
 - **axios**: HTTP client (`const axios = require('axios')`)
+
+**Note**: Lodash is now available as a global `_` variable - no require() needed!
 
 ### Custom Object Rendering
 When using `output()` with objects, Nodebook.js provides special rendering for:
