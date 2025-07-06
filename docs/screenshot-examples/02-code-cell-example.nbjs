@@ -1,0 +1,24 @@
+{
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "header",
+      "content": "# Code Cell Examples\n\nThis notebook demonstrates code cells with reactive capabilities and exports."
+    },
+    {
+      "type": "code",
+      "id": "data-setup",
+      "content": "// Step 1: Define base data\nconst products = [\n  { name: \"Laptop\", price: 999, category: \"Electronics\" },\n  { name: \"Book\", price: 29, category: \"Education\" },\n  { name: \"Coffee\", price: 15, category: \"Food\" }\n];\n\n// Export for use in other cells\nexports.products = products;\nexports.taxRate = 0.08;\n\nconsole.log(\"Products loaded:\", products.length);\noutput(\"✅ Base data initialized successfully!\");"
+    },
+    {
+      "type": "code",
+      "id": "calculations",
+      "content": "// Step 2: Calculate totals (reactive - updates when products or taxRate changes)\nconst subtotal = products.reduce((sum, product) => sum + product.price, 0);\nconst taxAmount = subtotal * taxRate;\nconst totalAmount = subtotal + taxAmount;\n\n// Export calculated values\nexports.subtotal = subtotal;\nexports.taxAmount = taxAmount;\nexports.totalAmount = totalAmount;\n\n// Display results\noutput({\n  subtotal: `$${subtotal.toFixed(2)}`,\n  taxAmount: `$${taxAmount.toFixed(2)}`,\n  totalAmount: `$${totalAmount.toFixed(2)}`\n});\n\nconsole.log(`Calculated total: $${totalAmount.toFixed(2)}`);"
+    },
+    {
+      "type": "code",
+      "id": "analysis",
+      "content": "// Step 3: Analyze data (automatically updates when upstream values change)\nconst analysis = {\n  itemCount: products.length,\n  averagePrice: subtotal / products.length,\n  mostExpensive: products.reduce((max, p) => p.price > max.price ? p : max),\n  categoryBreakdown: products.reduce((acc, p) => {\n    acc[p.category] = (acc[p.category] || 0) + 1;\n    return acc;\n  }, {})\n};\n\nexports.analysis = analysis;\n\n// Display analysis\noutput(\"📊 **Analysis Results:**\");\noutput(analysis);"
+    }
+  ]
+}

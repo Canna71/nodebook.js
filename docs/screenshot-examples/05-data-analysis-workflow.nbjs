@@ -1,0 +1,29 @@
+{
+  "cells": [
+    {
+      "type": "markdown",
+      "id": "header",
+      "content": "# Data Analysis Workflow\n\nThis notebook demonstrates a complete data analysis workflow: Load → Transform → Analyze → Visualize"
+    },
+    {
+      "type": "code",
+      "id": "load-data",
+      "content": "// Step 1: Load Data\nconst salesData = [\n  { month: 'Jan', product: 'Laptop', sales: 45, revenue: 44550 },\n  { month: 'Jan', product: 'Phone', sales: 120, revenue: 59880 },\n  { month: 'Jan', product: 'Tablet', sales: 80, revenue: 23920 },\n  { month: 'Feb', product: 'Laptop', sales: 52, revenue: 51480 },\n  { month: 'Feb', product: 'Phone', sales: 135, revenue: 67365 },\n  { month: 'Feb', product: 'Tablet', sales: 95, revenue: 28405 },\n  { month: 'Mar', product: 'Laptop', sales: 38, revenue: 37620 },\n  { month: 'Mar', product: 'Phone', sales: 98, revenue: 48902 },\n  { month: 'Mar', product: 'Tablet', sales: 70, revenue: 20930 }\n];\n\nexports.salesData = salesData;\noutput(\"✅ Data loaded successfully!\");\noutput.table(salesData.slice(0, 5)); // Show first 5 records"
+    },
+    {
+      "type": "code",
+      "id": "transform-data",
+      "content": "// Step 2: Transform Data\nconst monthlyTotals = salesData.reduce((acc, record) => {\n  if (!acc[record.month]) {\n    acc[record.month] = { month: record.month, totalSales: 0, totalRevenue: 0 };\n  }\n  acc[record.month].totalSales += record.sales;\n  acc[record.month].totalRevenue += record.revenue;\n  return acc;\n}, {});\n\nconst productTotals = salesData.reduce((acc, record) => {\n  if (!acc[record.product]) {\n    acc[record.product] = { product: record.product, totalSales: 0, totalRevenue: 0 };\n  }\n  acc[record.product].totalSales += record.sales;\n  acc[record.product].totalRevenue += record.revenue;\n  return acc;\n}, {});\n\nexports.monthlyTotals = Object.values(monthlyTotals);\nexports.productTotals = Object.values(productTotals);\n\noutput(\"📊 Data transformed successfully!\");\noutput.table(Object.values(monthlyTotals));"
+    },
+    {
+      "type": "code",
+      "id": "analyze-data",
+      "content": "// Step 3: Analyze Data\nconst totalSales = salesData.reduce((sum, record) => sum + record.sales, 0);\nconst totalRevenue = salesData.reduce((sum, record) => sum + record.revenue, 0);\nconst avgRevenuePerUnit = totalRevenue / totalSales;\n\nconst bestMonth = monthlyTotals.reduce((best, month) => \n  month.totalRevenue > best.totalRevenue ? month : best\n);\n\nconst bestProduct = productTotals.reduce((best, product) => \n  product.totalRevenue > best.totalRevenue ? product : best\n);\n\nconst insights = {\n  totalSales,\n  totalRevenue: `$${totalRevenue.toLocaleString()}`,\n  avgRevenuePerUnit: `$${avgRevenuePerUnit.toFixed(2)}`,\n  bestMonth: `${bestMonth.month} ($${bestMonth.totalRevenue.toLocaleString()})`,\n  bestProduct: `${bestProduct.product} ($${bestProduct.totalRevenue.toLocaleString()})`\n};\n\nexports.insights = insights;\n\noutput(\"🔍 **Analysis Complete!**\");\noutput(insights);"
+    },
+    {
+      "type": "code",
+      "id": "visualize-data",
+      "content": "// Step 4: Visualize Data\nconst monthlyChart = {\n  x: monthlyTotals.map(m => m.month),\n  y: monthlyTotals.map(m => m.totalRevenue),\n  type: 'bar',\n  name: 'Monthly Revenue',\n  marker: { color: '#3b82f6' }\n};\n\nconst productChart = {\n  x: productTotals.map(p => p.product),\n  y: productTotals.map(p => p.totalSales),\n  type: 'bar',\n  name: 'Product Sales',\n  marker: { color: '#10b981' }\n};\n\nconst layout1 = {\n  title: 'Revenue by Month',\n  xaxis: { title: 'Month' },\n  yaxis: { title: 'Revenue ($)' },\n  height: 400\n};\n\nconst layout2 = {\n  title: 'Sales by Product',\n  xaxis: { title: 'Product' },\n  yaxis: { title: 'Units Sold' },\n  height: 400\n};\n\nconst chartDiv1 = createDiv({ style: 'height: 400px; margin-bottom: 20px;' });\nconst chartDiv2 = createDiv({ style: 'height: 400px;' });\n\noutput(chartDiv1);\noutput(chartDiv2);\n\nPlotly.newPlot(chartDiv1, [monthlyChart], layout1);\nPlotly.newPlot(chartDiv2, [productChart], layout2);\n\noutput(\"📈 **Visualizations Complete!**\");"
+    }
+  ]
+}
