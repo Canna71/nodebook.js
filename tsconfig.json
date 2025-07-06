@@ -15,5 +15,12 @@
     "paths": {
       "@/*": ["./src/*"]
     }
-  }
+  },
+  "exclude": [
+    "out",
+    "dist",
+    "node_modules",
+    ".vite",
+    "build-resources"
+  ]
 }
