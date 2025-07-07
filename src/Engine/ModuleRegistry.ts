@@ -5,7 +5,16 @@ import anylogger from 'anylogger';
 const path = require('node:path');
 import * as Plotly from 'plotly.js-dist-min';
 import * as math from 'mathjs';
+// import * as zx from 'zx';
+import * as lodash from 'lodash';
+/// @ts-ignore
+import * as papaparse from 'papaparse';
+import * as xlsx from 'xlsx';
 
+// const zx:any = this.nodeRequire('zx');
+// const lodash:any = this.nodeRequire('lodash');
+// const papaparse:any = this.nodeRequire('papaparse');
+// const xlsx:any = this.nodeRequire('xlsx');
 
 // preloaded modules
 
@@ -797,9 +806,8 @@ export class ModuleRegistry {
 const danfojs:any = this.nodeRequire('danfojs');
 // #endif
 const zx:any = this.nodeRequire('zx');
-const lodash:any = this.nodeRequire('lodash');
-const papaparse:any = this.nodeRequire('papaparse');
-const xlsx:any = this.nodeRequire('xlsx');
+
+
 
     // Register statically imported danfojs
     if (danfojs) {

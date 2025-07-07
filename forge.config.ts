@@ -49,7 +49,7 @@ import fs from 'fs-extra';
     'd3',
     // 'ansi-regex',
     // 'emoji-regex'
-    // 'zx' // Now preloaded
+    'zx' 
 ];
 
 const config: ForgeConfig = {
