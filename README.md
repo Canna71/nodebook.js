@@ -89,8 +89,7 @@ await $`ls -la`;
 - Responsive layout
 - Reading mode for presentations
 
-![Homepage Interface](./docs/images/homepage.png)
-*Clean and modern homepage with quick access to recent files and examples*
+![Homepage Interface](./docs/CleanShot%202025-07-03%20at%2018.28.35@2x.png)
 
 ## 🛠️ Installation & Setup
 
