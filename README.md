@@ -14,7 +14,7 @@
 [![Electron](https://img.shields.io/badge/electron-latest-orange.svg)](https://electronjs.org/)
 [![React](https://img.shields.io/badge/react-18-blue.svg)](https://reactjs.org/)
 
-![Nodebook.js Main Interface](./docs/images/main-interface.png)
+![Nodebook.js Main Interface](./docs/CleanShot%202025-07-03%20at%2018.21.10@2x.png)
 *The main Nodebook.js interface showcasing reactive code cells, rich outputs, and live data visualization*
 
 ## 🚀 What is Nodebook.js?
@@ -177,7 +177,7 @@ Access the full **[documentation](./docs/index.md)** or within the application:
 - **[Vite](https://vitejs.dev/)** - Fast build tool
 - **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework
 - **[CodeMirror](https://codemirror.net/)** - Advanced code editor
-- **[Plotly.js](https://plotly.com/javascript/)** - Interactive visualizations
+- **[Github Copilot](https://github.com/features/copilot)** - AI-powered code suggestions
 
 ## 🤝 Contributing
 
@@ -190,16 +190,6 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 4. Commit: `git commit -m 'Add amazing feature'`
 5. Push: `git push origin feature/amazing-feature`
 6. Open a Pull Request
-
-## 📋 Roadmap
-
-- [ ] **Cloud Sync** - Sync notebooks across devices
-- [ ] **Collaboration** - Real-time collaborative editing
-- [ ] **Package Manager** - Built-in package installation
-- [ ] **Plugin System** - Extensible architecture
-- [ ] **Export Options** - PDF, HTML, and more
-- [ ] **Version Control** - Git integration
-- [ ] **Performance** - Optimizations for large notebooks
 
 ## 📄 License
 
