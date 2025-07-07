@@ -14,7 +14,7 @@
 [![Electron](https://img.shields.io/badge/electron-latest-orange.svg)](https://electronjs.org/)
 [![React](https://img.shields.io/badge/react-18-blue.svg)](https://reactjs.org/)
 
-![Nodebook.js Main Interface](./docs/images/main-interface.png)
+![Nodebook.js Main Interface](/docs/images/main-interface.png)
 *The main Nodebook.js interface showcasing reactive code cells, rich outputs, and live data visualization*
 
 ## 🚀 What is Nodebook.js?
