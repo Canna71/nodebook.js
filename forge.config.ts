@@ -77,6 +77,7 @@ import fs from 'fs-extra';
     'd3-timer',
     'd3-transition',
     'd3-zoom',
+    'internmap',
     // 'ansi-regex',
     // 'emoji-regex'
     'zx' 
