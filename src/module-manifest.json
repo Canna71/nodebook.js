@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-07-07T11:06:20.764Z",
+  "generatedAt": "2025-07-07T18:42:56.992Z",
   "modules": {
     "danfojs": {
       "version": "1.2.0",
@@ -17,101 +17,101 @@
       "type": "npm"
     },
     "os": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "path": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "fs": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "util": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "url": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "querystring": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "crypto": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "zlib": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "stream": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "buffer": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "events": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "readline": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "worker_threads": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "child_process": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "string_decoder": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "timers": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "async_hooks": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "assert": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     },
     "constants": {
-      "version": "v18.18.2",
+      "version": "v22.11.0",
       "description": "Node.js built-in module",
       "type": "builtin"
     }
   },
-  "nodeVersion": "v18.18.2",
-  "platform": "win32"
+  "nodeVersion": "v22.11.0",
+  "platform": "darwin"
 }

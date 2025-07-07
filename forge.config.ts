@@ -78,6 +78,8 @@ import fs from 'fs-extra';
     'd3-transition',
     'd3-zoom',
     'internmap',
+    'delaunator',
+    'robust-predicates',
     // 'ansi-regex',
     // 'emoji-regex'
     'zx' 
