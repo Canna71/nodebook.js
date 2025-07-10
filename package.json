@@ -1,7 +1,7 @@
 {
   "name": "nodebookjs",
   "productName": "Nodebook.js",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Interactive reactive notebooks with live JavaScript, data visualization, and real-time updates.",
   "main": ".vite/build/main.js",
   "homepage": "https://github.com/gcannata/nodebook.js",
