@@ -164,7 +164,7 @@ export function ObjectDisplay({
           name={typeof name === 'string' ? name : effectiveName}
           editable={true}
           collapsed={collapsed}
-          maxDepth={3}
+          maxDepth={6}
         />
       </div>
     );

@@ -185,10 +185,12 @@ function PropertyRow({
   level?: number;
   maxDepth?: number;
 }) {
-  const [isExpanded, setIsExpanded] = useState(level < 2); // Auto-expand first 2 levels
+  const [isExpanded, setIsExpanded] = useState(level < 3); // Auto-expand first 3 levels to make "four" visible by default
   const type = getValueType(value);
   const isEditable = isEditableType(type) && isReactiveEditable;
-  const isExpandable = isExpandableType(type) && level < (maxDepth || 3);
+  const isExpandable = isExpandableType(type); // Always expandable if it's an object/array
+  const effectiveMaxDepth = maxDepth || 5;
+  const shouldRenderChildren = level < effectiveMaxDepth; // Only render children up to maxDepth
   
   const paddingLeft = level * 12; // Reduced from 16px to 12px per level
 
@@ -228,6 +230,11 @@ function PropertyRow({
           {isExpandable ? (
             <div className="py-0.5">
               {formatValueWithSyntaxHighlighting(value)}
+              {isExpandable && !shouldRenderChildren && (
+                <span className="text-xs text-muted-foreground italic ml-2">
+                  (max depth reached)
+                </span>
+              )}
             </div>
           ) : (
             <EditableCell
@@ -241,7 +248,7 @@ function PropertyRow({
       </tr>
 
       {/* Nested Properties */}
-      {isExpandable && isExpanded && (
+      {isExpandable && isExpanded && shouldRenderChildren && (
         <>
           {Array.isArray(value) ? (
             // Render array items
@@ -254,7 +261,7 @@ function PropertyRow({
                 onValueChange={onValueChange}
                 isReactiveEditable={isReactiveEditable}
                 level={level + 1}
-                maxDepth={maxDepth}
+                maxDepth={effectiveMaxDepth}
               />
             ))
           ) : (
@@ -268,7 +275,7 @@ function PropertyRow({
                 onValueChange={onValueChange}
                 isReactiveEditable={isReactiveEditable}
                 level={level + 1}
-                maxDepth={maxDepth}
+                maxDepth={effectiveMaxDepth}
               />
             ))
           )}
@@ -283,7 +290,7 @@ export function PropertyGrid({
   name, 
   editable = false, 
   collapsed = false, 
-  maxDepth = 3,
+  maxDepth = 5,
   level = 0,
   onValueChange 
 }: PropertyGridProps) {
@@ -296,7 +303,6 @@ export function PropertyGrid({
   // Determine if this object is a reactive value that can be edited
   const isReactiveEditable = useMemo(() => {
     if (!editable || !name || !reactiveContext?.reactiveStore) {
-      console.log('PropertyGrid: Not editable because:', { editable, name, hasStore: !!reactiveContext?.reactiveStore });
       return false;
     }
     
@@ -306,7 +312,6 @@ export function PropertyGrid({
       const variableExists = variableNames.includes(name);
       
       if (!variableExists) {
-        console.log('PropertyGrid: Variable does not exist in reactive store:', { name, variableNames });
         return false;
       }
       
@@ -314,11 +319,9 @@ export function PropertyGrid({
       try {
         const storedValue = reactiveContext.reactiveStore.getValue(name);
         const sameReference = storedValue === data;
-        console.log('PropertyGrid: Reference check:', { name, sameReference, storedValue, data });
         
         // If references don't match, this might be a copy or different object
         if (!sameReference) {
-          console.log('PropertyGrid: Not editable - object reference mismatch');
           return false;
         }
         
@@ -338,7 +341,6 @@ export function PropertyGrid({
     if (name && reactiveContext?.reactiveStore && isReactiveEditable) {
       try {
         const unsubscribe = reactiveContext.reactiveStore.subscribe(name, (newValue) => {
-          console.log(`PropertyGrid: Reactive update for ${name}:`, newValue);
           setCurrentData(newValue);
         });
         
@@ -380,7 +382,6 @@ export function PropertyGrid({
         // Update the reactive store with the modified object
         reactiveContext.reactiveStore.define(name, updatedData);
         
-        console.log(`PropertyGrid: Updated ${name}.${path.join('.')} to`, newValue);
       } catch (error) {
         console.error('Failed to update reactive value:', error);
       }
