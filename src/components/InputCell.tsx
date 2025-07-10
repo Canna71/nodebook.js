@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useReactiveValue } from '@/Engine/ReactiveProvider';
 import { useThrottledReactiveValue } from '@/hooks/useThrottledReactiveValue';
 import { useApplication } from '@/Engine/ApplicationProvider';
@@ -71,13 +71,29 @@ export function InputCell({ definition, isEditMode = false, readingMode = false 
     });
   }, [definition.props?.min, definition.props?.max, definition.props?.step]);
 
-  // NEW: Save value back to definition whenever it changes
+  // NEW: Save value back to definition whenever it changes (debounced)
   // This works with throttled values - the final committed value gets saved to the cell definition
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   useEffect(() => {
     if (value === undefined || value === definition.value) return;
 
-    // Update the definition with the current value through state manager
-    updateCell(definition.id, { value: value }, 'Update input value');
+    // Clear any existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Debounce the updateCell call - wait 300ms after the last change
+    saveTimeoutRef.current = setTimeout(() => {
+      updateCell(definition.id, { value: value }, 'Update input value');
+    }, 300);
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, [value, updateCell, definition.id, definition.value]);
 
   // Use label if provided, otherwise fallback to variableName (or auto name if empty)
@@ -180,9 +196,15 @@ export function InputCell({ definition, isEditMode = false, readingMode = false 
               }
             }}
             onBlur={(e) => {
-              // On blur, ensure the display value matches the reactive value
+              // On blur, ensure the display value matches the reactive value and save immediately
               const currentValue = value ?? definition.value;
               setNumberInputValue(String(currentValue));
+              
+              // Force immediate save on blur
+              if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+              }
+              updateCell(definition.id, { value: currentValue }, 'Update input value');
             }}
             min={definition.props?.min}
             max={definition.props?.max}
@@ -197,7 +219,14 @@ export function InputCell({ definition, isEditMode = false, readingMode = false 
             <Slider
               value={[value ?? definition.value]}
               onValueChange={(values) => setValue(values[0])} // Throttled updates during drag
-              onValueCommit={setValueImmediate ? (values) => setValueImmediate(values[0]) : undefined} // Immediate update on release
+              onValueCommit={setValueImmediate ? (values) => {
+                setValueImmediate(values[0]); // Immediate reactive value update
+                // Also immediately save to definition for sliders to avoid the 300ms delay
+                if (saveTimeoutRef.current) {
+                  clearTimeout(saveTimeoutRef.current);
+                }
+                updateCell(definition.id, { value: values[0] }, 'Update input value');
+              } : undefined}
               min={definition.props?.min ?? 0}
               max={definition.props?.max ?? 100}
               step={definition.props?.step ?? 1}
@@ -214,7 +243,14 @@ export function InputCell({ definition, isEditMode = false, readingMode = false 
           <div className="flex items-center space-x-2">
             <Checkbox
               checked={value ?? definition.value}
-              onCheckedChange={(checked) => setValue(checked)} // Immediate update for checkboxes
+              onCheckedChange={(checked) => {
+                setValue(checked); // Immediate reactive update
+                // Also immediately save to definition for checkboxes
+                if (saveTimeoutRef.current) {
+                  clearTimeout(saveTimeoutRef.current);
+                }
+                updateCell(definition.id, { value: checked }, 'Update input value');
+              }}
               id={`checkbox-${definition.id}`}
             />
             <Label 
@@ -233,7 +269,13 @@ export function InputCell({ definition, isEditMode = false, readingMode = false 
             onValueChange={(selectedValue) => {
               // Convert back to appropriate type based on the option value type
               const option = definition.props?.options?.find(opt => String(opt.value) === selectedValue);
-              setValue(option ? option.value : selectedValue); // Immediate update for select inputs
+              const newValue = option ? option.value : selectedValue;
+              setValue(newValue); // Immediate reactive update
+              // Also immediately save to definition for select inputs
+              if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+              }
+              updateCell(definition.id, { value: newValue }, 'Update input value');
             }}
           >
             <SelectTrigger className="input-max-width">
@@ -271,7 +313,11 @@ export function InputCell({ definition, isEditMode = false, readingMode = false 
               // Text input focused
             }}
             onBlur={() => {
-              // Text input blurred
+              // Force immediate save on blur for text inputs
+              if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+              }
+              updateCell(definition.id, { value: value ?? definition.value }, 'Update input value');
             }}
             placeholder={definition.props?.placeholder}
             className="input-max-width"
