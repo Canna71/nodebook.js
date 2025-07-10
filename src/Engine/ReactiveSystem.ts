@@ -896,6 +896,7 @@ export class CodeCellEngine {
             previousCellInfo.lastOutput = [];
             log.debug(`Cleared previous output values and console output for cell ${cellId}`);
         }
+     
         
         const dependencies = new Set<string>();
         const exportedVars = new Set<string>();

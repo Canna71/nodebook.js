@@ -244,6 +244,14 @@ export function CodeCell({ definition, initialized, isEditMode = false, onExecut
         }
     }, [onExecuteRequested, onExecute]);
 
+    // Clear output values immediately when execution starts (React state management)
+    useEffect(() => {
+        if (executionState === 'running') {
+            setOutputValues([]);
+            log.debug(`Code cell ${definition.id} output values cleared at execution start (React state)`);
+        }
+    }, [executionState, definition.id]);
+
     return (
         <div className={`cell code-cell border rounded-lg mb-4 overflow-hidden ${
             error 
