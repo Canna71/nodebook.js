@@ -175,7 +175,8 @@ function PropertyRow({
   onValueChange, 
   isReactiveEditable, 
   level = 0,
-  maxDepth 
+  maxDepth,
+  propertyColumnWidth 
 }: {
   propertyKey: string;
   value: any;
@@ -184,6 +185,7 @@ function PropertyRow({
   isReactiveEditable: boolean;
   level?: number;
   maxDepth?: number;
+  propertyColumnWidth?: number;
 }) {
   const [isExpanded, setIsExpanded] = useState(level < 3); // Auto-expand first 3 levels to make "four" visible by default
   const type = getValueType(value);
@@ -193,6 +195,7 @@ function PropertyRow({
   const shouldRenderChildren = level < effectiveMaxDepth; // Only render children up to maxDepth
   
   const paddingLeft = level * 12; // Reduced from 16px to 12px per level
+  const effectiveColumnWidth = propertyColumnWidth || 128; // Fallback to default width
 
   return (
     <>
@@ -262,6 +265,7 @@ function PropertyRow({
                 isReactiveEditable={isReactiveEditable}
                 level={level + 1}
                 maxDepth={effectiveMaxDepth}
+                propertyColumnWidth={propertyColumnWidth}
               />
             ))
           ) : (
@@ -276,6 +280,7 @@ function PropertyRow({
                 isReactiveEditable={isReactiveEditable}
                 level={level + 1}
                 maxDepth={effectiveMaxDepth}
+                propertyColumnWidth={propertyColumnWidth}
               />
             ))
           )}
@@ -296,6 +301,7 @@ export function PropertyGrid({
 }: PropertyGridProps) {
   const reactiveContext = useReactiveSystem();
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
+  const [propertyColumnWidth, setPropertyColumnWidth] = useState(128); // Default width in pixels
   
   // Subscribe to reactive value changes to get current data
   const [currentData, setCurrentData] = useState(data);
@@ -388,6 +394,30 @@ export function PropertyGrid({
     }
   }, [onValueChange, isReactiveEditable, name, reactiveContext, currentData]);
 
+  // Handle column resizing
+  const handleColumnResize = useCallback((event: React.MouseEvent) => {
+    const startX = event.clientX;
+    const startWidth = propertyColumnWidth;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - startX;
+      const newWidth = Math.max(80, Math.min(400, startWidth + deltaX)); // Min 80px, max 400px
+      setPropertyColumnWidth(newWidth);
+    };
+    
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'default';
+      document.body.style.userSelect = 'auto';
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }, [propertyColumnWidth]);
+
   if (!currentData || (typeof currentData !== 'object') || currentData === null) {
     return (
       <div className="text-sm text-muted-foreground italic p-4">
@@ -444,17 +474,24 @@ export function PropertyGrid({
       {/* Properties Table */}
       {!isCollapsed && (
         <div className="max-h-80 overflow-y-auto">
-          <table className="w-full text-sm table-fixed">
+          <table className="w-full text-sm">
             <colgroup>
-              <col className="w-32" />
+              <col style={{ width: `${propertyColumnWidth}px` }} />
               <col />
             </colgroup>
             {/* Column Headers - only show for top level */}
             {level === 0 && (
               <thead>
                 <tr className="border-b border-border">
-                  <th className="py-1.5 px-2 bg-muted/40 text-left text-xs font-semibold text-muted-foreground border-r border-border/30">
+                  <th className="py-1.5 px-2 bg-muted/40 text-left text-xs font-semibold text-muted-foreground border-r border-border/30 relative">
                     Property
+                    <div 
+                      className="absolute top-0 right-0 w-1 h-full cursor-col-resize bg-transparent hover:bg-blue-500/20 transition-colors group"
+                      onMouseDown={handleColumnResize}
+                      title="Drag to resize column"
+                    >
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-0.5 h-4 bg-border/40 group-hover:bg-blue-500/60 transition-colors" />
+                    </div>
                   </th>
                   <th className="py-1.5 px-2 bg-muted/20 text-left text-xs font-semibold text-muted-foreground">
                     Value
@@ -477,6 +514,7 @@ export function PropertyGrid({
                     isReactiveEditable={isReactiveEditable}
                     level={level}
                     maxDepth={maxDepth}
+                    propertyColumnWidth={propertyColumnWidth}
                   />
                 ))
               ) : (
@@ -491,6 +529,7 @@ export function PropertyGrid({
                     isReactiveEditable={isReactiveEditable}
                     level={level}
                     maxDepth={maxDepth}
+                    propertyColumnWidth={propertyColumnWidth}
                   />
                 ))
               )}
