@@ -7,6 +7,7 @@ import { ObjectDisplay } from './ObjectDisplay';
 import Editor from './Editor';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { PlayIcon } from '@heroicons/react/24/solid';
+import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { Button } from './ui/button';
 import { DomElementDisplay } from './DomElementDisplay';
 import { CodeSummary } from './CodeSummary';
@@ -67,6 +68,103 @@ export function CodeCell({ definition, initialized, isEditMode = false, onExecut
     const outputContainerRef = React.useRef<HTMLDivElement>(null);
 
     const [exports, setExports] = React.useState<string[]>([]);
+    
+    // Copy functionality for cell output
+    const [isOutputHovered, setIsOutputHovered] = useState(false);
+    const [hasDOMOutput, setHasDOMOutput] = useState(false);
+    
+    // Monitor DOM output container for content changes
+    useEffect(() => {
+        const container = outputContainerRef.current;
+        if (!container) return;
+        
+        const observer = new MutationObserver(() => {
+            setHasDOMOutput(container.innerHTML.trim().length > 0);
+        });
+        
+        observer.observe(container, { 
+            childList: true, 
+            subtree: true, 
+            characterData: true 
+        });
+        
+        // Initial check
+        setHasDOMOutput(container.innerHTML.trim().length > 0);
+        
+        return () => observer.disconnect();
+    }, []);
+    
+    const copyOutputAsHTML = useCallback(async () => {
+        try {
+            // Get the DOM output container
+            const domContainer = document.getElementById(`${definition.id}-outEl`);
+            
+            // Get the output values container
+            const outputValuesContainer = document.querySelector(`#cell-${definition.id} .output-values`);
+            
+            // Get the error container if it exists
+            const errorContainer = document.querySelector(`#cell-${definition.id} .code-error`);
+            
+            let htmlContent = '';
+            
+            // Add DOM output content
+            if (domContainer && domContainer.innerHTML.trim()) {
+                htmlContent += '<div class="dom-output">' + domContainer.innerHTML + '</div>';
+            }
+            
+            // Add output values content
+            if (outputValuesContainer) {
+                htmlContent += '<div class="output-values">' + outputValuesContainer.innerHTML + '</div>';
+            }
+            
+            // Add error content
+            if (errorContainer) {
+                htmlContent += '<div class="code-error">' + errorContainer.innerHTML + '</div>';
+            }
+            
+            if (htmlContent) {
+                // Create a complete HTML structure
+                const fullHTML = `
+                    <div class="notebook-cell-output">
+                        ${htmlContent}
+                    </div>
+                `;
+                
+                // Copy as HTML
+                await navigator.clipboard.write([
+                    new ClipboardItem({
+                        'text/html': new Blob([fullHTML], { type: 'text/html' }),
+                        'text/plain': new Blob([[domContainer?.textContent || '', outputValuesContainer?.textContent || '', errorContainer?.textContent || ''].filter(Boolean).join('\n')], { type: 'text/plain' })
+                    })
+                ]);
+                
+                log.info('Cell output copied to clipboard as HTML');
+            } else {
+                log.warn('No output content to copy');
+            }
+        } catch (error) {
+            log.error('Failed to copy cell output:', error);
+            // Fallback to text copying
+            try {
+                const domContainer = document.getElementById(`${definition.id}-outEl`);
+                const outputValuesContainer = document.querySelector(`#cell-${definition.id} .output-values`);
+                const errorContainer = document.querySelector(`#cell-${definition.id} .code-error`);
+                
+                const textContent = [
+                    domContainer?.textContent || '',
+                    outputValuesContainer?.textContent || '',
+                    errorContainer?.textContent || ''
+                ].filter(Boolean).join('\n');
+                
+                if (textContent) {
+                    await navigator.clipboard.writeText(textContent);
+                    log.info('Cell output copied to clipboard as text (fallback)');
+                }
+            } catch (fallbackError) {
+                log.error('Failed to copy cell output as text:', fallbackError);
+            }
+        }
+    }, [definition.id]);
     const [dependencies, setDependencies] = React.useState<string[]>([]);
     const [outputValues, setOutputValues] = React.useState<any[]>([]);
 
@@ -253,13 +351,16 @@ export function CodeCell({ definition, initialized, isEditMode = false, onExecut
     }, [executionState, definition.id]);
 
     return (
-        <div className={`cell code-cell border rounded-lg mb-4 overflow-hidden ${
-            error 
-                ? 'border-destructive bg-destructive/5 dark:bg-destructive/10' // Error state styling
-                : isStatic 
-                    ? 'border-l-4 border-l-amber-400/60 border-border bg-background' 
-                    : 'border-border bg-background'
-        }`}>
+        <div 
+            id={`cell-${definition.id}`}
+            className={`cell code-cell border rounded-lg mb-4 overflow-hidden ${
+                error 
+                    ? 'border-destructive bg-destructive/5 dark:bg-destructive/10' // Error state styling
+                    : isStatic 
+                        ? 'border-l-4 border-l-amber-400/60 border-border bg-background' 
+                        : 'border-border bg-background'
+            }`}
+        >
             {/* Code Summary - hidden in reading mode via CSS */}
             <div className="flex items-center justify-between">
                 <CodeSummary 
@@ -346,59 +447,81 @@ export function CodeCell({ definition, initialized, isEditMode = false, onExecut
                 </div>
             )}
 
-            {/* DOM Output Container with predictable ID */}
-            <div 
-                id={`${definition.id}-outEl`}
-                ref={outputContainerRef}
-                className="dom-output-container bg-background border-t border-border"
-                style={{ minHeight: '0px' }}
-            />
+            {/* Cell Output Section with Copy Button */}
+            {(outputValues.length > 0 || error || hasDOMOutput) && (
+                <div 
+                    className="cell-output-section relative"
+                    onMouseEnter={() => setIsOutputHovered(true)}
+                    onMouseLeave={() => setIsOutputHovered(false)}
+                >
+                    {/* Copy Output Button */}
+                    {isOutputHovered && (
+                        <Button
+                            onClick={copyOutputAsHTML}
+                            variant="ghost"
+                            size="sm"
+                            className="absolute top-2 right-2 z-10 h-6 w-6 p-0 opacity-70 hover:opacity-100 bg-background/80 backdrop-blur-sm border border-border/50"
+                            title="Copy output as HTML"
+                        >
+                            <DocumentDuplicateIcon className="w-3 h-3" />
+                        </Button>
+                    )}
 
-            {/* Output Values Display - No explicit label */}
-            {outputValues.length > 0 && (
-                <div className="output-values bg-background-secondary border-t border-border">
-                    <div className="output-content">
-                        {outputValues.map((value, index) => (
-                            <div key={index} className="output-item px-4 py-1 [&:not(:last-child)]:border-b">
-                                {/* {outputValues.length > 1 && (
-                                    <div className="text-xs text-secondary-foreground mb-1">#{index + 1}:</div>
-                                )} */}
-                                {value instanceof HTMLElement || value instanceof SVGElement ? (
-                                    <DomElementDisplay
-                                        element={value}
-                                        name={false}
-                                    />
-                                ) : typeof value === 'object' && value !== null ? (
-                                    <ObjectDisplay
-                                        data={value}
-                                        name={false}
-                                        collapsed={false}
-                                        displayDataTypes={false}
-                                        displayObjectSize={false} />
-                                ) : typeof value === 'string' && isLatexContent(value) ? (
-                                    <div className="latex-output">
-                                        {renderMixedContent(value)}
+                    {/* DOM Output Container with predictable ID */}
+                    <div 
+                        id={`${definition.id}-outEl`}
+                        ref={outputContainerRef}
+                        className="dom-output-container bg-background border-t border-border"
+                        style={{ minHeight: '0px' }}
+                    />
+
+                    {/* Output Values Display - No explicit label */}
+                    {outputValues.length > 0 && (
+                        <div className="output-values bg-background-secondary border-t border-border">
+                            <div className="output-content">
+                                {outputValues.map((value, index) => (
+                                    <div key={index} className="output-item px-4 py-1 [&:not(:last-child)]:border-b">
+                                        {/* {outputValues.length > 1 && (
+                                            <div className="text-xs text-secondary-foreground mb-1">#{index + 1}:</div>
+                                        )} */}
+                                        {value instanceof HTMLElement || value instanceof SVGElement ? (
+                                            <DomElementDisplay
+                                                element={value}
+                                                name={false}
+                                            />
+                                        ) : typeof value === 'object' && value !== null ? (
+                                            <ObjectDisplay
+                                                data={value}
+                                                name={false}
+                                                collapsed={false}
+                                                displayDataTypes={false}
+                                                displayObjectSize={false} />
+                                        ) : typeof value === 'string' && isLatexContent(value) ? (
+                                            <div className="latex-output">
+                                                {renderMixedContent(value)}
+                                            </div>
+                                        ) : (
+                                            <span className="text-accent-foreground font-mono text-sm whitespace-pre-wrap">
+                                                {value === null ? 'null' : String(value)}
+                                            </span>
+                                        )}
                                     </div>
-                                ) : (
-                                    <span className="text-accent-foreground font-mono text-sm whitespace-pre-wrap">
-                                        {value === null ? 'null' : String(value)}
-                                    </span>
-                                )}
+                                ))}
                             </div>
-                        ))}
-                    </div>
-                </div>
-            )}
+                        </div>
+                    )}
 
-            {error && (
-                <div className="code-error bg-destructive/10 border-t border-destructive px-4 py-3">
-                    <div className="flex items-center gap-2">
-                        <div className="text-xs font-medium text-destructive">Execution Error:</div>
-                        <div className="text-xs text-muted-foreground">Check console for details</div>
-                    </div>
-                    <div className="text-sm text-foreground font-mono mt-1">
-                        {error.message}
-                    </div>
+                    {error && (
+                        <div className="code-error bg-destructive/10 border-t border-destructive px-4 py-3">
+                            <div className="flex items-center gap-2">
+                                <div className="text-xs font-medium text-destructive">Execution Error:</div>
+                                <div className="text-xs text-muted-foreground">Check console for details</div>
+                            </div>
+                            <div className="text-sm text-foreground font-mono mt-1">
+                                {error.message}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
