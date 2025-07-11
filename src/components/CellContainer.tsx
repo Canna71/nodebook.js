@@ -356,9 +356,7 @@ export function CellContainer({
                 
             >                {/* Left Cell Type Indicator - always takes up space, visibility controlled by opacity */}
                                   
-                <div className={`cell-type-indicator flex flex-col items-center justify-start px-1 py-1.5 bg-background-secondary border-r border-border rounded-l-lg transition-opacity duration-200 ${
-                    isSelected || isHovered || isExecuting || true ? 'opacity-100' : 'opacity-0'
-                }`}>                    {/* Cell Type Badge with Tooltip */}
+                <div className={`cell-type-indicator flex flex-col items-center justify-start px-1 py-1.5 bg-background-secondary border-r border-border rounded-l-lg transition-opacity duration-200`}>                    {/* Cell Type Badge with Tooltip */}
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
