@@ -104,9 +104,13 @@
   /* Show cell type indicator on hover, selected, or edit mode */
   .cell-container:hover .cell-type-indicator,
   .cell-container.selected .cell-type-indicator,
-  .cell-container.edit-mode .cell-type-indicator {
+  .cell-container.edit-mode .cell-type-indicator,
+   .cell-container.executing .cell-type-indicator
+  {
     @apply opacity-100;
   }
+
+
   
   /* Hide cell grip indicator by default - opacity only, no layout changes */
   .cell-container .cell-grip-indicator {

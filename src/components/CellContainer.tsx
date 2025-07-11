@@ -273,7 +273,7 @@ export function CellContainer({
             {/* Floating Action Buttons - moved left to avoid overlap with grip */}
             {(isSelected || isHovered) && (
                 <div className="absolute -top-2 right-10 z-10 flex items-center gap-1 bg-background border border-border rounded-lg px-2 py-1 shadow-lg">
-                    {/* Move Up */}
+                    {/* Move Up */} 
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
@@ -339,7 +339,8 @@ export function CellContainer({
                         <TrashIcon className="w-4 h-4" />
                     </button>
                 </div>
-            )}            <div
+            )}            
+            <div
                 ref={cellContainerRef}
                 className={`cell-container relative flex border rounded-lg transition-all duration-200 ml-1 border-l-4 ${
                     isSelected 
@@ -347,12 +348,16 @@ export function CellContainer({
                         : isHovered 
                             ? 'border-accent/50 shadow-md border-l-transparent' 
                             : 'border-border border-l-transparent'
-                } ${isEditMode ? 'edit-mode' : ''}`}
+                } ${isEditMode ? 'edit-mode' : ''}
+                ${isExecuting ? 'executing' : ''}
+                `}
                 onClick={handleClick}
                 onDoubleClick={handleDoubleClick}
+                
             >                {/* Left Cell Type Indicator - always takes up space, visibility controlled by opacity */}
+                                  
                 <div className={`cell-type-indicator flex flex-col items-center justify-start px-1 py-1.5 bg-background-secondary border-r border-border rounded-l-lg transition-opacity duration-200 ${
-                    isSelected || isHovered ? 'opacity-100' : 'opacity-0'
+                    isSelected || isHovered || isExecuting || true ? 'opacity-100' : 'opacity-0'
                 }`}>                    {/* Cell Type Badge with Tooltip */}
                     <TooltipProvider>
                         <Tooltip>
@@ -371,7 +376,6 @@ export function CellContainer({
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
-                    
                     {/* Smart Execute Button for Code Cells */}
                     {definition.type === 'code' && onExecuteCode && (
                         <>
@@ -429,12 +433,13 @@ export function CellContainer({
                                     disabled={isExecuting}
                                 >
                                     {isExecuting ? (
-                                        <Loader2 className="w-2.5 h-2.5 flex-shrink-0 animate-spin" />
+                                        <Loader2 className="loader w-2.5 h-2.5 flex-shrink-0 animate-spin" />
                                     ) : (
                                         <PlayIcon className="w-2.5 h-2.5 flex-shrink-0" />
                                     )}
                                 </Button>
                             )}
+                            
                         </>
                     )}
                 </div>
