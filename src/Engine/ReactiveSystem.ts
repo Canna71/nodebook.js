@@ -1152,14 +1152,12 @@ export class CodeCellEngine {
                 }
             }
 
-            // Only update reactive values if there are actual changes AND cell is not static
-            if ((hasChanges || !previousCellInfo) && !isStatic) {
+            // Update reactive values if there are actual changes (static cells can still export)
+            if (hasChanges || !previousCellInfo) {
                 exportValues.forEach((value, name) => {
                     this.reactiveStore.define(name, value);
                 });
                 log.debug(`Code cell ${cellId} exported changed values:`, Array.from(exportValues.entries()));
-            } else if (isStatic) {
-                log.debug(`Code cell ${cellId} is static, skipping reactive value updates`);
             } else {
                 log.debug(`Code cell ${cellId} exports unchanged, skipping reactive value updates`);
             }

@@ -1,0 +1,21 @@
+{
+  "id": "test-static-exports",
+  "name": "Test Static Cell Exports",
+  "description": "Test that static code cells can export values accessible to other cells",
+  "reactiveValues": [],
+  "formulas": [],
+  "cells": [
+    {
+      "id": "static-cell-test",
+      "type": "code",
+      "code": "// This is a static cell - it won't auto-execute but should export values when run manually\nconsole.log('🔧 Static cell executing...');\n\n// Export some values\nexports.staticValue = 'Hello from static cell!';\nexports.staticNumber = 42;\nexports.staticObject = { \n    timestamp: new Date().toISOString(),\n    source: 'static cell'\n};\n\nconsole.log('✅ Static cell exports created');",
+      "isStatic": true
+    },
+    {
+      "id": "regular-cell-test",
+      "type": "code", 
+      "code": "// This regular cell should be able to access the static cell's exports\ntry {\n    console.log('📖 Trying to access static cell exports...');\n    \n    // Try to access the exported values\n    const staticVal = staticValue;\n    const staticNum = staticNumber; \n    const staticObj = staticObject;\n    \n    console.log('staticValue:', staticVal);\n    console.log('staticNumber:', staticNum);\n    console.log('staticObject:', staticObj);\n    \n    // Export our own result\n    exports.testResult = 'SUCCESS: Can access static cell exports';\n    exports.accessedValues = {\n        staticValue: staticVal,\n        staticNumber: staticNum,\n        staticObject: staticObj\n    };\n    \n    console.log('✅ Regular cell can access static exports');\n    \n} catch (error) {\n    console.log('❌ Failed to access static cell exports:', error.message);\n    exports.testResult = 'FAILED: Cannot access static cell exports - ' + error.message;\n}"
+    }
+  ],
+  "storage": {}
+}
