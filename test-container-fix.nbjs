@@ -1,0 +1,30 @@
+console.log('🔍 Testing createContainer fix...');
+
+// Test 1: Check if container exists
+const containerId = 'container-test-outEl';
+const container = document.getElementById(containerId);
+console.log('Container exists:', container !== null);
+
+if (container) {
+    console.log('✅ Container found! Testing createContainer...');
+    
+    // Test 2: Try createContainer functionality
+    try {
+        const testDiv = createDiv({
+            style: 'padding: 10px; background: lightblue; margin: 5px;',
+            innerHTML: '<strong>createContainer is working!</strong>'
+        });
+        
+        console.log('Created element:', testDiv);
+        console.log('✅ createContainer fix successful!');
+        
+        // Export result
+        exports.result = 'createContainer is now working correctly';
+    } catch (error) {
+        console.log('❌ createContainer still failing:', error.message);
+        exports.result = 'createContainer still has issues: ' + error.message;
+    }
+} else {
+    console.log('❌ Container still not found');
+    exports.result = 'Container still not available';
+}

@@ -447,6 +447,14 @@ export function CodeCell({ definition, initialized, isEditMode = false, onExecut
                 </div>
             )}
 
+            {/* DOM Output Container with predictable ID - ALWAYS RENDERED */}
+            <div 
+                id={`${definition.id}-outEl`}
+                ref={outputContainerRef}
+                className="dom-output-container bg-background border-t border-border"
+                style={{ minHeight: '0px' }}
+            />
+
             {/* Cell Output Section with Copy Button */}
             {(outputValues.length > 0 || error || hasDOMOutput) && (
                 <div 
@@ -466,14 +474,6 @@ export function CodeCell({ definition, initialized, isEditMode = false, onExecut
                             <DocumentDuplicateIcon className="w-3 h-3" />
                         </Button>
                     )}
-
-                    {/* DOM Output Container with predictable ID */}
-                    <div 
-                        id={`${definition.id}-outEl`}
-                        ref={outputContainerRef}
-                        className="dom-output-container bg-background border-t border-border"
-                        style={{ minHeight: '0px' }}
-                    />
 
                     {/* Output Values Display - No explicit label */}
                     {outputValues.length > 0 && (
