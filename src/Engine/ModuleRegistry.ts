@@ -6,6 +6,7 @@ const path = require('node:path');
 import * as Plotly from 'plotly.js-dist-min';
 import * as math from 'mathjs';
 // import * as zx from 'zx';
+/// @ts-ignore
 import * as lodash from 'lodash';
 /// @ts-ignore
 import * as papaparse from 'papaparse';
