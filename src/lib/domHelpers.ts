@@ -397,11 +397,14 @@ export function createBoundDomHelpers(outputFn: (value: any) => any) {
     };
 }
 
-// Global helpers that can be injected into code cell scope (non-auto-outputting versions)
+// Global helpers that can be injected into code cell scope
+// NOTE: This export is NOT actually used in code cells. The actual injection happens
+// via spreading the individual exported functions (...domHelpers) in ReactiveSystem.ts
+// which includes the original auto-outputting createContainer, not createOutElContainer
 export const domHelpers = {
     createElement,
     createDiv,
-    createContainer: createOutElContainer, // Use non-auto-outputting version by default
+    createContainer: createOutElContainer, // This mapping is NOT used in code cells
     createTitle,
     createTable,
     createButton,

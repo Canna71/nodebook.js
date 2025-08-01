@@ -71,6 +71,7 @@ export function CodeCell({ definition, initialized, isEditMode = false, onExecut
     
     // Copy functionality for cell output
     const [isOutputHovered, setIsOutputHovered] = useState(false);
+    const [isDOMOutputHovered, setIsDOMOutputHovered] = useState(false);
     const [hasDOMOutput, setHasDOMOutput] = useState(false);
     
     // Monitor DOM output container for content changes
@@ -451,9 +452,24 @@ export function CodeCell({ definition, initialized, isEditMode = false, onExecut
             <div 
                 id={`${definition.id}-outEl`}
                 ref={outputContainerRef}
-                className="dom-output-container bg-background border-t border-border"
+                className="dom-output-container bg-background border-t border-border relative"
                 style={{ minHeight: '0px' }}
-            />
+                onMouseEnter={() => setIsDOMOutputHovered(true)}
+                onMouseLeave={() => setIsDOMOutputHovered(false)}
+            >
+                {/* Copy Button for DOM Output */}
+                {hasDOMOutput && isDOMOutputHovered && (
+                    <Button
+                        onClick={copyOutputAsHTML}
+                        variant="ghost"
+                        size="sm"
+                        className="absolute top-2 right-2 z-10 h-6 w-6 p-0 opacity-70 hover:opacity-100 bg-background/80 backdrop-blur-sm border border-border/50"
+                        title="Copy output as HTML"
+                    >
+                        <DocumentDuplicateIcon className="w-3 h-3" />
+                    </Button>
+                )}
+            </div>
 
             {/* Cell Output Section with Copy Button */}
             {(outputValues.length > 0 || error || hasDOMOutput) && (
